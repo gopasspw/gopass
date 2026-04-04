@@ -30,7 +30,7 @@ func (r *Report) PrintResults(ctx context.Context) error {
 	for _, name := range set.SortedKeys(r.Secrets) {
 		s := r.Secrets[name]
 		var sb strings.Builder
-		sb.WriteString(fmt.Sprintf("%s (age: %s) ", name, s.HumanizeAge()))
+		fmt.Fprintf(&sb, "%s (age: %s) ", name, s.HumanizeAge())
 		if !s.HasFindings() {
 			sb.WriteString("OK")
 			out.OK(ctx, sb.String())
@@ -47,7 +47,7 @@ func (r *Report) PrintResults(ctx context.Context) error {
 			case "error":
 				fallthrough
 			case "warning":
-				sb.WriteString(fmt.Sprintf("%s: %s. ", k, v.Message))
+				fmt.Fprintf(&sb, "%s: %s. ", k, v.Message)
 			default:
 				continue
 			}

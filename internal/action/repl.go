@@ -278,14 +278,14 @@ func (g *gopassCompleter) stripFlags(s string) string {
 		return s
 	}
 
-	result := ""
+	var result strings.Builder
 	for i < n {
 		spaceStart := i
 		for i < n && s[i] == ' ' {
 			i++
 		}
 		if i >= n {
-			result += s[spaceStart:]
+			result.WriteString(s[spaceStart:])
 
 			break
 		}
@@ -316,10 +316,10 @@ func (g *gopassCompleter) stripFlags(s string) string {
 			continue
 		}
 
-		result += s[spaceStart:i]
+		result.WriteString(s[spaceStart:i])
 	}
 
-	if result == "" {
+	if result.String() == "" {
 		if n > 0 && s[n-1] == ' ' {
 			return " "
 		}
@@ -327,7 +327,7 @@ func (g *gopassCompleter) stripFlags(s string) string {
 		return ""
 	}
 
-	b.WriteString(result)
+	b.WriteString(result.String())
 
 	return b.String()
 }
@@ -428,7 +428,7 @@ func (s *Action) newGopassCompleter(c *cli.Context) *gopassCompleter {
 		}
 
 		if len(cmd.Subcommands) > 0 {
-			var subs []string
+			subs := make([]string, 0, len(cmd.Subcommands))
 			for _, scmd := range cmd.Subcommands {
 				subs = append(subs, scmd.Name)
 			}

@@ -202,7 +202,8 @@ func (f *Fossil) Add(ctx context.Context, files ...string) error {
 		files[i] = strings.TrimPrefix(files[i], f.fs.Path()+"/")
 	}
 
-	args := []string{"add", "--force", "--dotfiles"}
+	args := make([]string, 0, 3+len(files))
+	args = append(args, "add", "--force", "--dotfiles")
 	args = append(args, files...)
 
 	return f.Cmd(ctx, "fossilAdd", args...)

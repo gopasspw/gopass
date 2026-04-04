@@ -321,7 +321,7 @@ func showSafeContent(sec gopass.Secret) string {
 
 	for l := range strings.SplitSeq(sec.Body(), "\n") {
 		if strings.HasPrefix(l, "otpauth://") {
-			sb.WriteString(fmt.Sprintf("\notpauth://%s", randAsterisk()))
+			fmt.Fprintf(&sb, "\notpauth://%s", randAsterisk())
 
 			continue
 		}

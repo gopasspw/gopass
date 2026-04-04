@@ -158,8 +158,10 @@ func AskForStore(ctx context.Context, s mountPointer) string {
 		return ""
 	}
 
-	stores := []string{"<root>"}
-	stores = append(stores, sorted(s.MountPoints())...)
+	mp := s.MountPoints()
+	stores := make([]string, 0, 1+len(mp))
+	stores = append(stores, "<root>")
+	stores = append(stores, sorted(mp)...)
 	if len(stores) < 2 {
 		return ""
 	}

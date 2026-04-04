@@ -288,8 +288,8 @@ func (s *Action) recipientsSelectForRemoval(ctx context.Context, store string) (
 func (s *Action) recipientsSelectForAdd(ctx context.Context, store string) ([]string, error) {
 	crypto := s.Store.Crypto(ctx, store)
 
-	choices := []string{}
 	kl, _ := crypto.FindRecipients(ctx)
+	choices := make([]string, 0, len(kl))
 	for _, key := range kl {
 		choices = append(choices, crypto.FormatKey(ctx, key, ""))
 	}

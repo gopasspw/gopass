@@ -22,7 +22,8 @@ func (g *GPG) listKeys(ctx context.Context, typ string, search ...string) (gpg.K
 	ctx, cancel := context.WithTimeout(ctx, Timeout)
 	defer cancel()
 
-	args := []string{"--with-colons", "--with-fingerprint", "--fixed-list-mode", "--list-" + typ + "-keys"}
+	args := make([]string, 0, 4+len(search))
+	args = append(args, "--with-colons", "--with-fingerprint", "--fixed-list-mode", "--list-"+typ+"-keys")
 	args = append(args, search...)
 	if e, found := g.listCache.Get(strings.Join(args, ",")); found && gpg.UseCache(ctx) {
 		debug.Log("listed cached keys: %q", strings.Join(e.Recipients(), ","))

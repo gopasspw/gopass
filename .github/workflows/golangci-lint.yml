@@ -48,8 +48,7 @@ jobs:
         uses: golangci/golangci-lint-action@1e7e51e771db61008b38414a730f564565cf7c20 # v9.2.0
         with:
           # Note: there are 2 different version of golangci-lint used inside the project.
-          # https://github.com/gopasspw/gopass/blob/master/.github/workflows/build.yml#L65
-          # https://github.com/gopasspw/gopass/blob/master/.github/workflows/golangci-lint.yml#L46
-          # https://github.com/gopasspw/gopass/blob/master/Makefile#L136
-          version: v2.6.1 # we have a list of linters in our .golangci.yml config file
+          # https://github.com/gopasspw/gopass/blob/master/.github/workflows/golangci-lint.yml#L53
+          # https://github.com/gopasspw/gopass/blob/master/Makefile#L137
+          version: v2.11.4 # we have a list of linters in our .golangci.yml config file
           only-new-issues: true
