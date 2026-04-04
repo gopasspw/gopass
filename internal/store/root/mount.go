@@ -107,10 +107,6 @@ func (r *Store) RemoveMount(ctx context.Context, alias string) error {
 		out.Warningf(ctx, "%s is not mounted", alias)
 	}
 
-	if _, found := r.mounts[alias]; !found {
-		out.Warningf(ctx, "%s is not initialized", alias)
-	}
-
 	delete(r.mounts, alias)
 	if err := r.cfg.Unset("", "mounts."+alias+".path"); err != nil {
 		return err

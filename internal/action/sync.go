@@ -86,9 +86,7 @@ func (s *Action) autoSync(ctx context.Context) error {
 
 	if time.Since(ls) > syncInterval {
 		err := s.sync(ctx, "", true)
-		if err != nil {
-			autosyncLastRun = time.Now()
-		}
+		autosyncLastRun = time.Now()
 
 		return err
 	}

@@ -46,7 +46,7 @@ func (s *Store) Convert(ctx context.Context, cryptoBe backend.CryptoBackend, sto
 	// init new store at temp path
 	st, err := backend.InitStorage(ctx, storageBe, tmpPath)
 	if err != nil {
-		return fmt.Errorf("failed to initialize new stroage backend %s: %w", storageBe.String(), err)
+		return fmt.Errorf("failed to initialize new storage backend %s: %w", storageBe.String(), err)
 	}
 
 	debug.Log("initialized storage %s at %s", st, tmpPath)

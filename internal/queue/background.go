@@ -1,10 +1,4 @@
-// Package queue implements an experimental background queue for cleanup jobs.
-// Beware: It's likely broken.
-// We can easily close a channel which might later be written to.
-// The current locking is but a poor workaround.
-// A better implementation would create a queue object in main, pass
-// it through and wait for the channel to be empty before leaving main.
-// Will do that later.
+// Package queue implements a background queue for cleanup jobs.
 package queue
 
 import (
@@ -112,28 +106,17 @@ func (q *Queue) Add(t Task) Task {
 
 // Idle returns nil the next time the queue is empty.
 func (q *Queue) Idle(maxWait time.Duration) error {
-	done := make(chan struct{})
+	deadline := time.Now().Add(maxWait)
 
-	go func() {
-		for {
-			if len(q.work) < 1 {
-				select {
-				case done <- struct{}{}:
-					// sent
-				default:
-					// no-op
-				}
-			}
-			time.Sleep(20 * time.Millisecond)
+	for time.Now().Before(deadline) {
+		if len(q.work) < 1 {
+			return nil
 		}
-	}()
 
-	select {
-	case <-done:
-		return nil
-	case <-time.After(maxWait):
-		return fmt.Errorf("timed out waiting for empty queue")
+		time.Sleep(20 * time.Millisecond)
 	}
+
+	return fmt.Errorf("timed out waiting for empty queue")
 }
 
 // Close waits for all tasks to be processed. Must only be called once on

@@ -86,7 +86,10 @@ func (s *Action) Audit(c *cli.Context) error {
 			}
 		}
 		if !c.Bool("full") && !c.Bool("summary") {
-			out.Warning(ctx, "No output format specified. Use `--full` or `--summary` to specify.")
+			nerr := r.PrintSummary(ctx)
+			if err == nil {
+				err = nerr
+			}
 		}
 
 		return err

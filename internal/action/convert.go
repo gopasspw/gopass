@@ -39,7 +39,7 @@ func (s *Action) Convert(c *cli.Context) error {
 		var err error
 		storage, err = backend.StorageRegistry.Backend(sv)
 		if err != nil {
-			return exit.Error(exit.Usage, err, "unknown destination storage backend %q: %s", storage, err)
+			return exit.Error(exit.Usage, err, "unknown destination storage backend %q: %s", sv, err)
 		}
 	}
 
