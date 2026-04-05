@@ -55,7 +55,7 @@ func (s *Store) Link(ctx context.Context, from, to string) error {
 
 	cwd, err := os.Getwd()
 	if err != nil {
-		return fmt.Errorf("can not get current working directory: %w", err)
+		return fmt.Errorf("cannot get current working directory: %w", err)
 	}
 
 	defer func() {

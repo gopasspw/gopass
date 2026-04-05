@@ -32,7 +32,7 @@ func (r *Store) Fsck(ctx context.Context, store, path string) error {
 		debug.Log("Checking mount point %s", alias)
 
 		if err := sub.Fsck(ctx, path); err != nil {
-			out.Errorf(ctx, "fsck failed on sub store %s: %s", alias, err)
+			out.Errorf(ctx, "Fsck failed on sub store %s: %s", alias, err)
 			result = append(result, err)
 		}
 
@@ -42,7 +42,7 @@ func (r *Store) Fsck(ctx context.Context, store, path string) error {
 	// check root store
 	debug.Log("Checking root store")
 	if err := r.store.Fsck(ctx, path); err != nil {
-		out.Errorf(ctx, "fsck failed on root store: %s", err)
+		out.Errorf(ctx, "Fsck failed on root store: %s", err)
 		result = append(result, err)
 	}
 

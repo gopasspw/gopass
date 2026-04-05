@@ -19,6 +19,8 @@
 
 ## Confirmed Bugs
 
+Status: all fixed
+
 All bugs below were verified by reading the source directly.
 
 ### B-1: `grep` Command — Match and Error Counters Never Incremented
@@ -153,6 +155,8 @@ The `Idle()` method uses `len(q.work) < 1` without synchronization (data race) a
 
 ## Documentation vs Implementation Mismatches
 
+Status: all fixed
+
 ### D-1: `pwgen.xkcd-len` Type Wrong in Docs
 
 **Location:** [docs/config.md#L138](docs/config.md#L138)
@@ -198,6 +202,8 @@ Secrets support `gopass://path/to/other/secret` references (resolved when `core.
 ---
 
 ## CLI / UX Issues
+
+Status: All fixed.
 
 ### U-1: `--force` / `-f` Means Different Things Across Commands
 

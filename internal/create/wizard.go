@@ -260,7 +260,7 @@ func mkActFunc(tpl Template, s *root.Store, cb ActionCallback) func(context.Cont
 				}
 				hostname = extractHostname(sv)
 				if hostname == "" {
-					return fmt.Errorf("can not parse URL %s", sv)
+					return fmt.Errorf("cannot parse URL %s", sv)
 				}
 				if wantForName[k] {
 					nameParts = append(nameParts, hostname)

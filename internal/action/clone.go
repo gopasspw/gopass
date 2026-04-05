@@ -135,7 +135,7 @@ func (s *Action) clone(ctx context.Context, repo, mount, path string) error {
 	}
 
 	if mount == "" && inited {
-		return exit.Error(exit.AlreadyInitialized, nil, "Can not clone %s to the root store, as this store is already initialized. Please try cloning to a submount: `%s clone %s sub`", repo, s.Name, repo)
+		return exit.Error(exit.AlreadyInitialized, nil, "Cannot clone %s to the root store, as this store is already initialized. Please try cloning to a submount: `%s clone %s sub`", repo, s.Name, repo)
 	}
 
 	// make sure the parent directory exists.

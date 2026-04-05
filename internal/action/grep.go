@@ -44,7 +44,7 @@ func (s *Action) Grep(c *cli.Context) error {
 	for _, v := range haystack {
 		sec, err := s.Store.Get(ctx, v)
 		if err != nil {
-			out.Errorf(ctx, "failed to decrypt %s: %v", v, err)
+			out.Errorf(ctx, "Failed to decrypt %s: %v", v, err)
 			errors++
 
 			continue

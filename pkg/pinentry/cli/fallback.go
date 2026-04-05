@@ -48,5 +48,5 @@ func (c *Client) GetPINContext(ctx context.Context) (string, error) {
 
 // GetPIN prompts for the pin in the terminal and returns the output.
 func (c *Client) GetPIN() (string, error) {
-	return c.GetPINContext(context.TODO())
+	return c.GetPINContext(context.Background())
 }

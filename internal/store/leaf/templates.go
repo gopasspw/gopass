@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"path/filepath"
-	"sort"
+	"slices"
 	"strings"
 
 	"github.com/gopasspw/gopass/internal/out"
@@ -78,7 +78,7 @@ func (s *Store) ListTemplates(ctx context.Context, prefix string) []string {
 		out = append(out, k)
 	}
 
-	sort.Strings(out)
+	slices.Sort(out)
 
 	return out
 }

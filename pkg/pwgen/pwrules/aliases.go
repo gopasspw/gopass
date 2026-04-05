@@ -2,7 +2,7 @@ package pwrules
 
 import (
 	"context"
-	"sort"
+	"slices"
 	"strings"
 
 	"github.com/gopasspw/gopass/internal/config"
@@ -17,7 +17,7 @@ func LookupAliases(ctx context.Context, domain string) []string {
 	aliases := make([]string, 0, len(genAliases[domain])+len(customAliases[domain]))
 	aliases = append(aliases, genAliases[domain]...)
 	aliases = append(aliases, customAliases[domain]...)
-	sort.Strings(aliases)
+	slices.Sort(aliases)
 
 	return aliases
 }
@@ -49,7 +49,7 @@ func loadCustomAliases(ctx context.Context) map[string][]string {
 			debug.Log("Loading alias: %q -> %q", from, to)
 			if e, found := customAliases[from]; found {
 				e = append(e, to)
-				sort.Strings(e)
+				slices.Sort(e)
 				customAliases[from] = e
 
 				continue

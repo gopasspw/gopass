@@ -15,7 +15,7 @@ func (s *Action) Update(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 
 	if s.version.String() == "0.0.0+HEAD" {
-		out.Errorf(ctx, "Can not check version against HEAD")
+		out.Errorf(ctx, "Cannot check version against HEAD")
 
 		return nil
 	}

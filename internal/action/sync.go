@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/fatih/color"
@@ -26,6 +27,7 @@ import (
 var (
 	autosyncInterval = time.Duration(3*24) * time.Hour
 	autosyncLastRun  time.Time
+	autosyncMu       sync.Mutex
 )
 
 // Sync all stores with their remotes.
@@ -78,7 +80,9 @@ func (s *Action) autoSync(ctx context.Context) error {
 
 	if time.Since(ls) > syncInterval {
 		err := s.sync(ctx, "", true)
+		autosyncMu.Lock()
 		autosyncLastRun = time.Now()
+		autosyncMu.Unlock()
 
 		return err
 	}
@@ -88,8 +92,12 @@ func (s *Action) autoSync(ctx context.Context) error {
 
 func (s *Action) sync(ctx context.Context, store string, isAutosync bool) error {
 	// we just did a full sync, no need to run it again
-	if time.Since(autosyncLastRun) < 10*time.Second {
-		debug.Log("skipping sync. last sync %ds ago", time.Since(autosyncLastRun))
+	autosyncMu.Lock()
+	lastRun := autosyncLastRun
+	autosyncMu.Unlock()
+
+	if time.Since(lastRun) < 10*time.Second {
+		debug.Log("skipping sync. last sync %ds ago", time.Since(lastRun))
 
 		return nil
 	}

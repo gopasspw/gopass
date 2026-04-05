@@ -56,7 +56,7 @@ func (e InvalidRecipientsError) IsError() bool {
 func (s *Store) Recipients(ctx context.Context) []string {
 	rs, err := s.GetRecipients(ctx, "")
 	if err != nil {
-		out.Errorf(ctx, "failed to read recipient list: %s", err)
+		out.Errorf(ctx, "Failed to read recipient list: %s", err)
 		out.Notice(ctx, "Please review the recipients list and confirm any changes with 'gopass recipients ack'")
 	}
 
@@ -384,7 +384,7 @@ func (s *Store) addMissingKeys(ctx context.Context, exp keyExporter, recipients 
 		if err != nil {
 			failed = true
 
-			out.Errorf(ctx, "failed to export public key for %q: %s", r, err)
+			out.Errorf(ctx, "Failed to export public key for %q: %s", r, err)
 
 			continue
 		}
@@ -396,7 +396,7 @@ func (s *Store) addMissingKeys(ctx context.Context, exp keyExporter, recipients 
 		if err := s.storage.TryAdd(ctx, path); err != nil {
 			failed = true
 
-			out.Errorf(ctx, "failed to add public key for %q to git: %s", r, err)
+			out.Errorf(ctx, "Failed to add public key for %q to git: %s", r, err)
 
 			continue
 		}
@@ -469,7 +469,7 @@ func (s *Store) saveRecipients(ctx context.Context, rs recipientMarshaler, msg s
 		return fmt.Errorf("need valid recipients")
 	}
 	if len(rs.IDs()) < 1 {
-		return fmt.Errorf("can not remove all recipients")
+		return fmt.Errorf("cannot remove all recipients")
 	}
 
 	idf := s.idFile(ctx, "")

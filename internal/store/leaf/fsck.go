@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"sort"
+	"slices"
 	"strings"
 
 	"github.com/gopasspw/gopass/internal/backend"
@@ -170,7 +170,7 @@ func (s *Store) fsckLoop(ctx context.Context, path string) error {
 		ctx = ctxutil.AddToCommitMessageBody(ctx, "- updated public keys")
 	}
 
-	sort.Strings(names)
+	slices.Sort(names)
 
 	debug.Log("names (%d): %q", len(names), names)
 	buf := &strings.Builder{}
@@ -390,8 +390,8 @@ func compareStringSlices(want, have []string) ([]string, []string) {
 		}
 	}
 
-	sort.Strings(missing)
-	sort.Strings(extra)
+	slices.Sort(missing)
+	slices.Sort(extra)
 
 	return missing, extra
 }

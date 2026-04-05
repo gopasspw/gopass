@@ -19,7 +19,7 @@ func TestSetAndGet(t *testing.T) {
 
 	path := t.TempDir()
 
-	s := &Store{path}
+	s := &Store{path: path}
 
 	fileHasContent := func(filename string, content []byte) {
 		written, _ := s.Get(ctx, filename)
@@ -53,7 +53,7 @@ func TestMove(t *testing.T) {
 
 	path := t.TempDir()
 
-	s := &Store{path}
+	s := &Store{path: path}
 
 	fileHasContent := func(filename string, content []byte) {
 		written, _ := s.Get(ctx, filename)
@@ -154,7 +154,7 @@ func TestRemoveEmptyParentDirectories(t *testing.T) {
 			}
 
 			s := &Store{
-				path,
+				path: path,
 			}
 			if err := s.removeEmptyParentDirectories(filepath.Join(subdir, "deletedFile")); err != nil {
 				t.Error(err)
@@ -237,7 +237,7 @@ func TestDelete(t *testing.T) {
 			}
 
 			store := &Store{
-				path,
+				path: path,
 			}
 			err := store.Delete(config.NewContextInMemory(), filepath.Join(test.toDelete...))
 

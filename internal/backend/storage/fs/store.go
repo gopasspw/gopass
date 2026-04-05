@@ -20,7 +20,8 @@ import (
 
 // Store is a fs based store.
 type Store struct {
-	path string
+	path    string
+	version semver.Version
 }
 
 // New creates a new store.
@@ -30,7 +31,8 @@ func New(dir string) *Store {
 	}
 
 	return &Store{
-		path: fsutil.ExpandHomedir(dir),
+		path:    fsutil.ExpandHomedir(dir),
+		version: debug.ModuleVersion("github.com/gopasspw/gopass/internal/backend/storage/fs"),
 	}
 }
 
@@ -234,12 +236,12 @@ func (s *Store) Name() string {
 
 // Version returns the version of this backend.
 func (s *Store) Version(context.Context) semver.Version {
-	return debug.ModuleVersion("github.com/gopasspw/gopass/internal/backend/storage/fs")
+	return s.version
 }
 
 // String implements fmt.Stringer.
 func (s *Store) String() string {
-	return fmt.Sprintf("fs(%s,path:%s)", s.Version(context.TODO()).String(), s.path)
+	return fmt.Sprintf("fs(%s,path:%s)", s.version.String(), s.path)
 }
 
 // Path returns the path to this storage.
