@@ -297,6 +297,23 @@ func (s *Action) GetCommands() []*cli.Command {
 			},
 		},
 		{
+			Name:   "doctor",
+			Usage:  "Check your gopass installation for common issues",
+			Before: s.IsInitialized,
+			Action: s.Doctor,
+			Description: "Runs a series of diagnostic checks on the gopass installation: " +
+				"binary dependencies, git configuration, store permissions, " +
+				"recipient key validity, and git remote connectivity. " +
+				"Exits with a non-zero status if any check fails.",
+			Flags: []cli.Flag{
+				&cli.BoolFlag{
+					Name:    "verbose",
+					Aliases: []string{"v"},
+					Usage:   "Show passing checks in addition to warnings and errors",
+				},
+			},
+		},
+		{
 			Name:      "edit",
 			Usage:     "Edit new or existing secrets",
 			ArgsUsage: "[secret]",

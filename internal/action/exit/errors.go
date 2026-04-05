@@ -52,6 +52,8 @@ const (
 	GPG
 	// Hook is used for Hook failures.
 	Hook
+	// Doctor is used when the doctor command finds failing checks.
+	Doctor
 )
 
 // Error returns a user friendly CLI error.
