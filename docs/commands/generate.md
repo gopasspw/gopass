@@ -45,6 +45,15 @@ Use `--generator` to select one of the available password generators:
 | `memorable` | Generate a memorable password. The length argument specifies the minimum lenght of characters. Please note that the password might be longer if not all necessary rules were satisfied by the minimum length solution.                                                           |
 | `external`  | Use the external generator from `$GOPASS_EXTERNAL_PWGEN`                                                                                                                                                                                                                         |
 
+## Exit codes
+
+| Code | Meaning |
+|-----:|---------|
+| 0 | Password generated and stored successfully |
+| 12 | Generated secret could not be encrypted and saved |
+
+See [docs/exit-codes.md](../exit-codes.md) for the full table.
+
 ## Relevant configuration options
 
 * `autoclip` only applies to `generate`. If set the generated password is automatically copied to the clipboard - unless `--clip` is explicitly set to `--clip=false`

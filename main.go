@@ -135,7 +135,18 @@ func setupApp(ctx context.Context, sv semver.Version) (context.Context, *cli.App
 		action.Complete(c)
 	}
 
-	app.Flags = ap.ShowFlags()
+	app.Flags = append(ap.ShowFlags(), &cli.BoolFlag{
+		Name:  "exit-codes",
+		Usage: "Print all exit codes and their meanings, then exit",
+	})
+	app.Before = func(c *cli.Context) error {
+		if c.Bool("exit-codes") {
+			exit.PrintExitCodes(c.App.Writer)
+			os.Exit(exit.OK)
+		}
+
+		return nil
+	}
 	app.Action = func(c *cli.Context) error {
 		if err := action.IsInitialized(c); err != nil {
 			return err

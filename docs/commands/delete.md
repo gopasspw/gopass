@@ -26,6 +26,15 @@ $ gopass delete entry key
 | `--recursive` | `-r`    | Recursively delete files and folders. |
 | `--force`     | `-f`    | Do not ask for confirmation.          |
 
+## Exit codes
+
+| Code | Meaning |
+|-----:|---------|
+| 0 | Secret deleted successfully |
+| 10 | Secret not found |
+
+See [docs/exit-codes.md](../exit-codes.md) for the full table.
+
 ## Details
 
 * Removing a single key will need to decrypt the secret

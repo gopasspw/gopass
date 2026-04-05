@@ -99,6 +99,7 @@ var commandsWithError = set.Map([]string{
 	".templates.show",
 	".unclip",
 	".reorg",
+	".audit",
 })
 
 func TestGetCommands(t *testing.T) {
@@ -137,7 +138,7 @@ func TestGetCommands(t *testing.T) {
 	c.Context = ctx
 
 	commands := getCommands(act, app)
-	assert.Len(t, commands, 42)
+	assert.Len(t, commands, 43)
 
 	prefix := ""
 	testCommands(t, c, commands, prefix)

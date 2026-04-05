@@ -105,6 +105,11 @@ exit codes (e.g. `exit.Usage`, `exit.NotFound`, `exit.IO`). Custom errors
 returned from `exit.Error()` carry both a human-readable message and a numeric
 exit code so that callers and scripts can distinguish failure modes.
 
+The numeric values of all exit codes are **stable** — they are assigned as
+explicit integer constants and must never be renumbered. The full table, along
+with per-command breakdowns, is documented in [docs/exit-codes.md](docs/exit-codes.md).
+Run `gopass --exit-codes` to print the table at any time.
+
 ### `internal/backend`
 
 `gopass` is built around the concept of multiple independent password stores

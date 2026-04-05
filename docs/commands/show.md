@@ -53,6 +53,16 @@ Note: The parser ensures every parsed secret contains a terminating newline, eve
 * Since gopass plans to supports different RCS backends we do not support arbitrary git refs as arguments to the `--revision` flag. Using those might work, but this is explicitly not supported and bug reports will be closed as `wont-fix`. There are two issues with using arbitrary git refs is that (a) this doesn't work with non-git RCS backends and (b) git versions a whole repository, not single files. So the revision `HEAD^`
   might not have any changes for a given entry. Thus we only support specifc revisions obtained from `gopass history` or our custom syntax `-N` where N is an integer identifying a specific commit before `HEAD` (cf. `HEAD~N`).
 
+## Exit codes
+
+| Code | Meaning |
+|-----:|---------|
+| 0 | Secret displayed successfully |
+| 10 | Secret not found |
+| 11 | Secret could not be decrypted |
+
+See [docs/exit-codes.md](../exit-codes.md) for the full table.
+
 ## Parsing and secrets
 
 Secrets are stored on disk as provided, but are parsed upon display to provide extra features such as the ability
