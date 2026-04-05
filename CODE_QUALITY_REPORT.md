@@ -311,6 +311,8 @@ The [internal/queue/background.go](internal/queue/background.go) package self-do
 
 ### A-5: `CleanMountAlias` Over-Processing
 
+Status: fixed
+
 [internal/store/root/mount.go#L173-L184](internal/store/root/mount.go#L173-L184) loops through prefix/suffix stripping with nested `TrimPrefix`/`TrimSuffix` calls:
 
 ```go
@@ -328,6 +330,8 @@ This could be `strings.Trim(alias, "/\\")` — a single call handles all leading
 
 ### S-1: Error Message Capitalization
 
+Status: fixed
+
 Error messages inconsistently capitalize the first word:
 
 ```go
@@ -344,6 +348,8 @@ Go convention is lowercase error messages (per `go vet` / `errcheck`). The codeb
 
 ### S-2: "can not" vs "cannot"
 
+Status: fixed
+
 The codebase uses both forms:
 - `"can not delete"` in [internal/store/root/move.go](internal/store/root/move.go)
 - `"cannot be reached"` in various docs
@@ -353,6 +359,8 @@ Standard English and Go conventions prefer "cannot" (one word).
 
 ### S-3: `sort.Strings()` vs `slices.Sorted()` vs `slices.Sort()`
 
+Status: fixed
+
 The codebase uses three different sorting approaches depending on when the code was written:
 - `sort.Strings(keys)` — older code
 - `slices.Sorted(keys)` — newer code (in `pkg/set/sorted.go`)
@@ -361,6 +369,8 @@ The codebase uses three different sorting approaches depending on when the code 
 This is cosmetic, but new code should prefer `slices.Sort`/`slices.Sorted` (Go 1.21+).
 
 ### S-4: `context.TODO()` in Production Code
+
+Status: fixed
 
 Four files use `context.TODO()` in non-test code:
 - [internal/backend/storage/fs/store.go#L242](internal/backend/storage/fs/store.go#L242) — in `String()` method
@@ -387,6 +397,8 @@ Several TODOs have been in the code for a long time:
 
 ### S-6: `autosyncLastRun` as Package Variable Without Synchronization
 
+Status: fixed
+
 **Location:** [internal/action/sync.go#L28](internal/action/sync.go#L28)
 
 ```go
@@ -400,6 +412,8 @@ While gopass is primarily single-process, this global mutable state could race i
 ## Improvement Suggestions
 
 ### I-1: Unified Secret Name Validation
+
+Status: fixed
 
 Currently, name validation is scattered:
 - `leaf/write.go` rejects `//` 
