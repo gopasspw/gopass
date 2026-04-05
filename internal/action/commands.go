@@ -368,6 +368,21 @@ func (s *Action) GetCommands() []*cli.Command {
 					Value:   false,
 					Usage:   "Do not capitalize the environment variable and instead retain the original capitalization",
 				},
+				&cli.BoolFlag{
+					Name:  "stdin",
+					Value: false,
+					Usage: "Pipe the secret's password to the subprocess's stdin instead of setting an environment variable",
+				},
+				&cli.BoolFlag{
+					Name:  "file",
+					Value: false,
+					Usage: "Write each secret to a ramdisk temp file and export KEY_FILE=/path instead of KEY=value",
+				},
+				&cli.BoolFlag{
+					Name:  "exec",
+					Value: false,
+					Usage: "Replace the current process with the subprocess via exec(3) rather than spawning a child process (not supported on Windows)",
+				},
 			},
 		},
 		{

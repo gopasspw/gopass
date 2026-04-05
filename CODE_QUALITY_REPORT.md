@@ -456,6 +456,8 @@ The safecontent feature hides passwords by default but the allowlist/blocklist o
 
 ### I-6: Better `gopass env` Alternatives
 
+Status: fixed
+
 The `env` command (see security report C-2) could offer:
 - `--stdin` mode: pipe secrets via stdin instead of environment
 - `--file` mode: write to a temporary file, set path in env, auto-cleanup
