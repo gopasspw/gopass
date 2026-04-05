@@ -433,6 +433,8 @@ Commands like `list`, `find`, `recipients`, and `audit` could benefit from `--js
 
 ### I-4: `gopass doctor` / Self-Diagnostic Command
 
+Status: fixed
+
 Users frequently encounter issues with GPG configuration, git setup, or missing dependencies. A `gopass doctor` command (similar to `brew doctor`) that checks:
 - GPG binary availability and version
 - Git configuration (user.name, user.email)
@@ -454,6 +456,8 @@ The `env` command (see security report C-2) could offer:
 - `--exec` mode: use `setpriv` or similar to clear env after subprocess exec
 
 ### I-7: Wizard Templates as First-Class Feature
+
+Status: fixed
 
 The create wizard uses template YAML files but the template format, available attribute types (`string`, `hostname`, `password`, `multiline`), and configuration options (`AlwaysPrompt`, `Strict`, `Min`, `Max`) are not documented for end users who want to create custom templates. Documenting this would make the create wizard much more powerful for teams.
 
