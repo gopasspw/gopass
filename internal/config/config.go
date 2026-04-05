@@ -175,6 +175,20 @@ func (c *Config) GetAll(key string) []string {
 	return c.root.GetAll(key)
 }
 
+// GetAllM returns all values for the given key, preferring the mount config over root.
+// If the mount config has no values for the key, it falls back to the root config.
+func (c *Config) GetAllM(mount, key string) []string {
+	if mount != "" && mount != "<root>" {
+		if cfg := c.cfgs[mount]; cfg != nil {
+			if v := cfg.GetAll(key); len(v) > 0 {
+				return v
+			}
+		}
+	}
+
+	return c.root.GetAll(key)
+}
+
 // GetGlobal returns the given key from the root global config.
 // This is typically used to prevent a local config override of sensitive config items, e.g. used for integrity checks.
 func (c *Config) GetGlobal(key string) string {

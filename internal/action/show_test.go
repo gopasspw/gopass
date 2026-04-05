@@ -220,6 +220,80 @@ func TestShowMulti(t *testing.T) {
 		assert.NotContains(t, buf.String(), "MISSING")
 		buf.Reset()
 	})
+
+	// show.hidden-keys tests — re-enable safecontent for these
+	require.NoError(t, act.cfg.Set("", "show.safecontent", "true"))
+
+	t.Run("show.hidden-keys hides configured key", func(t *testing.T) {
+		require.NoError(t, act.cfg.Set("", "show.hidden-keys", "api_token"))
+		defer func() { _ = act.cfg.Set("", "show.hidden-keys", "") }()
+
+		sec := secrets.NewAKV()
+		sec.SetPassword("pw123")
+		require.NoError(t, sec.Set("api_token", "supersecret"))
+		require.NoError(t, sec.Set("username", "alice"))
+		require.NoError(t, act.Store.Set(ctx, "hidden/custom", sec))
+		buf.Reset()
+
+		c := gptest.CliCtx(ctx, t, "hidden/custom")
+		require.NoError(t, act.Show(c))
+		assert.Contains(t, buf.String(), "api_token: *****")
+		assert.NotContains(t, buf.String(), "supersecret")
+		assert.Contains(t, buf.String(), "username: alice")
+		buf.Reset()
+	})
+
+	t.Run("show.hidden-keys is case-insensitive", func(t *testing.T) {
+		require.NoError(t, act.cfg.Set("", "show.hidden-keys", "Secret_Field"))
+		defer func() { _ = act.cfg.Set("", "show.hidden-keys", "") }()
+
+		sec := secrets.NewAKV()
+		sec.SetPassword("pw123")
+		require.NoError(t, sec.Set("secret_field", "topsecret"))
+		require.NoError(t, act.Store.Set(ctx, "hidden/case", sec))
+		buf.Reset()
+
+		c := gptest.CliCtx(ctx, t, "hidden/case")
+		require.NoError(t, act.Show(c))
+		assert.Contains(t, buf.String(), "*****")
+		assert.NotContains(t, buf.String(), "topsecret")
+		buf.Reset()
+	})
+
+	t.Run("show.hidden-keys absent key is shown", func(t *testing.T) {
+		require.NoError(t, act.cfg.Set("", "show.hidden-keys", "other_key"))
+		defer func() { _ = act.cfg.Set("", "show.hidden-keys", "") }()
+
+		sec := secrets.NewAKV()
+		sec.SetPassword("pw123")
+		require.NoError(t, sec.Set("visible_field", "plaintext"))
+		require.NoError(t, act.Store.Set(ctx, "hidden/visible", sec))
+		buf.Reset()
+
+		c := gptest.CliCtx(ctx, t, "hidden/visible")
+		require.NoError(t, act.Show(c))
+		assert.Contains(t, buf.String(), "visible_field: plaintext")
+		buf.Reset()
+	})
+
+	t.Run("show.hidden-keys and per-secret unsafe-keys both work", func(t *testing.T) {
+		require.NoError(t, act.cfg.Set("", "show.hidden-keys", "config_hidden"))
+		defer func() { _ = act.cfg.Set("", "show.hidden-keys", "") }()
+
+		sec := secrets.NewAKV()
+		sec.SetPassword("pw123")
+		require.NoError(t, sec.Set("config_hidden", "val1"))
+		require.NoError(t, sec.Set("per_secret_hidden", "val2"))
+		require.NoError(t, sec.Set("unsafe-keys", "per_secret_hidden"))
+		require.NoError(t, act.Store.Set(ctx, "hidden/both", sec))
+		buf.Reset()
+
+		c := gptest.CliCtx(ctx, t, "hidden/both")
+		require.NoError(t, act.Show(c))
+		assert.NotContains(t, buf.String(), "val1")
+		assert.NotContains(t, buf.String(), "val2")
+		buf.Reset()
+	})
 }
 
 func TestShowAutoClip(t *testing.T) {

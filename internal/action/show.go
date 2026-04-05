@@ -285,7 +285,7 @@ func (s *Action) showGetContent(ctx context.Context, sec gopass.Secret) (string,
 
 	// everything but the first line.
 	if config.Bool(ctx, "show.safecontent") && !ctxutil.IsForce(ctx) && ctxutil.IsShowParsing(ctx) {
-		body := showSafeContent(sec)
+		body := showSafeContent(ctx, sec)
 		if IsAlsoClip(ctx) {
 			return pw, body, nil
 		}
@@ -297,13 +297,13 @@ func (s *Action) showGetContent(ctx context.Context, sec gopass.Secret) (string,
 	return pw, fullBody, nil
 }
 
-func showSafeContent(sec gopass.Secret) string {
+func showSafeContent(ctx context.Context, sec gopass.Secret) string {
 	var sb strings.Builder
 	for i, k := range sec.Keys() {
 		sb.WriteString(k)
 		sb.WriteString(": ")
 		// check if this key should be obstructed.
-		if isUnsafeKey(k, sec) {
+		if isUnsafeKey(ctx, k, sec) {
 			debug.V(1).Log("obstructing unsafe key %s", k)
 			sb.WriteString(randAsterisk())
 		} else {
@@ -331,10 +331,17 @@ func showSafeContent(sec gopass.Secret) string {
 	return sb.String()
 }
 
-func isUnsafeKey(key string, sec gopass.Secret) bool {
+func isUnsafeKey(ctx context.Context, key string, sec gopass.Secret) bool {
 	duks := []string{"hotp", "otpauth", "password", "totp"}
 	if slices.Contains(duks, key) {
 		return true
+	}
+
+	// Check globally-configured hidden keys (show.hidden-keys, repeatable).
+	for _, hk := range config.Strings(ctx, "show.hidden-keys") {
+		if strings.EqualFold(hk, key) {
+			return true
+		}
 	}
 
 	uks, found := sec.Get("unsafe-keys")

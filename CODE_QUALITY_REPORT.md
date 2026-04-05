@@ -450,6 +450,8 @@ would significantly reduce support burden.
 
 ### I-5: Completion of `show.safecontent` Pattern
 
+Status: fixed
+
 The safecontent feature hides passwords by default but the allowlist/blocklist of hidden keys (`password`, `totp`, `hotp`, `otpauth`) is hardcoded. Making this configurable (e.g., `show.hidden-keys`) would let teams adapt it to their secret naming conventions.
 
 ### I-6: Better `gopass env` Alternatives
