@@ -425,9 +425,13 @@ Currently, name validation is scattered:
 
 ### I-2: Structured Exit Codes
 
+Status: fixed
+
 The `exit` package defines numeric exit codes but the mapping between user-visible behavior and code is implicit. Consider a `--exit-code-help` flag or documenting exit codes for scripting users.
 
 ### I-3: Machine-Readable Output
+
+Status: fixed
 
 Commands like `list`, `find`, `recipients`, and `audit` could benefit from `--json` output for scripting and integration. The `audit` command already supports `--format csv|html` — extending JSON to other commands would improve the tool's composability.
 

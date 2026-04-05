@@ -94,7 +94,7 @@ func (s *Action) GetCommands() []*cli.Command {
 			Flags: []cli.Flag{
 				&cli.StringFlag{
 					Name:  "format",
-					Usage: "Output format. text, csv or html. Default: text",
+					Usage: "Output format. text, csv, html or json. Default: text",
 					Value: "text",
 				},
 				&cli.StringFlag{
@@ -393,6 +393,11 @@ func (s *Action) GetCommands() []*cli.Command {
 					Aliases: []string{"r"},
 					Usage:   "Interpret pattern as regular expression",
 				},
+				&cli.BoolFlag{
+					Name:    "json",
+					Aliases: []string{"j"},
+					Usage:   "Output matches as JSON array",
+				},
 			},
 		},
 		{
@@ -682,6 +687,11 @@ func (s *Action) GetCommands() []*cli.Command {
 					Aliases: []string{"s"},
 					Usage:   "Strip this prefix from filtered entries",
 				},
+				&cli.BoolFlag{
+					Name:    "json",
+					Aliases: []string{"j"},
+					Usage:   "Output as JSON array",
+				},
 			},
 		},
 		{
@@ -917,6 +927,11 @@ func (s *Action) GetCommands() []*cli.Command {
 					Name:  "pretty",
 					Usage: "Pretty print recipients",
 					Value: true,
+				},
+				&cli.BoolFlag{
+					Name:    "json",
+					Aliases: []string{"j"},
+					Usage:   "Output recipients as JSON array",
 				},
 			},
 			Subcommands: []*cli.Command{

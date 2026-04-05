@@ -70,6 +70,8 @@ func (s *Action) Audit(c *cli.Context) error {
 		return saveReport(ctx, r.RenderHTML, c.String("output-file"), "html")
 	case "csv":
 		return saveReport(ctx, r.RenderCSV, c.String("output-file"), "csv")
+	case "json":
+		return saveReport(ctx, r.RenderJSON, c.String("output-file"), "json")
 	default:
 		var err error
 		if c.Bool("full") {

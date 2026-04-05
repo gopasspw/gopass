@@ -3,6 +3,7 @@ package audit
 import (
 	"context"
 	"encoding/csv"
+	"encoding/json"
 	"fmt"
 	"io"
 	"os"
@@ -125,6 +126,24 @@ func (r *Report) RenderCSV(w io.Writer) error {
 	cw.Flush()
 
 	return cw.Error()
+}
+
+// RenderJSON writes the report as a JSON object to w.
+func (r *Report) RenderJSON(w io.Writer) error {
+	type jsonReport struct {
+		Duration string                  `json:"duration"`
+		Secrets  map[string]SecretReport `json:"secrets"`
+	}
+
+	payload := jsonReport{
+		Duration: r.Duration.Round(time.Millisecond).String(),
+		Secrets:  r.Secrets,
+	}
+
+	enc := json.NewEncoder(w)
+	enc.SetIndent("", "  ")
+
+	return enc.Encode(payload)
 }
 
 func (r *Report) RenderHTML(w io.Writer) error {

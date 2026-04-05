@@ -2,6 +2,7 @@ package action
 
 import (
 	"bytes"
+	"encoding/json"
 	"os"
 	"testing"
 
@@ -80,6 +81,15 @@ func TestRecipients(t *testing.T) {
 	t.Run("remove recipient 0xDEADBEEF", func(t *testing.T) {
 		defer buf.Reset()
 		require.NoError(t, act.RecipientsRemove(gptest.CliCtx(ctx, t, "0xDEADBEEF")))
+	})
+
+	t.Run("print recipients as JSON", func(t *testing.T) {
+		defer buf.Reset()
+		require.NoError(t, act.RecipientsPrint(gptest.CliCtxWithFlags(ctx, t, map[string]string{"json": "true"})))
+		var jsonOut []string
+		require.NoError(t, json.Unmarshal(buf.Bytes(), &jsonOut))
+		// after removing 0xDEADBEEF there should still be other recipients
+		assert.NotNil(t, jsonOut)
 	})
 }
 

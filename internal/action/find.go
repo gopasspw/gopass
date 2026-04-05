@@ -61,6 +61,22 @@ func (s *Action) find(ctx context.Context, c *cli.Context, needle string, cb sho
 		return exit.Error(exit.Usage, err, "%s", err)
 	}
 
+	// if we don't have a match yet try a fuzzy search.
+	if len(choices) < 1 && fuzzy {
+		// try fuzzy match.
+		cm := closestmatch.New(haystack, []int{2})
+		choices = cm.ClosestN(needle, 5)
+	}
+
+	// JSON output: emit the matches as a JSON array (possibly empty) and return.
+	if c != nil && c.Bool("json") {
+		if len(choices) < 1 {
+			return exit.Error(exit.NotFound, nil, "no results found")
+		}
+
+		return jsonWrite(stdout, choices)
+	}
+
 	// if we have an exact match print it.
 	if len(choices) == 1 {
 		if cb == nil {
@@ -71,13 +87,6 @@ func (s *Action) find(ctx context.Context, c *cli.Context, needle string, cb sho
 		out.OKf(ctx, "Found exact match in %q", choices[0])
 
 		return cb(ctx, c, choices[0], false)
-	}
-
-	// if we don't have a match yet try a fuzzy search.
-	if len(choices) < 1 && fuzzy {
-		// try fuzzy match.
-		cm := closestmatch.New(haystack, []int{2})
-		choices = cm.ClosestN(needle, 5)
 	}
 
 	// if there are still no results we abort.

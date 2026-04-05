@@ -2,6 +2,7 @@ package action
 
 import (
 	"bytes"
+	"encoding/json"
 	"os"
 	"testing"
 
@@ -112,6 +113,13 @@ foo2/bar2
 
 	// list not-present
 	require.Error(t, act.List(gptest.CliCtx(ctx, t, "not-present")))
+	buf.Reset()
+
+	// list --json
+	require.NoError(t, act.List(gptest.CliCtxWithFlags(ctx, t, map[string]string{"json": "true"})))
+	var jsonOut []string
+	require.NoError(t, json.Unmarshal(buf.Bytes(), &jsonOut))
+	assert.Contains(t, jsonOut, "foo")
 	buf.Reset()
 }
 

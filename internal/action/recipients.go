@@ -36,6 +36,16 @@ credentials.
 // RecipientsPrint prints all recipients per store.
 func (s *Action) RecipientsPrint(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
+
+	if c.Bool("json") {
+		t, err := s.Store.RecipientsTree(ctx, false)
+		if err != nil {
+			return exit.Error(exit.List, err, "failed to list recipients: %s", err)
+		}
+
+		return jsonWrite(stdout, t.List(tree.INF))
+	}
+
 	out.Printf(ctx, "Hint: run 'gopass sync' to import any missing public keys")
 
 	t, err := s.Store.RecipientsTree(ctx, c.Bool("pretty"))
