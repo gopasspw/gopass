@@ -29,10 +29,10 @@ $ gopass generate entry key [length]
 | `--generator` | `-g`    | Choose of of the available password generators, desribed below. Default: `cryptic`                                                                                 |
 | `--symbols`   | `-s`    | Include symbols in the generated password (default: `false`)                                                                                                       |
 | `--strict`    |         | Ensure each requested character class is actually included. Without this option all requested classes can be included, but not necessarily are. (default: `false`) |
-| `--sep`       | `--xkcdsep`, `-xs` | Word separator for multi-word generators.                                                                                                               |
-| `--lang`      | `--xkcdlang`, `-xl` | Language for word-based generators.                                                                                                                    |
-| `--xkcdcapitalize` |    | Capitalize the first letter of each word when using the `xkcd` generator. Equivalent to setting `pwgen.xkcd-capitalize = true` in config.                    |
-| `--xkcdnumbers`    |    | Append a random number to each word when using the `xkcd` generator. Equivalent to setting `pwgen.xkcd-numbers = true` in config.                            |
+| `--xkcd-sep`  | `--sep`, `--xkcdsep` | Word separator for multi-word generators.                                                                                                               |
+| `--xkcd-lang` | `--lang`, `--xkcdlang` | Language for word-based generators.                                                                                                                 |
+| `--xkcd-capitalize` | `--xkcdcapitalize` | Capitalize the first letter of each word when using the `xkcd` generator. Equivalent to setting `pwgen.xkcd-capitalize = true` in config.  |
+| `--xkcd-numbers` | `--xkcdnumbers` | Append a random number to each word when using the `xkcd` generator. Equivalent to setting `pwgen.xkcd-numbers = true` in config.              |
 
 ## Password Generators
 
@@ -41,7 +41,7 @@ Use `--generator` to select one of the available password generators:
 | Generator   | Description                                                                                                                                                                                                                                                                      |
 |-------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `cryptic`   | The default generator yields cryptic passwords that should work with most sites. Use `--symbols` and `--strict` if the site has specific requirements. Please note that we auto-detect the correct rules for some sites. The length argument specifies the number of characters. |
-| `xkcd`      | Use an [XKCD#936](https://xkcd.com/936/) style password. Use `--lang` and `--sep` to refine it's behaviour. The length argument specifies the number of words.                                                                                                                   |
+| `--xkcd`      | Use an [XKCD#936](https://xkcd.com/936/) style password. Use `--xkcd-lang` and `--xkcd-sep` to refine its behaviour. The length argument specifies the number of words.                                                                                                                   |
 | `memorable` | Generate a memorable password. The length argument specifies the minimum lenght of characters. Please note that the password might be longer if not all necessary rules were satisfied by the minimum length solution.                                                           |
 | `external`  | Use the external generator from `$GOPASS_EXTERNAL_PWGEN`                                                                                                                                                                                                                         |
 

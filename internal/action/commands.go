@@ -38,7 +38,7 @@ func ShowFlags() []cli.Flag {
 		},
 		&cli.BoolFlag{
 			Name:    "unsafe",
-			Aliases: []string{"u", "force", "f"},
+			Aliases: []string{"u"},
 			Usage:   "Display unsafe content (e.g. the password) even if safecontent is enabled",
 		},
 		&cli.BoolFlag{
@@ -368,7 +368,7 @@ func (s *Action) GetCommands() []*cli.Command {
 			Flags: []cli.Flag{
 				&cli.BoolFlag{
 					Name:    "unsafe",
-					Aliases: []string{"u", "force", "f"},
+					Aliases: []string{"u"},
 					Usage:   "In the case of an exact match, display the password even if safecontent is enabled",
 				},
 				&cli.BoolFlag{
@@ -475,21 +475,30 @@ func (s *Action) GetCommands() []*cli.Command {
 					Usage: "Require strict character class rules",
 				},
 				&cli.BoolFlag{
-					Name:    "force-regen",
-					Aliases: []string{"t"},
-					Usage:   "Force full re-generation, incl. evaluation of templates. Will overwrite the entire secret!",
+					Name:  "force-regen",
+					Usage: "Force full re-generation, incl. evaluation of templates. Will overwrite the entire secret!",
 				},
 				&cli.StringFlag{
-					Name:    "sep",
-					Aliases: []string{"xkcdsep", "xs"},
-					Usage:   "Word separator for generated passwords. If no separator is specified, the words are combined without spaces/separator and the first character of words is capitalised.",
+					Name:    "xkcd-sep",
+					Aliases: []string{"sep", "xkcdsep"},
+					Usage:   "Word separator for generated XKCD passwords. If no separator is specified, the words are combined without spaces/separator and the first character of words is capitalised.",
 					Value:   "",
 				},
 				&cli.StringFlag{
-					Name:    "lang",
-					Aliases: []string{"xkcdlang", "xl"},
-					Usage:   "Language to generate password from, currently only en (english, default) or de are supported",
+					Name:    "xkcd-lang",
+					Aliases: []string{"lang", "xkcdlang"},
+					Usage:   "Language to generate XKCD password from, currently only en (english, default) or de are supported",
 					Value:   "en",
+				},
+				&cli.BoolFlag{
+					Name:    "xkcd-capitalize",
+					Aliases: []string{"xkcdcapitalize"},
+					Usage:   "Capitalize first letter of each word in the generated XKCD password",
+				},
+				&cli.BoolFlag{
+					Name:    "xkcd-numbers",
+					Aliases: []string{"xkcdnumbers"},
+					Usage:   "Add a random number to the end of the generated XKCD password",
 				},
 				&cli.StringFlag{
 					Name:    "commit-message",

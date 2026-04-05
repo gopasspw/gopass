@@ -29,5 +29,7 @@ Flag | Aliases | Description
 `--no-numerals` | `-0` | Do not include numerals in the generated passwords.
 `--one-per-line` | `-1` | Print one password per line.
 `--xkcd` | `-x` | Use multiple random english words combined to a password.
-`--sep` | `--xs` | Word separator for multi-word passwords.
-`--lang` | `--xl` | Language to generate password from. Currently only supports english (en, default).
+`--xkcd-sep` | `--sep`, `--xkcdsep` | Word separator for multi-word passwords.
+`--xkcd-lang` | `--lang`, `--xkcdlang` | Language to generate password from. Currently only supports english (en, default).
+`--xkcd-capitalize` | `--xkcdcapitalize` | Capitalize the first letter of each word in the generated xkcd password.
+`--xkcd-numbers` | `--xkcdnumbers` | Add a random number to the end of the generated xkcd password.

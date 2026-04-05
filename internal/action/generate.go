@@ -309,20 +309,20 @@ func (s *Action) generatePasswordForRule(ctx context.Context, length, domain str
 // password.
 func (s *Action) generatePasswordXKCD(ctx context.Context, c *cli.Context, length string) (string, error) {
 	sep := config.String(c.Context, "pwgen.xkcd-sep")
-	if c.IsSet("sep") {
-		sep = c.String("sep")
+	if c.IsSet("xkcd-sep") {
+		sep = c.String("xkcd-sep")
 	}
 	lang := config.String(c.Context, "pwgen.xkcd-lang")
-	if c.IsSet("lang") {
-		lang = c.String("lang")
+	if c.IsSet("xkcd-lang") {
+		lang = c.String("xkcd-lang")
 	}
 	capitalize := config.Bool(c.Context, "pwgen.xkcd-capitalize")
-	if c.IsSet("xkcdcapitalize") {
-		capitalize = c.Bool("xkcdcapitalize")
+	if c.IsSet("xkcd-capitalize") {
+		capitalize = c.Bool("xkcd-capitalize")
 	}
 	num := config.Bool(c.Context, "pwgen.xkcd-numbers")
-	if c.IsSet("xkcdnumbers") {
-		num = c.Bool("xkcdnumbers")
+	if c.IsSet("xkcd-numbers") {
+		num = c.Bool("xkcd-numbers")
 	}
 
 	pwlen := config.Int(c.Context, "pwgen.xkcd-len")

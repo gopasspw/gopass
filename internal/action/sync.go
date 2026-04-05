@@ -28,22 +28,6 @@ var (
 	autosyncLastRun  time.Time
 )
 
-func init() {
-	sv := os.Getenv("GOPASS_AUTOSYNC_INTERVAL")
-	if sv == "" {
-		return
-	}
-
-	debug.Log("GOPASS_AUTOSYNC_INTERVAL is deprecated. Please use autosync.interval")
-
-	iv, err := strconv.Atoi(sv)
-	if err != nil {
-		return
-	}
-
-	autosyncInterval = time.Duration(iv*24) * time.Hour
-}
-
 // Sync all stores with their remotes.
 func (s *Action) Sync(c *cli.Context) error {
 	return s.sync(ctxutil.WithGlobalFlags(c), c.String("store"), false)
@@ -62,6 +46,14 @@ func (s *Action) autoSync(ctx context.Context) error {
 		out.Warning(ctx, "GOPASS_NO_AUTOSYNC is deprecated. Please set core.autosync = false.")
 
 		return nil
+	}
+
+	if sv := os.Getenv("GOPASS_AUTOSYNC_INTERVAL"); sv != "" {
+		out.Warningf(ctx, "GOPASS_AUTOSYNC_INTERVAL is deprecated. Please use autosync.interval in your config.")
+
+		if iv, err := strconv.Atoi(sv); err == nil {
+			autosyncInterval = time.Duration(iv*24) * time.Hour
+		}
 	}
 
 	if !config.Bool(ctx, "core.autosync") {
