@@ -290,6 +290,8 @@ This makes the struct:
 
 ### A-2: Context Keys Used as Configuration System
 
+Status: fixed
+
 [pkg/ctxutil/ctxutil.go](pkg/ctxutil/ctxutil.go) defines **28+ context keys** used to pass configuration through the call stack. Each key requires ~4 helper functions (`WithX`, `HasX`, `IsX`, `GetX`). Some carry **callback functions** (`PasswordCallback`, `ImportFunc`, `ProgressCallback`), which is an anti-pattern for Go contexts.
 
 Go contexts are designed for request-scoped values (deadlines, cancellation, request IDs), not for application configuration. This pattern:

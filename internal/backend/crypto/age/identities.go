@@ -18,7 +18,6 @@ import (
 	"filippo.io/age/agessh"
 	"filippo.io/age/plugin"
 	"github.com/gopasspw/gopass/pkg/appdir"
-	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/debug"
 )
 
@@ -73,18 +72,11 @@ func (w *wrappedRecipient) Wrap(fileKey []byte) ([]*age.Stanza, error) {
 
 // Identities returns all identities, used for decryption.
 func (a *Age) Identities(ctx context.Context) ([]age.Identity, error) {
-	if !ctxutil.HasPasswordCallback(ctx) {
-		debug.V(1).Log("no password callback found, redirecting to askPass")
-		ctx = ctxutil.WithPasswordCallback(ctx, func(prompt string, confirm bool) ([]byte, error) {
-			pw, err := a.askPass.Passphrase(prompt, fmt.Sprintf("to read the age keyring from %s", a.identity), confirm)
-
-			return []byte(pw), err
-		})
-		ctx = ctxutil.WithPasswordPurgeCallback(ctx, a.askPass.Remove)
-	}
+	pwcb := a.effectivePwCallback(fmt.Sprintf("to read the age keyring from %s", a.identity))
+	ppcb := a.effectivePwPurgeCallback()
 
 	debug.V(1).Log("reading native identities from %s", a.identity)
-	buf, err := a.decryptFile(ctx, a.identity)
+	buf, err := a.decryptFile(ctx, a.identity, pwcb, ppcb)
 	if err != nil {
 		debug.Log("failed to decrypt existing identities from %s: %s", a.identity, err)
 		if !errors.Is(err, os.ErrNotExist) {
@@ -251,14 +243,14 @@ func IdentityToRecipient(id age.Identity) age.Recipient {
 
 // GenerateIdentity creates a new identity.
 func (a *Age) GenerateIdentity(ctx context.Context, _ string, _ string, pw string) (string, error) {
-	// we don't check if the password callback is set, since it could only be
-	// set through an env variable, and here pw can only be set through an
-	// actual user input.
 	if pw != "" {
 		debug.Log("age GenerateIdentity using provided pw")
-		ctx = ctxutil.WithPasswordCallback(ctx, func(prompt string, confirm bool) ([]byte, error) {
-			return []byte(pw), nil
-		})
+		// Temporarily override the password callback for the duration of this
+		// call so that addIdentity → saveIdentities → encryptFile use the
+		// supplied passphrase instead of prompting via askPass.
+		old := a.pwCallback
+		a.pwCallback = func(_ string, _ bool) ([]byte, error) { return []byte(pw), nil }
+		defer func() { a.pwCallback = old }()
 	}
 
 	id, err := age.GenerateX25519Identity()
@@ -355,24 +347,7 @@ func (a *Age) addIdentity(ctx context.Context, id age.Identity) error {
 }
 
 func (a *Age) saveIdentities(ctx context.Context, ids []string, newFile bool) error {
-	// only force a password prompt if running interactively
-	// TODO: this doesn't really cut it. the purpose is to avoid a password prompt
-	// from popping up during tests. but no combination of existing flags really
-	// does convey that correctly. I think we need to cleanup and document the
-	// different flags conveyed by ctxutil.
-	//
-	// Note: if running in a test, we don't want to prompt for a password and just fail.
-	// Not perfect but we don't support password-less age, yet.
-	// TODO(#2108): remove this hack
-	if !ctxutil.HasPasswordCallback(ctx) && !ctxutil.IsAlwaysYes(ctx) {
-		debug.Log("no password callback found, redirecting to askPass")
-		ctx = ctxutil.WithPasswordCallback(ctx, func(prompt string, confirm bool) ([]byte, error) {
-			pw, err := a.askPass.Passphrase(prompt, fmt.Sprintf("to save the age keyring to %s", a.identity), confirm)
-
-			return []byte(pw), err
-		})
-		ctx = ctxutil.WithPasswordPurgeCallback(ctx, a.askPass.Remove)
-	}
+	pwcb := a.effectivePwCallback(fmt.Sprintf("to save the age keyring to %s", a.identity))
 
 	// ensure directory exists.
 	if err := os.MkdirAll(filepath.Dir(a.identity), 0o700); err != nil {
@@ -381,7 +356,7 @@ func (a *Age) saveIdentities(ctx context.Context, ids []string, newFile bool) er
 		return fmt.Errorf("failed to create directory for %s: %w", a.identity, err)
 	}
 
-	if err := a.encryptFile(ctx, a.identity, []byte(strings.Join(ids, "\n")), newFile); err != nil {
+	if err := a.encryptFile(ctx, a.identity, []byte(strings.Join(ids, "\n")), newFile, pwcb); err != nil {
 		return fmt.Errorf("failed to write encrypted identity to %s: %w", a.identity, err)
 	}
 

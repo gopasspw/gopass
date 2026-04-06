@@ -166,13 +166,10 @@ func (s *setupHandler) initGenerateIdentity(ctx context.Context, crypto backend.
 
 	passphrase := xkcdgen.Random()
 	pwGenerated := true
-	// support fully automated setup (e.g. for tests)
+	// support fully automated setup (e.g. for tests or CI via GOPASS_AGE_PASSWORD)
 	//nolint:nestif
-	if ctxutil.HasPasswordCallback(ctx) {
-		pw, err := ctxutil.GetPasswordCallback(ctx)("", true)
-		if err == nil {
-			passphrase = string(pw)
-		}
+	if ap := ctxutil.GetAgePassphrase(ctx); ap != "" {
+		passphrase = ap
 		pwGenerated = false
 	} else {
 		want, err := termio.AskForBool(ctx, "⚠ Do you want to enter a passphrase? (otherwise we generate one for you)", false)

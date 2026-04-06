@@ -15,6 +15,7 @@ import (
 	"github.com/gopasspw/gopass/internal/cache/ghssh"
 	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/pkg/appdir"
+	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/debug"
 )
 
@@ -32,11 +33,13 @@ type githubSSHCacher interface {
 
 // Age is an age backend.
 type Age struct {
-	identity   string
-	ghCache    githubSSHCacher
-	askPass    *askPass
-	recpCache  *cache.OnDisk
-	sshKeyPath string // custom SSH key or directory path
+	identity        string
+	ghCache         githubSSHCacher
+	askPass         *askPass
+	recpCache       *cache.OnDisk
+	sshKeyPath      string // custom SSH key or directory path
+	pwCallback      func(string, bool) ([]byte, error)
+	pwPurgeCallback func(string)
 }
 
 // New creates a new Age backend.
@@ -58,11 +61,57 @@ func New(ctx context.Context, sshKeyPath string) (*Age, error) {
 		askPass:    newAskPass(ctx),
 		sshKeyPath: sshKeyPath,
 	}
+
+	// Capture any pre-configured passphrase (e.g. from GOPASS_AGE_PASSWORD).
+	if ap := ctxutil.GetAgePassphrase(ctx); ap != "" {
+		debug.Log("age: using pre-configured passphrase from context")
+		a.pwCallback = func(_ string, _ bool) ([]byte, error) { return []byte(ap), nil }
+		a.pwPurgeCallback = func(_ string) {} // no-op for static passwords
+	}
+
 	a.tryStartAgent(ctx)
 
 	debug.Log("age initialized (ghc: %s, recipients: %s, identity: %s, sshKeyPath: %s)", a.ghCache.String(), a.recpCache.String(), a.identity, a.sshKeyPath)
 
 	return a, nil
+}
+
+// SetPasswordCallback configures an external callback for obtaining
+// the password used to encrypt/decrypt the age identity file.
+// When set it takes precedence over the built-in interactive askPass prompt.
+func (a *Age) SetPasswordCallback(cb func(string, bool) ([]byte, error)) {
+	a.pwCallback = cb
+}
+
+// SetPasswordPurgeCallback configures an external callback that is invoked
+// when a cached password should be invalidated (e.g. after a decrypt failure).
+func (a *Age) SetPasswordPurgeCallback(cb func(string)) {
+	a.pwPurgeCallback = cb
+}
+
+// effectivePwCallback returns the password callback to use for the given
+// operation hint. If an external callback was configured it is returned;
+// otherwise a closure using the interactive askPass prompt is returned.
+func (a *Age) effectivePwCallback(hint string) func(string, bool) ([]byte, error) {
+	if a.pwCallback != nil {
+		return a.pwCallback
+	}
+
+	return func(prompt string, confirm bool) ([]byte, error) {
+		pw, err := a.askPass.Passphrase(prompt, hint, confirm)
+
+		return []byte(pw), err
+	}
+}
+
+// effectivePwPurgeCallback returns the purge callback to use.
+// Falls back to a.askPass.Remove when no external callback is configured.
+func (a *Age) effectivePwPurgeCallback() func(string) {
+	if a.pwPurgeCallback != nil {
+		return a.pwPurgeCallback
+	}
+
+	return a.askPass.Remove
 }
 
 func (a *Age) tryStartAgent(ctx context.Context) {

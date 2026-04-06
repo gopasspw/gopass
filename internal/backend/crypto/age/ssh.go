@@ -11,7 +11,6 @@ import (
 	"filippo.io/age"
 	"filippo.io/age/agessh"
 	"github.com/gopasspw/gopass/pkg/appdir"
-	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/gopasspw/gopass/pkg/fsutil"
 	"golang.org/x/crypto/ssh"
@@ -114,7 +113,7 @@ func getSSHDir() (string, error) {
 }
 
 // parseSSHIdentity parses a SSH public key file and returns the recipient and the identity.
-func (a *Age) parseSSHIdentity(ctx context.Context, pubFn string) (string, age.Identity, error) {
+func (a *Age) parseSSHIdentity(_ context.Context, pubFn string) (string, age.Identity, error) {
 	privFn := strings.TrimSuffix(pubFn, ".pub")
 	_, err := os.Stat(privFn)
 	if err != nil {
@@ -143,7 +142,7 @@ func (a *Age) parseSSHIdentity(ctx context.Context, pubFn string) (string, age.I
 		var perr *ssh.PassphraseMissingError
 		if errors.As(err, &perr) {
 			id, err := agessh.NewEncryptedSSHIdentity(pubkey, privBuf, func() ([]byte, error) {
-				return ctxutil.GetPasswordCallback(ctx)(pubFn, false)
+				return a.effectivePwCallback(fmt.Sprintf("to unlock the SSH key %s", pubFn))(pubFn, false)
 			})
 
 			return recp, id, err

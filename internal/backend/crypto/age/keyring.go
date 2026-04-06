@@ -11,7 +11,6 @@ import (
 	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/appdir"
-	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/gopasspw/gopass/pkg/fsutil"
 )
@@ -61,16 +60,6 @@ func migrate(ctx context.Context, s backend.Storage) error {
 	}
 
 	oldKeyring := OldKeyringPath()
-	if !ctxutil.HasPasswordCallback(ctx) {
-		debug.Log("no password callback found, redirecting to askPass")
-		ctx = ctxutil.WithPasswordCallback(ctx, func(prompt string, _ bool) ([]byte, error) {
-			pw, err := a.askPass.Passphrase(prompt, fmt.Sprintf("to load the age keyring at %s", oldKeyring), false)
-
-			return []byte(pw), err
-		})
-		ctx = ctxutil.WithPasswordPurgeCallback(ctx, a.askPass.Remove)
-	}
-
 	if fsutil.IsFile(oldKeyring) && fsutil.IsFile(a.identity) {
 		out.Warningf(ctx, "Both %s and %s exist. Keeping both. Recover any identities from %s as needed.", oldKeyring, a.identity, oldKeyring)
 
@@ -111,7 +100,10 @@ type Keypair struct {
 
 func (a *Age) loadIdentitiesFromKeyring(ctx context.Context) ([]string, error) {
 	oldKeyring := OldKeyringPath()
-	buf, err := a.decryptFile(ctx, oldKeyring)
+	pwcb := a.effectivePwCallback(fmt.Sprintf("to load the old age keyring at %s", oldKeyring))
+	ppcb := a.effectivePwPurgeCallback()
+
+	buf, err := a.decryptFile(ctx, oldKeyring, pwcb, ppcb)
 	if err != nil {
 		debug.Log("can't decrypt keyring at %s: %s", oldKeyring, err)
 

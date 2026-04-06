@@ -74,6 +74,10 @@ func (r *Store) initSub(ctx context.Context, alias, path string, keys []string) 
 		return nil, fmt.Errorf("failed to initialize store %q at %q: %w", alias, path, err)
 	}
 
+	if r.importCallback != nil {
+		s.SetImportFunc(r.importCallback)
+	}
+
 	if s.IsInitialized(ctx) {
 		return s, nil
 	}

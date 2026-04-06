@@ -92,7 +92,7 @@ func (f *fsckMultiError) ErrorOrNil() error {
 }
 
 // Fsck checks all entries matching the given prefix.
-func (s *Store) Fsck(ctx context.Context, path string) error {
+func (s *Store) Fsck(ctx context.Context, path string, progress ctxutil.ProgressCallback) error {
 	ctx = out.AddPrefix(ctx, "["+s.alias+"] ")
 	ctx = config.WithMount(ctx, s.alias)
 	debug.Log("Checking %s", path)
@@ -121,7 +121,7 @@ func (s *Store) Fsck(ctx context.Context, path string) error {
 		out.Printf(ctx, "Checking all secrets matching %s", path)
 	}
 
-	if err := s.fsckLoop(ctx, path); err != nil {
+	if err := s.fsckLoop(ctx, path, progress); err != nil {
 		return err
 	}
 
@@ -140,8 +140,11 @@ func (s *Store) Fsck(ctx context.Context, path string) error {
 	return nil
 }
 
-func (s *Store) fsckLoop(ctx context.Context, path string) error {
-	pcb := ctxutil.GetProgressCallback(ctx)
+func (s *Store) fsckLoop(ctx context.Context, path string, progress ctxutil.ProgressCallback) error {
+	pcb := progress
+	if pcb == nil {
+		pcb = func() {}
+	}
 
 	// disable network ops, we will push at the end. pushing on possibly
 	// every single secret could be terribly slow.

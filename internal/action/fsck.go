@@ -47,13 +47,13 @@ func (s *auditHandler) Fsck(c *cli.Context) error {
 
 	bar := termio.NewProgressBar(int64(len(pwList)) + 1)
 	bar.Hidden = ctxutil.IsHidden(ctx)
-	ctx = ctxutil.WithProgressCallback(ctx, func() {
+	progress := ctxutil.ProgressCallback(func() {
 		bar.Inc()
 	})
 	ctx = out.AddPrefix(ctx, "\n")
 
 	// the main work in done by the sub stores.
-	if err := s.Store.Fsck(ctx, c.String("store"), filter); err != nil {
+	if err := s.Store.Fsck(ctx, c.String("store"), filter, progress); err != nil {
 		return exit.Error(exit.Fsck, err, "fsck found errors: %s", err)
 	}
 	bar.Done()

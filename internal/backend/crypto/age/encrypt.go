@@ -8,7 +8,6 @@ import (
 	"slices"
 
 	"filippo.io/age"
-	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/debug"
 )
 
@@ -92,8 +91,8 @@ func (a *Age) encrypt(plaintext []byte, recp ...age.Recipient) ([]byte, error) {
 	return out.Bytes(), nil
 }
 
-func (a *Age) encryptFile(ctx context.Context, filename string, plaintext []byte, confirm bool) error {
-	pw, err := ctxutil.GetPasswordCallback(ctx)(filename, confirm)
+func (a *Age) encryptFile(_ context.Context, filename string, plaintext []byte, confirm bool, pwcb func(string, bool) ([]byte, error)) error {
+	pw, err := pwcb(filename, confirm)
 	if err != nil {
 		return err
 	}
