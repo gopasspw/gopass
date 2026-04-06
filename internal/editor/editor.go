@@ -62,6 +62,11 @@ func Invoke(ctx context.Context, editor string, content []byte) ([]byte, error) 
 		}
 
 		editor = cmdArgs[0]
+		// Validate the editor binary actually exists before attempting to run it.
+		if _, err := exec.LookPath(editor); err != nil {
+			return []byte{}, fmt.Errorf("editor binary %q not found in PATH: %w", editor, err)
+		}
+
 		args = append(args, cmdArgs[1:]...)
 		args = append(args, vimOptions(resolveEditor(editor))...)
 	}

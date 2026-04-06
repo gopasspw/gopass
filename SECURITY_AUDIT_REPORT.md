@@ -148,6 +148,8 @@ There is no depth limit or cycle detection beyond what `filepath.EvalSymlinks` p
 
 ### H-3: Editor Command Parsing via Shell Quoting
 
+Status: fixed
+
 **Location:** [internal/editor/editor.go#L62-L69](internal/editor/editor.go#L62-L69)
 
 The editor command (from `$EDITOR` env var or `edit.editor` config) is parsed using `shellquote.Split()`:
