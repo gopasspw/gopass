@@ -208,6 +208,8 @@ Go's `text/template` package allows arbitrary method calls on any value passed t
 
 ### M-3: Age SSH Key Cache Has No Thread Safety
 
+Status: fixed
+
 **Location:** `internal/backend/crypto/age/ssh.go` — global `sshCache` variable
 
 The `sshCache` global is read and written without synchronization. If multiple goroutines call `getSSHIdentities()` concurrently, a data race can occur.
