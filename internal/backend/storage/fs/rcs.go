@@ -1,3 +1,26 @@
+// This file contains stub implementations for the rcs interface that is
+// embedded in backend.Storage. The fs backend intentionally has no VCS
+// support — it exists primarily as a lightweight storage layer for tests
+// and for users who manage versioning through an external mechanism (e.g.
+// a FUSE overlay, a network filesystem with versioning, etc.).
+//
+// # Leaky abstraction note
+//
+// The backend.Storage interface embeds the rcs interface, which means every
+// Storage implementation must also satisfy all VCS operations (Add, Commit,
+// Push, Pull, Revisions, …). This is a deliberate trade-off: in practice the
+// overwhelming majority of storage backends (gitfs, fossilfs, jjfs) are also
+// RCS backends, so a single unified interface keeps the API surface small and
+// avoids an extra type-assertion at every call site in the leaf store.
+//
+// The downside is that the fs backend ends up with ~15 stub methods here, most
+// of which return store.ErrGitNotInit or backend.ErrNotSupported. A previous
+// iteration of the codebase kept Storage and RCS as separate interfaces; the
+// decision to merge them was made to simplify the leaf store and reduce the
+// indirection layer. If the number of pure-storage backends grows, or if the
+// stub overhead becomes a maintenance burden, see
+// docs/adr/A-3-separate-storage-rcs.md for a ready-made plan to split them
+// again.
 package fs
 
 import (

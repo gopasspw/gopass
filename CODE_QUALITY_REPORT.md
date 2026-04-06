@@ -303,6 +303,8 @@ Go contexts are designed for request-scoped values (deadlines, cancellation, req
 
 ### A-3: `Storage` Interface Embeds VCS Operations
 
+Status: deferred
+
 The `Storage` interface in [internal/backend/storage.go](internal/backend/storage.go) embeds the `rcs` interface, coupling basic file operations with git-specific methods (commit, push, pull). Backends like `fs` (no VCS) must implement stubs for all VCS methods.
 
 **Recommendation:** Separate `Storage` (file ops) from `VersionControl` (VCS ops). Backends implement one or both.
