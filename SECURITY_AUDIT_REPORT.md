@@ -127,6 +127,8 @@ if err != nil {
 
 ### H-2: Symlink Following in Store Walk Can Escape Store Boundary
 
+Status: fixed
+
 **Location:** [internal/backend/storage/fs/walk.go#L27-L40](internal/backend/storage/fs/walk.go#L27-L40)
 
 The `walkSymlinks()` function follows directory symlinks without validating that the target remains within the store:

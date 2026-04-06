@@ -97,3 +97,46 @@ func TestWalkSameFile(t *testing.T) {
 
 	assert.Equal(t, want, seen)
 }
+
+// TestWalkEscapeSymlink verifies that a directory symlink pointing outside the
+// store root is silently skipped and does NOT cause files outside the store to
+// appear in the walk results.
+func TestWalkEscapeSymlink(t *testing.T) {
+	t.Parallel()
+
+	td := t.TempDir()
+
+	// A directory that lives entirely outside the store.
+	outsideDir := filepath.Join(td, "outside")
+	secretFile := filepath.Join(outsideDir, "secret.txt")
+	require.NoError(t, os.MkdirAll(outsideDir, 0o700))
+	require.NoError(t, os.WriteFile(secretFile, []byte("outside-secret"), 0o600))
+
+	// The store itself contains one legitimate file.
+	storeDir := filepath.Join(td, "store")
+	storeFile := filepath.Join(storeDir, "legit.age")
+	require.NoError(t, os.MkdirAll(storeDir, 0o700))
+	require.NoError(t, os.WriteFile(storeFile, []byte("encrypted"), 0o600))
+
+	// A symlink inside the store that points to the outside directory.
+	escapeLink := filepath.Join(storeDir, "escape")
+	require.NoError(t, os.Symlink(outsideDir, escapeLink))
+
+	seen := map[string]bool{}
+	require.NoError(t, walkSymlinks(storeDir, func(path string, info fs.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if info.IsDir() {
+			return nil
+		}
+		rPath := strings.TrimPrefix(path, storeDir+string(filepath.Separator))
+		seen[filepath.ToSlash(rPath)] = true
+
+		return nil
+	}))
+
+	// Only the legitimate in-store file should be seen.
+	assert.Equal(t, map[string]bool{"legit.age": true}, seen,
+		"files outside the store must not appear in walk results")
+}

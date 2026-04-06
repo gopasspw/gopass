@@ -4,13 +4,16 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"strings"
+
+	"github.com/gopasspw/gopass/pkg/debug"
 )
 
-func walkSymlinks(path string, walkFn filepath.WalkFunc) error {
-	return walk(path, path, walkFn)
+func walkSymlinks(root string, walkFn filepath.WalkFunc) error {
+	return walk(root, root, root, walkFn)
 }
 
-func walk(filename, linkDir string, walkFn filepath.WalkFunc) error {
+func walk(root, filename, linkDir string, walkFn filepath.WalkFunc) error {
 	sWalkFn := func(path string, info fs.FileInfo, _ error) error {
 		fname, err := filepath.Rel(filename, path)
 		if err != nil {
@@ -29,13 +32,24 @@ func walk(filename, linkDir string, walkFn filepath.WalkFunc) error {
 			return err
 		}
 
+		// Validate that the symlink target stays within the store root.
+		// A target outside the root could expose arbitrary filesystem
+		// structure (information disclosure) or cause a DoS via large
+		// directory trees.  Skip silently rather than erroring so that
+		// a single stray symlink does not abort the entire walk.
+		if destPath != root && !strings.HasPrefix(destPath, root+string(filepath.Separator)) {
+			debug.Log("skipping symlink %q: target %q escapes store root", path, destPath)
+
+			return nil
+		}
+
 		destInfo, err := os.Lstat(destPath)
 		if err != nil {
 			return walkFn(path, destInfo, err)
 		}
 
 		if destInfo.IsDir() {
-			return walk(destPath, path, walkFn)
+			return walk(root, destPath, path, walkFn)
 		}
 
 		return walkFn(path, info, err)
