@@ -94,6 +94,8 @@ While this is the documented behavior, it is inherently unsafe for a password ma
 
 ### H-1: Template Engine Allows Unrestricted Secret Access
 
+Status: fixed
+
 **Location:** [internal/tpl/funcs.go#L195-L270](internal/tpl/funcs.go#L195-L270), [internal/action/process.go](internal/action/process.go)
 
 The template engine exposes `get`, `getpw`, `getval`, and `getvals` functions that can read **any** secret in the entire store without restriction. The `gopass process` command reads an arbitrary file and executes it as a template:

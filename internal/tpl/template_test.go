@@ -353,3 +353,42 @@ func TestVars(t *testing.T) {
 		})
 	}
 }
+
+// kvMockFail always returns a detailed internal error from Get() so we can
+// verify that the internal error message is never forwarded to template output.
+type kvMockFail struct {
+	internalErr error
+}
+
+func (k kvMockFail) Get(_ context.Context, _ string) (gopass.Secret, error) {
+	return nil, k.internalErr
+}
+
+// TestGetErrorNotLeaked verifies that when a secret cannot be retrieved the
+// template execution fails with a *generic* error and the underlying internal
+// error message (which may contain GPG output, file paths, or other sensitive
+// details) never appears in the returned error or output.
+func TestGetErrorNotLeaked(t *testing.T) {
+	t.Parallel()
+
+	ctx := config.NewContextInMemory()
+
+	internalMsg := "gpg: decryption failed: No secret key (fpr=DEADBEEF)"
+	kv := kvMockFail{internalErr: fmt.Errorf("%s", internalMsg)}
+
+	for _, tmpl := range []string{
+		`{{get "foo"}}`,
+		`{{getpw "foo"}}`,
+		`{{getval "foo" "bar"}}`,
+	} {
+		t.Run(tmpl, func(t *testing.T) {
+			t.Parallel()
+
+			buf, err := Execute(ctx, tmpl, "test", nil, kv)
+			require.Error(t, err, "template execution must fail when secret retrieval fails")
+			assert.Empty(t, buf, "no output should be produced on error")
+			assert.NotContains(t, err.Error(), internalMsg,
+				"internal backend error details must not leak into the returned error")
+		})
+	}
+}

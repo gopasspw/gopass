@@ -876,6 +876,13 @@ func (s *Action) GetCommands() []*cli.Command {
 				"and replace all variables with their values.",
 			Before: s.IsInitialized,
 			Action: s.Process,
+			Flags: []cli.Flag{
+				&cli.StringSliceFlag{
+					Name:    "allow-path",
+					Aliases: []string{"p"},
+					Usage:   "Restrict template secret access to the given path prefix (repeatable). If omitted all secrets in the store are accessible.",
+				},
+			},
 		},
 		{
 			Name:      "rcs",
