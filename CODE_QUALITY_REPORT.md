@@ -392,6 +392,8 @@ The `String()` methods call `Version(context.TODO())` because the `fmt.Stringer`
 
 ### S-5: Stale TODOs
 
+Status: fixed
+
 Several TODOs have been in the code for a long time:
 
 | Location | TODO |

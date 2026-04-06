@@ -172,6 +172,11 @@ func (m *Mocker) Concurrency() int {
 	return runtime.NumCPU()
 }
 
+// NeedsPublicKeyImport returns false because the plain backend has no keyring.
+func (m *Mocker) NeedsPublicKeyImport() bool {
+	return false
+}
+
 // String implements fmt.Stringer.
 func (m *Mocker) String() string {
 	return "Plaintext(Encrypt/Decrypt no-op)"

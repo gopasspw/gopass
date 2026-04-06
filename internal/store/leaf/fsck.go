@@ -177,6 +177,8 @@ func (s *Store) fsckLoop(ctx context.Context, path string, progress ctxutil.Prog
 
 	debug.Log("names (%d): %q", len(names), names)
 	buf := &strings.Builder{}
+	var mimeConverted int
+
 	for _, name := range names {
 		pcb()
 		if after, ok := strings.CutPrefix(name, s.alias+"/"); ok {
@@ -185,15 +187,22 @@ func (s *Store) fsckLoop(ctx context.Context, path string, progress ctxutil.Prog
 
 		debug.Log("[%s] Checking %s", path, name)
 
-		msg, err := s.fsckCheckEntry(ctx, name)
+		msg, fromMime, err := s.fsckCheckEntry(ctx, name)
 		if err != nil {
 			fmt.Fprintf(&warnings, "failed to check %q:\n    %s\n", name, err)
 
 			continue
 		}
 
+		if fromMime {
+			mimeConverted++
+		}
+
 		buf.WriteString(msg)
 		buf.WriteString("\n")
+	}
+	if mimeConverted > 0 {
+		out.Printf(ctx, "Converted %d secret(s) from legacy MIME format", mimeConverted)
 	}
 	if buf.Len() > 0 {
 		ctx = ctxutil.AddToCommitMessageBody(ctx, buf.String())
@@ -246,14 +255,14 @@ type convertedSecret interface {
 	FromMime() bool
 }
 
-func (s *Store) fsckCheckEntry(ctx context.Context, name string) (string, error) {
+func (s *Store) fsckCheckEntry(ctx context.Context, name string) (string, bool, error) {
 	errs := &fsckMultiError{}
 	recpNeedFix := false
 
 	merr := s.fsckCheckRecipients(ctx, name)
 	if merr.ErrorOrNil() != nil {
 		if merr.Severity == errsFatal {
-			return "", errs.Append(errsFatal, fmt.Errorf("checking recipients for %s failed:\n    %w", name, merr)).ErrorOrNil()
+			return "", false, errs.Append(errsFatal, fmt.Errorf("checking recipients for %s failed:\n    %w", name, merr)).ErrorOrNil()
 		}
 		// the only errsNonFatal error from that function are missing/extra recipients, or unsupported recipient checks
 		// all of which aren't much of an issue since we have yet to correct that by re-encrypting.
@@ -265,27 +274,26 @@ func (s *Store) fsckCheckEntry(ctx context.Context, name string) (string, error)
 	// if this fails there is no way we could fix anything
 	if !IsFsckDecrypt(ctx) {
 		if !recpNeedFix {
-			return "", nil
+			return "", false, nil
 		}
 
-		return "", errs.Append(errsFatal, fmt.Errorf("secret %s needs re-encryption", name)).ErrorOrNil()
+		return "", false, errs.Append(errsFatal, fmt.Errorf("secret %s needs re-encryption", name)).ErrorOrNil()
 	}
 
 	// we need to make sure Parsing is enabled in order to parse old Mime secrets
 	ctx = ctxutil.WithShowParsing(ctx, true)
 	sec, err := s.Get(ctx, name)
 	if err != nil {
-		return "", errs.Append(errsFatal, fmt.Errorf("failed to decode secret %s: %w", name, err)).ErrorOrNil()
+		return "", false, errs.Append(errsFatal, fmt.Errorf("failed to decode secret %s: %w", name, err)).ErrorOrNil()
 	}
 
 	// check if this is still an old MIME secret.
 	// Note: the secret was already converted when it was parsed during Get.
 	// This is just checking if it was converted from MIME or not.
-	// This branch is pretty much useless right now, but I'd like to add some
-	// reporting on how many secrets were converted from MIME to new format.
-	// TODO: report these stats
+	var fromMime bool
 	if cs, ok := sec.(convertedSecret); ok && cs.FromMime() {
 		debug.Log("leftover Mime secret: %s", name)
+		fromMime = true
 	}
 
 	if recpNeedFix {
@@ -295,7 +303,7 @@ func (s *Store) fsckCheckEntry(ctx context.Context, name string) (string, error)
 	}
 
 	if err := s.Set(ctxutil.WithGitCommit(ctx, false), name, sec); err != nil {
-		return "", errs.Append(errsFatal, fmt.Errorf("failed to write secret %s: %w", name, err)).ErrorOrNil()
+		return "", false, errs.Append(errsFatal, fmt.Errorf("failed to write secret %s: %w", name, err)).ErrorOrNil()
 	}
 
 	merr = s.fsckCheckRecipients(ctx, name)
@@ -308,10 +316,10 @@ func (s *Store) fsckCheckEntry(ctx context.Context, name string) (string, error)
 	}
 
 	if merr.IsError() {
-		return "", merr.ErrorOrNil()
+		return "", false, merr.ErrorOrNil()
 	}
 
-	return fmt.Sprintf("- re-encrypt secret %s", name), nil
+	return fmt.Sprintf("- re-encrypt secret %s", name), fromMime, nil
 }
 
 func (s *Store) fsckCheckRecipients(ctx context.Context, name string) *fsckMultiError {

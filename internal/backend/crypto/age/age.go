@@ -206,6 +206,12 @@ func (a *Age) Concurrency() int {
 	return 1
 }
 
+// NeedsPublicKeyImport returns false because age public keys are the recipient
+// identifiers themselves and do not need to be imported into a separate keyring.
+func (a *Age) NeedsPublicKeyImport() bool {
+	return false
+}
+
 // GetFingerprint returns the fingerprint of a key.
 func (a *Age) GetFingerprint(ctx context.Context, key []byte) (string, error) {
 	return string(key), nil

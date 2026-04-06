@@ -58,6 +58,11 @@ type Crypto interface {
 	Ext() string    // filename extension.
 	IDFile() string // recipient IDs.
 	Concurrency() int
+	// NeedsPublicKeyImport reports whether this backend manages public keys in a
+	// separate keyring that must be populated via import. GPG-style backends
+	// return true; backends such as age, where the public key IS the recipient
+	// identifier, return false.
+	NeedsPublicKeyImport() bool
 }
 
 // NewCrypto instantiates a new crypto backend.
@@ -70,11 +75,19 @@ func NewCrypto(ctx context.Context, id CryptoBackend) (Crypto, error) {
 }
 
 // DetectCrypto tries to detect the crypto backend used.
+// If a backend is explicitly requested via the context and cannot be found,
+// an error is returned. If no backend is requested and none can be detected
+// from the storage (i.e. the store is uninitialized), nil, nil is returned
+// so that callers can distinguish an uninitialized store from a hard error.
 func DetectCrypto(ctx context.Context, storage Storage) (Crypto, error) {
 	if HasCryptoBackend(ctx) {
-		if be, err := CryptoRegistry.Get(GetCryptoBackend(ctx)); err == nil {
+		be, err := CryptoRegistry.Get(GetCryptoBackend(ctx))
+		if err == nil {
 			return be.New(ctx)
 		}
+
+		// An explicit backend was requested but is not registered.
+		return nil, fmt.Errorf("no crypto backend found for %s: %w", storage, ErrNotFound)
 	}
 
 	for _, be := range CryptoRegistry.Prioritized() {
@@ -88,7 +101,9 @@ func DetectCrypto(ctx context.Context, storage Storage) (Crypto, error) {
 
 		return be.New(ctx)
 	}
+
+	// No backend could be auto-detected. The store is likely uninitialized.
 	debug.Log("No valid crypto provider found for %s", storage)
-	// TODO: this should return ErrNotSupported, but need to fix some tests for that
+
 	return nil, nil //nolint:nilnil
 }
