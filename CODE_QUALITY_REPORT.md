@@ -277,6 +277,8 @@ The code in [internal/action/sync.go#L35](internal/action/sync.go#L35) still pro
 
 ### A-1: `Action` Struct Is a God Object
 
+Status: fixed
+
 The `Action` struct in [internal/action/](internal/action/) has **100+ methods** spanning every CLI concern: secret CRUD, mount management, git operations, auditing, templates, recipient management, OTP, completion generation, REPL, binary operations, cloning, and more.
 
 This makes the struct:
