@@ -36,7 +36,7 @@ func bashEscape(s string) string {
 }
 
 // Complete prints a list of all password names to os.Stdout, for bash completion.
-func (s *Action) Complete(c *cli.Context) {
+func (s *miscHandler) Complete(c *cli.Context) {
 	ctx := ctxutil.WithGlobalFlags(c)
 	_, err := s.Store.IsInitialized(ctx) // important to make sure the structs are not nil.
 	if err != nil {
@@ -55,7 +55,7 @@ func (s *Action) Complete(c *cli.Context) {
 }
 
 // CompletionOpenBSDKsh returns an OpenBSD ksh script used for auto completion.
-func (s *Action) CompletionOpenBSDKsh(a *cli.App) error {
+func (s *miscHandler) CompletionOpenBSDKsh(a *cli.App) error {
 	out := `
 PASS_LIST=$(gopass ls -f)
 set -A complete_gopass -- $PASS_LIST %s
@@ -79,7 +79,7 @@ set -A complete_gopass -- $PASS_LIST %s
 }
 
 // CompletionBash returns a bash script used for auto completion.
-func (s *Action) CompletionBash(c *cli.Context) error {
+func (s *miscHandler) CompletionBash(c *cli.Context) error {
 	out := `_gopass_bash_autocomplete() {
      local cur opts base
      COMPREPLY=()
@@ -102,7 +102,7 @@ func (s *Action) CompletionBash(c *cli.Context) error {
 }
 
 // CompletionFish returns an autocompletion script for fish.
-func (s *Action) CompletionFish(a *cli.App) error {
+func (s *miscHandler) CompletionFish(a *cli.App) error {
 	if a == nil {
 		return fmt.Errorf("app is nil")
 	}
@@ -117,7 +117,7 @@ func (s *Action) CompletionFish(a *cli.App) error {
 }
 
 // CompletionZSH returns a zsh completion script.
-func (s *Action) CompletionZSH(a *cli.App) error {
+func (s *miscHandler) CompletionZSH(a *cli.App) error {
 	comp, err := zshcomp.GetCompletion(a)
 	if err != nil {
 		return err

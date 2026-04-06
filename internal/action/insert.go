@@ -21,7 +21,7 @@ import (
 )
 
 // Insert a string as content to a secret file.
-func (s *Action) Insert(c *cli.Context) error {
+func (s *secretHandler) Insert(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	echo := c.Bool("echo")
 	multiline := c.Bool("multiline")
@@ -39,7 +39,7 @@ func (s *Action) Insert(c *cli.Context) error {
 	return s.insert(ctx, c, name, key, echo, multiline, force, appending, kvps)
 }
 
-func (s *Action) insert(ctx context.Context, c *cli.Context, name, key string, echo, multiline, force, appending bool, kvps map[string]string) error {
+func (s *secretHandler) insert(ctx context.Context, c *cli.Context, name, key string, echo, multiline, force, appending bool, kvps map[string]string) error {
 	var content []byte
 
 	// Check for custom commit message
@@ -101,7 +101,7 @@ func (s *Action) insert(ctx context.Context, c *cli.Context, name, key string, e
 	return s.insertSingle(ctx, name, pw, kvps)
 }
 
-func (s *Action) insertStdin(ctx context.Context, name string, content []byte, appendTo bool) error {
+func (s *secretHandler) insertStdin(ctx context.Context, name string, content []byte, appendTo bool) error {
 	var sec gopass.Secret = secrets.ParseAKV(content)
 
 	if appendTo && s.Store.Exists(ctx, name) {
@@ -122,7 +122,7 @@ func (s *Action) insertStdin(ctx context.Context, name string, content []byte, a
 	return nil
 }
 
-func (s *Action) insertStdinAppend(ctx context.Context, name string, content []byte) (gopass.Secret, error) {
+func (s *secretHandler) insertStdinAppend(ctx context.Context, name string, content []byte) (gopass.Secret, error) {
 	eSec, err := s.Store.Get(ctx, name)
 	if err != nil {
 		return nil, exit.Error(exit.Decrypt, err, "failed to decrypt existing secret: %s", err)
@@ -142,7 +142,7 @@ func (s *Action) insertStdinAppend(ctx context.Context, name string, content []b
 	return eSec, nil
 }
 
-func (s *Action) insertSingle(ctx context.Context, name, pw string, kvps map[string]string) error {
+func (s *secretHandler) insertSingle(ctx context.Context, name, pw string, kvps map[string]string) error {
 	sec, err := s.insertGetSecret(ctx, name, pw)
 	if err != nil {
 		return err
@@ -166,7 +166,7 @@ func (s *Action) insertSingle(ctx context.Context, name, pw string, kvps map[str
 	return nil
 }
 
-func (s *Action) insertGetSecret(ctx context.Context, name, pw string) (gopass.Secret, error) {
+func (s *secretHandler) insertGetSecret(ctx context.Context, name, pw string) (gopass.Secret, error) {
 	if s.Store.Exists(ctx, name) {
 		sec, err := s.Store.Get(ctx, name)
 		if err != nil {
@@ -176,7 +176,7 @@ func (s *Action) insertGetSecret(ctx context.Context, name, pw string) (gopass.S
 		return sec, nil
 	}
 
-	content, found := s.renderTemplate(ctx, name, []byte(pw))
+	content, found := s.renderTemplateFn(ctx, name, []byte(pw))
 	// no template found
 	if !found {
 		return secrets.New(), nil
@@ -194,7 +194,7 @@ func (s *Action) insertGetSecret(ctx context.Context, name, pw string) (gopass.S
 }
 
 // insertYAML will overwrite existing keys.
-func (s *Action) insertYAML(ctx context.Context, name, key string, content []byte, kvps map[string]string) error {
+func (s *secretHandler) insertYAML(ctx context.Context, name, key string, content []byte, kvps map[string]string) error {
 	debug.Log("insertYAML: %s - %s -> %s", name, key, content)
 	if ctxutil.IsInteractive(ctx) {
 		pw, err := termio.AskForString(ctx, name+":"+key, "")
@@ -234,7 +234,7 @@ func (s *Action) insertYAML(ctx context.Context, name, key string, content []byt
 	return nil
 }
 
-func (s *Action) insertMultiline(ctx context.Context, c *cli.Context, name string) error {
+func (s *secretHandler) insertMultiline(ctx context.Context, c *cli.Context, name string) error {
 	buf := []byte{}
 	if s.Store.Exists(ctx, name) {
 		var err error

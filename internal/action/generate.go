@@ -30,7 +30,7 @@ import (
 var reNumber = regexp.MustCompile(`^\d+$`)
 
 // Generate and save a password.
-func (s *Action) Generate(c *cli.Context) error {
+func (s *generateHandler) Generate(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	ctx = WithClip(ctx, c.Bool("clip"))
 	force := c.Bool("force")
@@ -91,7 +91,7 @@ func (s *Action) Generate(c *cli.Context) error {
 	// if requested launch editor to add more data to the generated secret.
 	if edit {
 		c.Context = ctx
-		if err := s.Edit(c); err != nil {
+		if err := s.editFn(c); err != nil {
 			return exit.Error(exit.Unknown, err, "failed to edit %q: %s", name, err)
 		}
 	}
@@ -117,7 +117,7 @@ func keyAndLength(args argList) (string, string) {
 
 // generateCopyOrPrint will print the password to the screen or copy to the
 // clipboard.
-func (s *Action) generateCopyOrPrint(ctx context.Context, c *cli.Context, name, key, password string) error {
+func (s *generateHandler) generateCopyOrPrint(ctx context.Context, c *cli.Context, name, key, password string) error {
 	entry := name
 	if key != "" {
 		entry += " " + key
@@ -179,7 +179,7 @@ func hasPwRuleForSecret(ctx context.Context, name string) (string, pwrules.Rule)
 }
 
 // generatePassword will run through the password generation steps.
-func (s *Action) generatePassword(ctx context.Context, c *cli.Context, length, name string) (string, error) {
+func (s *generateHandler) generatePassword(ctx context.Context, c *cli.Context, length, name string) (string, error) {
 	if domain, rule := hasPwRuleForSecret(ctx, name); domain != "" && !c.Bool("force") {
 		return s.generatePasswordForRule(ctx, length, domain, rule)
 	}
@@ -266,7 +266,7 @@ func getPwLengthFromEnvOrAskUser(ctx context.Context) (int, error) {
 // generatePasswordForRule validates the user-provided password length against
 // the rule for the domain and condtionally prompts the user for a correct
 // length if the initial value is invalid.
-func (s *Action) generatePasswordForRule(ctx context.Context, length, domain string, rule pwrules.Rule) (string, error) {
+func (s *generateHandler) generatePasswordForRule(ctx context.Context, length, domain string, rule pwrules.Rule) (string, error) {
 	out.Noticef(ctx, "Using password rules for %s ...", domain)
 
 	var iv int
@@ -307,7 +307,7 @@ func (s *Action) generatePasswordForRule(ctx context.Context, length, domain str
 
 // generatePasswordXKCD walks through the steps necessary to create an XKCD-style
 // password.
-func (s *Action) generatePasswordXKCD(ctx context.Context, c *cli.Context, length string) (string, error) {
+func (s *generateHandler) generatePasswordXKCD(ctx context.Context, c *cli.Context, length string) (string, error) {
 	sep := config.String(c.Context, "pwgen.xkcd-sep")
 	if c.IsSet("xkcd-sep") {
 		sep = c.String("xkcd-sep")
@@ -354,7 +354,7 @@ func (s *Action) generatePasswordXKCD(ctx context.Context, c *cli.Context, lengt
 }
 
 // generateSetPassword will update or create a secret.
-func (s *Action) generateSetPassword(ctx context.Context, name, key, password string, kvps map[string]string, regen bool) (context.Context, error) {
+func (s *generateHandler) generateSetPassword(ctx context.Context, name, key, password string, kvps map[string]string, regen bool) (context.Context, error) {
 	// set a single key in an entry.
 	if key != "" {
 		sec, err := s.Store.Get(ctx, name)
@@ -393,7 +393,7 @@ func (s *Action) generateSetPassword(ctx context.Context, name, key, password st
 		_ = sec.Set("password-change-url", u)
 	}
 
-	if content, found := s.renderTemplate(ctx, name, []byte(password)); found {
+	if content, found := s.renderTemplateFn(ctx, name, []byte(password)); found {
 		nSec := secrets.NewAKV()
 		if _, err := nSec.Write(content); err == nil {
 			sec = nSec
@@ -423,7 +423,7 @@ func hasChangeURL(ctx context.Context, name string) string {
 	return ""
 }
 
-func (s *Action) generateReplaceExisting(ctx context.Context, name, key, password string, kvps map[string]string) (context.Context, error) {
+func (s *generateHandler) generateReplaceExisting(ctx context.Context, name, key, password string, kvps map[string]string) (context.Context, error) {
 	sec, err := s.Store.Get(ctx, name)
 	if err != nil {
 		return ctx, exit.Error(exit.Encrypt, err, "failed to set key %q of %q: %s", key, name, err)
@@ -449,7 +449,7 @@ func setMetadata(sec gopass.Secret, kvps map[string]string) {
 }
 
 // CompleteGenerate implements the completion heuristic for the generate command.
-func (s *Action) CompleteGenerate(c *cli.Context) {
+func (s *generateHandler) CompleteGenerate(c *cli.Context) {
 	ctx := ctxutil.WithGlobalFlags(c)
 	if c.Args().Len() < 1 {
 		return

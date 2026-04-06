@@ -9,7 +9,7 @@ import (
 )
 
 // Update will start the interactive update assistant.
-func (s *Action) Update(c *cli.Context) error {
+func (s *miscHandler) Update(c *cli.Context) error {
 	_ = s.rem.Reset("update")
 
 	ctx := ctxutil.WithGlobalFlags(c)

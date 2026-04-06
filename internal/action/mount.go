@@ -23,7 +23,7 @@ import (
 )
 
 // MountRemove removes an existing mount.
-func (s *Action) MountRemove(c *cli.Context) error {
+func (s *mountHandler) MountRemove(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	if c.Args().Len() != 1 {
 		return exit.Error(exit.Usage, nil, "Usage: %s mount remove [alias]", s.Name)
@@ -39,7 +39,7 @@ func (s *Action) MountRemove(c *cli.Context) error {
 }
 
 // MountsPrint prints all existing mounts.
-func (s *Action) MountsPrint(c *cli.Context) error {
+func (s *mountHandler) MountsPrint(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	if len(s.Store.Mounts()) < 1 {
 		out.Printf(ctx, "No mounts")
@@ -66,14 +66,14 @@ func (s *Action) MountsPrint(c *cli.Context) error {
 
 // MountsComplete will print a list of existings mount points for bash
 // completion.
-func (s *Action) MountsComplete(*cli.Context) {
+func (s *mountHandler) MountsComplete(*cli.Context) {
 	for alias := range s.Store.Mounts() {
 		fmt.Fprintln(stdout, alias)
 	}
 }
 
 // MountAdd adds a new mount.
-func (s *Action) MountAdd(c *cli.Context) error {
+func (s *mountHandler) MountAdd(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 
 	var alias, localPath string
@@ -95,7 +95,7 @@ func (s *Action) MountAdd(c *cli.Context) error {
 	if c.Bool("create") && !set.New(alias).IsSubset(set.New(s.Store.MountPoints()...)) {
 		debug.Log("creating new mount %s at %s", alias, localPath)
 
-		return s.init(ctx, alias, localPath)
+		return s.initFn(ctx, alias, localPath)
 	}
 
 	if err := s.Store.AddMount(ctx, alias, localPath); err != nil {
@@ -121,7 +121,7 @@ func (s *Action) MountAdd(c *cli.Context) error {
 }
 
 // MountsVersions prints the backend versions for each mount.
-func (s *Action) MountsVersions(c *cli.Context) error {
+func (s *mountHandler) MountsVersions(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 
 	cryptoVer := versionInfo(ctx, s.Store.Crypto(ctx, ""))

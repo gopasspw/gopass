@@ -16,7 +16,7 @@ import (
 
 // Doctor checks the gopass installation for common issues and prints a
 // diagnostic report. It exits with a non-zero status if any check fails.
-func (s *Action) Doctor(c *cli.Context) error {
+func (s *miscHandler) Doctor(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	verbose := c.Bool("verbose")
 
@@ -57,12 +57,12 @@ func (s *Action) Doctor(c *cli.Context) error {
 }
 
 // doctorMountPoints returns the root mount ("") followed by all sub-store mount points.
-func (s *Action) doctorMountPoints() []string {
+func (s *miscHandler) doctorMountPoints() []string {
 	return append([]string{""}, s.Store.MountPoints()...)
 }
 
 // doctorCheckGPG fails if any store uses GPG encryption but the gpg binary is not found.
-func (s *Action) doctorCheckGPG(_ context.Context) error {
+func (s *miscHandler) doctorCheckGPG(_ context.Context) error {
 	for _, mp := range s.doctorMountPoints() {
 		sub, err := s.Store.GetSubStore(mp)
 		if err != nil || sub == nil {
@@ -82,7 +82,7 @@ func (s *Action) doctorCheckGPG(_ context.Context) error {
 }
 
 // doctorCheckAge fails if any store uses age encryption but the age binary is not found.
-func (s *Action) doctorCheckAge(_ context.Context) error {
+func (s *miscHandler) doctorCheckAge(_ context.Context) error {
 	for _, mp := range s.doctorMountPoints() {
 		sub, err := s.Store.GetSubStore(mp)
 		if err != nil || sub == nil {
@@ -102,7 +102,7 @@ func (s *Action) doctorCheckAge(_ context.Context) error {
 }
 
 // doctorCheckGit fails if any store uses the git storage backend but the git binary is not found.
-func (s *Action) doctorCheckGit(_ context.Context) error {
+func (s *miscHandler) doctorCheckGit(_ context.Context) error {
 	for _, mp := range s.doctorMountPoints() {
 		sub, err := s.Store.GetSubStore(mp)
 		if err != nil || sub == nil {
@@ -122,7 +122,7 @@ func (s *Action) doctorCheckGit(_ context.Context) error {
 }
 
 // doctorCheckGitIdentity fails if any git-backed store is missing user.name or user.email in its git config.
-func (s *Action) doctorCheckGitIdentity(ctx context.Context) error {
+func (s *miscHandler) doctorCheckGitIdentity(ctx context.Context) error {
 	for _, mp := range s.doctorMountPoints() {
 		sub, err := s.Store.GetSubStore(mp)
 		if err != nil || sub == nil {
@@ -146,7 +146,7 @@ func (s *Action) doctorCheckGitIdentity(ctx context.Context) error {
 }
 
 // doctorCheckStorePermissions fails if any store directory is missing or world-writable.
-func (s *Action) doctorCheckStorePermissions(_ context.Context) error {
+func (s *miscHandler) doctorCheckStorePermissions(_ context.Context) error {
 	for _, mp := range s.doctorMountPoints() {
 		sub, err := s.Store.GetSubStore(mp)
 		if err != nil || sub == nil {
@@ -172,7 +172,7 @@ func (s *Action) doctorCheckStorePermissions(_ context.Context) error {
 }
 
 // doctorCheckRecipients fails if any store has invalid or expired recipient keys.
-func (s *Action) doctorCheckRecipients(ctx context.Context) error {
+func (s *miscHandler) doctorCheckRecipients(ctx context.Context) error {
 	for _, mp := range s.doctorMountPoints() {
 		if err := s.Store.CheckRecipients(ctx, mp); err != nil {
 			return fmt.Errorf("store %q: %w", doctorStoreLabel(mp), err)
@@ -184,7 +184,7 @@ func (s *Action) doctorCheckRecipients(ctx context.Context) error {
 
 // doctorCheckGitRemote warns if any git-backed store has no remote configured.
 // It does not return an error because a local-only store without sync is valid.
-func (s *Action) doctorCheckGitRemote(ctx context.Context) {
+func (s *miscHandler) doctorCheckGitRemote(ctx context.Context) {
 	for _, mp := range s.doctorMountPoints() {
 		sub, err := s.Store.GetSubStore(mp)
 		if err != nil || sub == nil {

@@ -13,7 +13,7 @@ import (
 )
 
 // Grep searches a string inside the content of all files.
-func (s *Action) Grep(c *cli.Context) error {
+func (s *searchHandler) Grep(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	if !c.Args().Present() {
 		return exit.Error(exit.Usage, nil, "Usage: %s grep arg", s.Name)

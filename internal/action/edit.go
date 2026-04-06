@@ -22,7 +22,7 @@ import (
 )
 
 // Edit the content of a password file.
-func (s *Action) Edit(c *cli.Context) error {
+func (s *secretHandler) Edit(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	ctx = ctxutil.WithFollowRef(ctx, false)
 
@@ -42,7 +42,7 @@ func (s *Action) Edit(c *cli.Context) error {
 	return hook.InvokeRoot(ctx, "edit.post-hook", name, s.Store)
 }
 
-func (s *Action) edit(ctx context.Context, c *cli.Context, name string) error {
+func (s *secretHandler) edit(ctx context.Context, c *cli.Context, name string) error {
 	ed := editor.Path(c)
 
 	// get existing content or generate new one from a template.
@@ -70,7 +70,7 @@ func (s *Action) edit(ctx context.Context, c *cli.Context, name string) error {
 	return s.editUpdate(ctx, name, content, newContent, changed, ed)
 }
 
-func (s *Action) editUpdate(ctx context.Context, name string, content, nContent []byte, changed bool, ed string) error {
+func (s *secretHandler) editUpdate(ctx context.Context, name string, content, nContent []byte, changed bool, ed string) error {
 	// If content is equal, nothing changed, exiting.
 	if bytes.Equal(content, nContent) && !changed {
 		return nil
@@ -94,7 +94,7 @@ func (s *Action) editUpdate(ctx context.Context, name string, content, nContent 
 	return nil
 }
 
-func (s *Action) editGetContent(ctx context.Context, name string, create bool) (string, []byte, bool, error) {
+func (s *secretHandler) editGetContent(ctx context.Context, name string, create bool) (string, []byte, bool, error) {
 	if !s.Store.Exists(ctx, name) && !create && !config.Bool(ctx, "edit.auto-create") {
 		var err error
 		name, err = s.editFindName(ctx, name)
@@ -124,7 +124,7 @@ func (s *Action) editGetContent(ctx context.Context, name string, create bool) (
 
 	// load template if it exists.
 	pwLength, _ := config.DefaultPasswordLengthFromEnv(ctx)
-	if content, found := s.renderTemplate(ctx, name, []byte(pwgen.GeneratePassword(pwLength, false))); found {
+	if content, found := s.renderTemplateFn(ctx, name, []byte(pwgen.GeneratePassword(pwLength, false))); found {
 		return name, content, true, nil
 	}
 
@@ -132,7 +132,7 @@ func (s *Action) editGetContent(ctx context.Context, name string, create bool) (
 	return name, nil, false, nil
 }
 
-func (s *Action) editFindName(ctx context.Context, name string) (string, error) {
+func (s *secretHandler) editFindName(ctx context.Context, name string) (string, error) {
 	newName := ""
 	// capture only the name of the selected secret.
 	cb := func(ctx context.Context, c *cli.Context, selectedName string, recurse bool) error {
@@ -140,7 +140,7 @@ func (s *Action) editFindName(ctx context.Context, name string) (string, error) 
 
 		return nil
 	}
-	if err := s.find(ctx, nil, name, cb, false); err != nil {
+	if err := s.findFn(ctx, nil, name, cb, false); err != nil {
 		debug.Log("failed to find secret %s: %s", name, err)
 
 		return name, err

@@ -13,7 +13,7 @@ import (
 )
 
 // Convert converts a store to a different set of backends.
-func (s *Action) Convert(c *cli.Context) error {
+func (s *miscHandler) Convert(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	ctx = age.WithOnlyNative(ctx, true)
 
@@ -72,7 +72,7 @@ func (s *Action) Convert(c *cli.Context) error {
 			return err
 		}
 
-		if err := s.initCheckPrivateKeys(ctx, cbe); err != nil {
+		if err := s.initCheckPrivateKeysFn(ctx, cbe); err != nil {
 			return err
 		}
 		out.Printf(ctx, "Crypto %q has private keys", crypto.String())

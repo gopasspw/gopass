@@ -169,7 +169,7 @@ func (r *Store) getStore(name string) (*leaf.Store, string) {
 	mp := r.MountPoint(name)
 
 	if sub, found := r.mounts[mp]; found {
-		return sub, strings.TrimPrefix(name, sub.Alias())
+		return sub, strings.TrimPrefix(strings.TrimPrefix(name, sub.Alias()), "/")
 	}
 
 	return r.store, name

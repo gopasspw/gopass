@@ -19,7 +19,7 @@ import (
 // Env implements the env subcommand. It populates the environment of a subprocess with
 // a set of environment variables corresponding to the secret subtree specified on the
 // command line.
-func (s *Action) Env(c *cli.Context) error {
+func (s *envHandler) Env(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	name := c.Args().First()
 	args := c.Args().Tail()
@@ -71,7 +71,7 @@ func (s *Action) Env(c *cli.Context) error {
 // envKeys resolves the set of store paths to operate on for name. If name is a
 // directory the full list of entries under it is returned; otherwise a
 // single-element slice is returned.
-func (s *Action) envKeys(ctx context.Context, name string) ([]string, error) {
+func (s *envHandler) envKeys(ctx context.Context, name string) ([]string, error) {
 	if !s.Store.IsDir(ctx, name) {
 		return []string{name}, nil
 	}
@@ -93,7 +93,7 @@ func (s *Action) envKeys(ctx context.Context, name string) ([]string, error) {
 
 // envRunStdin runs args with the secret's password written to the subprocess's
 // stdin. No environment variable is set. Only valid for a single secret.
-func (s *Action) envRunStdin(ctx context.Context, name string, keys []string, args []string) error {
+func (s *envHandler) envRunStdin(ctx context.Context, name string, keys []string, args []string) error {
 	if s.Store.IsDir(ctx, name) {
 		return exit.Error(exit.Usage, nil, "--stdin requires a single secret, not a directory")
 	}
@@ -115,7 +115,7 @@ func (s *Action) envRunStdin(ctx context.Context, name string, keys []string, ar
 // envRunFile writes each secret to a ramdisk temp file and exports
 // KEY_FILE=/path/to/file in the subprocess environment. All temp files are
 // removed when the subprocess exits.
-func (s *Action) envRunFile(ctx context.Context, name string, keys []string, args []string, keepCase bool) error {
+func (s *envHandler) envRunFile(ctx context.Context, name string, keys []string, args []string, keepCase bool) error {
 	tfs := make([]*tempfile.File, 0, len(keys))
 	defer func() {
 		for _, tf := range tfs {
@@ -146,7 +146,7 @@ func (s *Action) envRunFile(ctx context.Context, name string, keys []string, arg
 
 // envWriteTempFile writes a single secret to a ramdisk temp file and returns
 // the "KEY_FILE=path" env string and the open file handle for later cleanup.
-func (s *Action) envWriteTempFile(ctx context.Context, name, key string, keepCase bool) (string, *tempfile.File, error) {
+func (s *envHandler) envWriteTempFile(ctx context.Context, name, key string, keepCase bool) (string, *tempfile.File, error) {
 	sec, err := s.Store.Get(ctx, key)
 	if err != nil {
 		return "", nil, fmt.Errorf("failed to get entry for env prefix %q: %w", name, err)
@@ -180,7 +180,7 @@ func (s *Action) envWriteTempFile(ctx context.Context, name, key string, keepCas
 // envRunDefault runs args as a child process (or replaces the current process
 // when useExec is true) with the resolved secrets injected as KEY=value
 // environment variables.
-func (s *Action) envRunDefault(ctx context.Context, name string, keys []string, args []string, keepCase, useExec bool) error {
+func (s *envHandler) envRunDefault(ctx context.Context, name string, keys []string, args []string, keepCase, useExec bool) error {
 	env := make([]string, 0, len(keys))
 
 	for _, key := range keys {

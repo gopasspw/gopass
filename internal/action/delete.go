@@ -16,7 +16,7 @@ import (
 )
 
 // Delete a secret file with its content.
-func (s *Action) Delete(c *cli.Context) error {
+func (s *secretHandler) Delete(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	recursive := c.Bool("recursive")
 
@@ -99,7 +99,7 @@ func (s *Action) Delete(c *cli.Context) error {
 	return nil
 }
 
-func (s *Action) deleteRecursive(ctx context.Context, name string, force bool) error {
+func (s *secretHandler) deleteRecursive(ctx context.Context, name string, force bool) error {
 	if !force { // don't check if it's force anyway.
 		if (s.Store.Exists(ctx, name) || s.Store.IsDir(ctx, name)) && !termio.AskForConfirmation(ctx, fmt.Sprintf("☠ Are you sure you would like to recursively delete %q?", name)) {
 			return nil
@@ -116,7 +116,7 @@ func (s *Action) deleteRecursive(ctx context.Context, name string, force bool) e
 }
 
 // deleteKeyFromYAML deletes a single key from YAML.
-func (s *Action) deleteKeyFromYAML(ctx context.Context, name, key string) error {
+func (s *secretHandler) deleteKeyFromYAML(ctx context.Context, name, key string) error {
 	sec, err := s.Store.Get(ctx, name)
 	if err != nil {
 		return exit.Error(exit.IO, err, "Cannot delete key %q from %q: %s", key, name, err)

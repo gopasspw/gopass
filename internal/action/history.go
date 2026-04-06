@@ -11,7 +11,7 @@ import (
 )
 
 // History displays the history of a given secret.
-func (s *Action) History(c *cli.Context) error {
+func (s *searchHandler) History(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	name := c.Args().Get(0)
 	showPassword := c.Bool("password")

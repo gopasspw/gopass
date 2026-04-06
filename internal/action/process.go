@@ -11,7 +11,7 @@ import (
 )
 
 // Process is a command to process a template and replace secrets contained in it.
-func (s *Action) Process(c *cli.Context) error {
+func (s *miscHandler) Process(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	file := c.Args().First()
 	if file == "" {

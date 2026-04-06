@@ -17,7 +17,7 @@ import (
 )
 
 // Audit validates passwords against common flaws.
-func (s *Action) Audit(c *cli.Context) error {
+func (s *auditHandler) Audit(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 
 	_ = s.rem.Reset("audit")

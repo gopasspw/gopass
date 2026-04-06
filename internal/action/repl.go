@@ -16,7 +16,7 @@ import (
 
 // REPL implements a read-execute-print-line shell
 // with readline support and autocompletion.
-func (s *Action) REPL(c *cli.Context) error {
+func (s *miscHandler) REPL(c *cli.Context) error {
 	c.App.ExitErrHandler = func(c *cli.Context, err error) {
 		if err == nil {
 			return
@@ -94,7 +94,7 @@ READ:
 	return nil
 }
 
-func (s *Action) replLock(ctx context.Context) {
+func (s *miscHandler) replLock(ctx context.Context) {
 	if err := s.Store.Lock(); err != nil {
 		out.Errorf(ctx, "Failed to lock stores: %s", err)
 
@@ -373,7 +373,7 @@ func (g *gopassCompleter) completeFromList(candidates []string, prefix string, n
 }
 
 // newGopassCompleter builds a gopassCompleter from the current app state.
-func (s *Action) newGopassCompleter(c *cli.Context) *gopassCompleter {
+func (s *miscHandler) newGopassCompleter(c *cli.Context) *gopassCompleter {
 	entries, err := s.Store.List(c.Context, tree.INF)
 	if err != nil {
 		debug.Log("failed to list secrets: %s", err)
@@ -409,12 +409,12 @@ func (s *Action) newGopassCompleter(c *cli.Context) *gopassCompleter {
 		case cmd.Name == "recipients":
 			spec = completeRecipients
 			if gc.recipients == nil {
-				gc.recipients = s.recipientsList(c.Context)
+				gc.recipients = s.recipientsListFn(c.Context)
 			}
 		case cmd.Name == "templates":
 			spec = completeTemplates
 			if gc.templates == nil {
-				gc.templates = s.templatesList(c.Context)
+				gc.templates = s.templatesListFn(c.Context)
 			}
 		default:
 			spec = completeSubCmds

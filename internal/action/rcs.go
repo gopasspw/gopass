@@ -19,7 +19,7 @@ import (
 )
 
 // RCSInit initializes a git repo including basic configuration.
-func (s *Action) RCSInit(c *cli.Context) error {
+func (s *setupHandler) RCSInit(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	store := c.String("store")
 	un := termio.DetectName(c.Context, c)
@@ -45,7 +45,7 @@ func (s *Action) RCSInit(c *cli.Context) error {
 	return nil
 }
 
-func (s *Action) rcsInit(ctx context.Context, store, un, ue string) error {
+func (s *setupHandler) rcsInit(ctx context.Context, store, un, ue string) error {
 	be := backend.GetStorageBackend(ctx)
 	// TODO this should rather ask s.Store if it HasRCSInit or something.
 	if be == backend.FS {
@@ -77,7 +77,7 @@ func (s *Action) rcsInit(ctx context.Context, store, un, ue string) error {
 	return nil
 }
 
-func (s *Action) getUserData(ctx context.Context, store, name, email string) (string, string) {
+func (s *setupHandler) getUserData(ctx context.Context, store, name, email string) (string, string) {
 	if name != "" && email != "" {
 		debug.Log("Username: %s, Email: %s (provided)", name, email)
 
@@ -118,7 +118,7 @@ func (s *Action) getUserData(ctx context.Context, store, name, email string) (st
 }
 
 // RCSAddRemote adds a new git remote.
-func (s *Action) RCSAddRemote(c *cli.Context) error {
+func (s *setupHandler) RCSAddRemote(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	store := c.String("store")
 	remote := c.Args().Get(0)
@@ -132,7 +132,7 @@ func (s *Action) RCSAddRemote(c *cli.Context) error {
 }
 
 // RCSRemoveRemote removes a git remote.
-func (s *Action) RCSRemoveRemote(c *cli.Context) error {
+func (s *setupHandler) RCSRemoveRemote(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	store := c.String("store")
 	remote := c.Args().Get(0)
@@ -145,7 +145,7 @@ func (s *Action) RCSRemoveRemote(c *cli.Context) error {
 }
 
 // RCSPull pulls from a git remote.
-func (s *Action) RCSPull(c *cli.Context) error {
+func (s *setupHandler) RCSPull(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	store := c.String("store")
 	origin := c.Args().Get(0)
@@ -155,7 +155,7 @@ func (s *Action) RCSPull(c *cli.Context) error {
 }
 
 // RCSPush pushes to a git remote.
-func (s *Action) RCSPush(c *cli.Context) error {
+func (s *setupHandler) RCSPush(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	store := c.String("store")
 	origin := c.Args().Get(0)
@@ -176,7 +176,7 @@ func (s *Action) RCSPush(c *cli.Context) error {
 }
 
 // RCSStatus prints the rcs status.
-func (s *Action) RCSStatus(c *cli.Context) error {
+func (s *setupHandler) RCSStatus(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	store := c.String("store")
 

@@ -24,7 +24,7 @@ import (
 
 // List all secrets as a tree. If the filter argument is non-empty
 // display only those that have this prefix.
-func (s *Action) List(c *cli.Context) error {
+func (s *searchHandler) List(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	filter := c.Args().First()
 	flat := c.Bool("flat")
@@ -65,7 +65,7 @@ func (s *Action) List(c *cli.Context) error {
 	return s.listFiltered(ctx, l, limit, flat, folders, stripPrefix, filter)
 }
 
-func (s *Action) listFiltered(ctx context.Context, l *tree.Root, limit int, flat, folders, stripPrefix bool, filter string) error {
+func (s *searchHandler) listFiltered(ctx context.Context, l *tree.Root, limit int, flat, folders, stripPrefix bool, filter string) error {
 	sep := leaf.Sep
 
 	if filter == "" || filter == sep {
@@ -137,7 +137,7 @@ func redirectPager(ctx context.Context, subtree *tree.Root) (io.Writer, *bytes.B
 }
 
 // pager invokes the default pager with the given content.
-func (s *Action) pager(ctx context.Context, buf io.Reader) error {
+func (s *searchHandler) pager(ctx context.Context, buf io.Reader) error {
 	if config.Bool(ctx, "output.internal-pager") {
 		ov, err := oviewer.NewRoot(buf)
 		if err != nil {
@@ -167,7 +167,7 @@ func (s *Action) pager(ctx context.Context, buf io.Reader) error {
 	return cmd.Run()
 }
 
-func (s *Action) listJSON(ctx context.Context, l *tree.Root, limit int, folders, stripPrefix bool, filter string) error {
+func (s *searchHandler) listJSON(ctx context.Context, l *tree.Root, limit int, folders, stripPrefix bool, filter string) error {
 	sep := leaf.Sep
 
 	if filter != "" && filter != sep {

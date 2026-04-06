@@ -25,7 +25,7 @@ import (
 
 // Clone will fetch and mount a new password store from a git repo.
 // It can also be used to clone a new password store to a submount.
-func (s *Action) Clone(c *cli.Context) error {
+func (s *setupHandler) Clone(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	if c.IsSet("crypto") {
 		var err error
@@ -124,7 +124,7 @@ func storageBackendOrDefault(ctx context.Context, repo string) backend.StorageBa
 	return backend.GitFS
 }
 
-func (s *Action) clone(ctx context.Context, repo, mount, path string) error {
+func (s *setupHandler) clone(ctx context.Context, repo, mount, path string) error {
 	if path == "" {
 		path = config.PwStoreDir(mount)
 	}
@@ -183,7 +183,7 @@ func (s *Action) clone(ctx context.Context, repo, mount, path string) error {
 	return nil
 }
 
-func (s *Action) cloneCheckDecryptionKeys(ctx context.Context, mount string) error {
+func (s *setupHandler) cloneCheckDecryptionKeys(ctx context.Context, mount string) error {
 	crypto := s.getCryptoFor(ctx, mount)
 	if crypto == nil {
 		return fmt.Errorf("can not continue without crypto")
@@ -240,7 +240,7 @@ func (s *Action) cloneCheckDecryptionKeys(ctx context.Context, mount string) err
 	return nil
 }
 
-func (s *Action) cloneAddMount(ctx context.Context, mount, path string) error {
+func (s *setupHandler) cloneAddMount(ctx context.Context, mount, path string) error {
 	if mount == "" {
 		return nil
 	}
@@ -262,7 +262,7 @@ func (s *Action) cloneAddMount(ctx context.Context, mount, path string) error {
 	return nil
 }
 
-func (s *Action) cloneGetGitConfig(ctx context.Context, name string) (string, string, error) {
+func (s *setupHandler) cloneGetGitConfig(ctx context.Context, name string) (string, string, error) {
 	out.Printf(ctx, "🎩 Gathering information for the git repository ...")
 	// for convenience, set defaults to user-selected values from available private keys.
 	// NB: discarding returned error since this is merely a best-effort look-up for convenience.

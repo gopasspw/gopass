@@ -31,11 +31,11 @@ var (
 )
 
 // Sync all stores with their remotes.
-func (s *Action) Sync(c *cli.Context) error {
+func (s *syncHandler) Sync(c *cli.Context) error {
 	return s.sync(ctxutil.WithGlobalFlags(c), c.String("store"), false)
 }
 
-func (s *Action) autoSync(ctx context.Context) error {
+func (s *syncHandler) autoSync(ctx context.Context) error {
 	if !ctxutil.IsInteractive(ctx) {
 		return nil
 	}
@@ -90,7 +90,7 @@ func (s *Action) autoSync(ctx context.Context) error {
 	return nil
 }
 
-func (s *Action) sync(ctx context.Context, store string, isAutosync bool) error {
+func (s *syncHandler) sync(ctx context.Context, store string, isAutosync bool) error {
 	// we just did a full sync, no need to run it again
 	autosyncMu.Lock()
 	lastRun := autosyncLastRun
@@ -165,7 +165,7 @@ func (s *Action) sync(ctx context.Context, store string, isAutosync bool) error 
 }
 
 // syncMount syncs a single mount.
-func (s *Action) syncMount(ctx context.Context, mp string, isAutosync bool) error {
+func (s *syncHandler) syncMount(ctx context.Context, mp string, isAutosync bool) error {
 	if isAutosync {
 		// using GetM here to get the value for this mount, it might be different
 		// from the global value

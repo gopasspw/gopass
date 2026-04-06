@@ -19,7 +19,7 @@ import (
 )
 
 // Version prints the gopass version.
-func (s *Action) Version(c *cli.Context) error {
+func (s *miscHandler) Version(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	version := make(chan string, 1)
 	go s.checkVersion(ctx, version)
@@ -40,7 +40,7 @@ func (s *Action) Version(c *cli.Context) error {
 	return nil
 }
 
-func (s *Action) checkVersion(ctx context.Context, u chan string) {
+func (s *miscHandler) checkVersion(ctx context.Context, u chan string) {
 	msg := ""
 	defer func() {
 		u <- msg
