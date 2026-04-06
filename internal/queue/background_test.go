@@ -83,3 +83,69 @@ func TestGetQueue(t *testing.T) {
 		t.Errorf("expected noop queue, got %T", q)
 	}
 }
+
+// TestQueue_Idle_WaitsForExecution verifies that Idle() waits until the task
+// has fully finished executing, not merely been dequeued from the channel.
+func TestQueue_Idle_WaitsForExecution(t *testing.T) {
+	ctx := t.Context()
+	q := New(ctx)
+
+	started := make(chan struct{})
+	finished := make(chan struct{})
+
+	task := func(ctx context.Context) (context.Context, error) {
+		close(started)
+		time.Sleep(150 * time.Millisecond)
+		close(finished)
+
+		return ctx, nil
+	}
+
+	q.Add(task)
+
+	// Wait until the task has started so the channel is empty but execution is ongoing.
+	<-started
+
+	err := q.Idle(500 * time.Millisecond)
+	if err != nil {
+		t.Fatalf("Idle returned unexpected error: %v", err)
+	}
+
+	select {
+	case <-finished:
+		// expected: task completed before Idle returned
+	default:
+		t.Error("Idle returned before the task finished executing")
+	}
+
+	_ = q.Close(ctx)
+}
+
+// TestQueue_Add_AfterClose verifies that calling Add after Close does not panic
+// and instead returns the task for inline execution.
+func TestQueue_Add_AfterClose(t *testing.T) {
+	ctx := t.Context()
+	q := New(ctx)
+
+	if err := q.Close(ctx); err != nil {
+		t.Fatalf("Close failed: %v", err)
+	}
+
+	executed := false
+	task := func(ctx context.Context) (context.Context, error) {
+		executed = true
+
+		return ctx, nil
+	}
+
+	// Must not panic; returned task should be callable inline.
+	returned := q.Add(task)
+	_, err := returned(ctx)
+	if err != nil {
+		t.Fatalf("inline task returned error: %v", err)
+	}
+
+	if !executed {
+		t.Error("expected task to be executed inline after queue was closed")
+	}
+}

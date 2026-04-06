@@ -311,6 +311,8 @@ The `Storage` interface in [internal/backend/storage.go](internal/backend/storag
 
 ### A-4: Queue Package Needs Replacement
 
+Status: fixed
+
 The [internal/queue/background.go](internal/queue/background.go) package self-documents as "likely broken." The `Idle()` method leaks goroutines, channel operations have race conditions, and error handling is minimal. The `noop` fallback means disabled queuing silently drops tasks.
 
 **Recommendation:** Replace with `errgroup`, `sync.WaitGroup`, or a proper worker pool. The buffered channel pattern is fine but needs correct lifecycle management.
