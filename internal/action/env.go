@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/gopasspw/gopass/internal/action/exit"
+	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/tree"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/debug"
@@ -198,6 +199,8 @@ func (s *envHandler) envRunDefault(ctx context.Context, name string, keys []stri
 
 		env = append(env, fmt.Sprintf("%s=%s", envKey, sec.Password()))
 	}
+
+	out.Warningf(ctx, "Secret values are being injected into the subprocess environment (visible in /proc/<pid>/environ on Linux, ps eww on macOS). Use --stdin or --file to avoid this.")
 
 	if useExec {
 		return execReplace(args, append(os.Environ(), env...))

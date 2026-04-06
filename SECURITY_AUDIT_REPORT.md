@@ -31,6 +31,8 @@ However, the audit identified several issues ranging from a path traversal gap o
 
 ### C-1: Path Traversal — Missing Bounds Check in Storage Layer
 
+Status: fixed
+
 **Location:** [internal/backend/storage/fs/store.go](internal/backend/storage/fs/store.go#L43)
 
 All storage operations use `filepath.Join(s.path, filepath.Clean(name))` but **never validate that the resulting path remains under `s.path`**. While `filepath.Clean` removes redundant separators, it does *not* strip leading `../` sequences:
@@ -65,6 +67,8 @@ if !strings.HasPrefix(resolved, s.path+string(filepath.Separator)) {
 ---
 
 ### C-2: `env` Command Leaks Passwords via Process Environment
+
+Status: fixed
 
 **Location:** [internal/action/env.go#L68-L76](internal/action/env.go#L68-L76)
 
