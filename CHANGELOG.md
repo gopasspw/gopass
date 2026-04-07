@@ -1,5 +1,36 @@
 # Changelog
 
+## Next
+
+* [SECURITY] Fix path traversal vulnerability in fs storage layer (C-1)
+* [SECURITY] Bound symlink traversal to store root (H-2)
+* [SECURITY] Restrict template engine secret access and fix error information leakage (H-1)
+* [SECURITY] Validate editor binary path before invocation (H-3)
+* [SECURITY] Warn on env command secret exposure via environment variables (C-2)
+* [BUGFIX] Add thread safety to SSH identity cache (M-3)
+* [BUGFIX] Fix grep match and error counters in audit summary (B-1)
+* [BUGFIX] Fix autoSync debounce timestamp to update on success instead of failure (B-2)
+* [BUGFIX] Fix create wizard maximum-length check (B-3)
+* [BUGFIX] Fix queue goroutine leak and Add() post-Close() panic (B-8)
+* [BUGFIX] Fix convert backend name in error messages (B-5, B-6)
+* [BUGFIX] Default audit output to summary when no format flag is given (B-7)
+* [FEATURE] Add gopass doctor diagnostic command (I-4)
+* [FEATURE] Add stable structured exit codes; --exit-codes flag lists all codes (I-2)
+* [FEATURE] Add JSON output to audit, list, find, and recipients commands (I-3)
+* [FEATURE] Add show.hidden-keys config option for customizable safecontent redaction (I-5)
+* [FEATURE] Add --stdin, --file, and --exec modes to gopass env
+* [ENHANCEMENT] Unified secret name validation rejects path traversal and consecutive slashes (I-1)
+* [CLEANUP] Split Action handler into focused handler types (A-1)
+* [CLEANUP] Replace context-key config system with typed structs (A-2)
+* [CLEANUP] Replace sort.Strings with slices.Sort throughout (S-3)
+* [CLEANUP] Protect autosyncLastRun with a mutex (S-6)
+* [UX] Remove misleading --force / -f aliases from --unsafe in show and find (U-1)
+* [UX] Standardize XKCD password generator flag names to --xkcd-sep, --xkcd-lang etc. (U-4)
+* [UX] Remove cryptic -t alias from --force-regen in generate (U-6)
+* [UX] Surface GOPASS_AUTOSYNC_INTERVAL deprecation as a visible warning (U-7)
+* [DOCUMENTATION] Fix documentation vs. implementation mismatches in config.md, show.md, find.md, generate.md, secrets.md, and ARCHITECTURE.md
+* [DOCUMENTATION] Fully document wizard template format, attribute types, and file naming convention (I-7)
+
 ## 1.16.1 / 2025-12-13
 
 * chore(deps): bump actions/checkout from 5.0.0 to 6.0.0 (#3299)
