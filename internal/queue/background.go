@@ -106,6 +106,7 @@ func (q *Queue) Add(t Task) Task {
 	if q.closed {
 		q.mu.Unlock()
 		debug.Log("queue closed, returning task for inline execution")
+
 		return t
 	}
 	q.wg.Add(1)

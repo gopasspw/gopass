@@ -67,6 +67,7 @@ var commandsWithError = set.Map([]string{
 	".copy",
 	".create",
 	".delete",
+	".doctor",
 	".edit",
 	".env",
 	".find",

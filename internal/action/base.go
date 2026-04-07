@@ -114,6 +114,3 @@ func newBase(cfg *config.Config, sv semver.Version) *base {
 		Store:   root.New(cfg),
 	}
 }
-
-// Crypto backend type alias used by setup_handler shims.
-type cryptoBackend = backend.Crypto

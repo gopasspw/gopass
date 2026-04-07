@@ -203,9 +203,6 @@ func (s *Action) CompletionZSH(a *cli.App) error        { return s.misc.Completi
 func (s *Action) Config(c *cli.Context) error           { return s.misc.Config(c) }
 func (s *Action) ConfigComplete(c *cli.Context)         { s.misc.ConfigComplete(c) }
 
-// Internal methods accessed from tests.
-func (s *Action) printReminder(ctx context.Context) { s.misc.printReminder(ctx) }
-
 func (s *Action) newGopassCompleter(c *cli.Context) *gopassCompleter {
 	return s.misc.newGopassCompleter(c)
 }
