@@ -10,7 +10,17 @@ import (
 )
 
 func walkSymlinks(root string, walkFn filepath.WalkFunc) error {
-	return walk(root, root, root, walkFn)
+	// Resolve root to its canonical real path so that the escape check in
+	// walk() works correctly on systems where the temp directory itself is
+	// reached via a symlink (e.g. /var → /private/var on macOS).  We keep
+	// the original root as the walk base and link-dir so that paths reported
+	// to walkFn remain relative to what the caller passed in.
+	realRoot, err := filepath.EvalSymlinks(root)
+	if err != nil {
+		return err
+	}
+
+	return walk(realRoot, root, root, walkFn)
 }
 
 func walk(root, filename, linkDir string, walkFn filepath.WalkFunc) error {

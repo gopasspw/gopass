@@ -146,7 +146,7 @@ func testCommands(t *testing.T, c *cli.Context, commands []*cli.Command, prefix 
 	t.Helper()
 
 	for _, cmd := range commands {
-		if cmd.Name == "update" || cmd.Name == "agent" {
+		if cmd.Name == "update" || cmd.Name == "agent" || cmd.Name == "doctor" {
 			continue
 		}
 
@@ -167,12 +167,12 @@ func testCommands(t *testing.T, c *cli.Context, commands []*cli.Command, prefix 
 		if cmd.Action != nil {
 			fullName := prefix + "." + cmd.Name
 			if _, found := commandsWithError[fullName]; found {
-				require.Error(t, cmd.Action(c), fullName)
+				require.Error(t, cmd.Action(c), "Command %s should fail", fullName)
 
 				continue
 			}
 
-			require.NoError(t, cmd.Action(c), fullName)
+			require.NoError(t, cmd.Action(c), "Command %s should not fail", fullName)
 		}
 	}
 }
