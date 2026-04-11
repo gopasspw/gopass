@@ -296,6 +296,66 @@ func TestShowMulti(t *testing.T) {
 	})
 }
 
+func TestShowClipLine(t *testing.T) {
+	u := gptest.NewUnitTester(t)
+
+	ctx := config.NewContextInMemory()
+	ctx = ctxutil.WithAlwaysYes(ctx, true)
+	ctx = ctxutil.WithTerminal(ctx, false)
+	ctx = ctxutil.WithInteractive(ctx, false)
+
+	act, err := newMock(ctx, u.StoreDir(""))
+	require.NoError(t, err)
+	require.NotNil(t, act)
+	ctx = act.cfg.WithConfig(ctx)
+
+	color.NoColor = true
+	buf := &bytes.Buffer{}
+	out.Stdout = buf
+	out.Stderr = buf
+	stdout = buf
+	defer func() {
+		out.Stdout = os.Stdout
+		out.Stderr = os.Stderr
+		stdout = os.Stdout
+	}()
+
+	// Create a multiline secret.
+	sec := secrets.NewAKV()
+	sec.SetPassword("password0")
+	require.NoError(t, sec.Set("user", "admin"))
+	require.NoError(t, act.Store.Set(ctx, "multiline", sec))
+	buf.Reset()
+
+	t.Run("show -c=0 copies line 0 (password)", func(t *testing.T) {
+		c := gptest.CliCtxWithFlags(ctx, t, map[string]string{"clip": "0"}, "multiline")
+		require.NoError(t, act.Show(c))
+		// OnlyClip suppresses output.
+		assert.NotContains(t, buf.String(), "password0")
+		buf.Reset()
+	})
+
+	t.Run("show -c=1 copies line 1", func(t *testing.T) {
+		c := gptest.CliCtxWithFlags(ctx, t, map[string]string{"clip": "1"}, "multiline")
+		require.NoError(t, act.Show(c))
+		assert.NotContains(t, buf.String(), "user")
+		buf.Reset()
+	})
+
+	t.Run("show -c=99 out of range returns error", func(t *testing.T) {
+		c := gptest.CliCtxWithFlags(ctx, t, map[string]string{"clip": "99"}, "multiline")
+		require.Error(t, act.Show(c))
+		buf.Reset()
+	})
+
+	t.Run("show -c (no line number) copies password", func(t *testing.T) {
+		c := gptest.CliCtxWithFlags(ctx, t, map[string]string{"clip": "true"}, "multiline")
+		require.NoError(t, act.Show(c))
+		assert.NotContains(t, buf.String(), "password0")
+		buf.Reset()
+	})
+}
+
 func TestShowAutoClip(t *testing.T) {
 	// make sure we consistently get the unsupported error message
 	ov := clipboard.ForceUnsupported

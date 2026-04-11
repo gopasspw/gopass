@@ -54,13 +54,42 @@ func CliCtxWithFlags(ctx context.Context, t *testing.T, flags map[string]string,
 	return c
 }
 
+// optionalIntValue is a test-only flag.Value that mirrors
+// action.OptionalInt for use in test flag sets. It implements
+// IsBoolFlag so the flag parser treats it as a boolean when
+// no value is provided via the = syntax.
+type optionalIntValue struct {
+	raw string
+}
+
+func (o *optionalIntValue) Set(s string) error {
+	o.raw = s
+
+	return nil
+}
+
+func (o *optionalIntValue) String() string {
+	return o.raw
+}
+
+func (o *optionalIntValue) IsBoolFlag() bool { return true }
+
 func flagset(t *testing.T, flags map[string]string, args []string) *flag.FlagSet {
 	t.Helper()
 
 	fs := flag.NewFlagSet("default", flag.ContinueOnError)
 
 	for k, v := range flags {
-		if v == "true" || v == "false" {
+		// The clip flag uses a GenericFlag with OptionalInt in
+		// production. Mirror that here so c.Generic("clip") works.
+		if k == "clip" {
+			f := cli.GenericFlag{
+				Name:  k,
+				Usage: k,
+				Value: &optionalIntValue{},
+			}
+			require.NoError(t, f.Apply(fs))
+		} else if v == "true" || v == "false" {
 			f := cli.BoolFlag{
 				Name:  k,
 				Usage: k,

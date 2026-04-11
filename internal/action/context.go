@@ -14,7 +14,23 @@ const (
 	ctxKeyAlsoClip
 	ctxKeyPrintChars
 	ctxKeyWithQRBody
+	ctxKeyClipLine
 )
+
+// WithClipLine returns a context with the clip line number set.
+func WithClipLine(ctx context.Context, line int) context.Context {
+	return context.WithValue(ctx, ctxKeyClipLine, line)
+}
+
+// GetClipLine returns the clip line number or -1 if not set.
+func GetClipLine(ctx context.Context) int {
+	iv, ok := ctx.Value(ctxKeyClipLine).(int)
+	if !ok {
+		return -1
+	}
+
+	return iv
+}
 
 // WithClip returns a context with the value for clip (for copy to clipboard)
 // set.

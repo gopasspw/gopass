@@ -2,12 +2,64 @@ package action
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/gopasspw/gopass/internal/backend"
 	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/gopasspw/gopass/pkg/set"
 	"github.com/urfave/cli/v2"
 )
+
+// OptionalInt is a flag value that acts as a boolean when no value is given,
+// but accepts an integer via the = syntax (e.g. -c=2).
+type OptionalInt struct {
+	IsPresent bool
+	Value     int
+	HasValue  bool
+}
+
+func (o *OptionalInt) Set(s string) error {
+	if s == "false" {
+		o.IsPresent = false
+
+		return nil
+	}
+
+	o.IsPresent = true
+	if s == "true" {
+		o.HasValue = false
+
+		return nil
+	}
+
+	v, err := strconv.Atoi(s)
+	if err != nil {
+		return fmt.Errorf("invalid line number: %q", s)
+	}
+
+	if v < 0 {
+		return fmt.Errorf("line number must be non-negative: %d", v)
+	}
+
+	o.Value = v
+	o.HasValue = true
+
+	return nil
+}
+
+func (o *OptionalInt) String() string {
+	if o == nil || !o.IsPresent {
+		return ""
+	}
+
+	if !o.HasValue {
+		return "true"
+	}
+
+	return strconv.Itoa(o.Value)
+}
+
+func (o *OptionalInt) IsBoolFlag() bool { return true }
 
 // ShowFlags returns the flags for the show command.
 // Exported to re-use in main for the default command.
@@ -18,10 +70,11 @@ func ShowFlags() []cli.Flag {
 			Aliases: []string{"y"},
 			Usage:   "Always answer yes to yes/no questions",
 		},
-		&cli.BoolFlag{
+		&cli.GenericFlag{
 			Name:    "clip",
 			Aliases: []string{"c"},
-			Usage:   "Copy the password value into the clipboard",
+			Usage:   "Copy the password value into the clipboard. Use -c=N to copy line N (0-indexed)",
+			Value:   &OptionalInt{},
 		},
 		&cli.BoolFlag{
 			Name:    "alsoclip",

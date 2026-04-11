@@ -67,3 +67,11 @@ func TestWithAlsoClip(t *testing.T) {
 	assert.False(t, IsAlsoClip(ctx))
 	assert.True(t, IsAlsoClip(WithAlsoClip(ctx, true)))
 }
+
+func TestWithClipLine(t *testing.T) {
+	ctx := config.NewContextInMemory()
+
+	assert.Equal(t, -1, GetClipLine(ctx))
+	assert.Equal(t, 0, GetClipLine(WithClipLine(ctx, 0)))
+	assert.Equal(t, 2, GetClipLine(WithClipLine(ctx, 2)))
+}

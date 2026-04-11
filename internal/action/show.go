@@ -24,10 +24,59 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
+func isTrailingFlag(arg string) bool {
+	return arg == "-c" || arg == "--clip" ||
+		strings.HasPrefix(arg, "-c=") || strings.HasPrefix(arg, "--clip=") ||
+		arg == "-C" || arg == "--alsoclip"
+}
+
+func showParseTrailingFlags(ctx context.Context, c *cli.Context) context.Context {
+	for i := 1; i < c.Args().Len(); i++ {
+		arg := c.Args().Get(i)
+
+		var clipVal string
+
+		switch {
+		case arg == "-c" || arg == "--clip":
+			clipVal = "true"
+		case strings.HasPrefix(arg, "-c="):
+			clipVal = strings.TrimPrefix(arg, "-c=")
+		case strings.HasPrefix(arg, "--clip="):
+			clipVal = strings.TrimPrefix(arg, "--clip=")
+		case arg == "-C" || arg == "--alsoclip":
+			ctx = WithAlsoClip(ctx, true)
+			ctx = WithClip(ctx, true)
+
+			continue
+		default:
+			continue
+		}
+
+		ctx = WithOnlyClip(ctx, true)
+		ctx = WithClip(ctx, true)
+
+		if clipVal != "true" && clipVal != "" {
+			line, err := strconv.Atoi(clipVal)
+			if err == nil && line >= 0 {
+				ctx = WithClipLine(ctx, line)
+			}
+		}
+	}
+
+	return ctx
+}
+
 func showParseArgs(c *cli.Context) context.Context {
 	ctx := ctxutil.WithGlobalFlags(c)
 	if c.IsSet("clip") {
-		ctx = WithOnlyClip(ctx, c.Bool("clip"))
+		ctx = WithOnlyClip(ctx, true)
+
+		if v := c.String("clip"); v != "" && v != "true" {
+			line, err := strconv.Atoi(v)
+			if err == nil && line >= 0 {
+				ctx = WithClipLine(ctx, line)
+			}
+		}
 	}
 
 	if c.IsSet("unsafe") {
@@ -90,7 +139,10 @@ func (s *secretHandler) Show(c *cli.Context) error {
 
 	ctx := showParseArgs(c)
 
-	if key := c.Args().Get(1); key != "" {
+	// handle flags appearing after the secret name (e.g. "gopass secret -c").
+	ctx = showParseTrailingFlags(ctx, c)
+
+	if key := c.Args().Get(1); key != "" && !isTrailingFlag(key) {
 		debug.Log("Adding key to ctx: %s", key)
 		ctx = WithKey(ctx, key)
 	}
@@ -267,6 +319,16 @@ func (s *secretHandler) showGetContent(ctx context.Context, sec gopass.Secret) (
 	pw := sec.Password()
 	// fallback for old MIME secrets.
 	fullBody := strings.TrimPrefix(string(sec.Bytes()), secrets.Ident+"\n")
+
+	// Select a specific line if -c=N was provided.
+	if line := GetClipLine(ctx); line >= 0 {
+		lines := strings.Split(strings.TrimRight(fullBody, "\n"), "\n")
+		if line >= len(lines) {
+			return "", "", exit.Error(exit.NotFound, nil, "line %d does not exist (valid range: 0-%d)", line, len(lines)-1)
+		}
+
+		pw = lines[line]
+	}
 
 	if IsQRBody(ctx) {
 		return pw, fullBody, nil
