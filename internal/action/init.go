@@ -183,6 +183,23 @@ func (s *setupHandler) init(ctx context.Context, alias, path string, keys ...str
 		return fmt.Errorf("failed to init store %q at %q: %w", alias, path, err)
 	}
 
+	// Persist the selected storage backend to the config so it is used on
+	// subsequent runs and accidental backend switches (e.g. jjfs taking over
+	// when a .jj directory appears) are prevented.
+	if backend.HasStorageBackend(ctx) {
+		cfgMount := alias
+		if cfgMount == "" {
+			cfgMount = "<root>"
+		}
+		bn := backend.StorageBackendName(backend.GetStorageBackend(ctx))
+		cfg, _ := config.FromContext(ctx)
+		if err := cfg.Set(cfgMount, "storage.backend", bn); err != nil {
+			debug.Log("failed to persist storage backend %q for mount %q: %s", bn, cfgMount, err)
+		} else {
+			debug.Log("Persisted storage backend %q to config for mount %q", bn, cfgMount)
+		}
+	}
+
 	if alias != "" && path != "" {
 		debug.Log("Mounting sub store %q -> %q", alias, path)
 		if err := s.Store.AddMount(ctx, alias, path); err != nil {

@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/blang/semver/v4"
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/pkg/debug"
 )
 
@@ -79,6 +80,13 @@ func DetectStorage(ctx context.Context, path string) (Storage, error) {
 		return be.Init(ctx, path)
 	}
 
+	// Check if a backend is explicitly configured via the config file.
+	if name := config.String(ctx, "storage.backend"); name != "" {
+		if st, err := detectStorageByName(ctx, name, path); err == nil {
+			return st, nil
+		}
+	}
+
 	// Nothing requested in the context. Try to detect the backend.
 	for _, be := range StorageRegistry.Prioritized() {
 		debug.V(1).Log("Trying storage backend %q for %q", be, path)
@@ -100,6 +108,32 @@ func DetectStorage(ctx context.Context, path string) (Storage, error) {
 	debug.Log("Using default fallback %q for %q", be, path)
 
 	return be.Init(ctx, path)
+}
+
+// detectStorageByName looks up a storage backend by name and tries to open path with it.
+func detectStorageByName(ctx context.Context, name, path string) (Storage, error) {
+	key, err := StorageRegistry.Backend(name)
+	if err != nil {
+		debug.Log("WARNING: configured storage backend %q not found, falling back to auto-detect", name)
+
+		return nil, err
+	}
+
+	be, err := StorageRegistry.Get(key)
+	if err != nil {
+		return nil, err
+	}
+
+	debug.Log("Using explicitly configured storage backend %q for %q", name, path)
+
+	st, err := be.New(ctx, path)
+	if err != nil {
+		debug.Log("Failed to use configured storage backend %q for %q: %s", name, path, err)
+
+		return nil, err
+	}
+
+	return st, nil
 }
 
 // NewStorage initializes an existing storage backend.
