@@ -2,7 +2,6 @@ package root
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	"github.com/gopasspw/gopass/internal/backend"
@@ -79,38 +78,11 @@ func (r *Store) GetRevision(ctx context.Context, name, revision string) (context
 	return ctx, sec, err
 }
 
-// RCSStatus shows the git status for all stores. If name is non-empty only
-// the store responsible for that entry is shown.
+// RCSStatus show the git status.
+// TODO this should likely iterate over all stores.
 func (r *Store) RCSStatus(ctx context.Context, name string) error {
-	if name != "" {
-		store, n := r.getStore(name)
-		out.Printf(ctx, "Store: %s", store.Path())
+	store, name := r.getStore(name)
+	out.Printf(ctx, "Store: %s", store.Path())
 
-		return store.GitStatus(ctx, n)
-	}
-
-	// Iterate over the root store and all mounts.
-	var errs []error
-
-	if r.store != nil {
-		out.Printf(ctx, "Store: %s", r.store.Path())
-		if err := r.store.GitStatus(ctx, ""); err != nil {
-			out.Errorf(ctx, "Failed to get RCS status for root store: %s", err)
-			errs = append(errs, err)
-		}
-	}
-
-	for alias, sub := range r.mounts {
-		if sub == nil {
-			continue
-		}
-
-		out.Printf(ctx, "Store: %s (%s)", sub.Path(), alias)
-		if err := sub.GitStatus(ctx, ""); err != nil {
-			out.Errorf(ctx, "Failed to get RCS status for %s: %s", alias, err)
-			errs = append(errs, err)
-		}
-	}
-
-	return errors.Join(errs...)
+	return store.GitStatus(ctx, name)
 }

@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"slices"
+	"sort"
 	"strings"
 
 	"github.com/gopasspw/gopass/pkg/debug"
@@ -148,7 +148,7 @@ func uniqueChars(in string) string {
 		charSlice = append(charSlice, string(k))
 	}
 
-	slices.Sort(charSlice)
+	sort.Strings(charSlice)
 
 	return strings.Join(charSlice, "")
 }

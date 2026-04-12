@@ -52,7 +52,9 @@ func newTestCryptFS(ctx context.Context, t *testing.T, td string) (*Crypt, strin
 func TestSetGet(t *testing.T) {
 	ctx := t.Context()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
-	ctx = ctxutil.WithAgePassphrase(ctx, password)
+	ctx = ctxutil.WithPasswordCallback(ctx, func(prompt string, _ bool) ([]byte, error) {
+		return []byte(password), nil
+	})
 
 	td := t.TempDir()
 	t.Setenv("GOPASS_HOMEDIR", td)
@@ -73,7 +75,9 @@ func TestSetGet(t *testing.T) {
 func TestList(t *testing.T) {
 	ctx := t.Context()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
-	ctx = ctxutil.WithAgePassphrase(ctx, password)
+	ctx = ctxutil.WithPasswordCallback(ctx, func(prompt string, _ bool) ([]byte, error) {
+		return []byte(password), nil
+	})
 
 	td := t.TempDir()
 	t.Setenv("GOPASS_HOMEDIR", td)
@@ -99,7 +103,9 @@ func TestList(t *testing.T) {
 func TestDelete(t *testing.T) {
 	ctx := t.Context()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
-	ctx = ctxutil.WithAgePassphrase(ctx, password)
+	ctx = ctxutil.WithPasswordCallback(ctx, func(prompt string, _ bool) ([]byte, error) {
+		return []byte(password), nil
+	})
 
 	td := t.TempDir()
 	t.Setenv("GOPASS_HOMEDIR", td)
@@ -118,7 +124,9 @@ func TestDelete(t *testing.T) {
 func TestMove(t *testing.T) {
 	ctx := t.Context()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
-	ctx = ctxutil.WithAgePassphrase(ctx, password)
+	ctx = ctxutil.WithPasswordCallback(ctx, func(prompt string, _ bool) ([]byte, error) {
+		return []byte(password), nil
+	})
 
 	td := t.TempDir()
 	t.Setenv("GOPASS_HOMEDIR", td)
@@ -138,7 +146,9 @@ func TestMove(t *testing.T) {
 func TestIsDir(t *testing.T) {
 	ctx := t.Context()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
-	ctx = ctxutil.WithAgePassphrase(ctx, password)
+	ctx = ctxutil.WithPasswordCallback(ctx, func(prompt string, _ bool) ([]byte, error) {
+		return []byte(password), nil
+	})
 
 	td := t.TempDir()
 	t.Setenv("GOPASS_HOMEDIR", td)
@@ -158,7 +168,9 @@ func TestGit(t *testing.T) {
 	ctx = ctxutil.WithGitInit(ctx, true)
 	ctx = ctxutil.WithUsername(ctx, "test")
 	ctx = ctxutil.WithEmail(ctx, "test@example.com")
-	ctx = ctxutil.WithAgePassphrase(ctx, password)
+	ctx = ctxutil.WithPasswordCallback(ctx, func(prompt string, _ bool) ([]byte, error) {
+		return []byte(password), nil
+	})
 
 	td := t.TempDir()
 	t.Setenv("GOPASS_HOMEDIR", td)

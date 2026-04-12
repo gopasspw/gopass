@@ -20,8 +20,7 @@ import (
 
 // Store is a fs based store.
 type Store struct {
-	path    string
-	version semver.Version
+	path string
 }
 
 // New creates a new store.
@@ -31,20 +30,8 @@ func New(dir string) *Store {
 	}
 
 	return &Store{
-		path:    fsutil.ExpandHomedir(dir),
-		version: debug.ModuleVersion("github.com/gopasspw/gopass/internal/backend/storage/fs"),
+		path: fsutil.ExpandHomedir(dir),
 	}
-}
-
-// safePath validates that name resolves to a path under the store root,
-// returning an error if a path traversal is detected.
-func (s *Store) safePath(name string) (string, error) {
-	resolved := filepath.Join(s.path, filepath.Clean(name))
-	if !strings.HasPrefix(resolved, s.path+string(filepath.Separator)) {
-		return "", fmt.Errorf("path traversal detected: %q escapes store root", name)
-	}
-
-	return resolved, nil
 }
 
 // Get retrieves the named content.
@@ -53,10 +40,7 @@ func (s *Store) Get(ctx context.Context, name string) ([]byte, error) {
 		name = filepath.FromSlash(name)
 	}
 
-	path, err := s.safePath(name)
-	if err != nil {
-		return nil, err
-	}
+	path := filepath.Join(s.path, filepath.Clean(name))
 	debug.V(3).Log("Reading %s from %s", name, path)
 
 	return os.ReadFile(path)
@@ -68,10 +52,7 @@ func (s *Store) Set(ctx context.Context, name string, value []byte) error {
 		name = filepath.FromSlash(name)
 	}
 
-	filename, err := s.safePath(name)
-	if err != nil {
-		return err
-	}
+	filename := filepath.Join(s.path, filepath.Clean(name))
 	filedir := filepath.Dir(filename)
 
 	if !fsutil.IsDir(filedir) {
@@ -100,14 +81,8 @@ func (s *Store) Move(ctx context.Context, from, to string, del bool) error {
 		to = filepath.FromSlash(to)
 	}
 
-	fromFn, err := s.safePath(from)
-	if err != nil {
-		return err
-	}
-	toFn, err := s.safePath(to)
-	if err != nil {
-		return err
-	}
+	fromFn := filepath.Join(s.path, filepath.Clean(from))
+	toFn := filepath.Join(s.path, filepath.Clean(to))
 	toDir := filepath.Dir(toFn)
 
 	if !fsutil.IsDir(toDir) {
@@ -133,10 +108,7 @@ func (s *Store) Delete(ctx context.Context, name string) error {
 	if runtime.GOOS == "windows" {
 		name = filepath.FromSlash(name)
 	}
-	path, err := s.safePath(name)
-	if err != nil {
-		return err
-	}
+	path := filepath.Join(s.path, filepath.Clean(name))
 	debug.V(3).Log("Deleting %s from %s", name, path)
 
 	if err := os.Remove(path); err != nil {
@@ -177,10 +149,7 @@ func (s *Store) Exists(ctx context.Context, name string) bool {
 	if runtime.GOOS == "windows" {
 		name = filepath.FromSlash(name)
 	}
-	path, err := s.safePath(name)
-	if err != nil {
-		return false
-	}
+	path := filepath.Join(s.path, filepath.Clean(name))
 	found := fsutil.IsFile(path)
 	debug.V(2).Log("Checking if '%s' exists at %s: %t", name, path, found)
 
@@ -265,12 +234,12 @@ func (s *Store) Name() string {
 
 // Version returns the version of this backend.
 func (s *Store) Version(context.Context) semver.Version {
-	return s.version
+	return debug.ModuleVersion("github.com/gopasspw/gopass/internal/backend/storage/fs")
 }
 
 // String implements fmt.Stringer.
 func (s *Store) String() string {
-	return fmt.Sprintf("fs(%s,path:%s)", s.version.String(), s.path)
+	return fmt.Sprintf("fs(%s,path:%s)", s.Version(context.TODO()).String(), s.path)
 }
 
 // Path returns the path to this storage.

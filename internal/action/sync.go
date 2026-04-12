@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"os"
 	"strconv"
-	"sync"
 	"time"
 
 	"github.com/fatih/color"
@@ -27,15 +26,30 @@ import (
 var (
 	autosyncInterval = time.Duration(3*24) * time.Hour
 	autosyncLastRun  time.Time
-	autosyncMu       sync.Mutex
 )
 
+func init() {
+	sv := os.Getenv("GOPASS_AUTOSYNC_INTERVAL")
+	if sv == "" {
+		return
+	}
+
+	debug.Log("GOPASS_AUTOSYNC_INTERVAL is deprecated. Please use autosync.interval")
+
+	iv, err := strconv.Atoi(sv)
+	if err != nil {
+		return
+	}
+
+	autosyncInterval = time.Duration(iv*24) * time.Hour
+}
+
 // Sync all stores with their remotes.
-func (s *syncHandler) Sync(c *cli.Context) error {
+func (s *Action) Sync(c *cli.Context) error {
 	return s.sync(ctxutil.WithGlobalFlags(c), c.String("store"), false)
 }
 
-func (s *syncHandler) autoSync(ctx context.Context) error {
+func (s *Action) autoSync(ctx context.Context) error {
 	if !ctxutil.IsInteractive(ctx) {
 		return nil
 	}
@@ -48,14 +62,6 @@ func (s *syncHandler) autoSync(ctx context.Context) error {
 		out.Warning(ctx, "GOPASS_NO_AUTOSYNC is deprecated. Please set core.autosync = false.")
 
 		return nil
-	}
-
-	if sv := os.Getenv("GOPASS_AUTOSYNC_INTERVAL"); sv != "" {
-		out.Warningf(ctx, "GOPASS_AUTOSYNC_INTERVAL is deprecated. Please use autosync.interval in your config.")
-
-		if iv, err := strconv.Atoi(sv); err == nil {
-			autosyncInterval = time.Duration(iv*24) * time.Hour
-		}
 	}
 
 	if !config.Bool(ctx, "core.autosync") {
@@ -80,9 +86,9 @@ func (s *syncHandler) autoSync(ctx context.Context) error {
 
 	if time.Since(ls) > syncInterval {
 		err := s.sync(ctx, "", true)
-		autosyncMu.Lock()
-		autosyncLastRun = time.Now()
-		autosyncMu.Unlock()
+		if err != nil {
+			autosyncLastRun = time.Now()
+		}
 
 		return err
 	}
@@ -90,14 +96,10 @@ func (s *syncHandler) autoSync(ctx context.Context) error {
 	return nil
 }
 
-func (s *syncHandler) sync(ctx context.Context, store string, isAutosync bool) error {
+func (s *Action) sync(ctx context.Context, store string, isAutosync bool) error {
 	// we just did a full sync, no need to run it again
-	autosyncMu.Lock()
-	lastRun := autosyncLastRun
-	autosyncMu.Unlock()
-
-	if time.Since(lastRun) < 10*time.Second {
-		debug.Log("skipping sync. last sync %ds ago", time.Since(lastRun))
+	if time.Since(autosyncLastRun) < 10*time.Second {
+		debug.Log("skipping sync. last sync %ds ago", time.Since(autosyncLastRun))
 
 		return nil
 	}
@@ -165,7 +167,7 @@ func (s *syncHandler) sync(ctx context.Context, store string, isAutosync bool) e
 }
 
 // syncMount syncs a single mount.
-func (s *syncHandler) syncMount(ctx context.Context, mp string, isAutosync bool) error {
+func (s *Action) syncMount(ctx context.Context, mp string, isAutosync bool) error {
 	if isAutosync {
 		// using GetM here to get the value for this mount, it might be different
 		// from the global value

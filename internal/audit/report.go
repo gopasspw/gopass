@@ -11,15 +11,15 @@ import (
 )
 
 type Finding struct {
-	Severity string `json:"severity"`
-	Message  string `json:"message"`
+	Severity string
+	Message  string
 }
 
 type SecretReport struct {
-	Name string `json:"name"`
+	Name string
 	// analyzer -> finding details
-	Findings map[string]Finding `json:"findings,omitempty"`
-	Age      time.Duration      `json:"age_ns"`
+	Findings map[string]Finding
+	Age      time.Duration
 }
 
 func (s *SecretReport) HasFindings() bool {
@@ -51,13 +51,13 @@ func (s *SecretReport) HumanizeAge() string {
 
 type Report struct {
 	// secret name -> report
-	Secrets map[string]SecretReport `json:"secrets"`
+	Secrets map[string]SecretReport
 
 	// finding -> secrets
-	Findings map[string]set.Set[string] `json:"-"`
+	Findings map[string]set.Set[string]
 
-	Template string        `json:"-"`
-	Duration time.Duration `json:"duration_ns"`
+	Template string
+	Duration time.Duration
 }
 
 type ReportBuilder struct {

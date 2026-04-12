@@ -113,12 +113,6 @@ func (g *GPG) Concurrency() int {
 	return 1
 }
 
-// NeedsPublicKeyImport returns true because GPG manages public keys in a
-// local keyring that must be populated by importing keys.
-func (g *GPG) NeedsPublicKeyImport() bool {
-	return true
-}
-
 // Binary returns the GPG binary location.
 func (g *GPG) Binary() string {
 	if g == nil {

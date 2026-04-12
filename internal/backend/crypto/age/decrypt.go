@@ -12,6 +12,7 @@ import (
 	"github.com/gopasspw/gopass/internal/backend/crypto/age/agent"
 
 	"github.com/gopasspw/gopass/internal/config"
+	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/debug"
 )
 
@@ -24,6 +25,16 @@ func (a *Age) Decrypt(ctx context.Context, ciphertext []byte) ([]byte, error) {
 		}
 		debug.Log("failed to decrypt with agent: %s", err)
 		debug.Log("falling back to direct decryption")
+	}
+
+	if !ctxutil.HasPasswordCallback(ctx) {
+		debug.Log("no password callback found, redirecting to askPass")
+		ctx = ctxutil.WithPasswordCallback(ctx, func(prompt string, _ bool) ([]byte, error) {
+			pw, err := a.askPass.Passphrase(prompt, fmt.Sprintf("to load the keyring at %s", a.identity), false)
+
+			return []byte(pw), err
+		})
+		ctx = ctxutil.WithPasswordPurgeCallback(ctx, a.askPass.Remove)
 	}
 
 	ids, err := a.getAllIds(ctx)
@@ -94,16 +105,14 @@ func (a *Age) decrypt(ciphertext []byte, ids ...age.Identity) ([]byte, error) {
 }
 
 // decryptFile is used to decrypt a scrypt encrypted age keyring/identity file.
-// pwcb is called to obtain the passphrase; ppcb is invoked on a decrypt failure
-// so cached passwords can be invalidated.
-func (a *Age) decryptFile(_ context.Context, filename string, pwcb func(string, bool) ([]byte, error), ppcb func(string)) ([]byte, error) {
+func (a *Age) decryptFile(ctx context.Context, filename string) ([]byte, error) {
 	ciphertext, err := os.ReadFile(filename)
 	if err != nil {
 		return nil, err
 	}
 	debug.V(1).Log("read %d bytes from %s", len(ciphertext), filename)
 
-	pw, err := pwcb(filename, false)
+	pw, err := ctxutil.GetPasswordCallback(ctx)(filename, false)
 	if err != nil {
 		return nil, err
 	}
@@ -116,7 +125,7 @@ func (a *Age) decryptFile(_ context.Context, filename string, pwcb func(string, 
 
 	plaintext, err := a.decrypt(ciphertext, id)
 	if err != nil {
-		ppcb(filename)
+		ctxutil.GetPasswordPurgeCallback(ctx)(filename)
 	}
 
 	return plaintext, err

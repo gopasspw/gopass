@@ -3,7 +3,6 @@ package action
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
 	"io"
 	"os"
@@ -24,7 +23,7 @@ import (
 
 // List all secrets as a tree. If the filter argument is non-empty
 // display only those that have this prefix.
-func (s *searchHandler) List(c *cli.Context) error {
+func (s *Action) List(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	filter := c.Args().First()
 	flat := c.Bool("flat")
@@ -33,10 +32,6 @@ func (s *searchHandler) List(c *cli.Context) error {
 
 	// print the path if the argument is a direct hit.
 	if s.Store.Exists(ctx, filter) && !s.Store.IsDir(ctx, filter) {
-		if c.Bool("json") {
-			return jsonWrite(stdout, []string{filter})
-		}
-
 		fmt.Println(filter)
 
 		return nil
@@ -58,14 +53,10 @@ func (s *searchHandler) List(c *cli.Context) error {
 		limit = c.Int("limit")
 	}
 
-	if c.Bool("json") {
-		return s.listJSON(ctx, l, limit, folders, stripPrefix, filter)
-	}
-
 	return s.listFiltered(ctx, l, limit, flat, folders, stripPrefix, filter)
 }
 
-func (s *searchHandler) listFiltered(ctx context.Context, l *tree.Root, limit int, flat, folders, stripPrefix bool, filter string) error {
+func (s *Action) listFiltered(ctx context.Context, l *tree.Root, limit int, flat, folders, stripPrefix bool, filter string) error {
 	sep := leaf.Sep
 
 	if filter == "" || filter == sep {
@@ -137,7 +128,7 @@ func redirectPager(ctx context.Context, subtree *tree.Root) (io.Writer, *bytes.B
 }
 
 // pager invokes the default pager with the given content.
-func (s *searchHandler) pager(ctx context.Context, buf io.Reader) error {
+func (s *Action) pager(ctx context.Context, buf io.Reader) error {
 	if config.Bool(ctx, "output.internal-pager") {
 		ov, err := oviewer.NewRoot(buf)
 		if err != nil {
@@ -165,45 +156,4 @@ func (s *searchHandler) pager(ctx context.Context, buf io.Reader) error {
 	cmd.Stderr = os.Stderr
 
 	return cmd.Run()
-}
-
-func (s *searchHandler) listJSON(ctx context.Context, l *tree.Root, limit int, folders, stripPrefix bool, filter string) error {
-	sep := leaf.Sep
-
-	if filter != "" && filter != sep {
-		if strings.HasSuffix(filter, sep) {
-			filter = filter[:len(filter)-1]
-		}
-		var err error
-		l, err = l.FindFolder(filter)
-		if err != nil {
-			return exit.Error(exit.NotFound, nil, "Entry %q not found", filter)
-		}
-		l.SetName(filter + sep)
-	} else {
-		stripPrefix = true
-	}
-
-	var entries []string
-	if folders {
-		entries = l.ListFolders(limit)
-	} else {
-		entries = l.List(limit)
-	}
-
-	if stripPrefix {
-		for i, e := range entries {
-			entries[i] = strings.TrimPrefix(e, filter+sep)
-		}
-	}
-
-	return jsonWrite(stdout, entries)
-}
-
-// jsonWrite marshals v as indented JSON and writes it to w.
-func jsonWrite(w interface{ Write([]byte) (int, error) }, v any) error {
-	enc := json.NewEncoder(w)
-	enc.SetIndent("", "  ")
-
-	return enc.Encode(v)
 }

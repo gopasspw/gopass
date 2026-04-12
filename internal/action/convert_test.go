@@ -21,7 +21,10 @@ func TestConvert(t *testing.T) {
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithTerminal(ctx, false)
 	ctx = ctxutil.WithInteractive(ctx, false)
-	ctx = ctxutil.WithAgePassphrase(ctx, "foo")
+	ctx = ctxutil.WithPasswordCallback(ctx, func(s string, b bool) ([]byte, error) {
+		return []byte("foo"), nil
+	})
+	ctx = ctxutil.WithPasswordPurgeCallback(ctx, func(s string) {})
 
 	act, err := newMock(ctx, u.StoreDir(""))
 	require.NoError(t, err)

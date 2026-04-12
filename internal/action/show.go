@@ -85,7 +85,7 @@ func showParseArgs(c *cli.Context) context.Context {
 }
 
 // Show the content of a secret file.
-func (s *secretHandler) Show(c *cli.Context) error {
+func (s *Action) Show(c *cli.Context) error {
 	name := c.Args().First()
 
 	ctx := showParseArgs(c)
@@ -103,13 +103,13 @@ func (s *secretHandler) Show(c *cli.Context) error {
 }
 
 // show displays the given secret/key.
-func (s *secretHandler) show(ctx context.Context, c *cli.Context, name string, recurse bool) error {
+func (s *Action) show(ctx context.Context, c *cli.Context, name string, recurse bool) error {
 	if name == "" {
 		return exit.Error(exit.Usage, nil, "Usage: %s show [name]", s.Name)
 	}
 
 	if s.Store.IsDir(ctx, name) && !s.Store.Exists(ctx, name) {
-		return s.listFn(c)
+		return s.List(c)
 	}
 
 	if s.Store.IsDir(ctx, name) && ctxutil.IsTerminal(ctx) && !IsPasswordOnly(ctx) {
@@ -132,7 +132,7 @@ func (s *secretHandler) show(ctx context.Context, c *cli.Context, name string, r
 }
 
 // showHandleRevision displays a single revision.
-func (s *secretHandler) showHandleRevision(ctx context.Context, c *cli.Context, name, revision string) error {
+func (s *Action) showHandleRevision(ctx context.Context, c *cli.Context, name, revision string) error {
 	revision, err := s.parseRevision(ctx, name, revision)
 	if err != nil {
 		return exit.Error(exit.Unknown, err, "Failed to get revisions: %s", err)
@@ -146,7 +146,7 @@ func (s *secretHandler) showHandleRevision(ctx context.Context, c *cli.Context, 
 	return s.showHandleOutput(ctx, name, sec)
 }
 
-func (s *secretHandler) parseRevision(ctx context.Context, name, revision string) (string, error) {
+func (s *Action) parseRevision(ctx context.Context, name, revision string) (string, error) {
 	debug.Log("Revision: %s", revision)
 	if !strings.HasPrefix(revision, "-") {
 		return revision, nil
@@ -176,7 +176,7 @@ func (s *secretHandler) parseRevision(ctx context.Context, name, revision string
 	return revision, nil
 }
 
-func (s *secretHandler) showHandleOutputChars(ctx context.Context, pw string, chars []int) error {
+func (s *Action) showHandleOutputChars(ctx context.Context, pw string, chars []int) error {
 	for _, c := range chars {
 		if c > len(pw) || c-1 < 0 {
 			debug.Log("Invalid char: %d", c)
@@ -190,7 +190,7 @@ func (s *secretHandler) showHandleOutputChars(ctx context.Context, pw string, ch
 }
 
 // showHandleOutput displays a secret.
-func (s *secretHandler) showHandleOutput(ctx context.Context, name string, sec gopass.Secret) error {
+func (s *Action) showHandleOutput(ctx context.Context, name string, sec gopass.Secret) error {
 	pw, body, err := s.showGetContent(ctx, sec)
 	if err != nil {
 		return err
@@ -251,7 +251,7 @@ func (s *secretHandler) showHandleOutput(ctx context.Context, name string, sec g
 	return nil
 }
 
-func (s *secretHandler) showGetContent(ctx context.Context, sec gopass.Secret) (string, string, error) {
+func (s *Action) showGetContent(ctx context.Context, sec gopass.Secret) (string, string, error) {
 	// YAML key.
 	if HasKey(ctx) {
 		key := GetKey(ctx)
@@ -285,7 +285,7 @@ func (s *secretHandler) showGetContent(ctx context.Context, sec gopass.Secret) (
 
 	// everything but the first line.
 	if config.Bool(ctx, "show.safecontent") && !ctxutil.IsForce(ctx) && ctxutil.IsShowParsing(ctx) {
-		body := showSafeContent(ctx, sec)
+		body := showSafeContent(sec)
 		if IsAlsoClip(ctx) {
 			return pw, body, nil
 		}
@@ -297,13 +297,13 @@ func (s *secretHandler) showGetContent(ctx context.Context, sec gopass.Secret) (
 	return pw, fullBody, nil
 }
 
-func showSafeContent(ctx context.Context, sec gopass.Secret) string {
+func showSafeContent(sec gopass.Secret) string {
 	var sb strings.Builder
 	for i, k := range sec.Keys() {
 		sb.WriteString(k)
 		sb.WriteString(": ")
 		// check if this key should be obstructed.
-		if isUnsafeKey(ctx, k, sec) {
+		if isUnsafeKey(k, sec) {
 			debug.V(1).Log("obstructing unsafe key %s", k)
 			sb.WriteString(randAsterisk())
 		} else {
@@ -331,17 +331,10 @@ func showSafeContent(ctx context.Context, sec gopass.Secret) string {
 	return sb.String()
 }
 
-func isUnsafeKey(ctx context.Context, key string, sec gopass.Secret) bool {
+func isUnsafeKey(key string, sec gopass.Secret) bool {
 	duks := []string{"hotp", "otpauth", "password", "totp"}
 	if slices.Contains(duks, key) {
 		return true
-	}
-
-	// Check globally-configured hidden keys (show.hidden-keys, repeatable).
-	for _, hk := range config.Strings(ctx, "show.hidden-keys") {
-		if strings.EqualFold(hk, key) {
-			return true
-		}
 	}
 
 	uks, found := sec.Get("unsafe-keys")
@@ -373,7 +366,7 @@ func randAsterisk() string {
 // each of these against the built-in and custom alias tables. If an alias
 // if found (e.g. foo.de -> foo.com) this element will be replaced and an lookup
 // is attempted (e.g. `websites/foo.de/username`).
-func (s *secretHandler) hasAliasDomain(ctx context.Context, name string) string {
+func (s *Action) hasAliasDomain(ctx context.Context, name string) string {
 	p := strings.Split(name, "/")
 	for i := len(p) - 1; i > 0; i-- {
 		d := p[i]
@@ -391,7 +384,7 @@ func (s *secretHandler) hasAliasDomain(ctx context.Context, name string) string 
 }
 
 // showHandleError handles errors retrieving secrets.
-func (s *secretHandler) showHandleError(ctx context.Context, c *cli.Context, name string, recurse bool, err error) error {
+func (s *Action) showHandleError(ctx context.Context, c *cli.Context, name string, recurse bool, err error) error {
 	if !errors.Is(err, store.ErrNotFound) || !recurse || !ctxutil.IsTerminal(ctx) {
 		if IsClip(ctx) {
 			_ = notify.Notify(ctx, "gopass - error", fmt.Sprintf("failed to retrieve secret %q: %s", name, err))
@@ -410,7 +403,7 @@ func (s *secretHandler) showHandleError(ctx context.Context, c *cli.Context, nam
 
 	out.Warningf(ctx, "Entry %q not found. Starting search...", name)
 	c.Context = ctx
-	if err := s.findFuzzyFn(c); err != nil {
+	if err := s.FindFuzzy(c); err != nil {
 		if IsClip(ctx) {
 			_ = notify.Notify(ctx, "gopass - error", err.Error())
 		}
@@ -421,7 +414,7 @@ func (s *secretHandler) showHandleError(ctx context.Context, c *cli.Context, nam
 	return nil
 }
 
-func (s *secretHandler) showPrintQR(name, pw string) error {
+func (s *Action) showPrintQR(name, pw string) error {
 	qr, err := qrcon.QRCode(pw)
 	if err != nil {
 		return exit.Error(exit.Unknown, err, "failed to encode %q as QR: %s", name, err)

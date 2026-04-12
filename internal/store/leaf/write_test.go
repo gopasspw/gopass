@@ -1,6 +1,7 @@
 package leaf
 
 import (
+	"runtime"
 	"testing"
 
 	"github.com/gopasspw/gopass/internal/backend/crypto/gpg"
@@ -21,7 +22,11 @@ func TestSet(t *testing.T) {
 	require.NoError(t, err)
 	require.NoError(t, s.Set(ctx, "zab/zab", sec))
 
-	require.Error(t, s.Set(ctx, "../../../../../etc/passwd", sec))
+	if runtime.GOOS != "windows" {
+		require.Error(t, s.Set(ctx, "../../../../../etc/passwd", sec))
+	} else {
+		require.NoError(t, s.Set(ctx, "../../../../../etc/passwd", sec))
+	}
 
 	require.NoError(t, s.Set(ctx, "zab", sec))
 }

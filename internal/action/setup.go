@@ -24,7 +24,7 @@ import (
 )
 
 // Setup will invoke the onboarding / setup wizard.
-func (s *setupHandler) Setup(c *cli.Context) error {
+func (s *Action) Setup(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	remote := c.String("remote")
 	team := c.String("alias")
@@ -124,7 +124,7 @@ func (s *setupHandler) Setup(c *cli.Context) error {
 	return nil
 }
 
-func (s *setupHandler) initCheckPrivateKeys(ctx context.Context, crypto backend.Crypto) error {
+func (s *Action) initCheckPrivateKeys(ctx context.Context, crypto backend.Crypto) error {
 	// check for existing GPG/Age keypairs (private/secret keys). We need at least
 	// one useable key pair. If none exists try to create one.
 	if !s.initHasUseablePrivateKeys(ctx, crypto) {
@@ -143,7 +143,7 @@ func (s *setupHandler) initCheckPrivateKeys(ctx context.Context, crypto backend.
 	return nil
 }
 
-func (s *setupHandler) initGenerateIdentity(ctx context.Context, crypto backend.Crypto, name, email string) error {
+func (s *Action) initGenerateIdentity(ctx context.Context, crypto backend.Crypto, name, email string) error {
 	out.Printf(ctx, "🧪 Creating cryptographic key pair (%s) ...", crypto.Name())
 
 	if crypto.Name() == gpgcli.Name {
@@ -166,10 +166,13 @@ func (s *setupHandler) initGenerateIdentity(ctx context.Context, crypto backend.
 
 	passphrase := xkcdgen.Random()
 	pwGenerated := true
-	// support fully automated setup (e.g. for tests or CI via GOPASS_AGE_PASSWORD)
+	// support fully automated setup (e.g. for tests)
 	//nolint:nestif
-	if ap := ctxutil.GetAgePassphrase(ctx); ap != "" {
-		passphrase = ap
+	if ctxutil.HasPasswordCallback(ctx) {
+		pw, err := ctxutil.GetPasswordCallback(ctx)("", true)
+		if err == nil {
+			passphrase = string(pw)
+		}
 		pwGenerated = false
 	} else {
 		want, err := termio.AskForBool(ctx, "⚠ Do you want to enter a passphrase? (otherwise we generate one for you)", false)
@@ -241,7 +244,7 @@ type keyExporter interface {
 	ExportPublicKey(ctx context.Context, id string) ([]byte, error)
 }
 
-func (s *setupHandler) initExportPublicKey(ctx context.Context, crypto backend.Crypto, key string) error {
+func (s *Action) initExportPublicKey(ctx context.Context, crypto backend.Crypto, key string) error {
 	exp, ok := crypto.(keyExporter)
 	if !ok {
 		debug.Log("crypto backend %T can not export public keys", crypto)
@@ -274,7 +277,7 @@ func (s *setupHandler) initExportPublicKey(ctx context.Context, crypto backend.C
 	return nil
 }
 
-func (s *setupHandler) initHasUseablePrivateKeys(ctx context.Context, crypto backend.Crypto) bool {
+func (s *Action) initHasUseablePrivateKeys(ctx context.Context, crypto backend.Crypto) bool {
 	debug.Log("checking for existing, usable identities / private keys for %s", crypto.Name())
 	kl, err := crypto.ListIdentities(ctx)
 	if err != nil {
@@ -286,7 +289,7 @@ func (s *setupHandler) initHasUseablePrivateKeys(ctx context.Context, crypto bac
 	return len(kl) > 0
 }
 
-func (s *setupHandler) initSetupGitRemote(ctx context.Context, team, remote string) error {
+func (s *Action) initSetupGitRemote(ctx context.Context, team, remote string) error {
 	var err error
 	remote, err = termio.AskForString(ctx, "Please enter the git remote for your shared store", remote)
 	if err != nil {
@@ -311,7 +314,7 @@ func (s *setupHandler) initSetupGitRemote(ctx context.Context, team, remote stri
 
 // initLocal will initialize a local store, useful for local-only setups or as
 // part of team setups to create the root store.
-func (s *setupHandler) initLocal(ctx context.Context, remote string) error {
+func (s *Action) initLocal(ctx context.Context, remote string) error {
 	path := ""
 	if s.Store != nil {
 		path = s.Store.Path()
@@ -343,7 +346,7 @@ func (s *setupHandler) initLocal(ctx context.Context, remote string) error {
 	return nil
 }
 
-func (s *setupHandler) initDetectPassage(ctx context.Context) error {
+func (s *Action) initDetectPassage(ctx context.Context) error {
 	pIds := age.PassageIDFile()
 	if !fsutil.IsFile(pIds) {
 		debug.Log("no passage identities found at %s", pIds)
@@ -363,7 +366,7 @@ func (s *setupHandler) initDetectPassage(ctx context.Context) error {
 }
 
 // initCreateTeam will create a local root store and a shared team store.
-func (s *setupHandler) initCreateTeam(ctx context.Context, team, remote string) error {
+func (s *Action) initCreateTeam(ctx context.Context, team, remote string) error {
 	var err error
 
 	out.Printf(ctx, "Creating a new team ...")
@@ -395,7 +398,7 @@ func (s *setupHandler) initCreateTeam(ctx context.Context, team, remote string) 
 
 // initJoinTeam will create a local root store and clone an existing store to
 // a mount.
-func (s *setupHandler) initJoinTeam(ctx context.Context, team, remote string) error {
+func (s *Action) initJoinTeam(ctx context.Context, team, remote string) error {
 	var err error
 
 	out.Printf(ctx, "Joining existing team ...")

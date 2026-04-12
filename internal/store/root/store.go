@@ -13,7 +13,6 @@ import (
 
 	"github.com/gopasspw/gopass/internal/backend"
 	"github.com/gopasspw/gopass/internal/config"
-	"github.com/gopasspw/gopass/internal/store"
 	"github.com/gopasspw/gopass/internal/store/leaf"
 	"github.com/gopasspw/gopass/pkg/debug"
 )
@@ -21,10 +20,9 @@ import (
 // Store is the public facing password store. It contains one or more
 // leaf stores.
 type Store struct {
-	cfg            *config.Config
-	mounts         map[string]*leaf.Store
-	store          *leaf.Store
-	importCallback store.ImportCallback
+	cfg    *config.Config
+	mounts map[string]*leaf.Store
+	store  *leaf.Store
 }
 
 // New creates a new store.
@@ -46,24 +44,6 @@ func New(cfg *config.Config) *Store {
 // WithStoreConfig populates the context with the store config.
 func (r *Store) WithStoreConfig(ctx context.Context) context.Context {
 	return r.cfg.WithConfig(ctx)
-}
-
-// SetImportFunc sets the callback used to ask the user for confirmation before
-// importing a public key into the keyring. It is stored on the root store and
-// automatically propagated to any leaf store that is initialized later.
-func (r *Store) SetImportFunc(fn store.ImportCallback) {
-	r.importCallback = fn
-
-	// propagate to already-initialized leaf stores
-	if r.store != nil {
-		r.store.SetImportFunc(fn)
-	}
-
-	for _, sub := range r.mounts {
-		if sub != nil {
-			sub.SetImportFunc(fn)
-		}
-	}
 }
 
 // Exists checks the existence of a single entry.

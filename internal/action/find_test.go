@@ -3,7 +3,6 @@ package action
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
 	"os"
 	"runtime"
@@ -137,20 +136,6 @@ func TestFind(t *testing.T) {
 
 	// find using regex pattern with no match
 	c = gptest.CliCtxWithFlags(ctx, t, map[string]string{"regex": "true"}, "nomatch.*")
-	require.Error(t, act.Find(c))
-	buf.Reset()
-
-	// find --json with multiple matches
-	c = gptest.CliCtxWithFlags(ctx, t, map[string]string{"json": "true"}, "bar")
-	require.NoError(t, act.Find(c))
-	var jsonOut []string
-	require.NoError(t, json.Unmarshal(buf.Bytes(), &jsonOut))
-	assert.Contains(t, jsonOut, "bar/baz")
-	assert.Contains(t, jsonOut, "bar/zab")
-	buf.Reset()
-
-	// find --json with no match returns error
-	c = gptest.CliCtxWithFlags(ctx, t, map[string]string{"json": "true"}, "zzznomatch")
 	require.Error(t, act.Find(c))
 	buf.Reset()
 }

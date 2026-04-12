@@ -86,10 +86,6 @@ func (r *Store) initialize(ctx context.Context) error {
 
 	debug.Log("Root Store initialized at %s", path)
 
-	if r.importCallback != nil {
-		s.SetImportFunc(r.importCallback)
-	}
-
 	r.store = s
 
 	// initialize all mounts

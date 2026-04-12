@@ -1,10 +1,15 @@
-// Package queue implements a background queue for cleanup jobs.
+// Package queue implements an experimental background queue for cleanup jobs.
+// Beware: It's likely broken.
+// We can easily close a channel which might later be written to.
+// The current locking is but a poor workaround.
+// A better implementation would create a queue object in main, pass
+// it through and wait for the channel to be empty before leaving main.
+// Will do that later.
 package queue
 
 import (
 	"context"
 	"fmt"
-	"sync"
 	"time"
 
 	"github.com/gopasspw/gopass/internal/out"
@@ -62,11 +67,8 @@ type Task func(ctx context.Context) (context.Context, error)
 
 // Queue is a serialized background processing unit.
 type Queue struct {
-	work   chan Task
-	done   chan struct{}
-	wg     sync.WaitGroup
-	mu     sync.Mutex
-	closed bool
+	work chan Task
+	done chan struct{}
 }
 
 // New creates a new queue.
@@ -92,26 +94,15 @@ func (q *Queue) run(ctx context.Context) {
 			// (each task has access to two contexts: one from the queue, and one from the function creating the task)
 			ctx = ctx2
 		}
-		q.wg.Done()
 		debug.Log("Task done")
 	}
 	debug.Log("all tasks done")
 	q.done <- struct{}{}
 }
 
-// Add enqueues a new task. If the queue is already closed, the task is
-// returned to the caller for inline execution (matching noop behaviour).
+// Add enqueues a new task.
 func (q *Queue) Add(t Task) Task {
-	q.mu.Lock()
-	if q.closed {
-		q.mu.Unlock()
-		debug.Log("queue closed, returning task for inline execution")
-
-		return t
-	}
-	q.wg.Add(1)
 	q.work <- t
-	q.mu.Unlock()
 	debug.Log("enqueued task")
 
 	return func(ctx2 context.Context) (context.Context, error) {
@@ -119,29 +110,36 @@ func (q *Queue) Add(t Task) Task {
 	}
 }
 
-// Idle waits until all currently enqueued tasks have finished executing.
-// Returns an error if maxWait elapses before the queue drains.
+// Idle returns nil the next time the queue is empty.
 func (q *Queue) Idle(maxWait time.Duration) error {
 	done := make(chan struct{})
+
 	go func() {
-		q.wg.Wait()
-		close(done)
+		for {
+			if len(q.work) < 1 {
+				select {
+				case done <- struct{}{}:
+					// sent
+				default:
+					// no-op
+				}
+			}
+			time.Sleep(20 * time.Millisecond)
+		}
 	}()
+
 	select {
 	case <-done:
 		return nil
 	case <-time.After(maxWait):
-		return fmt.Errorf("timed out waiting for queue to drain")
+		return fmt.Errorf("timed out waiting for empty queue")
 	}
 }
 
 // Close waits for all tasks to be processed. Must only be called once on
 // shutdown.
 func (q *Queue) Close(ctx context.Context) error {
-	q.mu.Lock()
-	q.closed = true
 	close(q.work)
-	q.mu.Unlock()
 	select {
 	case <-q.done:
 		return nil

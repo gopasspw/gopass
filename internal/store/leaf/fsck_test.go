@@ -47,7 +47,7 @@ func TestFsck(t *testing.T) {
 		require.NoError(t, s.Set(ctx, e, sec))
 	}
 
-	require.NoError(t, s.Fsck(ctx, "", nil))
+	require.NoError(t, s.Fsck(ctx, ""))
 	obuf.Reset()
 }
 

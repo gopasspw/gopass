@@ -190,10 +190,7 @@ func get(ctx context.Context, kv kvstore) func(...string) (string, error) {
 
 		sec, err := kv.Get(ctx, s[0])
 		if err != nil {
-			// Return a generic error instead of err.Error() to avoid leaking
-			// internal backend details (GPG errors, file paths, etc.) into
-			// template output.
-			return "", fmt.Errorf("failed to retrieve secret")
+			return err.Error(), nil
 		}
 
 		return string(sec.Bytes()), nil
@@ -212,10 +209,7 @@ func getPassword(ctx context.Context, kv kvstore) func(...string) (string, error
 
 		sec, err := kv.Get(ctx, s[0])
 		if err != nil {
-			// Return a generic error instead of err.Error() to avoid leaking
-			// internal backend details (GPG errors, file paths, etc.) into
-			// template output.
-			return "", fmt.Errorf("failed to retrieve secret")
+			return err.Error(), nil
 		}
 
 		return sec.Password(), nil
@@ -234,10 +228,7 @@ func getValue(ctx context.Context, kv kvstore) func(...string) (string, error) {
 
 		sec, err := kv.Get(ctx, s[0])
 		if err != nil {
-			// Return a generic error instead of err.Error() to avoid leaking
-			// internal backend details (GPG errors, file paths, etc.) into
-			// template output.
-			return "", fmt.Errorf("failed to retrieve secret")
+			return err.Error(), nil
 		}
 
 		sv, found := sec.Get(s[1])

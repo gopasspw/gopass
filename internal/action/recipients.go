@@ -34,18 +34,8 @@ credentials.
 `
 
 // RecipientsPrint prints all recipients per store.
-func (s *recipientHandler) RecipientsPrint(c *cli.Context) error {
+func (s *Action) RecipientsPrint(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
-
-	if c.Bool("json") {
-		t, err := s.Store.RecipientsTree(ctx, false)
-		if err != nil {
-			return exit.Error(exit.List, err, "failed to list recipients: %s", err)
-		}
-
-		return jsonWrite(stdout, t.List(tree.INF))
-	}
-
 	out.Printf(ctx, "Hint: run 'gopass sync' to import any missing public keys")
 
 	t, err := s.Store.RecipientsTree(ctx, c.Bool("pretty"))
@@ -58,7 +48,7 @@ func (s *recipientHandler) RecipientsPrint(c *cli.Context) error {
 	return nil
 }
 
-func (s *recipientHandler) recipientsList(ctx context.Context) []string {
+func (s *Action) recipientsList(ctx context.Context) []string {
 	t, err := s.Store.RecipientsTree(ctxutil.WithHidden(ctx, true), false)
 	if err != nil {
 		debug.Log("failed to list recipients: %s", err)
@@ -71,10 +61,10 @@ func (s *recipientHandler) recipientsList(ctx context.Context) []string {
 
 // RecipientsComplete will print a list of recipients for bash
 // completion.
-func (s *recipientHandler) RecipientsComplete(c *cli.Context) {
+func (s *Action) RecipientsComplete(c *cli.Context) {
 	ctx := ctxutil.WithGlobalFlags(c)
-	if ok, err := s.Store.IsInitialized(ctx); err != nil || !ok {
-		debug.Log("store not initialized: %v", err)
+	if err := s.IsInitialized(c); err != nil {
+		debug.Log("IsInitialized returned error: %s", err)
 
 		return
 	}
@@ -85,14 +75,14 @@ func (s *recipientHandler) RecipientsComplete(c *cli.Context) {
 }
 
 // RecipientsAck updates `recipients.hash`.
-func (s *recipientHandler) RecipientsAck(c *cli.Context) error {
+func (s *Action) RecipientsAck(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 
 	return s.Store.SaveRecipients(ctxutil.WithHidden(ctx, true), true)
 }
 
 // RecipientsAdd adds new recipients.
-func (s *recipientHandler) RecipientsAdd(c *cli.Context) error {
+func (s *Action) RecipientsAdd(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	store := c.String("store")
 	force := c.Bool("force")
@@ -173,7 +163,7 @@ func (s *recipientHandler) RecipientsAdd(c *cli.Context) error {
 }
 
 // RecipientsRemove removes recipients.
-func (s *recipientHandler) RecipientsRemove(c *cli.Context) error {
+func (s *Action) RecipientsRemove(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	store := c.String("store")
 	force := c.Bool("force")
@@ -271,7 +261,7 @@ func (s *recipientHandler) RecipientsRemove(c *cli.Context) error {
 	return nil
 }
 
-func (s *recipientHandler) recipientsSelectForRemoval(ctx context.Context, store string) ([]string, error) {
+func (s *Action) recipientsSelectForRemoval(ctx context.Context, store string) ([]string, error) {
 	crypto := s.Store.Crypto(ctx, store)
 
 	ids := s.Store.ListRecipients(ctx, store)
@@ -295,7 +285,7 @@ func (s *recipientHandler) recipientsSelectForRemoval(ctx context.Context, store
 	}
 }
 
-func (s *recipientHandler) recipientsSelectForAdd(ctx context.Context, store string) ([]string, error) {
+func (s *Action) recipientsSelectForAdd(ctx context.Context, store string) ([]string, error) {
 	crypto := s.Store.Crypto(ctx, store)
 
 	kl, _ := crypto.FindRecipients(ctx)

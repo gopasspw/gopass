@@ -13,7 +13,7 @@ import (
 )
 
 // Grep searches a string inside the content of all files.
-func (s *searchHandler) Grep(c *cli.Context) error {
+func (s *Action) Grep(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	if !c.Args().Present() {
 		return exit.Error(exit.Usage, nil, "Usage: %s grep arg", s.Name)
@@ -44,15 +44,13 @@ func (s *searchHandler) Grep(c *cli.Context) error {
 	for _, v := range haystack {
 		sec, err := s.Store.Get(ctx, v)
 		if err != nil {
-			out.Errorf(ctx, "Failed to decrypt %s: %v", v, err)
-			errors++
+			out.Errorf(ctx, "failed to decrypt %s: %v", v, err)
 
 			continue
 		}
 
 		if matchFn(string(sec.Bytes())) {
 			out.Printf(ctx, "%s matches", color.BlueString(v))
-			matches++
 		}
 	}
 
