@@ -121,3 +121,57 @@ func TestParseVersion(t *testing.T) {
 		})
 	}
 }
+
+// TestInitWithSetupRemoteSuppressesCommit verifies that Init does not create
+// an automatic commit when HasSetupRemote is set in the context.
+func TestInitWithSetupRemoteSuppressesCommit(t *testing.T) {
+	td := t.TempDir()
+	gitdir := filepath.Join(td, "git-no-commit")
+	require.NoError(t, os.Mkdir(gitdir, 0o755))
+
+	ctx := config.NewContextInMemory()
+	ctx = ctxutil.WithAlwaysYes(ctx, true)
+	ctx = ctxutil.WithSetupRemote(ctx, "https://example.com/repo.git")
+
+	buf := &bytes.Buffer{}
+	out.Stdout = buf
+	defer func() { out.Stdout = os.Stdout }()
+
+	// Create a file so there would be staged changes to commit.
+	tf := filepath.Join(gitdir, "password")
+	require.NoError(t, os.WriteFile(tf, []byte("hunter2\n"), 0o644))
+
+	git, err := Init(ctx, gitdir, "Test User", "test@example.com")
+	require.NoError(t, err)
+	require.NotNil(t, git)
+
+	// With the flag set, the commit must have been suppressed.
+	// The staged file should still be outstanding (no commit was made).
+	assert.True(t, git.HasStagedChanges(ctx), "expected staged changes to remain when setup remote suppresses commit")
+}
+
+// TestInitWithoutSetupRemoteCreatesCommit verifies the existing (default)
+// behaviour: Init still creates the initial commit when no setup remote is set.
+func TestInitWithoutSetupRemoteCreatesCommit(t *testing.T) {
+	td := t.TempDir()
+	gitdir := filepath.Join(td, "git-with-commit")
+	require.NoError(t, os.Mkdir(gitdir, 0o755))
+
+	ctx := config.NewContextInMemory()
+	ctx = ctxutil.WithAlwaysYes(ctx, true)
+
+	buf := &bytes.Buffer{}
+	out.Stdout = buf
+	defer func() { out.Stdout = os.Stdout }()
+
+	// Create a file so there are staged changes.
+	tf := filepath.Join(gitdir, "password")
+	require.NoError(t, os.WriteFile(tf, []byte("hunter2\n"), 0o644))
+
+	git, err := Init(ctx, gitdir, "Test User", "test@example.com")
+	require.NoError(t, err)
+	require.NotNil(t, git)
+
+	// Without the flag the initial commit should have been created.
+	assert.False(t, git.HasStagedChanges(ctx), "expected no staged changes after automatic commit")
+}

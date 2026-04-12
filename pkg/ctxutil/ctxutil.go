@@ -58,6 +58,9 @@ type ExecConfig struct {
 	// to provide a password for the age encryption backend without interactive
 	// prompts (e.g. in CI/CD pipelines or tests).
 	AgePassphrase string
+	// SetupRemote is set to the remote URL when a git remote is specified during
+	// setup, signalling that the automatic initial commit should be suppressed.
+	SetupRemote string
 }
 
 // WithExecConfig stores e in ctx and returns the updated context.
@@ -470,4 +473,19 @@ func IsHidden(ctx context.Context) bool {
 	}
 
 	return false
+}
+
+// WithSetupRemote returns a context with the remote URL stored for use during
+// "gopass setup". When non-empty it signals that the automatic initial commit
+// in gitfs.Init() should be suppressed.
+func WithSetupRemote(ctx context.Context, remote string) context.Context {
+	e := GetExecConfig(ctx)
+	e.SetupRemote = remote
+
+	return WithExecConfig(ctx, e)
+}
+
+// HasSetupRemote returns true if a non-empty setup remote was stored in ctx.
+func HasSetupRemote(ctx context.Context) bool {
+	return GetExecConfig(ctx).SetupRemote != ""
 }

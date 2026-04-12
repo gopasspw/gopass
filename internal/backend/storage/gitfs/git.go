@@ -126,6 +126,12 @@ func Init(ctx context.Context, path, userName, userEmail string) (*Git, error) {
 		return g, nil
 	}
 
+	if ctxutil.HasSetupRemote(ctx) {
+		debug.Log("Skipping auto-commit during setup with specified remote")
+
+		return g, nil
+	}
+
 	if err := g.Commit(ctx, "Add current content of password store"); err != nil {
 		return g, fmt.Errorf("failed to commit changes to git: %w", err)
 	}

@@ -318,6 +318,9 @@ func (s *setupHandler) initLocal(ctx context.Context, remote string) error {
 	}
 
 	out.Printf(ctx, "🌟 Configuring your password store ...")
+	if remote != "" {
+		ctx = ctxutil.WithSetupRemote(ctx, remote)
+	}
 	if err := s.init(ctxutil.WithHidden(ctx, true), "", path); err != nil {
 		return fmt.Errorf("failed to init local store: %w", err)
 	}

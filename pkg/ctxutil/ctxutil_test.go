@@ -192,3 +192,13 @@ func TestHidden(t *testing.T) {
 	assert.False(t, IsHidden(ctx))
 	assert.True(t, IsHidden(WithHidden(ctx, true)))
 }
+
+func TestSetupRemote(t *testing.T) {
+	t.Parallel()
+
+	ctx := config.NewContextInMemory()
+
+	assert.False(t, HasSetupRemote(ctx))
+	assert.True(t, HasSetupRemote(WithSetupRemote(ctx, "https://example.com/repo.git")))
+	assert.False(t, HasSetupRemote(WithSetupRemote(ctx, "")))
+}
