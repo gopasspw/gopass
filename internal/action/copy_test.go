@@ -243,14 +243,15 @@ func TestCopyWithTrailingSlash(t *testing.T) {
 	require.NoError(t, act.Copy(c))
 	buf.Reset()
 
-	// Verify the result
+	// Verify the result: structure should be preserved
 	require.NoError(t, act.List(gptest.CliCtx(ctx, t)))
 	want := `gopass
 ├── bar
 ├── foo
 ├── new/
 │   ├── baz
-│   └── zab
+│   └── some/
+│       └── zab
 └── secret/
     ├── baz
     └── some/
@@ -263,7 +264,7 @@ func TestCopyWithTrailingSlash(t *testing.T) {
 
 	// Verify content of copied files
 	ctx = ctxutil.WithTerminal(ctx, false)
-	require.NoError(t, act.show(ctx, c, "new/zab", false))
+	require.NoError(t, act.show(ctx, c, "new/some/zab", false))
 	assert.Equal(t, "secret\n", buf.String())
 	buf.Reset()
 
