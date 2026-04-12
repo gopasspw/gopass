@@ -339,11 +339,44 @@ func (a *Age) addIdentity(ctx context.Context, id age.Identity) error {
 		debug.Log("error invalidating age id recipient cache: %s", err)
 	}
 
-	ids, _ := a.Identities(ctx)
+	// Read existing identity file as raw text without parsing it.
+	// This avoids re-invoking external age plugins (e.g. age-plugin-yubikey) for
+	// identities already in the file, which would fail if the hardware token is
+	// unavailable or the plugin binary is missing.
+	existing, err := a.loadIdentityFile(ctx)
+	newFile := false
+	if err != nil {
+		if !errors.Is(err, os.ErrNotExist) {
+			return fmt.Errorf("failed to read identity file: %w", err)
+		}
+		newFile = true
+	}
 
-	ids = append(ids, id)
+	// Append the new identity as a raw line, preserving all existing content.
+	newLine := fmt.Sprintf("%s", id)
+	var lines []string
+	if existing == "" {
+		lines = []string{newLine}
+	} else {
+		lines = append(strings.Split(strings.TrimRight(existing, "\n"), "\n"), newLine)
+	}
 
-	return a.saveIdentities(ctx, identitiesToString(ids), true)
+	return a.saveIdentities(ctx, lines, newFile)
+}
+
+// loadIdentityFile decrypts and returns the raw text content of the identity file
+// without parsing individual identity lines. This avoids invoking external age
+// plugins (e.g. age-plugin-yubikey) merely to read existing file contents.
+func (a *Age) loadIdentityFile(ctx context.Context) (string, error) {
+	pwcb := a.effectivePwCallback(fmt.Sprintf("to read the age keyring from %s", a.identity))
+	ppcb := a.effectivePwPurgeCallback()
+
+	buf, err := a.decryptFile(ctx, a.identity, pwcb, ppcb)
+	if err != nil {
+		return "", err
+	}
+
+	return string(buf), nil
 }
 
 func (a *Age) saveIdentities(ctx context.Context, ids []string, newFile bool) error {
@@ -466,15 +499,6 @@ func recipientsToString(recps []age.Recipient) []string {
 	r := make([]string, 0, len(recps))
 	for _, recp := range recps {
 		r = append(r, fmt.Sprintf("%s", recp))
-	}
-
-	return r
-}
-
-func identitiesToString(ids []age.Identity) []string {
-	r := make([]string, 0, len(ids))
-	for _, id := range ids {
-		r = append(r, fmt.Sprintf("%s", id))
 	}
 
 	return r

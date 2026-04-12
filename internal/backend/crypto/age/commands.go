@@ -173,8 +173,11 @@ func (l loader) Commands() []*cli.Command {
 								}
 								if len(recEncm) < 1 && !strings.HasPrefix(idS, "AGE-SECRET-KEY-1") {
 									recEncm, err = termio.AskForString(ctx, "Provide the corresponding age recipient", "")
-									if err != nil || recEncm == "" {
+									if err != nil {
 										return exit.Error(exit.Unknown, err, "failed to read corresponding age recipient")
+									}
+									if recEncm == "" {
+										return exit.Error(exit.Usage, nil, "recipient must not be empty for plugin identities")
 									}
 									if strings.HasPrefix(recEncm, "AGE-") {
 										out.Warning(ctx, "You have provided an identity as a recipient, recipients should start in 'age1', this might not be properly supported and might leak secret data in our identity recipient cache")
