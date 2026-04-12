@@ -8,11 +8,9 @@ import (
 	"path/filepath"
 
 	"github.com/gopasspw/gopass/internal/backend"
-	"github.com/gopasspw/gopass/internal/backend/crypto/age"
 	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store"
-	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/debug"
 )
 
@@ -95,10 +93,9 @@ func (s *Store) recipientCheck(ctx context.Context, r string) bool {
 // ImportMissingPublicKeys will try to import any missing public keys from the
 // .public-keys folder in the password store.
 func (s *Store) ImportMissingPublicKeys(ctx context.Context, newrs ...string) error {
-	// do not import any keys for age, where public key == key id
-	// TODO: do not hard code exceptions, ask the backend if it supports it
-	if _, ok := s.crypto.(*age.Age); ok {
-		debug.Log("not importing public keys for age")
+	// only import public keys for backends that manage a separate keyring
+	if !s.crypto.NeedsPublicKeyImport() {
+		debug.Log("not importing public keys for %s (not needed by this backend)", s.crypto.Name())
 
 		return nil
 	}
@@ -125,8 +122,8 @@ func (s *Store) ImportMissingPublicKeys(ctx context.Context, newrs ...string) er
 
 		// we need to ask the user before importing
 		// any key material into his keyring!
-		if imf := ctxutil.GetImportFunc(ctx); imf != nil && !config.Bool(ctx, "core.autoimport") {
-			if !imf(ctx, r, names) {
+		if s.importCallback != nil && !config.Bool(ctx, "core.autoimport") {
+			if !s.importCallback(ctx, r, names) {
 				continue
 			}
 		}

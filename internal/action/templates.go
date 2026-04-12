@@ -39,7 +39,7 @@ const (
 )
 
 // TemplatesPrint will pretty-print a tree of templates.
-func (s *Action) TemplatesPrint(c *cli.Context) error {
+func (s *templateHandler) TemplatesPrint(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	t, err := s.Store.TemplateTree(ctx)
 	if err != nil {
@@ -51,7 +51,7 @@ func (s *Action) TemplatesPrint(c *cli.Context) error {
 }
 
 // TemplatePrint will lookup and print a single template.
-func (s *Action) TemplatePrint(c *cli.Context) error {
+func (s *templateHandler) TemplatePrint(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	name := c.Args().First()
 
@@ -67,7 +67,7 @@ func (s *Action) TemplatePrint(c *cli.Context) error {
 
 // TemplateEdit will load and existing or new template into an
 // editor.
-func (s *Action) TemplateEdit(c *cli.Context) error {
+func (s *templateHandler) TemplateEdit(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	name := c.Args().First()
 
@@ -97,7 +97,7 @@ func (s *Action) TemplateEdit(c *cli.Context) error {
 }
 
 // TemplateRemove will remove a single template.
-func (s *Action) TemplateRemove(c *cli.Context) error {
+func (s *templateHandler) TemplateRemove(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	name := c.Args().First()
 	if name == "" {
@@ -111,7 +111,7 @@ func (s *Action) TemplateRemove(c *cli.Context) error {
 	return s.Store.RemoveTemplate(ctx, name)
 }
 
-func (s *Action) templatesList(ctx context.Context) []string {
+func (s *templateHandler) templatesList(ctx context.Context) []string {
 	t, err := s.Store.TemplateTree(ctx)
 	if err != nil {
 		debug.Log("failed to list templates: %s", err)
@@ -123,7 +123,7 @@ func (s *Action) templatesList(ctx context.Context) []string {
 }
 
 // TemplatesComplete prints a list of all templates for bash completion.
-func (s *Action) TemplatesComplete(c *cli.Context) {
+func (s *templateHandler) TemplatesComplete(c *cli.Context) {
 	ctx := ctxutil.WithGlobalFlags(c)
 
 	for _, v := range s.templatesList(ctx) {
@@ -131,7 +131,7 @@ func (s *Action) TemplatesComplete(c *cli.Context) {
 	}
 }
 
-func (s *Action) renderTemplate(ctx context.Context, name string, content []byte) ([]byte, bool) {
+func (s *templateHandler) renderTemplate(ctx context.Context, name string, content []byte) ([]byte, bool) {
 	tName, tmpl, found := s.Store.LookupTemplate(ctx, name)
 	if !found {
 		debug.Log("No template found for %s", name)

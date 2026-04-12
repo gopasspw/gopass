@@ -48,7 +48,7 @@ func IsUpdateable(ctx context.Context) error {
 	}
 
 	if err := canWrite(fn); err != nil {
-		return fmt.Errorf("can not write %q: %w", fn, err)
+		return fmt.Errorf("cannot write %q: %w", fn, err)
 	}
 
 	// no need to check the directory since we'll be writing to the destination file directly

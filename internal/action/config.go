@@ -17,7 +17,7 @@ import (
 // Config handles changes to the gopass configuration.
 // It can be used to print the whole config, a single key, or to set a new
 // value for a given key.
-func (s *Action) Config(c *cli.Context) error {
+func (s *miscHandler) Config(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	store := c.String("store")
 	if c.Args().Len() < 1 {
@@ -49,7 +49,7 @@ func (s *Action) Config(c *cli.Context) error {
 	return nil
 }
 
-func (s *Action) printConfigValues(ctx context.Context, store string, needles ...string) {
+func (s *miscHandler) printConfigValues(ctx context.Context, store string, needles ...string) {
 	for _, k := range set.SortedFiltered(s.cfg.Keys(store), func(e string) bool {
 		return contains(needles, e)
 	}) {
@@ -73,7 +73,7 @@ func contains(haystack []string, needle string) bool {
 	return slices.Contains(haystack, needle)
 }
 
-func (s *Action) setConfigValue(ctx context.Context, store, key, value string) error {
+func (s *miscHandler) setConfigValue(ctx context.Context, store, key, value string) error {
 	debug.Log("setting %s to %s for %q", key, value, store)
 
 	level, err := s.cfg.SetWithLevel(store, key, value)
@@ -119,12 +119,12 @@ func (s *Action) setConfigValue(ctx context.Context, store, key, value string) e
 	return nil
 }
 
-func (s *Action) configKeys() []string {
+func (s *miscHandler) configKeys() []string {
 	return s.cfg.Keys("")
 }
 
 // ConfigComplete will print the list of valid config keys for bash completion.
-func (s *Action) ConfigComplete(c *cli.Context) {
+func (s *miscHandler) ConfigComplete(c *cli.Context) {
 	for _, k := range s.configKeys() {
 		fmt.Fprintln(stdout, k)
 	}

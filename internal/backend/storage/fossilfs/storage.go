@@ -44,7 +44,7 @@ func (f *Fossil) Prune(ctx context.Context, prefix string) error {
 
 // String implements fmt.Stringer.
 func (f *Fossil) String() string {
-	return fmt.Sprintf("fossilfs(%s,path:%s)", f.Version(context.TODO()).String(), f.fs.Path())
+	return fmt.Sprintf("fossilfs(%s,path:%s)", f.Version(context.Background()).String(), f.fs.Path())
 }
 
 // Path returns the path to this storage.

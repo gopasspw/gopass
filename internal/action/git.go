@@ -12,7 +12,7 @@ import (
 )
 
 // Git passes the git command to the underlying backend.
-func (s *Action) Git(c *cli.Context) error {
+func (s *syncHandler) Git(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	store := c.String("store")
 

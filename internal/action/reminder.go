@@ -10,7 +10,7 @@ import (
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 )
 
-func (s *Action) printReminder(ctx context.Context) {
+func (s *miscHandler) printReminder(ctx context.Context) {
 	if !ctxutil.IsInteractive(ctx) {
 		return
 	}

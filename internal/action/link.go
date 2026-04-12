@@ -7,7 +7,7 @@ import (
 )
 
 // Link creates a symlink.
-func (s *Action) Link(c *cli.Context) error {
+func (s *secretHandler) Link(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 
 	from := c.Args().Get(0)

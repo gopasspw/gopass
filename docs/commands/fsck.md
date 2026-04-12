@@ -20,3 +20,12 @@ $ gopass fsck
 Flag | Aliases | Description
 ---- | ------- | -----------
 `--decrypt` | | Decrypt and reencrypt all secrets.
+
+## Exit codes
+
+| Code | Meaning |
+|-----:|---------|
+| 0 | Store integrity OK |
+| 15 | One or more integrity errors found |
+
+See [docs/exit-codes.md](../exit-codes.md) for the full table.

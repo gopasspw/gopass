@@ -11,16 +11,25 @@ import (
 
 	"github.com/gopasspw/gopass/internal/backend"
 	"github.com/gopasspw/gopass/internal/out"
+	"github.com/gopasspw/gopass/internal/store"
 	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/gopasspw/gopass/pkg/set"
 )
 
 // Store is a password store.
 type Store struct {
-	alias   string
-	path    string
-	crypto  backend.Crypto
-	storage backend.Storage
+	alias          string
+	path           string
+	crypto         backend.Crypto
+	storage        backend.Storage
+	importCallback store.ImportCallback
+}
+
+// SetImportFunc sets the callback used to ask the user for confirmation before
+// importing a public key into the keyring. If not set, all keys are imported
+// silently (the same default as ctxutil.GetImportFunc).
+func (s *Store) SetImportFunc(fn store.ImportCallback) {
+	s.importCallback = fn
 }
 
 // Init initializes this sub store.

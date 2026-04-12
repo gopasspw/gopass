@@ -20,4 +20,14 @@ $ gopass find -c entry
 |------------|---------|---------------------------------------------------------------|
 | `--clip`   | `-c`    | Copy the password into the clipboard.                         |
 | `--unsafe` | `-u`    | Display any unsafe content, even if `safecontent` is enabled. |
+| `--regex`  | `-r`    | Interpret the pattern as a regular expression instead of a plain substring match. |
+
+## Exit codes
+
+| Code | Meaning |
+|-----:|---------|
+| 0 | Matches found and displayed |
+| 10 | No matching secret found |
+
+See [docs/exit-codes.md](../exit-codes.md) for the full table.
 

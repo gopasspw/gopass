@@ -74,6 +74,10 @@ func (r *Store) initSub(ctx context.Context, alias, path string, keys []string) 
 		return nil, fmt.Errorf("failed to initialize store %q at %q: %w", alias, path, err)
 	}
 
+	if r.importCallback != nil {
+		s.SetImportFunc(r.importCallback)
+	}
+
 	if s.IsInitialized(ctx) {
 		return s, nil
 	}
@@ -105,10 +109,6 @@ func (r *Store) initSub(ctx context.Context, alias, path string, keys []string) 
 func (r *Store) RemoveMount(ctx context.Context, alias string) error {
 	if _, found := r.mounts[alias]; !found {
 		out.Warningf(ctx, "%s is not mounted", alias)
-	}
-
-	if _, found := r.mounts[alias]; !found {
-		out.Warningf(ctx, "%s is not initialized", alias)
 	}
 
 	delete(r.mounts, alias)
@@ -173,7 +173,7 @@ func (r *Store) getStore(name string) (*leaf.Store, string) {
 	mp := r.MountPoint(name)
 
 	if sub, found := r.mounts[mp]; found {
-		return sub, strings.TrimPrefix(name, sub.Alias())
+		return sub, strings.TrimPrefix(strings.TrimPrefix(name, sub.Alias()), "/")
 	}
 
 	return r.store, name
@@ -213,14 +213,5 @@ func (r *Store) checkMounts() error {
 // CleanMountAlias removes all leading and trailing slashes from a mount alias.
 // Note: Slashes inside the alias are valid and will be kept.
 func CleanMountAlias(alias string) string {
-	for strings.HasPrefix(alias, "/") || strings.HasPrefix(alias, "\\") {
-		alias = strings.TrimPrefix(strings.TrimSuffix(alias, "/"), "/")
-		alias = strings.TrimPrefix(strings.TrimSuffix(alias, "\\"), "\\")
-	}
-	for strings.HasSuffix(alias, "/") || strings.HasSuffix(alias, "\\") {
-		alias = strings.TrimSuffix(strings.TrimPrefix(alias, "/"), "/")
-		alias = strings.TrimSuffix(strings.TrimPrefix(alias, "\\"), "\\")
-	}
-
-	return alias
+	return strings.Trim(alias, "/\\")
 }

@@ -260,7 +260,7 @@ func mkActFunc(tpl Template, s *root.Store, cb ActionCallback) func(context.Cont
 				}
 				hostname = extractHostname(sv)
 				if hostname == "" {
-					return fmt.Errorf("can not parse URL %s", sv)
+					return fmt.Errorf("cannot parse URL %s", sv)
 				}
 				if wantForName[k] {
 					nameParts = append(nameParts, hostname)
@@ -291,7 +291,7 @@ func mkActFunc(tpl Template, s *root.Store, cb ActionCallback) func(context.Cont
 					if v.Min > 0 && len(password) < v.Min {
 						return fmt.Errorf("%s is too short (needs %d)", v.Name, v.Min)
 					}
-					if v.Max > 0 && len(password) > v.Min {
+					if v.Max > 0 && len(password) > v.Max {
 						return fmt.Errorf("%s is too long (at most %d)", v.Name, v.Max)
 					}
 				}

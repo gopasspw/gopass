@@ -18,16 +18,16 @@ import (
 )
 
 // Find runs find without fuzzy search.
-func (s *Action) Find(c *cli.Context) error {
+func (s *searchHandler) Find(c *cli.Context) error {
 	return s.findCmd(c, nil, false)
 }
 
 // FindFuzzy runs find with fuzzy search.
-func (s *Action) FindFuzzy(c *cli.Context) error {
-	return s.findCmd(c, s.show, true)
+func (s *searchHandler) FindFuzzy(c *cli.Context) error {
+	return s.findCmd(c, s.showFn, true)
 }
 
-func (s *Action) findCmd(c *cli.Context, cb showFunc, fuzzy bool) error {
+func (s *searchHandler) findCmd(c *cli.Context, cb showFunc, fuzzy bool) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	if c.IsSet("clip") {
 		ctx = WithOnlyClip(ctx, c.Bool("clip"))
@@ -48,7 +48,7 @@ func (s *Action) findCmd(c *cli.Context, cb showFunc, fuzzy bool) error {
 // see action.show - context, cli context, name, key, rescurse.
 type showFunc func(context.Context, *cli.Context, string, bool) error
 
-func (s *Action) find(ctx context.Context, c *cli.Context, needle string, cb showFunc, fuzzy bool) error {
+func (s *searchHandler) find(ctx context.Context, c *cli.Context, needle string, cb showFunc, fuzzy bool) error {
 	// get all existing entries.
 	haystack, err := s.Store.List(ctx, tree.INF)
 	if err != nil {
@@ -61,6 +61,22 @@ func (s *Action) find(ctx context.Context, c *cli.Context, needle string, cb sho
 		return exit.Error(exit.Usage, err, "%s", err)
 	}
 
+	// if we don't have a match yet try a fuzzy search.
+	if len(choices) < 1 && fuzzy {
+		// try fuzzy match.
+		cm := closestmatch.New(haystack, []int{2})
+		choices = cm.ClosestN(needle, 5)
+	}
+
+	// JSON output: emit the matches as a JSON array (possibly empty) and return.
+	if c != nil && c.Bool("json") {
+		if len(choices) < 1 {
+			return exit.Error(exit.NotFound, nil, "no results found")
+		}
+
+		return jsonWrite(stdout, choices)
+	}
+
 	// if we have an exact match print it.
 	if len(choices) == 1 {
 		if cb == nil {
@@ -71,13 +87,6 @@ func (s *Action) find(ctx context.Context, c *cli.Context, needle string, cb sho
 		out.OKf(ctx, "Found exact match in %q", choices[0])
 
 		return cb(ctx, c, choices[0], false)
-	}
-
-	// if we don't have a match yet try a fuzzy search.
-	if len(choices) < 1 && fuzzy {
-		// try fuzzy match.
-		cm := closestmatch.New(haystack, []int{2})
-		choices = cm.ClosestN(needle, 5)
 	}
 
 	// if there are still no results we abort.
@@ -99,7 +108,7 @@ func (s *Action) find(ctx context.Context, c *cli.Context, needle string, cb sho
 }
 
 // findSelection runs a wizard that lets the user select an entry.
-func (s *Action) findSelection(ctx context.Context, c *cli.Context, choices []string, needle string, cb showFunc) error {
+func (s *searchHandler) findSelection(ctx context.Context, c *cli.Context, choices []string, needle string, cb showFunc) error {
 	if cb == nil {
 		return fmt.Errorf("callback is nil")
 	}
@@ -129,7 +138,7 @@ func (s *Action) findSelection(ctx context.Context, c *cli.Context, choices []st
 		return cb(WithClip(ctx, false), c, choices[sel], false)
 	case "sync":
 		// run sync and re-run show/find workflow.
-		if err := s.Sync(c); err != nil {
+		if err := s.syncFn(c); err != nil {
 			return err
 		}
 
@@ -138,7 +147,7 @@ func (s *Action) findSelection(ctx context.Context, c *cli.Context, choices []st
 		// edit selected entry.
 		fmt.Fprintln(stdout, choices[sel])
 
-		return s.edit(ctx, c, choices[sel])
+		return s.editFn(ctx, c, choices[sel])
 	default:
 		return exit.Error(exit.Aborted, nil, "user aborted")
 	}

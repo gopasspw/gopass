@@ -118,7 +118,7 @@ func setupApp(ctx context.Context, sv semver.Version) (context.Context, *cli.App
 
 	// set some action callbacks
 	if !config.AsBool(cfg.Get("core.autoimport")) {
-		ctx = ctxutil.WithImportFunc(ctx, termio.AskForKeyImport)
+		action.Store.SetImportFunc(termio.AskForKeyImport)
 	}
 
 	ctx = leaf.WithFsckFunc(ctx, termio.AskForConfirmation)
@@ -135,7 +135,18 @@ func setupApp(ctx context.Context, sv semver.Version) (context.Context, *cli.App
 		action.Complete(c)
 	}
 
-	app.Flags = ap.ShowFlags()
+	app.Flags = append(ap.ShowFlags(), &cli.BoolFlag{
+		Name:  "exit-codes",
+		Usage: "Print all exit codes and their meanings, then exit",
+	})
+	app.Before = func(c *cli.Context) error {
+		if c.Bool("exit-codes") {
+			exit.PrintExitCodes(c.App.Writer)
+			os.Exit(exit.OK)
+		}
+
+		return nil
+	}
 	app.Action = func(c *cli.Context) error {
 		if err := action.IsInitialized(c); err != nil {
 			return err
@@ -332,13 +343,10 @@ func initContext(ctx context.Context, cfg *config.Config) context.Context {
 		}
 	}
 
-	// using a password callback for age identity file or not?
+	// using a passphrase for the age identity file or not?
 	if pw, isSet := os.LookupEnv("GOPASS_AGE_PASSWORD"); isSet {
-		ctx = ctxutil.WithPasswordCallback(ctx, func(_ string, _ bool) ([]byte, error) {
-			debug.Log("using age password callback from env variable GOPASS_AGE_PASSWORD")
-
-			return []byte(pw), nil
-		})
+		debug.Log("using age passphrase from env variable GOPASS_AGE_PASSWORD")
+		ctx = ctxutil.WithAgePassphrase(ctx, pw)
 	}
 
 	return ctx

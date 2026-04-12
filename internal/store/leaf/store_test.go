@@ -164,8 +164,7 @@ func TestNew(t *testing.T) {
 		{
 			dsc: "Invalid Crypto",
 			ctx: backend.WithCryptoBackend(config.NewContextInMemory(), -1),
-			// ok:  false, // TODO once backend.DetectCrypto returns an error this should be false
-			ok: true,
+			ok:  false,
 		},
 	} {
 		t.Run(tc.dsc, func(t *testing.T) {

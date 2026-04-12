@@ -22,12 +22,35 @@ gopass create --store=foo
 `gopass create` will look for files ending in `.yml` in the folder `.gopass/create` inside
 the selected store (by default the root store).
 
-To add new templates to the wizard add templates to this folder.
+On first run, gopass writes two built-in templates (website login and PIN code) to this
+folder. You can modify them or add your own alongside them.
 
-Example:
+To add a new template create a YAML file in `.gopass/create/` and commit it:
 
 ```bash
-$ cat $(gopass config mounts.path)/.gopass/create/aws.yml
+# open the store directory
+cd "$(gopass config mounts.path)"
+mkdir -p .gopass/create
+$EDITOR .gopass/create/aws.yml
+git add .gopass/create/aws.yml && git commit -m "Add AWS credential template"
+```
+
+## Template Structure
+
+Each template file is a YAML document with the following top-level fields:
+
+| Field        | Type     | Required | Description                                                                                                                                                          |
+|--------------|----------|----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `name`       | string   | yes      | Human-readable name shown in the wizard's selection menu (e.g., `"Website login"`).                                                                                  |
+| `priority`   | int      | no       | Sort order in the wizard menu. Lower numbers appear first. Default: `0`. The two built-in templates use priorities `0` (website) and `1` (PIN).                      |
+| `prefix`     | string   | yes      | Directory inside the store where the new secret will be saved (e.g., `"websites"` → secret stored under `websites/<name>`).                                          |
+| `name_from`  | []string | no       | List of attribute names whose values are joined to form the secret's file name. If empty, the user is prompted for a path. Values are sanitised with `CleanFilename`. |
+| `welcome`    | string   | no       | Message printed at the start of the wizard for this template. Supports Unicode/emoji.                                                                                 |
+| `attributes` | list     | yes      | Ordered list of attribute definitions (see [Attribute Fields](#attribute-fields) below).                                                                              |
+
+Example skeleton:
+
+```yaml
 ---
 priority: 5
 name: "AWS"
@@ -46,30 +69,100 @@ attributes:
     prompt: "User"
     min: 1
   - name: "password"
-    type: "password" # hide input
+    type: "password"
     prompt: "Password"
     charset: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%&*"
     min: 10
-    strict: true # ensure at least one char from each detected class (upper, lower, digit, symbol)
+    strict: true
   - name: "comment"
     type: "string"
     prompt: "Comments"
 ```
 
-## Template Attributes
+## Attribute Fields
 
-Template attributes support the following fields:
+Each entry in `attributes` supports the following fields:
 
-| Field           | Type   | Description                                                                                                                                                                                                                                                                  |
-|-----------------|--------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `name`          | string | The name of the attribute. This will be used as the key in the secret's YAML data.                                                                                                                                                                                          |
-| `type`          | string | The type of attribute. Supported values: `string`, `hostname`, `password`.                                                                                                                                                                                                  |
-| `prompt`        | string | The prompt text to display to the user.                                                                                                                                                                                                                                     |
-| `charset`       | string | For password type: Custom character set to use when generating the password. If not specified, standard character classes will be used.                                                                                                                                      |
-| `min`           | int    | Minimum length validation for the attribute value.                                                                                                                                                                                                                           |
-| `max`           | int    | Maximum length validation for the attribute value.                                                                                                                                                                                                                           |
-| `always_prompt` | bool   | For password type: Always prompt for the password instead of offering password generation. Default: `false`.                                                                                                                                                                 |
-| `strict`        | bool   | For password type with `charset`: Enforce that all detected character classes (uppercase, lowercase, digits, symbols) present in the charset are represented in the generated password. Similar to `--strict` in `gopass generate`. Default: `false`.                        |
+| Field           | Type   | Applies to          | Description                                                                                                                                                                                                    |
+|-----------------|--------|---------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `name`          | string | all                 | Key under which the value is stored in the secret's YAML body. Also used as the human-readable label when `prompt` is omitted.                                                                                  |
+| `type`          | string | all                 | Controls the input behaviour. One of `string`, `hostname`, `password`, or `multiline` — see [Attribute Types](#attribute-types) below.                                                                          |
+| `prompt`        | string | all                 | Override the text shown to the user. Defaults to the `name` field with the first letter upper-cased.                                                                                                            |
+| `min`           | int    | string, hostname, password | Minimum acceptable length. Validation is skipped when `0` (default). For `password` with auto-generation the minimum is passed to the generator.                                                         |
+| `max`           | int    | string, hostname, password | Maximum acceptable length. Validation is skipped when `0` (default).                                                                                                                                     |
+| `charset`       | string | password            | Explicit character set for generated passwords. When omitted, the standard mixed-class generator is used. Ignored when the user opts out of generation.                                                         |
+| `always_prompt` | bool   | password            | When `true`, skip the "Generate Password?" prompt and always ask the user to type one in. Default: `false`.                                                                                                     |
+| `strict`        | bool   | password            | When `true` (and `charset` is set), every character class detected in `charset` (upper, lower, digit, symbol) must appear at least once in the generated password. Equivalent to `gopass generate --strict`. Default: `false`. |
+
+## Attribute Types
+
+### `string`
+
+Prompts for a single-line text value. The value is stored as-is under the attribute's
+`name` key in the secret's YAML body.
+
+```yaml
+- name: "username"
+  type: "string"
+  prompt: "Username"
+  min: 1
+  max: 64
+```
+
+### `hostname`
+
+Like `string`, but additionally:
+
+* Extracts the hostname component from the entered value (e.g., `https://example.com/login` → `example.com`).
+* The extracted hostname is used as the `name_from` component if this attribute is listed there.
+* Looks up password-change URLs via the built-in `pwrules` database and stores them as `password-change-url` if found.
+
+```yaml
+- name: "url"
+  type: "hostname"
+  prompt: "Website URL"
+  min: 1
+```
+
+### `password`
+
+Prompts the user `"Generate Password?"`. If yes, generates a password using the standard
+gopass generator (respecting `charset` and `strict`). If no, asks the user to type one
+(with confirmation) and applies `min`/`max` length validation.
+
+The password is stored as the **first line** of the secret (the gopass password field),
+not as a YAML key.
+
+```yaml
+- name: "password"
+  type: "password"
+  prompt: "Password"
+  charset: "0123456789"   # digits only, e.g. for PIN codes
+  min: 4
+  max: 8
+  always_prompt: true     # skip the "generate?" question
+```
+
+### `multiline`
+
+Opens the user's `$EDITOR` (or the editor configured via `gopass config core.editor`)
+with any existing gopass template for this attribute pre-filled. The full editor content
+is written verbatim to the secret body.
+
+Useful for SSH keys, certificates, or annotated notes.
+
+```yaml
+- name: "notes"
+  type: "multiline"
+  prompt: "Additional notes"
+```
+
+## File Naming Convention
+
+Template files must end in `.yml` or `.yaml`. gopass ignores files with other extensions.
+There is no enforced naming convention, but the built-in templates follow the pattern
+`<priority>-<prefix>.yml` (e.g., `0-websites.yml`, `1-pin.yml`). Using the same convention
+makes the order predictable in directory listings.
 
 ## Flags
 

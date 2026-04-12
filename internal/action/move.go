@@ -10,7 +10,7 @@ import (
 )
 
 // Move the content from one secret to another.
-func (s *Action) Move(c *cli.Context) error {
+func (s *secretHandler) Move(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 
 	if c.Args().Len() != 2 {

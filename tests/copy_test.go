@@ -49,10 +49,10 @@ func TestCopy(t *testing.T) {
 		require.NoError(t, err)
 		assert.Empty(t, out)
 
-		orig, err := ts.run("show -f foo/bar")
+		orig, err := ts.run("show -u foo/bar")
 		require.NoError(t, err)
 
-		cp, err := ts.run("show -f foo/baz")
+		cp, err := ts.run("show -u foo/baz")
 		require.NoError(t, err)
 
 		assert.Equal(t, orig, cp)

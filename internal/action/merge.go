@@ -19,7 +19,7 @@ import (
 )
 
 // Merge implements the merge subcommand that allows merging multiple entries.
-func (s *Action) Merge(c *cli.Context) error {
+func (s *secretHandler) Merge(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	to := c.Args().First()
 	from := c.Args().Tail()

@@ -47,7 +47,7 @@ func TestFind(t *testing.T) {
 	require.NoError(t, err)
 	assert.Contains(t, out, "foo/bar")
 
-	out, err = ts.run("find -f bar")
+	out, err = ts.run("find -u bar")
 	require.NoError(t, err)
 	assert.Contains(t, out, "foo/bar")
 }

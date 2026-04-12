@@ -18,7 +18,7 @@ import (
 )
 
 // Fsck checks the store integrity.
-func (s *Action) Fsck(c *cli.Context) error {
+func (s *auditHandler) Fsck(c *cli.Context) error {
 	_ = s.rem.Reset("fsck")
 
 	filter := c.Args().First()
@@ -47,13 +47,13 @@ func (s *Action) Fsck(c *cli.Context) error {
 
 	bar := termio.NewProgressBar(int64(len(pwList)) + 1)
 	bar.Hidden = ctxutil.IsHidden(ctx)
-	ctx = ctxutil.WithProgressCallback(ctx, func() {
+	progress := ctxutil.ProgressCallback(func() {
 		bar.Inc()
 	})
 	ctx = out.AddPrefix(ctx, "\n")
 
 	// the main work in done by the sub stores.
-	if err := s.Store.Fsck(ctx, c.String("store"), filter); err != nil {
+	if err := s.Store.Fsck(ctx, c.String("store"), filter, progress); err != nil {
 		return exit.Error(exit.Fsck, err, "fsck found errors: %s", err)
 	}
 	bar.Done()
@@ -61,7 +61,7 @@ func (s *Action) Fsck(c *cli.Context) error {
 	return nil
 }
 
-func (s *Action) fsckEntries(ctx context.Context, filter string) ([]string, error) {
+func (s *auditHandler) fsckEntries(ctx context.Context, filter string) ([]string, error) {
 	t, err := s.Store.Tree(ctx)
 	if err != nil {
 		return nil, exit.Error(exit.Unknown, err, "failed to list stores: %s", err)

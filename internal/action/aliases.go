@@ -10,7 +10,7 @@ import (
 )
 
 // AliasesPrint prints all configured aliases for password generation rules.
-func (s *Action) AliasesPrint(c *cli.Context) error {
+func (s *miscHandler) AliasesPrint(c *cli.Context) error {
 	out.Printf(c.Context, "Configured aliases:")
 	aliases := pwrules.AllAliases(c.Context)
 	keys := make([]string, 0, len(aliases))

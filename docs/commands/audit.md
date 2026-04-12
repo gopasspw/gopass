@@ -22,6 +22,15 @@ test_folder/ignore_this
 # Gopass internally uses forward slashes as path separators, even on Windows. So no need to escape backslashes.
 ```
 
+## Exit codes
+
+| Code | Meaning |
+|-----:|---------|
+| 0 | No issues found |
+| 14 | One or more weak passwords or issues detected |
+
+See [docs/exit-codes.md](../exit-codes.md) for the full table.
+
 ## Password strength backends
 
 | Backend                                         | Description                                                            |

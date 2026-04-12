@@ -24,10 +24,7 @@ func TestSetupAgeGitFS(t *testing.T) {
 	ctx = ctxutil.WithInteractive(ctx, false)
 	ctx = backend.WithCryptoBackend(ctx, backend.Age)
 	ctx = backend.WithStorageBackend(ctx, backend.GitFS)
-	ctx = ctxutil.WithPasswordCallback(ctx, func(_ string, _ bool) ([]byte, error) {
-		return []byte("foobar"), nil
-	})
-	ctx = ctxutil.WithPasswordPurgeCallback(ctx, func(s string) {}) //nolint:staticcheck
+	ctx = ctxutil.WithAgePassphrase(ctx, "foobar")
 
 	act, err := newMock(ctx, u.StoreDir(""))
 	require.ErrorContains(t, err, "not initialized")

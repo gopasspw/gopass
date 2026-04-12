@@ -23,7 +23,7 @@ import (
 )
 
 // OTP implements OTP token handling for TOTP and HOTP.
-func (s *Action) OTP(c *cli.Context) error {
+func (s *otpHandler) OTP(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	name := c.Args().First()
 	if name == "" {
@@ -53,7 +53,7 @@ func (s *Action) OTP(c *cli.Context) error {
 		if err != nil || !choice {
 			return err
 		}
-		err = s.insertYAML(ctxutil.WithInteractive(ctx, false), name, "otpauth", []byte(qr), nil)
+		err = s.insertYAMLFn(ctxutil.WithInteractive(ctx, false), name, "otpauth", []byte(qr), nil)
 		if err != nil {
 			return err
 		}
@@ -113,7 +113,7 @@ func waitForKeyPress(ctx context.Context, cancel context.CancelFunc) (func(), fu
 }
 
 // nolint: cyclop
-func (s *Action) otp(ctx context.Context, name, qrf string, clip, pw, recurse, chained, alsoClip bool) error {
+func (s *otpHandler) otp(ctx context.Context, name, qrf string, clip, pw, recurse, chained, alsoClip bool) error {
 	sec, err := s.Store.Get(ctx, name)
 	if err != nil {
 		return s.otpHandleError(ctx, name, qrf, clip, pw, recurse, chained, alsoClip, err)
@@ -245,7 +245,7 @@ func (s *Action) otp(ctx context.Context, name, qrf string, clip, pw, recurse, c
 	}
 }
 
-func (s *Action) otpHandleError(ctx context.Context, name, qrf string, clip, pw, recurse, chained, alsoClip bool, err error) error {
+func (s *otpHandler) otpHandleError(ctx context.Context, name, qrf string, clip, pw, recurse, chained, alsoClip bool, err error) error {
 	if !errors.Is(err, store.ErrNotFound) || !recurse || !ctxutil.IsTerminal(ctx) {
 		return exit.Error(exit.Unknown, err, "failed to retrieve secret %q: %s", name, err)
 	}
@@ -254,7 +254,7 @@ func (s *Action) otpHandleError(ctx context.Context, name, qrf string, clip, pw,
 	cb := func(ctx context.Context, c *cli.Context, name string, recurse bool) error {
 		return s.otp(ctx, name, qrf, clip, pw, false, chained, alsoClip)
 	}
-	if err := s.find(ctx, nil, name, cb, false); err != nil {
+	if err := s.findFn(ctx, nil, name, cb, false); err != nil {
 		return exit.Error(exit.NotFound, err, "%s", err)
 	}
 

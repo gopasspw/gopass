@@ -18,6 +18,16 @@ $ gopass insert entry key
 
 Insert is similar in effect to `gopass edit` with the advantage of not displaying any content of the secret when changing a key.
 
+## Exit codes
+
+| Code | Meaning |
+|-----:|---------|
+| 0 | Secret inserted successfully |
+| 11 | Existing secret could not be read for append or key-insert |
+| 12 | Secret could not be encrypted and saved |
+
+See [docs/exit-codes.md](../exit-codes.md) for the full table.
+
 Note: `insert` will not change anything but the `Password` field (using the `insert entry` invocation) or the specified key (using the `insert entry key` invocation).
 
 ## Flags

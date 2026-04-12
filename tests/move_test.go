@@ -52,12 +52,12 @@ func TestMove(t *testing.T) {
 	})
 
 	t.Run("show source secret", func(t *testing.T) {
-		_, err := ts.run("show -f bar/bar")
+		_, err := ts.run("show -u bar/bar")
 		require.NoError(t, err)
 	})
 
 	t.Run("show secret", func(t *testing.T) {
-		_, err := ts.run("show -f baz")
+		_, err := ts.run("show -u baz")
 		require.NoError(t, err)
 	})
 }

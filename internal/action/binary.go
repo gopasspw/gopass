@@ -27,7 +27,7 @@ var binstdin = os.Stdin
 // Cat prints to or reads from STDIN/STDOUT.
 // If the content is piped to stdin, it is written to the secret.
 // Otherwise, the secret content is printed to stdout.
-func (s *Action) Cat(c *cli.Context) error {
+func (s *binaryHandler) Cat(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	name := c.Args().First()
 	if name == "" {
@@ -116,7 +116,7 @@ func secFromBytes(dst, src string, in []byte) (gopass.Secret, error) {
 
 // BinaryCopy copies either from the filesystem to the store or from the store
 // to the filesystem.
-func (s *Action) BinaryCopy(c *cli.Context) error {
+func (s *binaryHandler) BinaryCopy(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	from := c.Args().Get(0)
 	to := c.Args().Get(1)
@@ -132,7 +132,7 @@ func (s *Action) BinaryCopy(c *cli.Context) error {
 // BinaryMove works like Copy but will remove (shred/wipe) the source
 // after a successful copy. Mostly useful for securely moving secrets into
 // the store if they are no longer needed / wanted on disk afterwards.
-func (s *Action) BinaryMove(c *cli.Context) error {
+func (s *binaryHandler) BinaryMove(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	from := c.Args().Get(0)
 	to := c.Args().Get(1)
@@ -157,7 +157,7 @@ func isFilePath(s string) bool {
 }
 
 // isInStore returns true if the given file is in the store or a mounted substore.
-func (s *Action) isInStore(fn string) bool {
+func (s *binaryHandler) isInStore(fn string) bool {
 	fp, err := filepath.Abs(fn)
 	if err != nil {
 		return false
@@ -184,7 +184,7 @@ func (s *Action) isInStore(fn string) bool {
 // 2. From the store to the filesystem.
 //
 // Copying secrets in the store must be done through the regular copy command.
-func (s *Action) binaryCopy(ctx context.Context, c *cli.Context, from, to string, deleteSource bool) error {
+func (s *binaryHandler) binaryCopy(ctx context.Context, c *cli.Context, from, to string, deleteSource bool) error {
 	if from == "" || to == "" {
 		op := "copy"
 		if deleteSource {
@@ -224,7 +224,7 @@ func (s *Action) binaryCopy(ctx context.Context, c *cli.Context, from, to string
 	}
 }
 
-func (s *Action) binaryCopyFromFileToStore(ctx context.Context, from, to string, deleteSource bool) error {
+func (s *binaryHandler) binaryCopyFromFileToStore(ctx context.Context, from, to string, deleteSource bool) error {
 	// if the source is a file the destination must not to avoid ambiguities.
 	// if necessary this can be resolved by using a absolute path for the file
 	// and a relative one for the secret.
@@ -260,7 +260,7 @@ func (s *Action) binaryCopyFromFileToStore(ctx context.Context, from, to string,
 	return nil
 }
 
-func (s *Action) binaryCopyFromStoreToFile(ctx context.Context, from, to string, deleteSource bool) error {
+func (s *binaryHandler) binaryCopyFromStoreToFile(ctx context.Context, from, to string, deleteSource bool) error {
 	// if the source is no file we assume it's a secret and to is a filename
 	// (which may already exist or not).
 
@@ -289,7 +289,7 @@ func (s *Action) binaryCopyFromStoreToFile(ctx context.Context, from, to string,
 	return nil
 }
 
-func (s *Action) binaryValidate(ctx context.Context, buf []byte, name string) error {
+func (s *binaryHandler) binaryValidate(ctx context.Context, buf []byte, name string) error {
 	h := sha256.New()
 	_, _ = h.Write(buf)
 	fileSum := hex.EncodeToString(h.Sum(nil))
@@ -328,7 +328,7 @@ func isBase64Encoded(sec gopass.Secret) bool {
 	return false
 }
 
-func (s *Action) binaryGet(ctx context.Context, name string) ([]byte, error) {
+func (s *binaryHandler) binaryGet(ctx context.Context, name string) ([]byte, error) {
 	sec, err := s.Store.Get(ctx, name)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read %q from the store: %w", name, err)
@@ -358,7 +358,7 @@ func (s *Action) binaryGet(ctx context.Context, name string) ([]byte, error) {
 
 // Sum decodes binary content and computes the SHA256 checksum.
 // It prints the checksum to stdout.
-func (s *Action) Sum(c *cli.Context) error {
+func (s *binaryHandler) Sum(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	name := c.Args().First()
 	if name == "" {

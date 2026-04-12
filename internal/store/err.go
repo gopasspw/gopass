@@ -34,5 +34,5 @@ var (
 	// ErrNoKey is returned if a KV or YAML entry doesn't contain a key.
 	ErrNoKey = fmt.Errorf("key not found in entry")
 	// ErrYAMLValueUnsupported is returned is the user tries to unmarshal an nested struct.
-	ErrYAMLValueUnsupported = fmt.Errorf("can not unmarshal nested YAML value")
+	ErrYAMLValueUnsupported = fmt.Errorf("cannot unmarshal nested YAML value")
 )

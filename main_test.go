@@ -99,6 +99,7 @@ var commandsWithError = set.Map([]string{
 	".templates.show",
 	".unclip",
 	".reorg",
+	".audit",
 })
 
 func TestGetCommands(t *testing.T) {
@@ -124,9 +125,7 @@ func TestGetCommands(t *testing.T) {
 	ctx = ctxutil.WithHidden(ctx, true)
 	ctx, err := backend.WithCryptoBackendString(ctx, "plain")
 	require.NoError(t, err)
-	ctx = ctxutil.WithPasswordCallback(ctx, func(_ string, _ bool) ([]byte, error) {
-		return []byte("foobar"), nil
-	})
+	ctx = ctxutil.WithAgePassphrase(ctx, "foobar")
 
 	act, err := action.New(cfg, semver.Version{})
 	require.NoError(t, err)
@@ -137,7 +136,7 @@ func TestGetCommands(t *testing.T) {
 	c.Context = ctx
 
 	commands := getCommands(act, app)
-	assert.Len(t, commands, 42)
+	assert.Len(t, commands, 43)
 
 	prefix := ""
 	testCommands(t, c, commands, prefix)
@@ -147,7 +146,7 @@ func testCommands(t *testing.T, c *cli.Context, commands []*cli.Command, prefix 
 	t.Helper()
 
 	for _, cmd := range commands {
-		if cmd.Name == "update" || cmd.Name == "agent" {
+		if cmd.Name == "update" || cmd.Name == "agent" || cmd.Name == "doctor" {
 			continue
 		}
 
@@ -168,12 +167,12 @@ func testCommands(t *testing.T, c *cli.Context, commands []*cli.Command, prefix 
 		if cmd.Action != nil {
 			fullName := prefix + "." + cmd.Name
 			if _, found := commandsWithError[fullName]; found {
-				require.Error(t, cmd.Action(c), fullName)
+				require.Error(t, cmd.Action(c), "Command %s should fail", fullName)
 
 				continue
 			}
 
-			require.NoError(t, cmd.Action(c), fullName)
+			require.NoError(t, cmd.Action(c), "Command %s should not fail", fullName)
 		}
 	}
 }

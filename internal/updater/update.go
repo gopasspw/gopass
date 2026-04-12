@@ -24,7 +24,7 @@ var UpdateMoveAfterQuit = true
 //nolint:goerr113
 func Update(ctx context.Context, currentVersion semver.Version) error {
 	if err := IsUpdateable(ctx); err != nil {
-		out.Errorf(ctx, "Your gopass binary is externally managed. Can not update: %q", err)
+		out.Errorf(ctx, "Your gopass binary is externally managed. Cannot update: %q", err)
 
 		return err
 	}

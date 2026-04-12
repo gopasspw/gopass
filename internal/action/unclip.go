@@ -12,7 +12,7 @@ import (
 )
 
 // Unclip tries to erase the content of the clipboard.
-func (s *Action) Unclip(c *cli.Context) error {
+func (s *miscHandler) Unclip(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	force := c.Bool("force")
 	timeout := c.Int("timeout")

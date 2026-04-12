@@ -2,6 +2,7 @@ package action
 
 import (
 	"bytes"
+	"encoding/json"
 	"os"
 	"testing"
 
@@ -56,5 +57,23 @@ func TestAudit(t *testing.T) {
 		require.NoError(t, act.Audit(gptest.CliCtx(ctx, t)))
 		assert.Contains(t, "No secrets found", buf.String())
 		buf.Reset()
+	})
+
+	t.Run("audit --format json produces valid JSON", func(t *testing.T) {
+		sec := secrets.NewAKV()
+		sec.SetPassword("hunter2")
+		require.NoError(t, act.Store.Set(ctx, "jsontest", sec))
+		defer func() { _ = act.Store.Delete(ctx, "jsontest") }()
+
+		outFile := t.TempDir() + "/report.json"
+		require.NoError(t, act.Audit(gptest.CliCtxWithFlags(ctx, t, map[string]string{"format": "json", "output-file": outFile})))
+		buf.Reset()
+
+		data, err := os.ReadFile(outFile)
+		require.NoError(t, err)
+		var report map[string]any
+		require.NoError(t, json.Unmarshal(data, &report))
+		assert.Contains(t, report, "secrets")
+		assert.Contains(t, report, "duration")
 	})
 }

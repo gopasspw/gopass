@@ -38,7 +38,7 @@ func ShowFlags() []cli.Flag {
 		},
 		&cli.BoolFlag{
 			Name:    "unsafe",
-			Aliases: []string{"u", "force", "f"},
+			Aliases: []string{"u"},
 			Usage:   "Display unsafe content (e.g. the password) even if safecontent is enabled",
 		},
 		&cli.BoolFlag{
@@ -94,7 +94,7 @@ func (s *Action) GetCommands() []*cli.Command {
 			Flags: []cli.Flag{
 				&cli.StringFlag{
 					Name:  "format",
-					Usage: "Output format. text, csv or html. Default: text",
+					Usage: "Output format. text, csv, html or json. Default: text",
 					Value: "text",
 				},
 				&cli.StringFlag{
@@ -297,6 +297,23 @@ func (s *Action) GetCommands() []*cli.Command {
 			},
 		},
 		{
+			Name:   "doctor",
+			Usage:  "Check your gopass installation for common issues",
+			Before: s.IsInitialized,
+			Action: s.Doctor,
+			Description: "Runs a series of diagnostic checks on the gopass installation: " +
+				"binary dependencies, git configuration, store permissions, " +
+				"recipient key validity, and git remote connectivity. " +
+				"Exits with a non-zero status if any check fails.",
+			Flags: []cli.Flag{
+				&cli.BoolFlag{
+					Name:    "verbose",
+					Aliases: []string{"v"},
+					Usage:   "Show passing checks in addition to warnings and errors",
+				},
+			},
+		},
+		{
 			Name:      "edit",
 			Usage:     "Edit new or existing secrets",
 			ArgsUsage: "[secret]",
@@ -351,6 +368,21 @@ func (s *Action) GetCommands() []*cli.Command {
 					Value:   false,
 					Usage:   "Do not capitalize the environment variable and instead retain the original capitalization",
 				},
+				&cli.BoolFlag{
+					Name:  "stdin",
+					Value: false,
+					Usage: "Pipe the secret's password to the subprocess's stdin instead of setting an environment variable",
+				},
+				&cli.BoolFlag{
+					Name:  "file",
+					Value: false,
+					Usage: "Write each secret to a ramdisk temp file and export KEY_FILE=/path instead of KEY=value",
+				},
+				&cli.BoolFlag{
+					Name:  "exec",
+					Value: false,
+					Usage: "Replace the current process with the subprocess via exec(3) rather than spawning a child process (not supported on Windows)",
+				},
 			},
 		},
 		{
@@ -368,13 +400,18 @@ func (s *Action) GetCommands() []*cli.Command {
 			Flags: []cli.Flag{
 				&cli.BoolFlag{
 					Name:    "unsafe",
-					Aliases: []string{"u", "force", "f"},
+					Aliases: []string{"u"},
 					Usage:   "In the case of an exact match, display the password even if safecontent is enabled",
 				},
 				&cli.BoolFlag{
 					Name:    "regex",
 					Aliases: []string{"r"},
 					Usage:   "Interpret pattern as regular expression",
+				},
+				&cli.BoolFlag{
+					Name:    "json",
+					Aliases: []string{"j"},
+					Usage:   "Output matches as JSON array",
 				},
 			},
 		},
@@ -475,21 +512,30 @@ func (s *Action) GetCommands() []*cli.Command {
 					Usage: "Require strict character class rules",
 				},
 				&cli.BoolFlag{
-					Name:    "force-regen",
-					Aliases: []string{"t"},
-					Usage:   "Force full re-generation, incl. evaluation of templates. Will overwrite the entire secret!",
+					Name:  "force-regen",
+					Usage: "Force full re-generation, incl. evaluation of templates. Will overwrite the entire secret!",
 				},
 				&cli.StringFlag{
-					Name:    "sep",
-					Aliases: []string{"xkcdsep", "xs"},
-					Usage:   "Word separator for generated passwords. If no separator is specified, the words are combined without spaces/separator and the first character of words is capitalised.",
+					Name:    "xkcd-sep",
+					Aliases: []string{"sep", "xkcdsep"},
+					Usage:   "Word separator for generated XKCD passwords. If no separator is specified, the words are combined without spaces/separator and the first character of words is capitalised.",
 					Value:   "",
 				},
 				&cli.StringFlag{
-					Name:    "lang",
-					Aliases: []string{"xkcdlang", "xl"},
-					Usage:   "Language to generate password from, currently only en (english, default) or de are supported",
+					Name:    "xkcd-lang",
+					Aliases: []string{"lang", "xkcdlang"},
+					Usage:   "Language to generate XKCD password from, currently only en (english, default) or de are supported",
 					Value:   "en",
+				},
+				&cli.BoolFlag{
+					Name:    "xkcd-capitalize",
+					Aliases: []string{"xkcdcapitalize"},
+					Usage:   "Capitalize first letter of each word in the generated XKCD password",
+				},
+				&cli.BoolFlag{
+					Name:    "xkcd-numbers",
+					Aliases: []string{"xkcdnumbers"},
+					Usage:   "Add a random number to the end of the generated XKCD password",
 				},
 				&cli.StringFlag{
 					Name:    "commit-message",
@@ -655,6 +701,11 @@ func (s *Action) GetCommands() []*cli.Command {
 					Name:    "strip-prefix",
 					Aliases: []string{"s"},
 					Usage:   "Strip this prefix from filtered entries",
+				},
+				&cli.BoolFlag{
+					Name:    "json",
+					Aliases: []string{"j"},
+					Usage:   "Output as JSON array",
 				},
 			},
 		},
@@ -825,6 +876,13 @@ func (s *Action) GetCommands() []*cli.Command {
 				"and replace all variables with their values.",
 			Before: s.IsInitialized,
 			Action: s.Process,
+			Flags: []cli.Flag{
+				&cli.StringSliceFlag{
+					Name:    "allow-path",
+					Aliases: []string{"p"},
+					Usage:   "Restrict template secret access to the given path prefix (repeatable). If omitted all secrets in the store are accessible.",
+				},
+			},
 		},
 		{
 			Name:      "rcs",
@@ -891,6 +949,11 @@ func (s *Action) GetCommands() []*cli.Command {
 					Name:  "pretty",
 					Usage: "Pretty print recipients",
 					Value: true,
+				},
+				&cli.BoolFlag{
+					Name:    "json",
+					Aliases: []string{"j"},
+					Usage:   "Output recipients as JSON array",
 				},
 			},
 			Subcommands: []*cli.Command{

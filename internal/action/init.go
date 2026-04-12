@@ -27,7 +27,7 @@ const logo = `
 
 // IsInitialized returns an error if the store is not properly
 // prepared.
-func (s *Action) IsInitialized(c *cli.Context) error {
+func (s *setupHandler) IsInitialized(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	inited, err := s.Store.IsInitialized(ctx)
 	if err != nil {
@@ -39,9 +39,9 @@ func (s *Action) IsInitialized(c *cli.Context) error {
 		name := c.Args().First()
 		// setting the mount point here is not enough when we're using the REPL mode
 		ctx = config.WithMount(ctx, s.Store.MountPoint(name))
-		s.printReminder(ctx)
+		s.printReminderFn(ctx)
 		if c.Command.Name != "sync" && !c.Bool("nosync") {
-			_ = s.autoSync(ctx)
+			_ = s.autoSyncFn(ctx)
 		}
 
 		return nil
@@ -70,7 +70,7 @@ func (s *Action) IsInitialized(c *cli.Context) error {
 }
 
 // Init a new password store with a first gpg id.
-func (s *Action) Init(c *cli.Context) error {
+func (s *setupHandler) Init(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	path := c.String("path")
 	alias := c.String("store")
@@ -143,7 +143,7 @@ func initParseContext(ctx context.Context, c *cli.Context) (context.Context, err
 	return ctx, nil
 }
 
-func (s *Action) init(ctx context.Context, alias, path string, keys ...string) error {
+func (s *setupHandler) init(ctx context.Context, alias, path string, keys ...string) error {
 	if path == "" {
 		if alias != "" {
 			path = config.PwStoreDir(alias)
@@ -208,7 +208,7 @@ func (s *Action) init(ctx context.Context, alias, path string, keys ...string) e
 	return nil
 }
 
-func (s *Action) printRecipients(ctx context.Context, alias string) {
+func (s *setupHandler) printRecipients(ctx context.Context, alias string) {
 	crypto := s.Store.Crypto(ctx, alias)
 	for _, recipient := range s.Store.ListRecipients(ctx, alias) {
 		if kl, err := crypto.FindRecipients(ctx, recipient); err == nil && len(kl) > 0 {
@@ -218,6 +218,6 @@ func (s *Action) printRecipients(ctx context.Context, alias string) {
 	}
 }
 
-func (s *Action) getCryptoFor(ctx context.Context, name string) backend.Crypto {
+func (s *setupHandler) getCryptoFor(ctx context.Context, name string) backend.Crypto {
 	return s.Store.Crypto(ctx, name)
 }

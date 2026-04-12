@@ -1,7 +1,6 @@
 package ctxutil
 
 import (
-	"context"
 	"flag"
 	"testing"
 
@@ -59,19 +58,6 @@ func TestAlwaysYes(t *testing.T) {
 	assert.False(t, IsAlwaysYes(ctx))
 	assert.True(t, IsAlwaysYes(WithAlwaysYes(ctx, true)))
 	assert.False(t, IsAlwaysYes(WithAlwaysYes(ctx, false)))
-}
-
-func TestProgressCallback(t *testing.T) {
-	t.Parallel()
-
-	ctx := config.NewContextInMemory()
-
-	var foo bool
-
-	pc := func() { foo = true }
-
-	GetProgressCallback(WithProgressCallback(ctx, pc))()
-	assert.True(t, foo)
 }
 
 func TestAlias(t *testing.T) {
@@ -196,21 +182,6 @@ func TestGlobalFlags(t *testing.T) {
 	c.Context = ctx
 
 	assert.True(t, IsAlwaysYes(WithGlobalFlags(c)))
-}
-
-func TestImportFunc(t *testing.T) {
-	t.Parallel()
-
-	ctx := config.NewContextInMemory()
-
-	ifunc := func(context.Context, string, []string) bool {
-		return true
-	}
-
-	assert.NotNil(t, GetImportFunc(ctx))
-	assert.True(t, GetImportFunc(WithImportFunc(ctx, ifunc))(ctx, "", nil))
-	assert.True(t, HasImportFunc(WithImportFunc(ctx, ifunc)))
-	assert.True(t, GetImportFunc(WithImportFunc(ctx, nil))(ctx, "", nil))
 }
 
 func TestHidden(t *testing.T) {

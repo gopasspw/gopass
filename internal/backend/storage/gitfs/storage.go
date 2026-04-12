@@ -46,7 +46,7 @@ func (g *Git) Prune(ctx context.Context, prefix string) error {
 
 // String implements fmt.Stringer.
 func (g *Git) String() string {
-	return fmt.Sprintf("gitfs(%s,path:%s)", g.Version(context.TODO()).String(), g.fs.Path())
+	return fmt.Sprintf("gitfs(%s,path:%s)", g.Version(context.Background()).String(), g.fs.Path())
 }
 
 // Path returns the path to this storage.

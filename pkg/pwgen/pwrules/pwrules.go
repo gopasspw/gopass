@@ -3,7 +3,7 @@ package pwrules
 import (
 	"context"
 	"regexp"
-	"sort"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -118,7 +118,7 @@ func sanitize(in []string) []string {
 		out = append(out, v)
 	}
 
-	sort.Strings(out)
+	slices.Sort(out)
 
 	return out
 }

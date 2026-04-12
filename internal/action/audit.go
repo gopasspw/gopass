@@ -17,7 +17,7 @@ import (
 )
 
 // Audit validates passwords against common flaws.
-func (s *Action) Audit(c *cli.Context) error {
+func (s *auditHandler) Audit(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 
 	_ = s.rem.Reset("audit")
@@ -70,6 +70,8 @@ func (s *Action) Audit(c *cli.Context) error {
 		return saveReport(ctx, r.RenderHTML, c.String("output-file"), "html")
 	case "csv":
 		return saveReport(ctx, r.RenderCSV, c.String("output-file"), "csv")
+	case "json":
+		return saveReport(ctx, r.RenderJSON, c.String("output-file"), "json")
 	default:
 		var err error
 		if c.Bool("full") {
@@ -86,7 +88,10 @@ func (s *Action) Audit(c *cli.Context) error {
 			}
 		}
 		if !c.Bool("full") && !c.Bool("summary") {
-			out.Warning(ctx, "No output format specified. Use `--full` or `--summary` to specify.")
+			nerr := r.PrintSummary(ctx)
+			if err == nil {
+				err = nerr
+			}
 		}
 
 		return err

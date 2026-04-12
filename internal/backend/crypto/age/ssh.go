@@ -7,18 +7,19 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 
 	"filippo.io/age"
 	"filippo.io/age/agessh"
 	"github.com/gopasspw/gopass/pkg/appdir"
-	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/gopasspw/gopass/pkg/fsutil"
 	"golang.org/x/crypto/ssh"
 )
 
 var (
-	sshCache map[string]age.Identity
+	sshCache   map[string]age.Identity
+	sshCacheMu sync.RWMutex
 	// ErrNoSSHDir signals that no SSH dir was found. Callers
 	// are usually expected to ignore this.
 	ErrNoSSHDir = errors.New("no ssh directory")
@@ -26,6 +27,19 @@ var (
 
 // getSSHIdentities returns all SSH identities available for the current user.
 func (a *Age) getSSHIdentities(ctx context.Context) (map[string]age.Identity, error) {
+	sshCacheMu.RLock()
+	if sshCache != nil {
+		defer sshCacheMu.RUnlock()
+		debug.Log("using sshCache")
+
+		return sshCache, nil
+	}
+	sshCacheMu.RUnlock()
+
+	sshCacheMu.Lock()
+	defer sshCacheMu.Unlock()
+	// Re-check after acquiring the write lock (another goroutine may have
+	// populated the cache between the RUnlock and Lock above).
 	if sshCache != nil {
 		debug.Log("using sshCache")
 
@@ -114,7 +128,7 @@ func getSSHDir() (string, error) {
 }
 
 // parseSSHIdentity parses a SSH public key file and returns the recipient and the identity.
-func (a *Age) parseSSHIdentity(ctx context.Context, pubFn string) (string, age.Identity, error) {
+func (a *Age) parseSSHIdentity(_ context.Context, pubFn string) (string, age.Identity, error) {
 	privFn := strings.TrimSuffix(pubFn, ".pub")
 	_, err := os.Stat(privFn)
 	if err != nil {
@@ -143,7 +157,7 @@ func (a *Age) parseSSHIdentity(ctx context.Context, pubFn string) (string, age.I
 		var perr *ssh.PassphraseMissingError
 		if errors.As(err, &perr) {
 			id, err := agessh.NewEncryptedSSHIdentity(pubkey, privBuf, func() ([]byte, error) {
-				return ctxutil.GetPasswordCallback(ctx)(pubFn, false)
+				return a.effectivePwCallback(fmt.Sprintf("to unlock the SSH key %s", pubFn))(pubFn, false)
 			})
 
 			return recp, id, err

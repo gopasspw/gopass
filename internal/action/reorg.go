@@ -17,7 +17,7 @@ import (
 )
 
 // Reorg is the action that allows to reorganize a part of the store.
-func (s *Action) Reorg(c *cli.Context) error {
+func (s *miscHandler) Reorg(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 
 	prefix := c.Args().Get(0)
@@ -73,7 +73,7 @@ func (s *Action) Reorg(c *cli.Context) error {
 }
 
 // ReorgAfterEdit performs the reorganization after the user has edited the list of secrets.
-func (s *Action) ReorgAfterEdit(ctx context.Context, initialSecrets, modifiedSecrets []string) error {
+func (s *miscHandler) ReorgAfterEdit(ctx context.Context, initialSecrets, modifiedSecrets []string) error {
 	if len(initialSecrets) != len(modifiedSecrets) {
 		return exit.Error(exit.Usage, nil, "number of secrets must not be changed. Aborting.")
 	}
@@ -140,7 +140,7 @@ func (s *Action) ReorgAfterEdit(ctx context.Context, initialSecrets, modifiedSec
 	return nil
 }
 
-func (s *Action) validateMoves(ctx context.Context, moves map[string]string) error {
+func (s *miscHandler) validateMoves(ctx context.Context, moves map[string]string) error {
 	destinations := make(map[string]string, len(moves))
 	for from, to := range moves {
 		// check for duplicate destinations

@@ -14,7 +14,7 @@ import (
 )
 
 // Copy the contents of a file to another one.
-func (s *Action) Copy(c *cli.Context) error {
+func (s *secretHandler) Copy(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 	force := c.Bool("force")
 
@@ -38,7 +38,7 @@ func (s *Action) Copy(c *cli.Context) error {
 	return s.copy(ctx, from, to, force)
 }
 
-func (s *Action) copy(ctx context.Context, from, to string, force bool) error {
+func (s *secretHandler) copy(ctx context.Context, from, to string, force bool) error {
 	if !s.Store.Exists(ctx, from) && !s.Store.IsDir(ctx, from) {
 		return exit.Error(exit.NotFound, nil, "%s does not exist", from)
 	}
@@ -53,7 +53,7 @@ func (s *Action) copy(ctx context.Context, from, to string, force bool) error {
 	return s.copyRegular(ctx, from, to, force)
 }
 
-func (s *Action) copyFlattenDir(ctx context.Context, from, to string, force bool) error {
+func (s *secretHandler) copyFlattenDir(ctx context.Context, from, to string, force bool) error {
 	entries, err := s.Store.List(ctx, tree.INF)
 	if err != nil {
 		return exit.Error(exit.List, err, "failed to list entries in %q", from)
@@ -77,7 +77,7 @@ func (s *Action) copyFlattenDir(ctx context.Context, from, to string, force bool
 	return nil
 }
 
-func (s *Action) copyRegular(ctx context.Context, from, to string, force bool) error {
+func (s *secretHandler) copyRegular(ctx context.Context, from, to string, force bool) error {
 	if !force {
 		if s.Store.Exists(ctx, to) && !termio.AskForConfirmation(ctx, fmt.Sprintf("%s already exists. Overwrite it?", to)) {
 			return exit.Error(exit.Aborted, nil, "not overwriting your current secret")

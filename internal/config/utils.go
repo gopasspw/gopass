@@ -65,3 +65,10 @@ func Int(ctx context.Context, key string) int {
 
 	return AsInt(cfg.GetM(mp, key))
 }
+
+// Strings returns all values for the given list config key from the context.
+func Strings(ctx context.Context, key string) []string {
+	cfg, mp := FromContext(ctx)
+
+	return cfg.GetAllM(mp, key)
+}

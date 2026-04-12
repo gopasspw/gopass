@@ -16,7 +16,7 @@ import (
 )
 
 // Create displays the password creation wizard.
-func (s *Action) Create(c *cli.Context) error {
+func (s *generateHandler) Create(c *cli.Context) error {
 	ctx := ctxutil.WithGlobalFlags(c)
 
 	out.Printf(ctx, "🌟 Welcome to the secret creation wizard (gopass create)!")
@@ -50,7 +50,7 @@ func (s *Action) Create(c *cli.Context) error {
 }
 
 // createPrintOrCopy will display the created password (or copy to clipboard).
-func (s *Action) createPrintOrCopy(ctx context.Context, c *cli.Context, name, password string, genPw bool) error {
+func (s *generateHandler) createPrintOrCopy(ctx context.Context, c *cli.Context, name, password string, genPw bool) error {
 	if !genPw {
 		return nil
 	}
