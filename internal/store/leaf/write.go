@@ -22,7 +22,7 @@ func (s *Store) Set(ctx context.Context, name string, sec gopass.Byter) error {
 		return fmt.Errorf("writing to %s is disabled by `core.readonly`", s.alias)
 	}
 
-	p := s.Passfile(name)
+	p := s.passfile(ctx, name)
 
 	recipients, err := s.useableKeys(ctx, name)
 	if err != nil {

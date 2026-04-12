@@ -19,6 +19,7 @@ func TestBaseConfig(t *testing.T) {
 age.agent-timeout = 0
 core.autopush = true
 core.autosync = true
+core.casefold = false
 core.cliptimeout = 45
 core.exportkeys = false
 core.follow-references = false
@@ -74,6 +75,7 @@ func TestMountConfig(t *testing.T) {
 age.agent-timeout = 0
 core.autopush = true
 core.autosync = true
+core.casefold = false
 core.cliptimeout = 45
 core.exportkeys = false
 core.follow-references = false

@@ -3,6 +3,7 @@ package leaf
 import (
 	"bytes"
 	"os"
+	"runtime"
 	"testing"
 
 	"github.com/gopasspw/gopass/internal/backend/crypto/plain"
@@ -10,6 +11,7 @@ import (
 	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/recipients"
+	"github.com/gopasspw/gopass/internal/store"
 	"github.com/gopasspw/gopass/pkg/gopass/secrets"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -49,6 +51,49 @@ func TestFsck(t *testing.T) {
 
 	require.NoError(t, s.Fsck(ctx, "", nil))
 	obuf.Reset()
+}
+
+func TestFsckCheckCaseConflicts(t *testing.T) {
+	t.Parallel()
+
+	ctx := config.NewContextInMemory()
+
+	tempdir := t.TempDir()
+
+	s := &Store{
+		alias:   "",
+		path:    tempdir,
+		crypto:  plain.New(),
+		storage: fs.New(tempdir),
+	}
+
+	rs := recipients.New()
+	rs.Add("john.doe")
+	require.NoError(t, s.saveRecipients(ctx, rs, "test"))
+
+	// Set up entries with no case conflicts — should be fine.
+	for _, e := range []string{"foo/bar", "foo/baz"} {
+		sec := secrets.NewAKV()
+		sec.SetPassword("x")
+		require.NoError(t, s.Set(ctx, e, sec))
+	}
+
+	assert.NoError(t, s.fsckCheckCaseConflicts(ctx),
+		"no case conflicts expected")
+
+	// Now add entries that differ only in case.
+	for _, e := range []string{"foo/Bar", "Foo/baz"} {
+		sec := secrets.NewAKV()
+		sec.SetPassword("x")
+		if runtime.GOOS == "linux" {
+			require.NoError(t, s.Set(ctx, e, sec), "Linux should allow case conflicts")
+		} else {
+			require.ErrorIs(t, s.Set(ctx, e, sec), store.ErrMeaninglessWrite)
+		}
+	}
+
+	err := s.fsckCheckCaseConflicts(ctx)
+	assert.Error(t, err, "case conflicts should be reported")
 }
 
 func TestCompareStringSlices(t *testing.T) {

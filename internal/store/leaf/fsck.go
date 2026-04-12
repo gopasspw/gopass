@@ -115,6 +115,13 @@ func (s *Store) Fsck(ctx context.Context, path string, progress ctxutil.Progress
 		out.Errorf(ctx, "Invalid recipients found: %s", err)
 	}
 
+	// check for case-conflicting entries that would collide on
+	// case-insensitive filesystems.
+	debug.Log("Checking for case conflicts")
+	if err := s.fsckCheckCaseConflicts(ctx); err != nil {
+		out.Warningf(ctx, "Case conflicts detected: %s", err)
+	}
+
 	// then we'll make sure all the secrets are readable by us and every
 	// valid recipient
 	if path != "" {
@@ -327,7 +334,7 @@ func (s *Store) fsckCheckRecipients(ctx context.Context, name string) *fsckMulti
 
 	// now compare the recipients this secret was encoded for and fix it if
 	// it doesn't match.
-	ciphertext, err := s.storage.Get(ctx, s.Passfile(name))
+	ciphertext, err := s.storage.Get(ctx, s.passfile(ctx, name))
 	if err != nil {
 		return e.Append(errsFatal, fmt.Errorf("failed to get raw secret: %w", err))
 	}
@@ -363,6 +370,37 @@ func (s *Store) fsckCheckRecipients(ctx context.Context, name string) *fsckMulti
 	}
 
 	return e
+}
+
+// fsckCheckCaseConflicts lists all secrets in the store and warns if any two
+// entries have the same name after lowercasing. Such entries would collide on
+// case-insensitive filesystems (macOS, Windows) and can cause data loss.
+func (s *Store) fsckCheckCaseConflicts(ctx context.Context) error {
+	names, err := s.List(ctx, "")
+	if err != nil {
+		return fmt.Errorf("failed to list entries: %w", err)
+	}
+
+	seen := make(map[string]string, len(names))
+	var conflicts []string
+
+	for _, name := range names {
+		lower := strings.ToLower(name)
+		if prev, ok := seen[lower]; ok {
+			conflicts = append(conflicts, fmt.Sprintf("%q and %q", prev, name))
+		} else {
+			seen[lower] = name
+		}
+	}
+
+	if len(conflicts) > 0 {
+		slices.Sort(conflicts)
+
+		return fmt.Errorf("case-conflicting entries that would collide on case-insensitive filesystems: %s",
+			strings.Join(conflicts, ", "))
+	}
+
+	return nil
 }
 
 func fingerprints(ctx context.Context, crypto backend.Crypto, in []string) []string {

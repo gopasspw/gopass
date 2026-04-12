@@ -90,8 +90,8 @@ func (s *Store) Move(ctx context.Context, from, to string) error {
 }
 
 func (s *Store) directMove(ctx context.Context, from, to string, del bool) error {
-	pFrom := s.Passfile(from)
-	pTo := s.Passfile(to)
+	pFrom := s.passfile(ctx, from)
+	pTo := s.passfile(ctx, to)
 
 	// if original destination has trailing slash,
 	// it means we should create folder and move/copy source file in it
@@ -150,7 +150,7 @@ func (s *Store) Prune(ctx context.Context, tree string) error {
 // delete will either delete one file or an directory tree depending on the
 // recurse flag.
 func (s *Store) delete(ctx context.Context, name string, recurse bool) error {
-	path := s.Passfile(name)
+	path := s.passfile(ctx, name)
 
 	if recurse {
 		if err := s.deleteRecurse(ctx, name, path); err != nil {

@@ -99,7 +99,7 @@ func (s *Store) reencrypt(ctx context.Context) error {
 	// to avoid a race condition on git .index.lock file, so we do it now.
 	if conc > 1 {
 		for _, name := range entries {
-			p := s.Passfile(name)
+			p := s.passfile(ctx, name)
 			if err := s.storage.TryAdd(ctx, p); err != nil {
 				return fmt.Errorf("failed to add %q to git: %w", p, err)
 			}

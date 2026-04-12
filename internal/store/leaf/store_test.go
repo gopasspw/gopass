@@ -187,3 +187,38 @@ func TestNew(t *testing.T) {
 		})
 	}
 }
+
+// TestPassfileNormalization verifies that passfile() normalizes secret names
+// when core.casefold is enabled, and is a no-op when it is disabled.
+// On case-sensitive platforms (Linux) NormalizeSecretName is always a no-op,
+// so we only verify the config-gating here.
+func TestPassfileNormalization(t *testing.T) {
+	// Cannot be parallel: createSubStore uses t.Setenv.
+
+	s, err := createSubStore(t)
+	require.NoError(t, err)
+
+	// Build a context with casefold=false.
+	cfgOff := config.NewInMemory()
+	require.NoError(t, cfgOff.Set("", "core.casefold", "false"))
+	ctxOff := cfgOff.WithConfig(context.Background())
+	ctxOff, err = backend.WithCryptoBackendString(ctxOff, "plain")
+	require.NoError(t, err)
+
+	// With casefold=false the passfile path must equal the public Passfile path.
+	assert.Equal(t, s.Passfile("foo/Bar"), s.passfile(ctxOff, "foo/Bar"),
+		"passfile without casefold must equal Passfile()")
+
+	// Build a context with casefold=true.
+	cfgOn := config.NewInMemory()
+	require.NoError(t, cfgOn.Set("", "core.casefold", "true"))
+	ctxOn := cfgOn.WithConfig(context.Background())
+	ctxOn, err = backend.WithCryptoBackendString(ctxOn, "plain")
+	require.NoError(t, err)
+
+	// With casefold=true the result must be deterministic.
+	p1 := s.passfile(ctxOn, "foo/Bar")
+	p2 := s.passfile(ctxOn, "foo/Bar")
+	assert.Equal(t, p1, p2, "passfile must be deterministic")
+	assert.NotEmpty(t, p1)
+}

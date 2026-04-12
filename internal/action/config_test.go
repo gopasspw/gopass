@@ -42,6 +42,7 @@ age.agent-timeout = 0
 core.autoimport = true
 core.autopush = true
 core.autosync = true
+core.casefold = false
 core.cliptimeout = 45
 core.exportkeys = true
 core.follow-references = false
@@ -87,6 +88,7 @@ age.agent-timeout = 0
 core.autoimport = true
 core.autopush = true
 core.autosync = true
+core.casefold = false
 core.cliptimeout = 45
 core.exportkeys = true
 core.follow-references = false
@@ -125,6 +127,7 @@ age.agent-timeout
 core.autoimport
 core.autopush
 core.autosync
+core.casefold
 core.cliptimeout
 core.exportkeys
 core.follow-references

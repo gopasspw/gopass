@@ -37,6 +37,7 @@ func TestConfig(t *testing.T) {
 		"core.autopush",
 		"core.autosync",
 		"core.bool",
+		"core.casefold",
 		"core.cliptimeout",
 		"core.exportkeys",
 		"core.follow-references",

@@ -10,9 +10,11 @@ import (
 	"strings"
 
 	"github.com/gopasspw/gopass/internal/backend"
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store"
 	"github.com/gopasspw/gopass/pkg/debug"
+	"github.com/gopasspw/gopass/pkg/fsutil"
 	"github.com/gopasspw/gopass/pkg/set"
 )
 
@@ -164,7 +166,7 @@ func (s *Store) IsDir(ctx context.Context, name string) bool {
 
 // Exists checks the existence of a single entry.
 func (s *Store) Exists(ctx context.Context, name string) bool {
-	return s.storage.Exists(ctx, s.Passfile(name))
+	return s.storage.Exists(ctx, s.passfile(ctx, name))
 }
 
 func (s *Store) useableKeys(ctx context.Context, name string) ([]string, error) {
@@ -195,6 +197,18 @@ func (s *Store) useableKeys(ctx context.Context, name string) ([]string, error) 
 // Passfile returns the name of gpg file on disk, for the given key/name.
 func (s *Store) Passfile(name string) string {
 	return strings.TrimPrefix(name+"."+s.crypto.Ext(), "/")
+}
+
+// passfile is the context-aware version of Passfile. If core.casefold is
+// enabled in the config, the name is normalized via fsutil.NormalizeSecretName
+// before constructing the path. On case-sensitive platforms
+// NormalizeSecretName is a no-op regardless of the config setting.
+func (s *Store) passfile(ctx context.Context, name string) string {
+	if config.Bool(ctx, "core.casefold") {
+		name = fsutil.NormalizeSecretName(name)
+	}
+
+	return s.Passfile(name)
 }
 
 // String implement fmt.Stringer.

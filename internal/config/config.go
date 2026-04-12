@@ -51,6 +51,7 @@ var defaults = map[string]string{
 	"age.agent-timeout":      "0",
 	"core.autopush":          "true",
 	"core.autosync":          "true",
+	"core.casefold":          "false",
 	"core.cliptimeout":       "45",
 	"core.exportkeys":        "true",
 	"core.notifications":     "true",
