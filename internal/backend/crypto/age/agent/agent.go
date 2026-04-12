@@ -144,7 +144,7 @@ func (a *Agent) handleConnection(ctx context.Context, conn net.Conn) {
 
 				continue
 			}
-			ids, err := age.ParseIdentities(strings.NewReader(strings.Join(args, "\n")))
+			ids, err := parseIdentities(strings.NewReader(strings.Join(args, "\n")))
 			if err != nil {
 				fmt.Fprintln(conn, "ERR failed to parse identities: "+err.Error())
 
