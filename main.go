@@ -89,7 +89,7 @@ func main() {
 	ctx = queue.WithQueue(ctx, q)
 	ctx, app := setupApp(ctx, sv)
 
-	if err := app.RunContext(ctx, os.Args); err != nil {
+	if err := runApp(ctx, app); err != nil {
 		log.Fatal(err)
 	}
 
@@ -99,6 +99,27 @@ func main() {
 	writeMemProfile()
 
 	debug.Log("gopass %s shutting down ...\n\n", sv.String())
+}
+
+func runApp(ctx context.Context, app *cli.App) error {
+	// recover from nil pointer panics in urfave/cli during shell completion.
+	if isShellCompletion() {
+		defer func() {
+			recover() //nolint:errcheck
+		}()
+	}
+
+	return app.RunContext(ctx, os.Args)
+}
+
+func isShellCompletion() bool {
+	for _, arg := range os.Args {
+		if arg == "--generate-bash-completion" {
+			return true
+		}
+	}
+
+	return false
 }
 
 //nolint:wrapcheck
