@@ -7,6 +7,7 @@ import (
 	"filippo.io/age"
 	"filippo.io/age/agessh"
 	"filippo.io/age/plugin"
+	"filippo.io/age/tag"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/gopasspw/gopass/pkg/set"
@@ -62,6 +63,15 @@ func (a *Age) parseRecipients(ctx context.Context, recipients []string) ([]age.R
 					continue
 				}
 				ret = append(ret, &wrappedRecipient{rec: pid, encoding: r})
+
+				continue
+			}
+			ret = append(ret, id)
+
+		case strings.HasPrefix(r, "age1tag"):
+			id, err := tag.ParseRecipient(r)
+			if err != nil {
+				debug.Log("Failed to parse recipient %q as tag: %s", r, err)
 
 				continue
 			}
