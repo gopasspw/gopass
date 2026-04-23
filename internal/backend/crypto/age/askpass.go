@@ -3,6 +3,7 @@ package age
 import (
 	"context"
 	"fmt"
+	"os"
 	"strings"
 	"sync"
 	"time"
@@ -127,6 +128,16 @@ func (a *askPass) Passphrase(ctx context.Context, key string, reason string, rep
 }
 
 func (a *askPass) getPassphrase(reason string, repeat bool) (string, error) {
+	if os.Getenv("GOPASS_AGE_STDIN_PASSPHRASE") != "" {
+		debug.Log("GOPASS_AGE_STDIN_PASSPHRASE is set, using CLI fallback")
+		pf := cli.New()
+		if repeat {
+			_ = pf.Set("REPEAT")
+		}
+
+		return pf.GetPIN()
+	}
+
 	opts := []pinentry.ClientOption{
 		pinentry.WithBinaryNameFromGnuPGAgentConf(),
 		pinentry.WithDesc(strings.TrimSuffix(reason, ":") + "."),
