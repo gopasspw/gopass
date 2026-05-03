@@ -42,6 +42,24 @@ change in the API require a major version bump even if nothing about the tool
 apply semantic versioning only to the CLI tool, not the Go module. This is not
 ideal and might change with sufficient active contributors.
 
+## API Stability
+
+Semantic versioning applies to the **gopass CLI binary** only. The Go module
+(`github.com/gopasspw/gopass`) does not carry independent semver guarantees:
+a breaking change to `pkg/` interfaces may ship without a major-version bump.
+
+`pkg/gopass/doc.go` carries an explicit instability warning for this reason.
+Until that warning is removed, consumers of `pkg/gopass` should:
+
+- Pin to a specific commit or tag rather than a `@latest` reference.
+- Review the `CHANGELOG.md` `pkg/` entries before upgrading.
+- Treat any `pkg/` type or function change as potentially breaking.
+
+The intention is to formalise this contract (via a `v2` module path or a
+published compatibility window) once the active contributor base grows
+sufficiently to maintain that commitment. See issue #3414 for the open
+decision on the API stability ADR.
+
 ### `docs/backends`
 
 This folder contains documentation about each of our supported backends. See
