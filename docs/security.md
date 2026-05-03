@@ -131,6 +131,43 @@ checks for expiration, minimum trust level, and the presence of an encryption
 sub-capability. Expired or untrusted keys are rejected, preventing silent
 encryption to keys that can no longer decrypt.
 
+### Recipient File Integrity (Hash Pinning)
+
+The recipients file (`.gpg-id`) lives inside the git repository and lists the
+public-key fingerprints/IDs that secrets are encrypted to. Because the file is
+git-tracked, a collaborator — or an attacker with write access to the remote
+repository — could push a commit that silently adds their own key, causing
+future encrypt operations to include them as a recipient.
+
+gopass defends against this with a hash-pinning mechanism:
+
+1. **Hash computation.** Every time gopass writes the recipients file (via
+   `gopass recipients add`, `gopass recipients rm`, or `gopass init`), it
+   computes the SHA-256 digest of the serialised recipients list.
+
+2. **Local storage.** The digest is written to the **global** (machine-local)
+   gopass config file, stored outside the git repository, under the key
+   `recipients.hash` (or `recipients.<alias>.hash` for mounted sub-stores).
+   Because the global config file is never committed to git, a remote attacker
+   cannot alter the expected value.
+
+3. **Verification on load.** When `recipients.check` is set to `true` (in the
+   global config or per-mount config), every load of the recipients file
+   recomputes the digest and compares it to the stored value.  If they differ,
+   `ErrInvalidHash` is returned and the operation is aborted, alerting the
+   operator that the recipients file was modified outside of gopass.
+
+4. **Explicit acknowledgement.** A legitimate change — for example, pulling an
+   update that a teammate pushed after running `gopass recipients add` on their
+   machine — can be accepted with `gopass recipients ack`.  This command
+   verifies the new recipient list interactively and then updates the stored
+   hash, re-pinning to the new value.
+
+The combination of out-of-band hash storage and explicit acknowledgement ensures
+that the recipients list can only grow silently if the attacker also has
+write access to the operator's local machine — at which point the entire
+threat model has already collapsed.
+
 ### OpenBSD Pledge
 
 On OpenBSD, gopass calls `protect.Pledge("stdio rpath wpath cpath tty proc

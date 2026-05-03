@@ -27,15 +27,6 @@ var (
 
 // getSSHIdentities returns all SSH identities available for the current user.
 func (a *Age) getSSHIdentities(ctx context.Context) (map[string]age.Identity, error) {
-	sshCacheMu.RLock()
-	if sshCache != nil {
-		defer sshCacheMu.RUnlock()
-		debug.Log("using sshCache")
-
-		return sshCache, nil
-	}
-	sshCacheMu.RUnlock()
-
 	sshCacheMu.Lock()
 	defer sshCacheMu.Unlock()
 	// Re-check after acquiring the write lock (another goroutine may have

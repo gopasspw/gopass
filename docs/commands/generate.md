@@ -6,9 +6,9 @@ Note: If you only want generate a password without storing it in the store, use 
 
 ## Synopsis
 
-```
-$ gopass generate entry [length]
-$ gopass generate entry key [length]
+```sh
+gopass generate entry [length]
+gopass generate entry key [length]
 ```
 
 ## Modes of operation
@@ -41,7 +41,7 @@ Use `--generator` to select one of the available password generators:
 | Generator   | Description                                                                                                                                                                                                                                                                      |
 |-------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `cryptic`   | The default generator yields cryptic passwords that should work with most sites. Use `--symbols` and `--strict` if the site has specific requirements. Please note that we auto-detect the correct rules for some sites. The length argument specifies the number of characters. |
-| `--xkcd`      | Use an [XKCD#936](https://xkcd.com/936/) style password. Use `--xkcd-lang` and `--xkcd-sep` to refine its behaviour. The length argument specifies the number of words.                                                                                                                   |
+| `xkcd`      | Use an [XKCD#936](https://xkcd.com/936/) style password. Use `--xkcd-lang` and `--xkcd-sep` to refine its behaviour. The length argument specifies the number of words.                                                                                                                   |
 | `memorable` | Generate a memorable password. The length argument specifies the minimum lenght of characters. Please note that the password might be longer if not all necessary rules were satisfied by the minimum length solution.                                                           |
 | `external`  | Use the external generator from `$GOPASS_EXTERNAL_PWGEN`                                                                                                                                                                                                                         |
 

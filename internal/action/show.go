@@ -254,7 +254,7 @@ func (s *secretHandler) showHandleOutput(ctx context.Context, name string, sec g
 
 	if pw == "" && body == "" {
 		if config.Bool(ctx, "show.safecontent") && !ctxutil.IsForce(ctx) {
-			out.Warning(ctx, "show.safecontent=true. Use -f to display password, if any")
+			out.Warning(ctx, "show.safecontent=true. Use -u to display password, if any")
 		}
 
 		return exit.Error(exit.NotFound, store.ErrEmptySecret, "%v", store.ErrEmptySecret)

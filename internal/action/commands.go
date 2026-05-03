@@ -91,7 +91,7 @@ func ShowFlags() []cli.Flag {
 		},
 		&cli.BoolFlag{
 			Name:    "unsafe",
-			Aliases: []string{"u"},
+			Aliases: []string{"u", "f"}, // -f is deprecated, but we keep it for backward compatibility.
 			Usage:   "Display unsafe content (e.g. the password) even if safecontent is enabled",
 		},
 		&cli.BoolFlag{
