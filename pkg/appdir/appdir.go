@@ -50,8 +50,13 @@ func UserData() string {
 	return DefaultAppdir.UserData()
 }
 
-// UserHome returns the user's home dir.
-// It respects the GOPASS_HOMEDIR environment variable.
+// UserHome returns the user's home directory.
+//
+// If GOPASS_HOMEDIR is set it overrides the OS home dir lookup. This variable
+// exists to allow hermetic test environments and CI runs to redirect all gopass
+// data paths without modifying the real user profile. It should not be set in
+// normal production use; doing so silently redirects every config, cache, and
+// data path to the specified directory.
 func UserHome() string {
 	if hd := os.Getenv("GOPASS_HOMEDIR"); hd != "" {
 		return hd
