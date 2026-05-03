@@ -4,6 +4,7 @@ package secparse
 
 import (
 	"errors"
+	"testing"
 
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/debug"
@@ -52,12 +53,14 @@ func Parse(in []byte) (gopass.Secret, error) {
 	return s, nil
 }
 
-// MustParse parses a secret from a string or panics if an error occurs.
-// This function should only be used for testing purposes.
-func MustParse(in string) gopass.Secret {
+// MustParse parses a secret from a string and calls tb.Fatal if an error occurs.
+// This function must only be used in tests.
+func MustParse(tb testing.TB, in string) gopass.Secret {
+	tb.Helper()
+
 	sec, err := Parse([]byte(in))
 	if err != nil {
-		panic(err)
+		tb.Fatalf("secparse.MustParse: %v", err)
 	}
 
 	return sec
