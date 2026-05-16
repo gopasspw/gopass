@@ -36,18 +36,18 @@ func newOsKeyring() *osKeyring {
 func (o *osKeyring) Get(key string) (string, bool) {
 	sec, err := keyring.Get("gopass", key)
 	if err != nil {
-		debug.Log("failed to get %s from OS keyring: %w", key, err)
+		debug.Log("failed to get %s from OS keyring: %v", key, err)
 
 		return "", false
 	}
-	o.knownKeys[name] = true
+	o.knownKeys[key] = true
 
 	return sec, true
 }
 
 func (o *osKeyring) Set(ctx context.Context, name, value string) {
 	if err := keyring.Set("gopass", name, value); err != nil {
-		debug.Log("failed to set %s: %w", name, err)
+		debug.Log("failed to set %s: %v", name, err)
 		out.Warningf(ctx, "Failed to cache passphrase in OS keyring: %s", err)
 		return
 	}
