@@ -36,7 +36,7 @@ func TestConfig(t *testing.T) {
 		defer buf.Reset()
 
 		c := gptest.CliCtx(ctx, t)
-		require.NoError(t, act.Config(c))
+		require.NoError(t, act.Config(ctx, c))
 		want := `age.agent-enabled = false
 age.agent-timeout = 0
 core.autoimport = true
@@ -106,7 +106,7 @@ generate.autoclip = true
 		defer buf.Reset()
 
 		c := gptest.CliCtx(ctx, t, "core.autoimport")
-		require.NoError(t, act.Config(c))
+		require.NoError(t, act.Config(ctx, c))
 		assert.Equal(t, "true", strings.TrimSpace(buf.String()))
 	})
 
@@ -114,14 +114,14 @@ generate.autoclip = true
 		defer buf.Reset()
 
 		c := gptest.CliCtx(ctx, t, "core.autoimport", "false")
-		require.NoError(t, act.Config(c))
+		require.NoError(t, act.Config(ctx, c))
 		assert.Equal(t, "false", strings.TrimSpace(buf.String()))
 	})
 
 	t.Run("complete config items", func(t *testing.T) {
 		defer buf.Reset()
 
-		act.ConfigComplete(gptest.CliCtx(ctx, t))
+		act.ConfigComplete(ctx, gptest.CliCtx(ctx, t))
 		want := `age.agent-enabled
 age.agent-timeout
 core.autoimport
@@ -144,6 +144,6 @@ pwgen.xkcd-lang
 		defer buf.Reset()
 
 		c := gptest.CliCtx(ctx, t, "autoimport", "false", "42")
-		require.Error(t, act.Config(c))
+		require.Error(t, act.Config(ctx, c))
 	})
 }

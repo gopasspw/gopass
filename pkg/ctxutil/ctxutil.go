@@ -6,7 +6,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 type contextKey int
@@ -90,12 +90,12 @@ func withBool(ctx context.Context, set func(*ExecConfig, *bool), v bool) context
 // WithGlobalFlags parses any global flags from the cli context and returns
 // a regular context. It handles the --yes flag and sets the appropriate
 // context value.
-func WithGlobalFlags(c *cli.Context) context.Context {
-	if c.Bool("yes") {
-		return WithAlwaysYes(c.Context, true)
+func WithGlobalFlags(ctx context.Context, cmd *cli.Command) context.Context {
+	if cmd.Bool("yes") {
+		return WithAlwaysYes(ctx, true)
 	}
 
-	return c.Context
+	return ctx
 }
 
 // ProgressCallback is a callback for updating progress.

@@ -108,6 +108,6 @@ func TestUpdate(t *testing.T) {
 	}()
 
 	// This should not fail, but then we need to provide valid signatures
-	require.Error(t, act.Update(gptest.CliCtx(ctx, t)))
+	require.Error(t, act.Update(ctx, gptest.CliCtx(ctx, t)))
 	buf.Reset()
 }

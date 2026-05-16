@@ -66,7 +66,7 @@ func TestClone(t *testing.T) {
 	t.Run("no args", func(t *testing.T) {
 		defer buf.Reset()
 		c := gptest.CliCtx(ctx, t)
-		require.Error(t, act.Clone(c))
+		require.Error(t, act.Clone(ctx, c))
 	})
 
 	t.Run("clone to initialized store", func(t *testing.T) {
@@ -107,12 +107,13 @@ func TestCloneBackendIsStoredForMount(t *testing.T) {
 	ctx = act.cfg.WithConfig(ctx)
 
 	c := gptest.CliCtx(ctx, t)
-	require.NoError(t, act.IsInitialized(c))
+	_, err = act.IsInitialized(ctx, c)
+	require.NoError(t, err)
 
 	repo := aGitRepo(ctx, t, u, "my-project")
 
 	c = gptest.CliCtxWithFlags(ctx, t, map[string]string{"check-keys": "false"}, repo, "the-project")
-	require.NoError(t, act.Clone(c))
+	require.NoError(t, act.Clone(ctx, c))
 
 	require.Contains(t, act.cfg.Mounts(), "the-project")
 }
@@ -166,7 +167,8 @@ func TestCloneCheckDecryptionKeys(t *testing.T) {
 	ctx = act.cfg.WithConfig(ctx)
 
 	c := gptest.CliCtx(ctx, t)
-	require.NoError(t, act.IsInitialized(c))
+	_, err = act.IsInitialized(ctx, c)
+	require.NoError(t, err)
 
 	repo := aGitRepo(ctx, t, u, "my-project")
 
@@ -175,7 +177,7 @@ func TestCloneCheckDecryptionKeys(t *testing.T) {
 	}
 
 	c = gptest.CliCtxWithFlags(ctx, t, map[string]string{"check-keys": "true"}, repo, "the-project")
-	require.NoError(t, act.Clone(c))
+	require.NoError(t, act.Clone(ctx, c))
 
 	require.Contains(t, act.cfg.Mounts(), "the-project")
 }

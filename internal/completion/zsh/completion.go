@@ -7,7 +7,7 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 // ErrUnknownType is returned when an unknown type is encountered.
@@ -71,7 +71,7 @@ func formatFlagFunc() func(cli.Flag) (string, error) {
 }
 
 // GetCompletion returns a zsh completion script.
-func GetCompletion(a *cli.App) (string, error) {
+func GetCompletion(a *cli.Command) (string, error) {
 	tplFuncs := template.FuncMap{
 		"formatFlag":         formatFlagFunc(),
 		"escapePasswordName": escapePasswordName,

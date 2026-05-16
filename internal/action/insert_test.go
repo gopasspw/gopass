@@ -36,12 +36,12 @@ func TestInsert(t *testing.T) {
 	}()
 
 	t.Run("insert bar", func(t *testing.T) {
-		require.NoError(t, act.Insert(gptest.CliCtx(ctx, t, "bar")))
+		require.NoError(t, act.Insert(ctx, gptest.CliCtx(ctx, t, "bar")))
 		buf.Reset()
 	})
 
 	t.Run("insert bar baz", func(t *testing.T) {
-		require.NoError(t, act.Insert(gptest.CliCtx(ctx, t, "bar", "baz")))
+		require.NoError(t, act.Insert(ctx, gptest.CliCtx(ctx, t, "bar", "baz")))
 		buf.Reset()
 	})
 
@@ -92,12 +92,12 @@ func TestInsert(t *testing.T) {
 	})
 
 	t.Run("insert --multiline bar baz", func(t *testing.T) {
-		require.NoError(t, act.Insert(gptest.CliCtxWithFlags(ctx, t, map[string]string{"multiline": "true"}, "bar", "baz")))
+		require.NoError(t, act.Insert(ctx, gptest.CliCtxWithFlags(ctx, t, map[string]string{"multiline": "true"}, "bar", "baz")))
 		buf.Reset()
 	})
 
 	t.Run("insert key:value", func(t *testing.T) {
-		require.NoError(t, act.Insert(gptest.CliCtxWithFlags(ctx, t, nil, "keyvaltest", "baz:val")))
+		require.NoError(t, act.Insert(ctx, gptest.CliCtxWithFlags(ctx, t, nil, "keyvaltest", "baz:val")))
 		require.NoError(t, act.show(ctx, gptest.CliCtx(ctx, t), "keyvaltest", false))
 		assert.Contains(t, buf.String(), "baz: val")
 		buf.Reset()

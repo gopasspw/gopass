@@ -1,6 +1,7 @@
 package action
 
 import (
+	"context"
 	"fmt"
 	"regexp"
 	"runtime"
@@ -11,7 +12,7 @@ import (
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/tree"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 var escapeRegExp = regexp.MustCompile(`('|"|\s|\(|\)|\<|\>|\&|\;|\#|\\|\||\*|\?)`)
@@ -36,8 +37,8 @@ func bashEscape(s string) string {
 }
 
 // Complete prints a list of all password names to os.Stdout, for bash completion.
-func (s *miscHandler) Complete(c *cli.Context) {
-	ctx := ctxutil.WithGlobalFlags(c)
+func (s *miscHandler) Complete(ctx context.Context, cmd *cli.Command) {
+	ctx = ctxutil.WithGlobalFlags(ctx, cmd)
 	_, err := s.Store.IsInitialized(ctx) // important to make sure the structs are not nil.
 	if err != nil {
 		out.Errorf(ctx, "Store not initialized: %s", err)
@@ -55,7 +56,7 @@ func (s *miscHandler) Complete(c *cli.Context) {
 }
 
 // CompletionOpenBSDKsh returns an OpenBSD ksh script used for auto completion.
-func (s *miscHandler) CompletionOpenBSDKsh(a *cli.App) error {
+func (s *miscHandler) CompletionOpenBSDKsh(a *cli.Command) error {
 	out := `
 PASS_LIST=$(gopass ls -f)
 set -A complete_gopass -- $PASS_LIST %s
@@ -79,7 +80,7 @@ set -A complete_gopass -- $PASS_LIST %s
 }
 
 // CompletionBash returns a bash script used for auto completion.
-func (s *miscHandler) CompletionBash(c *cli.Context) error {
+func (s *miscHandler) CompletionBash(ctx context.Context, cmd *cli.Command) error {
 	out := `_gopass_bash_autocomplete() {
      local cur opts base
      COMPREPLY=()
@@ -102,7 +103,7 @@ func (s *miscHandler) CompletionBash(c *cli.Context) error {
 }
 
 // CompletionFish returns an autocompletion script for fish.
-func (s *miscHandler) CompletionFish(a *cli.App) error {
+func (s *miscHandler) CompletionFish(a *cli.Command) error {
 	if a == nil {
 		return fmt.Errorf("app is nil")
 	}
@@ -117,7 +118,7 @@ func (s *miscHandler) CompletionFish(a *cli.App) error {
 }
 
 // CompletionZSH returns a zsh completion script.
-func (s *miscHandler) CompletionZSH(a *cli.App) error {
+func (s *miscHandler) CompletionZSH(a *cli.Command) error {
 	comp, err := zshcomp.GetCompletion(a)
 	if err != nil {
 		return err

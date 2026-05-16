@@ -11,14 +11,14 @@ import (
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/fsutil"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 // Doctor checks the gopass installation for common issues and prints a
 // diagnostic report. It exits with a non-zero status if any check fails.
-func (s *miscHandler) Doctor(c *cli.Context) error {
-	ctx := ctxutil.WithGlobalFlags(c)
-	verbose := c.Bool("verbose")
+func (s *miscHandler) Doctor(ctx context.Context, cmd *cli.Command) error {
+	ctx = ctxutil.WithGlobalFlags(ctx, cmd)
+	verbose := cmd.Bool("verbose")
 
 	type check struct {
 		name string

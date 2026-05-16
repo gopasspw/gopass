@@ -34,12 +34,12 @@ func TestDelete(t *testing.T) {
 
 	// delete
 	c := gptest.CliCtx(ctx, t)
-	require.Error(t, act.Delete(c))
+	require.Error(t, act.Delete(ctx, c))
 	buf.Reset()
 
 	// delete foo
 	c = gptest.CliCtx(ctx, t, "foo")
-	require.NoError(t, act.Delete(c))
+	require.NoError(t, act.Delete(ctx, c))
 	buf.Reset()
 
 	// delete foo bar
@@ -50,19 +50,19 @@ func TestDelete(t *testing.T) {
 	require.NoError(t, act.Store.Set(ctx, "foo", sec))
 
 	c = gptest.CliCtx(ctx, t, "foo", "bar")
-	require.NoError(t, act.Delete(c))
+	require.NoError(t, act.Delete(ctx, c))
 	buf.Reset()
 
 	// delete -r foo
 	require.NoError(t, act.Store.Set(ctx, "foo", sec))
 
 	c = gptest.CliCtxWithFlags(ctx, t, map[string]string{"recursive": "true"}, "foo")
-	require.NoError(t, act.Delete(c))
+	require.NoError(t, act.Delete(ctx, c))
 	buf.Reset()
 
 	// reject recursive flag when a key is given
 	c = gptest.CliCtxWithFlags(ctx, t, map[string]string{"recursive": "true"}, "foo", "bar")
-	require.Error(t, act.Delete(c))
+	require.Error(t, act.Delete(ctx, c))
 	buf.Reset()
 
 	require.NoError(t, act.Store.Set(ctx, "sec/1", sec))
@@ -72,11 +72,11 @@ func TestDelete(t *testing.T) {
 
 	// warn if key matching a secret is given
 	c = gptest.CliCtx(ctx, t, "sec/1", "sec/2")
-	require.Error(t, act.Delete(c))
+	require.Error(t, act.Delete(ctx, c))
 	buf.Reset()
 
 	// remove multiple secrets
 	c = gptest.CliCtx(ctx, t, "sec/1", "sec/2", "sec/3", "sec/4")
-	require.NoError(t, act.Delete(c))
+	require.NoError(t, act.Delete(ctx, c))
 	buf.Reset()
 }

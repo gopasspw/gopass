@@ -38,6 +38,6 @@ func TestCreate(t *testing.T) {
 	// create
 	c := gptest.CliCtx(ctx, t)
 
-	require.Error(t, act.Create(c))
+	require.Error(t, act.Create(ctx, c))
 	buf.Reset()
 }

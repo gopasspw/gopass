@@ -19,7 +19,7 @@ import (
 	"github.com/gopasspw/gopass/pkg/fsutil"
 	"github.com/gopasspw/gopass/pkg/gopass"
 	"github.com/gopasspw/gopass/pkg/gopass/secrets"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 var binstdin = os.Stdin
@@ -27,11 +27,11 @@ var binstdin = os.Stdin
 // Cat prints to or reads from STDIN/STDOUT.
 // If the content is piped to stdin, it is written to the secret.
 // Otherwise, the secret content is printed to stdout.
-func (s *binaryHandler) Cat(c *cli.Context) error {
-	ctx := ctxutil.WithGlobalFlags(c)
-	name := c.Args().First()
+func (s *binaryHandler) Cat(ctx context.Context, cmd *cli.Command) error {
+	ctx = ctxutil.WithGlobalFlags(ctx, cmd)
+	name := cmd.Args().First()
 	if name == "" {
-		return exit.Error(exit.NoName, nil, "Usage: %s cat <NAME>", c.App.Name)
+		return exit.Error(exit.NoName, nil, "Usage: %s cat <NAME>", cmd.Root().Name)
 	}
 
 	// handle pipe to stdin.
@@ -116,13 +116,13 @@ func secFromBytes(dst, src string, in []byte) (gopass.Secret, error) {
 
 // BinaryCopy copies either from the filesystem to the store or from the store
 // to the filesystem.
-func (s *binaryHandler) BinaryCopy(c *cli.Context) error {
-	ctx := ctxutil.WithGlobalFlags(c)
-	from := c.Args().Get(0)
-	to := c.Args().Get(1)
+func (s *binaryHandler) BinaryCopy(ctx context.Context, cmd *cli.Command) error {
+	ctx = ctxutil.WithGlobalFlags(ctx, cmd)
+	from := cmd.Args().Get(0)
+	to := cmd.Args().Get(1)
 
 	// argument checking is in s.binaryCopy.
-	if err := s.binaryCopy(ctx, c, from, to, false); err != nil {
+	if err := s.binaryCopy(ctx, cmd, from, to, false); err != nil {
 		return exit.Error(exit.Unknown, err, "%s", err)
 	}
 
@@ -132,13 +132,13 @@ func (s *binaryHandler) BinaryCopy(c *cli.Context) error {
 // BinaryMove works like Copy but will remove (shred/wipe) the source
 // after a successful copy. Mostly useful for securely moving secrets into
 // the store if they are no longer needed / wanted on disk afterwards.
-func (s *binaryHandler) BinaryMove(c *cli.Context) error {
-	ctx := ctxutil.WithGlobalFlags(c)
-	from := c.Args().Get(0)
-	to := c.Args().Get(1)
+func (s *binaryHandler) BinaryMove(ctx context.Context, cmd *cli.Command) error {
+	ctx = ctxutil.WithGlobalFlags(ctx, cmd)
+	from := cmd.Args().Get(0)
+	to := cmd.Args().Get(1)
 
 	// argument checking is in s.binaryCopy.
-	if err := s.binaryCopy(ctx, c, from, to, true); err != nil {
+	if err := s.binaryCopy(ctx, cmd, from, to, true); err != nil {
 		return exit.Error(exit.Unknown, err, "%s", err)
 	}
 
@@ -184,14 +184,14 @@ func (s *binaryHandler) isInStore(fn string) bool {
 // 2. From the store to the filesystem.
 //
 // Copying secrets in the store must be done through the regular copy command.
-func (s *binaryHandler) binaryCopy(ctx context.Context, c *cli.Context, from, to string, deleteSource bool) error {
+func (s *binaryHandler) binaryCopy(ctx context.Context, cmd *cli.Command, from, to string, deleteSource bool) error {
 	if from == "" || to == "" {
 		op := "copy"
 		if deleteSource {
 			op = "move"
 		}
 
-		return fmt.Errorf("usage: %s fs%s from to", c.App.Name, op)
+		return fmt.Errorf("usage: %s fs%s from to", cmd.Root().Name, op)
 	}
 
 	switch {
@@ -204,7 +204,7 @@ func (s *binaryHandler) binaryCopy(ctx context.Context, c *cli.Context, from, to
 	case isFilePath(from) && !isFilePath(to):
 		if s.isInStore(from) {
 			out.Warningf(ctx, "Ambiguity detected. Source %q is in the store. Use --force if intended", from)
-			if !c.Bool("force") {
+			if !cmd.Bool("force") {
 				return fmt.Errorf("ambiguity detected. Source is in the store")
 			}
 		}
@@ -213,7 +213,7 @@ func (s *binaryHandler) binaryCopy(ctx context.Context, c *cli.Context, from, to
 	case !isFilePath(from):
 		if s.isInStore(to) {
 			out.Warningf(ctx, "Ambiguity detected. Destination %q is in the store. Use --force if intended", to)
-			if !c.Bool("force") {
+			if !cmd.Bool("force") {
 				return fmt.Errorf("ambiguity detected. Destination is in the store")
 			}
 		}
@@ -358,11 +358,11 @@ func (s *binaryHandler) binaryGet(ctx context.Context, name string) ([]byte, err
 
 // Sum decodes binary content and computes the SHA256 checksum.
 // It prints the checksum to stdout.
-func (s *binaryHandler) Sum(c *cli.Context) error {
-	ctx := ctxutil.WithGlobalFlags(c)
-	name := c.Args().First()
+func (s *binaryHandler) Sum(ctx context.Context, cmd *cli.Command) error {
+	ctx = ctxutil.WithGlobalFlags(ctx, cmd)
+	name := cmd.Args().First()
 	if name == "" {
-		return exit.Error(exit.Usage, nil, "Usage: %s sha256 name", c.App.Name)
+		return exit.Error(exit.Usage, nil, "Usage: %s sha256 name", cmd.Root().Name)
 	}
 
 	buf, err := s.binaryGet(ctx, name)

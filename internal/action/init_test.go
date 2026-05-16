@@ -41,9 +41,11 @@ func TestInit(t *testing.T) {
 	}()
 
 	c := gptest.CliCtx(ctx, t, "foo.bar@example.org")
-	require.NoError(t, act.IsInitialized(c))
-	require.Error(t, act.Init(c))
-	require.NoError(t, act.Setup(c))
+	_, errIsInit := act.IsInitialized(ctx, c)
+
+	require.NoError(t, errIsInit)
+	require.Error(t, act.Init(ctx, c))
+	require.NoError(t, act.Setup(ctx, c))
 
 	crypto := act.Store.Crypto(ctx, "")
 	require.NotNil(t, crypto)
@@ -58,7 +60,9 @@ func TestInit(t *testing.T) {
 
 	// un-initialize the store
 	require.NoError(t, os.Remove(filepath.Join(u.StoreDir(""), plain.IDFile)))
-	require.Error(t, act.IsInitialized(c))
+	_, errIsInit = act.IsInitialized(ctx, c)
+
+	require.Error(t, errIsInit)
 	buf.Reset()
 }
 
@@ -100,7 +104,7 @@ func TestInitParseContext(t *testing.T) {
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			c := gptest.CliCtxWithFlags(config.NewContextInMemory(), t, tc.flags)
-			ctx, err := initParseContext(c.Context, c)
+			ctx, err := initParseContext(config.NewContextInMemory(), c)
 			require.NoError(t, err)
 			require.NoError(t, tc.check(ctx), tc.name)
 			buf.Reset()

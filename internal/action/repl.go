@@ -11,22 +11,22 @@ import (
 	"github.com/gopasspw/gopass/internal/tree"
 	"github.com/gopasspw/gopass/pkg/debug"
 	shellquote "github.com/kballard/go-shellquote"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 // REPL implements a read-execute-print-line shell
 // with readline support and autocompletion.
-func (s *miscHandler) REPL(c *cli.Context) error {
-	c.App.ExitErrHandler = func(c *cli.Context, err error) {
+func (s *miscHandler) REPL(ctx context.Context, cmd *cli.Command) error {
+	cmd.Root().ExitErrHandler = func(ctx context.Context, cmd *cli.Command, err error) {
 		if err == nil {
 			return
 		}
-		out.Errorf(c.Context, "%s", err)
+		out.Errorf(ctx, "%s", err)
 	}
 
-	out.Printf(c.Context, logo)
-	out.Printf(c.Context, "🌟 Welcome to gopass!")
-	out.Printf(c.Context, "⚠ This is the built-in shell. Type 'help' for a list of commands.")
+	out.Printf(ctx, logo)
+	out.Printf(ctx, "🌟 Welcome to gopass!")
+	out.Printf(ctx, "⚠ This is the built-in shell. Type 'help' for a list of commands.")
 
 	rl, err := readline.New("gopass> ")
 	if err != nil {
@@ -41,7 +41,7 @@ READ:
 	for {
 		// check for context cancellation
 		select {
-		case <-c.Done():
+		case <-ctx.Done():
 			return fmt.Errorf("user aborted")
 		default:
 		}
@@ -50,7 +50,7 @@ READ:
 		// the list of secrets may have changed, e.g. due to
 		// the user adding a new secret.
 		cfg := rl.GetConfig()
-		cfg.AutoComplete = s.newGopassCompleter(c)
+		cfg.AutoComplete = s.newGopassCompleter(ctx, cmd)
 		if err := rl.SetConfig(cfg); err != nil {
 			debug.Log("Failed to set readline config: %s", err)
 
@@ -65,7 +65,7 @@ READ:
 		}
 		args, err := shellquote.Split(line)
 		if err != nil {
-			out.Printf(c.Context, "Error: %s", err)
+			out.Printf(ctx, "Error: %s", err)
 
 			continue
 		}
@@ -76,7 +76,7 @@ READ:
 		case "quit":
 			break READ
 		case "lock":
-			s.replLock(c.Context)
+			s.replLock(ctx)
 
 			continue
 		case "clear":
@@ -86,7 +86,7 @@ READ:
 		default:
 		}
 
-		if err := c.App.RunContext(c.Context, append([]string{"gopass"}, args...)); err != nil {
+		if err := cmd.Root().Run(ctx, append([]string{"gopass"}, args...)); err != nil {
 			continue
 		}
 	}
@@ -373,8 +373,8 @@ func (g *gopassCompleter) completeFromList(candidates []string, prefix string, n
 }
 
 // newGopassCompleter builds a gopassCompleter from the current app state.
-func (s *miscHandler) newGopassCompleter(c *cli.Context) *gopassCompleter {
-	entries, err := s.Store.List(c.Context, tree.INF)
+func (s *miscHandler) newGopassCompleter(ctx context.Context, cmd *cli.Command) *gopassCompleter {
+	entries, err := s.Store.List(ctx, tree.INF)
 	if err != nil {
 		debug.Log("failed to list secrets: %s", err)
 		entries = nil
@@ -392,7 +392,7 @@ func (s *miscHandler) newGopassCompleter(c *cli.Context) *gopassCompleter {
 		"show": true,
 	}
 
-	for _, cmd := range c.App.Commands {
+	for _, cmd := range cmd.Root().Commands {
 		if cmd.Hidden {
 			continue
 		}
@@ -409,12 +409,12 @@ func (s *miscHandler) newGopassCompleter(c *cli.Context) *gopassCompleter {
 		case cmd.Name == "recipients":
 			spec = completeRecipients
 			if gc.recipients == nil {
-				gc.recipients = s.recipientsListFn(c.Context)
+				gc.recipients = s.recipientsListFn(ctx)
 			}
 		case cmd.Name == "templates":
 			spec = completeTemplates
 			if gc.templates == nil {
-				gc.templates = s.templatesListFn(c.Context)
+				gc.templates = s.templatesListFn(ctx)
 			}
 		default:
 			spec = completeSubCmds
@@ -427,9 +427,9 @@ func (s *miscHandler) newGopassCompleter(c *cli.Context) *gopassCompleter {
 			gc.commands = append(gc.commands, alias)
 		}
 
-		if len(cmd.Subcommands) > 0 {
-			subs := make([]string, 0, len(cmd.Subcommands))
-			for _, scmd := range cmd.Subcommands {
+		if len(cmd.Commands) > 0 {
+			subs := make([]string, 0, len(cmd.Commands))
+			for _, scmd := range cmd.Commands {
 				subs = append(subs, scmd.Name)
 			}
 			gc.subCmds[cmd.Name] = subs

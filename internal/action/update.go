@@ -1,18 +1,20 @@
 package action
 
 import (
+	"context"
+
 	"github.com/gopasspw/gopass/internal/action/exit"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/updater"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 // Update will start the interactive update assistant.
-func (s *miscHandler) Update(c *cli.Context) error {
+func (s *miscHandler) Update(ctx context.Context, cmd *cli.Command) error {
 	_ = s.rem.Reset("update")
 
-	ctx := ctxutil.WithGlobalFlags(c)
+	ctx = ctxutil.WithGlobalFlags(ctx, cmd)
 
 	if s.version.String() == "0.0.0+HEAD" {
 		out.Errorf(ctx, "Cannot check version against HEAD")

@@ -3,7 +3,6 @@ package action
 import (
 	"bytes"
 	"context"
-	"flag"
 	"os"
 	"path/filepath"
 	"testing"
@@ -15,7 +14,7 @@ import (
 	"github.com/gopasspw/gopass/tests/gptest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 func TestProcess(t *testing.T) {
@@ -54,7 +53,7 @@ password={{ getpw "server/local/mysql" }}`), 0o644)
 	t.Run("process template", func(t *testing.T) {
 		defer buf.Reset()
 
-		err := act.Process(gptest.CliCtx(ctx, t, infile))
+		err := act.Process(ctx, gptest.CliCtx(ctx, t, infile))
 		require.NoError(t, err)
 		assert.Equal(t, `[client]
 host=127.0.0.1
@@ -68,7 +67,7 @@ password=hunter2
 		defer buf.Reset()
 
 		c := cliCtxWithAllowPaths(ctx, t, []string{"server/local"}, infile)
-		require.NoError(t, act.Process(c))
+		require.NoError(t, act.Process(ctx, c))
 		assert.Contains(t, buf.String(), "password=hunter2")
 	})
 
@@ -77,32 +76,42 @@ password=hunter2
 
 		// Template references server/local/mysql but only other/path is allowed.
 		c := cliCtxWithAllowPaths(ctx, t, []string{"other/path"}, infile)
-		err := act.Process(c)
+		err := act.Process(ctx, c)
 		require.Error(t, err, "template must fail when secret is outside allowed paths")
 	})
 }
 
-// cliCtxWithAllowPaths builds a *cli.Context that has the --allow-path
+// cliCtxWithAllowPaths builds a *cli.Command that has the --allow-path
 // StringSlice flag populated with the given values and the positional argument
 // set to file.
-func cliCtxWithAllowPaths(ctx context.Context, t *testing.T, allowPaths []string, file string) *cli.Context {
+func cliCtxWithAllowPaths(ctx context.Context, t *testing.T, allowPaths []string, file string) *cli.Command {
 	t.Helper()
 
-	app := cli.NewApp()
-	fs := flag.NewFlagSet("default", flag.ContinueOnError)
-
-	f := &cli.StringSliceFlag{Name: "allow-path", Aliases: []string{"p"}}
-	require.NoError(t, f.Apply(fs))
-
-	args := make([]string, 0, len(allowPaths)+1)
+	allArgs := make([]string, 0, len(allowPaths)+2)
+	allArgs = append(allArgs, "test")
 	for _, p := range allowPaths {
-		args = append(args, "--allow-path="+p)
+		allArgs = append(allArgs, "--allow-path="+p)
 	}
-	args = append(args, file)
-	require.NoError(t, fs.Parse(args))
+	allArgs = append(allArgs, file)
 
-	c := cli.NewContext(app, fs, nil)
-	c.Context = ctx
+	var captured *cli.Command
 
-	return c
+	cmd := &cli.Command{
+		Flags: []cli.Flag{
+			&cli.StringSliceFlag{Name: "allow-path", Aliases: []string{"p"}},
+		},
+		Action: func(c context.Context, cmd *cli.Command) error {
+			captured = cmd
+
+			return nil
+		},
+	}
+
+	require.NoError(t, cmd.Run(ctx, allArgs))
+
+	if captured == nil {
+		return cmd
+	}
+
+	return captured
 }

@@ -20,17 +20,17 @@ import (
 	"github.com/gopasspw/gopass/pkg/fsutil"
 	"github.com/gopasspw/gopass/pkg/pwgen/xkcdgen"
 	"github.com/gopasspw/gopass/pkg/termio"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 // Setup will invoke the onboarding / setup wizard.
-func (s *setupHandler) Setup(c *cli.Context) error {
-	ctx := ctxutil.WithGlobalFlags(c)
-	remote := c.String("remote")
-	team := c.String("alias")
-	create := c.Bool("create")
+func (s *setupHandler) Setup(ctx context.Context, cmd *cli.Command) error {
+	ctx = ctxutil.WithGlobalFlags(ctx, cmd)
+	remote := cmd.String("remote")
+	team := cmd.String("alias")
+	create := cmd.Bool("create")
 
-	ctx, err := initParseContext(ctx, c)
+	ctx, err := initParseContext(ctx, cmd)
 	if err != nil {
 		return err
 	}
@@ -45,11 +45,11 @@ func (s *setupHandler) Setup(c *cli.Context) error {
 		out.Printf(ctx, "💾 Using storage backend: %s", backend.GetStorageBackend(ctx))
 	}
 
-	if name := termio.DetectName(ctx, c); name != "" {
+	if name := termio.DetectName(ctx, cmd); name != "" {
 		ctx = ctxutil.WithUsername(ctx, name)
 	}
 
-	if email := termio.DetectEmail(ctx, c); email != "" {
+	if email := termio.DetectEmail(ctx, cmd); email != "" {
 		ctx = ctxutil.WithEmail(ctx, email)
 	}
 

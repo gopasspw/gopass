@@ -48,7 +48,7 @@ func TestREPL(t *testing.T) {
 		_ = rl.Close()
 	}()
 
-	err = act.REPL(gptest.CliCtx(ctx, t))
+	err = act.REPL(ctx, gptest.CliCtx(ctx, t))
 	require.NoError(t, err)
 	assert.Contains(t, buf.String(), "help")
 }
@@ -163,7 +163,7 @@ func TestNewGopassCompleter(t *testing.T) {
 		stdout = os.Stdout
 	}()
 
-	gc := act.newGopassCompleter(gptest.CliCtx(ctx, t))
+	gc := act.newGopassCompleter(ctx, gptest.CliCtx(ctx, t))
 	require.NotNil(t, gc)
 	assert.NotEmpty(t, gc.entries)
 }

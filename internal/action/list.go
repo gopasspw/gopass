@@ -18,22 +18,22 @@ import (
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	shellquote "github.com/kballard/go-shellquote"
 	"github.com/noborus/ov/oviewer"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 	"golang.org/x/term"
 )
 
 // List all secrets as a tree. If the filter argument is non-empty
 // display only those that have this prefix.
-func (s *searchHandler) List(c *cli.Context) error {
-	ctx := ctxutil.WithGlobalFlags(c)
-	filter := c.Args().First()
-	flat := c.Bool("flat")
-	stripPrefix := c.Bool("strip-prefix")
-	folders := c.Bool("folders")
+func (s *searchHandler) List(ctx context.Context, cmd *cli.Command) error {
+	ctx = ctxutil.WithGlobalFlags(ctx, cmd)
+	filter := cmd.Args().First()
+	flat := cmd.Bool("flat")
+	stripPrefix := cmd.Bool("strip-prefix")
+	folders := cmd.Bool("folders")
 
 	// print the path if the argument is a direct hit.
 	if s.Store.Exists(ctx, filter) && !s.Store.IsDir(ctx, filter) {
-		if c.Bool("json") {
+		if cmd.Bool("json") {
 			return jsonWrite(stdout, []string{filter})
 		}
 
@@ -54,11 +54,11 @@ func (s *searchHandler) List(c *cli.Context) error {
 
 	// set limit to infinite by default unless it's set with the flag
 	limit := tree.INF
-	if c.IsSet("limit") {
-		limit = c.Int("limit")
+	if cmd.IsSet("limit") {
+		limit = cmd.Int("limit")
 	}
 
-	if c.Bool("json") {
+	if cmd.Bool("json") {
 		return s.listJSON(ctx, l, limit, folders, stripPrefix, filter)
 	}
 

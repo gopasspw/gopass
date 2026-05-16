@@ -16,7 +16,7 @@ func TestGrep(t *testing.T) {
 
 	out, err := ts.run("grep")
 	require.Error(t, err)
-	assert.Equal(t, "\nError: Usage: "+filepath.Base(ts.Binary)+" grep arg\n", out)
+	assert.Equal(t, "Usage: "+filepath.Base(ts.Binary)+" grep arg\n", out)
 
 	out, err = ts.run("grep BOOM")
 	require.NoError(t, err)

@@ -38,7 +38,7 @@ func TestList(t *testing.T) {
 	}()
 	color.NoColor = true
 
-	require.NoError(t, act.List(gptest.CliCtx(ctx, t)))
+	require.NoError(t, act.List(ctx, gptest.CliCtx(ctx, t)))
 	want := `gopass
 └── foo
 
@@ -53,7 +53,7 @@ func TestList(t *testing.T) {
 	require.NoError(t, act.Store.Set(ctx, "foo/bar", sec))
 	buf.Reset()
 
-	require.NoError(t, act.List(gptest.CliCtx(ctx, t, "foo")))
+	require.NoError(t, act.List(ctx, gptest.CliCtx(ctx, t, "foo")))
 	want = `foo/
 └── bar
 
@@ -62,7 +62,7 @@ func TestList(t *testing.T) {
 	buf.Reset()
 
 	// list --flat foo
-	require.NoError(t, act.List(gptest.CliCtxWithFlags(ctx, t, map[string]string{"flat": "true"}, "foo")))
+	require.NoError(t, act.List(ctx, gptest.CliCtxWithFlags(ctx, t, map[string]string{"flat": "true"}, "foo")))
 	want = `foo/bar
 `
 	assert.Equal(t, want, buf.String())
@@ -77,7 +77,7 @@ func TestList(t *testing.T) {
 	require.NoError(t, act.Store.Set(ctx, "foo2/bar2", sec))
 	buf.Reset()
 
-	require.NoError(t, act.List(gptest.CliCtxWithFlags(ctx, t, map[string]string{"folders": "true"})))
+	require.NoError(t, act.List(ctx, gptest.CliCtxWithFlags(ctx, t, map[string]string{"folders": "true"})))
 	want = `foo/
 foo/zen/
 foo2/
@@ -91,7 +91,7 @@ foo2/
 	require.NoError(t, act.Store.Set(ctx, "foo/zen", sec))
 	buf.Reset()
 
-	require.NoError(t, act.List(gptest.CliCtxWithFlags(ctx, t, map[string]string{"flat": "true"})))
+	require.NoError(t, act.List(ctx, gptest.CliCtxWithFlags(ctx, t, map[string]string{"flat": "true"})))
 	want = `foo
 foo/bar
 foo/zen
@@ -101,7 +101,7 @@ foo2/bar2
 	assert.Equal(t, want, buf.String())
 	buf.Reset()
 
-	require.NoError(t, act.List(gptest.CliCtx(ctx, t, "foo")))
+	require.NoError(t, act.List(ctx, gptest.CliCtx(ctx, t, "foo")))
 	want = `foo/
 ├── bar
 └── zen/ (shadowed)
@@ -112,11 +112,11 @@ foo2/bar2
 	buf.Reset()
 
 	// list not-present
-	require.Error(t, act.List(gptest.CliCtx(ctx, t, "not-present")))
+	require.Error(t, act.List(ctx, gptest.CliCtx(ctx, t, "not-present")))
 	buf.Reset()
 
 	// list --json
-	require.NoError(t, act.List(gptest.CliCtxWithFlags(ctx, t, map[string]string{"json": "true"})))
+	require.NoError(t, act.List(ctx, gptest.CliCtxWithFlags(ctx, t, map[string]string{"json": "true"})))
 	var jsonOut []string
 	require.NoError(t, json.Unmarshal(buf.Bytes(), &jsonOut))
 	assert.Contains(t, jsonOut, "foo")
@@ -144,7 +144,7 @@ func TestListLimit(t *testing.T) {
 	}()
 	color.NoColor = true
 
-	require.NoError(t, act.List(gptest.CliCtx(ctx, t)))
+	require.NoError(t, act.List(ctx, gptest.CliCtx(ctx, t)))
 	want := `gopass
 └── foo
 
@@ -158,7 +158,7 @@ func TestListLimit(t *testing.T) {
 	buf.Reset()
 
 	t.Run("folders-limit-0", func(t *testing.T) {
-		require.NoError(t, act.List(gptest.CliCtxWithFlags(ctx, t, map[string]string{"folders": "true", "limit": "0"})))
+		require.NoError(t, act.List(ctx, gptest.CliCtxWithFlags(ctx, t, map[string]string{"folders": "true", "limit": "0"})))
 		want = `foo/
 foo2/
 `
@@ -167,7 +167,7 @@ foo2/
 	})
 
 	t.Run("folders-limit-1", func(t *testing.T) {
-		require.NoError(t, act.List(gptest.CliCtxWithFlags(ctx, t, map[string]string{"folders": "true", "limit": "1"})))
+		require.NoError(t, act.List(ctx, gptest.CliCtxWithFlags(ctx, t, map[string]string{"folders": "true", "limit": "1"})))
 		want = `foo/
 foo/zen/
 foo2/
@@ -177,7 +177,7 @@ foo2/
 	})
 
 	t.Run("folders-limit--1", func(t *testing.T) {
-		require.NoError(t, act.List(gptest.CliCtxWithFlags(ctx, t, map[string]string{"folders": "true", "limit": "-1"})))
+		require.NoError(t, act.List(ctx, gptest.CliCtxWithFlags(ctx, t, map[string]string{"folders": "true", "limit": "-1"})))
 		want = `foo/
 foo/zen/
 foo/zen/baz/
@@ -188,7 +188,7 @@ foo2/
 	})
 
 	t.Run("flat-limit--1", func(t *testing.T) {
-		require.NoError(t, act.List(gptest.CliCtxWithFlags(ctx, t, map[string]string{"flat": "true", "limit": "-1"})))
+		require.NoError(t, act.List(ctx, gptest.CliCtxWithFlags(ctx, t, map[string]string{"flat": "true", "limit": "-1"})))
 		want = `foo
 foo/bar
 foo/zen/baz/bar
@@ -199,7 +199,7 @@ foo2/bar2
 	})
 
 	t.Run("folders-limit-0", func(t *testing.T) {
-		require.NoError(t, act.List(gptest.CliCtxWithFlags(ctx, t, map[string]string{"flat": "true", "limit": "0"})))
+		require.NoError(t, act.List(ctx, gptest.CliCtxWithFlags(ctx, t, map[string]string{"flat": "true", "limit": "0"})))
 		want = `foo
 foo2/
 `
@@ -208,7 +208,7 @@ foo2/
 	})
 
 	t.Run("folders-limit-2", func(t *testing.T) {
-		require.NoError(t, act.List(gptest.CliCtxWithFlags(ctx, t, map[string]string{"flat": "true", "limit": "2"})))
+		require.NoError(t, act.List(ctx, gptest.CliCtxWithFlags(ctx, t, map[string]string{"flat": "true", "limit": "2"})))
 		want = `foo
 foo/bar
 foo/zen/baz/

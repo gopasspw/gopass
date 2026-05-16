@@ -14,20 +14,20 @@ import (
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/gopasspw/gopass/pkg/tempfile"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 // Env implements the env subcommand. It populates the environment of a subprocess with
 // a set of environment variables corresponding to the secret subtree specified on the
 // command line.
-func (s *envHandler) Env(c *cli.Context) error {
-	ctx := ctxutil.WithGlobalFlags(c)
-	name := c.Args().First()
-	args := c.Args().Tail()
-	keepCase := c.Bool("keep-case")
-	useStdin := c.Bool("stdin")
-	useFile := c.Bool("file")
-	useExec := c.Bool("exec")
+func (s *envHandler) Env(ctx context.Context, cmd *cli.Command) error {
+	ctx = ctxutil.WithGlobalFlags(ctx, cmd)
+	name := cmd.Args().First()
+	args := cmd.Args().Tail()
+	keepCase := cmd.Bool("keep-case")
+	useStdin := cmd.Bool("stdin")
+	useFile := cmd.Bool("file")
+	useExec := cmd.Bool("exec")
 
 	if len(args) == 0 {
 		return exit.Error(exit.Usage, nil, "Missing subcommand to execute")

@@ -11,7 +11,7 @@ import (
 	"github.com/gopasspw/gopass/internal/tpl"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/gopass"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 // secretGetter is the minimal store interface required by the template engine.
@@ -39,14 +39,14 @@ func (p *pathRestrictedStore) Get(ctx context.Context, name string) (gopass.Secr
 }
 
 // Process is a command to process a template and replace secrets contained in it.
-func (s *miscHandler) Process(c *cli.Context) error {
-	ctx := ctxutil.WithGlobalFlags(c)
-	file := c.Args().First()
+func (s *miscHandler) Process(ctx context.Context, cmd *cli.Command) error {
+	ctx = ctxutil.WithGlobalFlags(ctx, cmd)
+	file := cmd.Args().First()
 	if file == "" {
 		return exit.Error(exit.Usage, nil, "Usage: %s process <FILE>", s.Name)
 	}
 
-	allowPaths := c.StringSlice("allow-path")
+	allowPaths := cmd.StringSlice("allow-path")
 
 	buf, err := os.ReadFile(file)
 	if err != nil {

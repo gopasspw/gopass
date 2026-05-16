@@ -15,16 +15,16 @@ import (
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/gopasspw/gopass/pkg/protect"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 // Version prints the gopass version.
-func (s *miscHandler) Version(c *cli.Context) error {
-	ctx := ctxutil.WithGlobalFlags(c)
+func (s *miscHandler) Version(ctx context.Context, cmd *cli.Command) error {
+	ctx = ctxutil.WithGlobalFlags(ctx, cmd)
 	version := make(chan string, 1)
 	go s.checkVersion(ctx, version)
 
-	cli.VersionPrinter(c)
+	cli.VersionPrinter(cmd)
 
 	select {
 	case vi := <-version:

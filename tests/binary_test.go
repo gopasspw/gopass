@@ -23,7 +23,7 @@ func TestBinaryCopy(t *testing.T) {
 	t.Run("no args", func(t *testing.T) {
 		out, err := ts.run("fscopy")
 		require.Error(t, err)
-		assert.Equal(t, "\nError: usage: gopass fscopy from to\n", out)
+		assert.Equal(t, "usage: gopass fscopy from to\n", out)
 	})
 
 	fn := filepath.Join(ts.tempDir, "copy")
@@ -66,7 +66,7 @@ func TestBinaryMove(t *testing.T) {
 	t.Run("no args", func(t *testing.T) {
 		out, err := ts.run("fsmove")
 		require.Error(t, err)
-		assert.Equal(t, "\nError: usage: gopass fsmove from to\n", out)
+		assert.Equal(t, "usage: gopass fsmove from to\n", out)
 	})
 
 	fn := filepath.Join(ts.tempDir, "move")
@@ -109,7 +109,7 @@ func TestBinaryShasum(t *testing.T) {
 	t.Run("shasum w/o args", func(t *testing.T) {
 		out, err := ts.run("sha256")
 		require.Error(t, err)
-		assert.Equal(t, "\nError: Usage: gopass sha256 name\n", out)
+		assert.Equal(t, "Usage: gopass sha256 name\n", out)
 	})
 
 	t.Run("populate store", func(t *testing.T) {

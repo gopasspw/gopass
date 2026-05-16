@@ -1,17 +1,19 @@
 package action
 
 import (
+	"context"
+
 	"github.com/gopasspw/gopass/internal/action/exit"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 // Link creates a symlink.
-func (s *secretHandler) Link(c *cli.Context) error {
-	ctx := ctxutil.WithGlobalFlags(c)
+func (s *secretHandler) Link(ctx context.Context, cmd *cli.Command) error {
+	ctx = ctxutil.WithGlobalFlags(ctx, cmd)
 
-	from := c.Args().Get(0)
-	to := c.Args().Get(1)
+	from := cmd.Args().Get(0)
+	to := cmd.Args().Get(1)
 
 	if from == "" || to == "" {
 		return exit.Error(exit.Usage, nil, "Usage: link <from> <to>")

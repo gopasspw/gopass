@@ -1,6 +1,7 @@
 package age
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
@@ -12,7 +13,7 @@ import (
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/gopasspw/gopass/pkg/termio"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 //nolint:cyclop
@@ -34,23 +35,23 @@ func (l loader) Commands() []*cli.Command {
 				&cli.StringFlag{
 					Name:    "age-ssh-key-path",
 					Usage:   "Custom path to SSH key or directory for age backend",
-					EnvVars: []string{"GOPASS_SSH_DIR"},
+					Sources: cli.EnvVars("GOPASS_SSH_DIR"),
 				},
 			},
-			Subcommands: []*cli.Command{
+			Commands: []*cli.Command{
 				{
 					Name:  "agent",
 					Usage: "Manage the age agent",
 					Description: "Manage the age agent, this will start a background process that will cache your age identities in memory and provide them to gopass on demand. " +
 						"This is optional, but recommended if you use age identities that require a password or are managed by a plugin.",
-					Action: func(c *cli.Context) error {
-						if err := cli.ShowSubcommandHelp(c); err != nil {
+					Action: func(ctx context.Context, cmd *cli.Command) error {
+						if err := cli.ShowSubcommandHelp(cmd); err != nil {
 							return exit.Error(exit.Unknown, err, "failed to show help")
 						}
 
 						return exit.Error(exit.Usage, nil, "Please specify a subcommand")
 					},
-					Subcommands: []*cli.Command{
+					Commands: []*cli.Command{
 						{
 							Name:        "start",
 							Usage:       "Start the age agent",
@@ -61,8 +62,8 @@ func (l loader) Commands() []*cli.Command {
 							Name:        "stop",
 							Usage:       "Stop the age agent",
 							Description: "Stop the age agent",
-							Action: func(c *cli.Context) error {
-								ctx := ctxutil.WithGlobalFlags(c)
+							Action: func(ctx context.Context, cmd *cli.Command) error {
+								ctx = ctxutil.WithGlobalFlags(ctx, cmd)
 								client := agent.NewClient()
 								if err := client.Quit(); err != nil {
 									return exit.Error(exit.Unknown, err, "failed to stop agent: %s", err)
@@ -76,8 +77,8 @@ func (l loader) Commands() []*cli.Command {
 							Name:        "status",
 							Usage:       "Check if the age agent is running, this will return 0 if the agent is running and 1 otherwise",
 							Description: "Check if the age agent is running, this will return 0 if the agent is running and 1 otherwise",
-							Action: func(c *cli.Context) error {
-								ctx := ctxutil.WithGlobalFlags(c)
+							Action: func(ctx context.Context, cmd *cli.Command) error {
+								ctx = ctxutil.WithGlobalFlags(ctx, cmd)
 								client := agent.NewClient()
 								status, err := client.Status()
 								if err != nil {
@@ -97,12 +98,12 @@ func (l loader) Commands() []*cli.Command {
 							Name:        "unlock",
 							Usage:       "Unlock the age agent",
 							Description: "Unlock the age agent, this will allow gopass to ask for your password again when decrypting",
-							Action: func(c *cli.Context) error {
+							Action: func(ctx context.Context, cmd *cli.Command) error {
 								client := agent.NewClient()
 								if err := client.Unlock(); err != nil {
 									return exit.Error(exit.Unknown, err, "failed to unlock agent: %s", err)
 								}
-								out.Printf(c.Context, "Age agent unlocked")
+								out.Printf(ctx, "Age agent unlocked")
 
 								return nil
 							},
@@ -120,10 +121,10 @@ func (l loader) Commands() []*cli.Command {
 					Usage: "List age identities used for decryption and encryption",
 					Description: "" +
 						"List identities",
-					Action: func(c *cli.Context) error {
-						ctx := ctxutil.WithGlobalFlags(c)
+					Action: func(ctx context.Context, cmd *cli.Command) error {
+						ctx = ctxutil.WithGlobalFlags(ctx, cmd)
 						sshKeyPath := config.String(ctx, "age.ssh-key-path")
-						if sv := c.String("age-ssh-key-path"); sv != "" {
+						if sv := cmd.String("age-ssh-key-path"); sv != "" {
 							sshKeyPath = sv
 						}
 						a, err := New(ctx, sshKeyPath)
@@ -146,16 +147,16 @@ func (l loader) Commands() []*cli.Command {
 
 						return nil
 					},
-					Subcommands: []*cli.Command{
+					Commands: []*cli.Command{
 						{
 							Name:  "add",
 							Usage: "Add an existing age identity",
 							Description: "" +
 								"Add an existing age identity, interactively",
-							Action: func(c *cli.Context) error {
-								ctx := ctxutil.WithGlobalFlags(c)
+							Action: func(ctx context.Context, cmd *cli.Command) error {
+								ctx = ctxutil.WithGlobalFlags(ctx, cmd)
 								sshKeyPath := config.String(ctx, "age.ssh-key-path")
-								if sv := c.String("age-ssh-key-path"); sv != "" {
+								if sv := cmd.String("age-ssh-key-path"); sv != "" {
 									sshKeyPath = sv
 								}
 								a, err := New(ctx, sshKeyPath)
@@ -163,7 +164,7 @@ func (l loader) Commands() []*cli.Command {
 									return exit.Error(exit.Unknown, err, "failed to create age backend")
 								}
 
-								idS, recEncm := c.Args().Get(0), c.Args().Get(1)
+								idS, recEncm := cmd.Args().Get(0), cmd.Args().Get(1)
 
 								if len(idS) < 1 {
 									idS, err = termio.AskForPassword(ctx, "the age identity starting in AGE-", false)
@@ -212,10 +213,10 @@ func (l loader) Commands() []*cli.Command {
 									Usage: "Password for the new key",
 								},
 							},
-							Action: func(c *cli.Context) error {
-								ctx := ctxutil.WithGlobalFlags(c)
+							Action: func(ctx context.Context, cmd *cli.Command) error {
+								ctx = ctxutil.WithGlobalFlags(ctx, cmd)
 								sshKeyPath := config.String(ctx, "age.ssh-key-path")
-								if sv := c.String("age-ssh-key-path"); sv != "" {
+								if sv := cmd.String("age-ssh-key-path"); sv != "" {
 									sshKeyPath = sv
 								}
 								a, err := New(ctx, sshKeyPath)
@@ -223,7 +224,7 @@ func (l loader) Commands() []*cli.Command {
 									return exit.Error(exit.Unknown, err, "failed to create age backend")
 								}
 
-								pw := c.String("password")
+								pw := cmd.String("password")
 								if pw == "" {
 									pw, err = termio.AskForPassword(ctx, "Enter password for new key", true)
 									if err != nil {
@@ -248,17 +249,17 @@ func (l loader) Commands() []*cli.Command {
 							Usage:   "Remove an identity",
 							Description: "" +
 								"Remove all identity matching the argument",
-							Action: func(c *cli.Context) error {
-								ctx := ctxutil.WithGlobalFlags(c)
+							Action: func(ctx context.Context, cmd *cli.Command) error {
+								ctx = ctxutil.WithGlobalFlags(ctx, cmd)
 								sshKeyPath := config.String(ctx, "age.ssh-key-path")
-								if sv := c.String("age-ssh-key-path"); sv != "" {
+								if sv := cmd.String("age-ssh-key-path"); sv != "" {
 									sshKeyPath = sv
 								}
 								a, err := New(ctx, sshKeyPath)
 								if err != nil {
 									return exit.Error(exit.Unknown, err, "failed to create age backend")
 								}
-								victim := c.Args().First()
+								victim := cmd.Args().First()
 								if len(victim) == 0 {
 									return exit.Error(exit.Usage, err, "missing argument to remove")
 								}
@@ -324,18 +325,18 @@ func (l loader) Commands() []*cli.Command {
 	}
 }
 
-func (l loader) agent(c *cli.Context) error {
-	out.Printf(c.Context, "Starting age agent ...")
+func (l loader) agent(ctx context.Context, cmd *cli.Command) error {
+	out.Printf(ctx, "Starting age agent ...")
 
 	ag, err := agent.New()
 	if err != nil {
 		return err
 	}
 
-	return ag.Run(c.Context)
+	return ag.Run(ctx)
 }
 
-func (l loader) lock(c *cli.Context) error {
+func (l loader) lock(ctx context.Context, cmd *cli.Command) error {
 	client := agent.NewClient()
 	if err := client.Lock(); err != nil {
 		return exit.Error(exit.Unknown, err, "failed to lock agent: %s", err)

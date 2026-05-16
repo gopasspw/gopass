@@ -11,28 +11,28 @@ import (
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/gopasspw/gopass/pkg/set"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 // Config handles changes to the gopass configuration.
 // It can be used to print the whole config, a single key, or to set a new
 // value for a given key.
-func (s *miscHandler) Config(c *cli.Context) error {
-	ctx := ctxutil.WithGlobalFlags(c)
-	store := c.String("store")
-	if c.Args().Len() < 1 {
+func (s *miscHandler) Config(ctx context.Context, cmd *cli.Command) error {
+	ctx = ctxutil.WithGlobalFlags(ctx, cmd)
+	store := cmd.String("store")
+	if cmd.Args().Len() < 1 {
 		s.printConfigValues(ctx, store)
 
 		return nil
 	}
 
-	if c.Args().Len() == 1 {
-		s.printConfigValues(ctx, store, c.Args().Get(0))
+	if cmd.Args().Len() == 1 {
+		s.printConfigValues(ctx, store, cmd.Args().Get(0))
 
 		return nil
 	}
 
-	if c.Args().Len() > 2 {
+	if cmd.Args().Len() > 2 {
 		return exit.Error(exit.Usage, nil, "Usage: %s config key value", s.Name)
 	}
 
@@ -42,7 +42,7 @@ func (s *miscHandler) Config(c *cli.Context) error {
 		return exit.Error(exit.Unknown, err, "Store %s seems uninitialized or cannot be initialized", store)
 	}
 
-	if err := s.setConfigValue(ctx, store, c.Args().Get(0), c.Args().Get(1)); err != nil {
+	if err := s.setConfigValue(ctx, store, cmd.Args().Get(0), cmd.Args().Get(1)); err != nil {
 		return exit.Error(exit.Unknown, err, "Error setting config value: %s", err)
 	}
 
@@ -124,7 +124,7 @@ func (s *miscHandler) configKeys() []string {
 }
 
 // ConfigComplete will print the list of valid config keys for bash completion.
-func (s *miscHandler) ConfigComplete(c *cli.Context) {
+func (s *miscHandler) ConfigComplete(ctx context.Context, cmd *cli.Command) {
 	for _, k := range s.configKeys() {
 		fmt.Fprintln(stdout, k)
 	}

@@ -40,13 +40,13 @@ func TestAudit(t *testing.T) {
 		require.NoError(t, act.Store.Set(ctx, "bar", sec))
 		require.NoError(t, act.Store.Set(ctx, "baz", sec))
 
-		require.Error(t, act.Audit(gptest.CliCtxWithFlags(ctx, t, map[string]string{"full": "true"})), buf.String())
+		require.Error(t, act.Audit(ctx, gptest.CliCtxWithFlags(ctx, t, map[string]string{"full": "true"})), buf.String())
 		buf.Reset()
 	})
 
 	t.Run("test with filter", func(t *testing.T) {
 		c := gptest.CliCtx(ctx, t, "foo")
-		require.Error(t, act.Audit(c))
+		require.Error(t, act.Audit(ctx, c))
 		buf.Reset()
 	})
 
@@ -54,7 +54,7 @@ func TestAudit(t *testing.T) {
 		for _, v := range []string{"foo", "bar", "baz"} {
 			require.NoError(t, act.Store.Delete(ctx, v))
 		}
-		require.NoError(t, act.Audit(gptest.CliCtx(ctx, t)))
+		require.NoError(t, act.Audit(ctx, gptest.CliCtx(ctx, t)))
 		assert.Contains(t, "No secrets found", buf.String())
 		buf.Reset()
 	})
@@ -66,7 +66,7 @@ func TestAudit(t *testing.T) {
 		defer func() { _ = act.Store.Delete(ctx, "jsontest") }()
 
 		outFile := t.TempDir() + "/report.json"
-		require.NoError(t, act.Audit(gptest.CliCtxWithFlags(ctx, t, map[string]string{"format": "json", "output-file": outFile})))
+		require.NoError(t, act.Audit(ctx, gptest.CliCtxWithFlags(ctx, t, map[string]string{"format": "json", "output-file": outFile})))
 		buf.Reset()
 
 		data, err := os.ReadFile(outFile)

@@ -11,31 +11,36 @@ import (
 	"context"
 
 	"github.com/gopasspw/gopass/internal/backend"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 // ── secretHandler shims ────────────────────────────────────────────────────
 
-func (s *Action) Show(c *cli.Context) error   { return s.secrets.Show(c) }
-func (s *Action) Insert(c *cli.Context) error { return s.secrets.Insert(c) }
-func (s *Action) Edit(c *cli.Context) error   { return s.secrets.Edit(c) }
-func (s *Action) Delete(c *cli.Context) error { return s.secrets.Delete(c) }
-func (s *Action) Copy(c *cli.Context) error   { return s.secrets.Copy(c) }
-func (s *Action) Move(c *cli.Context) error   { return s.secrets.Move(c) }
-func (s *Action) Link(c *cli.Context) error   { return s.secrets.Link(c) }
-func (s *Action) Merge(c *cli.Context) error  { return s.secrets.Merge(c) }
+func (s *Action) Show(ctx context.Context, cmd *cli.Command) error { return s.secrets.Show(ctx, cmd) }
+
+func (s *Action) Insert(ctx context.Context, cmd *cli.Command) error {
+	return s.secrets.Insert(ctx, cmd)
+}
+func (s *Action) Edit(ctx context.Context, cmd *cli.Command) error { return s.secrets.Edit(ctx, cmd) }
+func (s *Action) Delete(ctx context.Context, cmd *cli.Command) error {
+	return s.secrets.Delete(ctx, cmd)
+}
+func (s *Action) Copy(ctx context.Context, cmd *cli.Command) error  { return s.secrets.Copy(ctx, cmd) }
+func (s *Action) Move(ctx context.Context, cmd *cli.Command) error  { return s.secrets.Move(ctx, cmd) }
+func (s *Action) Link(ctx context.Context, cmd *cli.Command) error  { return s.secrets.Link(ctx, cmd) }
+func (s *Action) Merge(ctx context.Context, cmd *cli.Command) error { return s.secrets.Merge(ctx, cmd) }
 
 // Internal methods accessed from tests.
-func (s *Action) show(ctx context.Context, c *cli.Context, name string, recurse bool) error {
-	return s.secrets.show(ctx, c, name, recurse)
+func (s *Action) show(ctx context.Context, cmd *cli.Command, name string, recurse bool) error {
+	return s.secrets.show(ctx, cmd, name, recurse)
 }
 
-func (s *Action) showHandleRevision(ctx context.Context, c *cli.Context, name, revision string) error {
-	return s.secrets.showHandleRevision(ctx, c, name, revision)
+func (s *Action) showHandleRevision(ctx context.Context, cmd *cli.Command, name, revision string) error {
+	return s.secrets.showHandleRevision(ctx, cmd, name, revision)
 }
 
-func (s *Action) showHandleError(ctx context.Context, c *cli.Context, name string, recurse bool, err error) error {
-	return s.secrets.showHandleError(ctx, c, name, recurse, err)
+func (s *Action) showHandleError(ctx context.Context, cmd *cli.Command, name string, recurse bool, err error) error {
+	return s.secrets.showHandleError(ctx, cmd, name, recurse, err)
 }
 
 func (s *Action) showPrintQR(name, pw string) error {
@@ -46,8 +51,8 @@ func (s *Action) hasAliasDomain(ctx context.Context, name string) string {
 	return s.secrets.hasAliasDomain(ctx, name)
 }
 
-func (s *Action) insert(ctx context.Context, c *cli.Context, name, key string, echo, multiline, force, appending bool, kvps map[string]string) error {
-	return s.secrets.insert(ctx, c, name, key, echo, multiline, force, appending, kvps)
+func (s *Action) insert(ctx context.Context, cmd *cli.Command, name, key string, echo, multiline, force, appending bool, kvps map[string]string) error {
+	return s.secrets.insert(ctx, cmd, name, key, echo, multiline, force, appending, kvps)
 }
 
 func (s *Action) insertStdin(ctx context.Context, name string, content []byte, appendTo bool) error {
@@ -64,46 +69,106 @@ func (s *Action) editUpdate(ctx context.Context, name string, content, nContent 
 
 // ── searchHandler shims ────────────────────────────────────────────────────
 
-func (s *Action) Find(c *cli.Context) error      { return s.search.Find(c) }
-func (s *Action) FindFuzzy(c *cli.Context) error { return s.search.FindFuzzy(c) }
-func (s *Action) Grep(c *cli.Context) error      { return s.search.Grep(c) }
-func (s *Action) List(c *cli.Context) error      { return s.search.List(c) }
-func (s *Action) History(c *cli.Context) error   { return s.search.History(c) }
+func (s *Action) Find(ctx context.Context, cmd *cli.Command) error { return s.search.Find(ctx, cmd) }
+
+func (s *Action) FindFuzzy(ctx context.Context, cmd *cli.Command) error {
+	return s.search.FindFuzzy(ctx, cmd)
+}
+func (s *Action) Grep(ctx context.Context, cmd *cli.Command) error { return s.search.Grep(ctx, cmd) }
+func (s *Action) List(ctx context.Context, cmd *cli.Command) error { return s.search.List(ctx, cmd) }
+func (s *Action) History(ctx context.Context, cmd *cli.Command) error {
+	return s.search.History(ctx, cmd)
+}
 
 // ── generateHandler shims ──────────────────────────────────────────────────
 
-func (s *Action) Generate(c *cli.Context) error   { return s.generate.Generate(c) }
-func (s *Action) Create(c *cli.Context) error     { return s.generate.Create(c) }
-func (s *Action) CompleteGenerate(c *cli.Context) { s.generate.CompleteGenerate(c) }
+func (s *Action) Generate(ctx context.Context, cmd *cli.Command) error {
+	return s.generate.Generate(ctx, cmd)
+}
+
+func (s *Action) Create(ctx context.Context, cmd *cli.Command) error {
+	return s.generate.Create(ctx, cmd)
+}
+
+func (s *Action) CompleteGenerate(ctx context.Context, cmd *cli.Command) {
+	s.generate.CompleteGenerate(ctx, cmd)
+}
 
 // ── mountHandler shims ─────────────────────────────────────────────────────
 
-func (s *Action) MountRemove(c *cli.Context) error    { return s.mounts.MountRemove(c) }
-func (s *Action) MountsPrint(c *cli.Context) error    { return s.mounts.MountsPrint(c) }
-func (s *Action) MountsComplete(c *cli.Context)       { s.mounts.MountsComplete(c) }
-func (s *Action) MountAdd(c *cli.Context) error       { return s.mounts.MountAdd(c) }
-func (s *Action) MountsVersions(c *cli.Context) error { return s.mounts.MountsVersions(c) }
+func (s *Action) MountRemove(ctx context.Context, cmd *cli.Command) error {
+	return s.mounts.MountRemove(ctx, cmd)
+}
+
+func (s *Action) MountsPrint(ctx context.Context, cmd *cli.Command) error {
+	return s.mounts.MountsPrint(ctx, cmd)
+}
+
+func (s *Action) MountsComplete(ctx context.Context, cmd *cli.Command) {
+	s.mounts.MountsComplete(ctx, cmd)
+}
+
+func (s *Action) MountAdd(ctx context.Context, cmd *cli.Command) error {
+	return s.mounts.MountAdd(ctx, cmd)
+}
+
+func (s *Action) MountsVersions(ctx context.Context, cmd *cli.Command) error {
+	return s.mounts.MountsVersions(ctx, cmd)
+}
 
 // ── recipientHandler shims ─────────────────────────────────────────────────
 
-func (s *Action) RecipientsPrint(c *cli.Context) error  { return s.recipients.RecipientsPrint(c) }
-func (s *Action) RecipientsComplete(c *cli.Context)     { s.recipients.RecipientsComplete(c) }
-func (s *Action) RecipientsAck(c *cli.Context) error    { return s.recipients.RecipientsAck(c) }
-func (s *Action) RecipientsAdd(c *cli.Context) error    { return s.recipients.RecipientsAdd(c) }
-func (s *Action) RecipientsRemove(c *cli.Context) error { return s.recipients.RecipientsRemove(c) }
+func (s *Action) RecipientsPrint(ctx context.Context, cmd *cli.Command) error {
+	return s.recipients.RecipientsPrint(ctx, cmd)
+}
+
+func (s *Action) RecipientsComplete(ctx context.Context, cmd *cli.Command) {
+	s.recipients.RecipientsComplete(ctx, cmd)
+}
+
+func (s *Action) RecipientsAck(ctx context.Context, cmd *cli.Command) error {
+	return s.recipients.RecipientsAck(ctx, cmd)
+}
+
+func (s *Action) RecipientsAdd(ctx context.Context, cmd *cli.Command) error {
+	return s.recipients.RecipientsAdd(ctx, cmd)
+}
+
+func (s *Action) RecipientsRemove(ctx context.Context, cmd *cli.Command) error {
+	return s.recipients.RecipientsRemove(ctx, cmd)
+}
 
 // ── setupHandler shims ─────────────────────────────────────────────────────
 
-func (s *Action) IsInitialized(c *cli.Context) error   { return s.setup.IsInitialized(c) }
-func (s *Action) Init(c *cli.Context) error            { return s.setup.Init(c) }
-func (s *Action) Setup(c *cli.Context) error           { return s.setup.Setup(c) }
-func (s *Action) Clone(c *cli.Context) error           { return s.setup.Clone(c) }
-func (s *Action) RCSInit(c *cli.Context) error         { return s.setup.RCSInit(c) }
-func (s *Action) RCSAddRemote(c *cli.Context) error    { return s.setup.RCSAddRemote(c) }
-func (s *Action) RCSRemoveRemote(c *cli.Context) error { return s.setup.RCSRemoveRemote(c) }
-func (s *Action) RCSPull(c *cli.Context) error         { return s.setup.RCSPull(c) }
-func (s *Action) RCSPush(c *cli.Context) error         { return s.setup.RCSPush(c) }
-func (s *Action) RCSStatus(c *cli.Context) error       { return s.setup.RCSStatus(c) }
+func (s *Action) IsInitialized(ctx context.Context, cmd *cli.Command) (context.Context, error) {
+	return s.setup.IsInitialized(ctx, cmd)
+}
+func (s *Action) Init(ctx context.Context, cmd *cli.Command) error  { return s.setup.Init(ctx, cmd) }
+func (s *Action) Setup(ctx context.Context, cmd *cli.Command) error { return s.setup.Setup(ctx, cmd) }
+func (s *Action) Clone(ctx context.Context, cmd *cli.Command) error { return s.setup.Clone(ctx, cmd) }
+func (s *Action) RCSInit(ctx context.Context, cmd *cli.Command) error {
+	return s.setup.RCSInit(ctx, cmd)
+}
+
+func (s *Action) RCSAddRemote(ctx context.Context, cmd *cli.Command) error {
+	return s.setup.RCSAddRemote(ctx, cmd)
+}
+
+func (s *Action) RCSRemoveRemote(ctx context.Context, cmd *cli.Command) error {
+	return s.setup.RCSRemoveRemote(ctx, cmd)
+}
+
+func (s *Action) RCSPull(ctx context.Context, cmd *cli.Command) error {
+	return s.setup.RCSPull(ctx, cmd)
+}
+
+func (s *Action) RCSPush(ctx context.Context, cmd *cli.Command) error {
+	return s.setup.RCSPush(ctx, cmd)
+}
+
+func (s *Action) RCSStatus(ctx context.Context, cmd *cli.Command) error {
+	return s.setup.RCSStatus(ctx, cmd)
+}
 
 // Internal methods accessed from tests.
 func (s *Action) clone(ctx context.Context, repo, mount, path string) error {
@@ -136,32 +201,52 @@ func (s *Action) getUserData(ctx context.Context, store, name, email string) (st
 
 // ── syncHandler shims ──────────────────────────────────────────────────────
 
-func (s *Action) Sync(c *cli.Context) error { return s.syncH.Sync(c) }
-func (s *Action) Git(c *cli.Context) error  { return s.syncH.Git(c) }
+func (s *Action) Sync(ctx context.Context, cmd *cli.Command) error { return s.syncH.Sync(ctx, cmd) }
+func (s *Action) Git(ctx context.Context, cmd *cli.Command) error  { return s.syncH.Git(ctx, cmd) }
 
 // ── auditHandler shims ─────────────────────────────────────────────────────
 
-func (s *Action) Audit(c *cli.Context) error { return s.audit.Audit(c) }
-func (s *Action) Fsck(c *cli.Context) error  { return s.audit.Fsck(c) }
+func (s *Action) Audit(ctx context.Context, cmd *cli.Command) error { return s.audit.Audit(ctx, cmd) }
+func (s *Action) Fsck(ctx context.Context, cmd *cli.Command) error  { return s.audit.Fsck(ctx, cmd) }
 
 // ── templateHandler shims ──────────────────────────────────────────────────
 
-func (s *Action) TemplatesPrint(c *cli.Context) error { return s.templates.TemplatesPrint(c) }
-func (s *Action) TemplatePrint(c *cli.Context) error  { return s.templates.TemplatePrint(c) }
-func (s *Action) TemplateEdit(c *cli.Context) error   { return s.templates.TemplateEdit(c) }
-func (s *Action) TemplateRemove(c *cli.Context) error { return s.templates.TemplateRemove(c) }
-func (s *Action) TemplatesComplete(c *cli.Context)    { s.templates.TemplatesComplete(c) }
+func (s *Action) TemplatesPrint(ctx context.Context, cmd *cli.Command) error {
+	return s.templates.TemplatesPrint(ctx, cmd)
+}
+
+func (s *Action) TemplatePrint(ctx context.Context, cmd *cli.Command) error {
+	return s.templates.TemplatePrint(ctx, cmd)
+}
+
+func (s *Action) TemplateEdit(ctx context.Context, cmd *cli.Command) error {
+	return s.templates.TemplateEdit(ctx, cmd)
+}
+
+func (s *Action) TemplateRemove(ctx context.Context, cmd *cli.Command) error {
+	return s.templates.TemplateRemove(ctx, cmd)
+}
+
+func (s *Action) TemplatesComplete(ctx context.Context, cmd *cli.Command) {
+	s.templates.TemplatesComplete(ctx, cmd)
+}
 
 // ── binaryHandler shims ────────────────────────────────────────────────────
 
-func (s *Action) Cat(c *cli.Context) error        { return s.binary.Cat(c) }
-func (s *Action) BinaryCopy(c *cli.Context) error { return s.binary.BinaryCopy(c) }
-func (s *Action) BinaryMove(c *cli.Context) error { return s.binary.BinaryMove(c) }
-func (s *Action) Sum(c *cli.Context) error        { return s.binary.Sum(c) }
+func (s *Action) Cat(ctx context.Context, cmd *cli.Command) error { return s.binary.Cat(ctx, cmd) }
+
+func (s *Action) BinaryCopy(ctx context.Context, cmd *cli.Command) error {
+	return s.binary.BinaryCopy(ctx, cmd)
+}
+
+func (s *Action) BinaryMove(ctx context.Context, cmd *cli.Command) error {
+	return s.binary.BinaryMove(ctx, cmd)
+}
+func (s *Action) Sum(ctx context.Context, cmd *cli.Command) error { return s.binary.Sum(ctx, cmd) }
 
 // Internal methods accessed from tests.
-func (s *Action) binaryCopy(ctx context.Context, c *cli.Context, from, to string, deleteSource bool) error {
-	return s.binary.binaryCopy(ctx, c, from, to, deleteSource)
+func (s *Action) binaryCopy(ctx context.Context, cmd *cli.Command, from, to string, deleteSource bool) error {
+	return s.binary.binaryCopy(ctx, cmd, from, to, deleteSource)
 }
 
 func (s *Action) binaryGet(ctx context.Context, name string) ([]byte, error) {
@@ -170,11 +255,11 @@ func (s *Action) binaryGet(ctx context.Context, name string) ([]byte, error) {
 
 // ── envHandler shims ───────────────────────────────────────────────────────
 
-func (s *Action) Env(c *cli.Context) error { return s.envH.Env(c) }
+func (s *Action) Env(ctx context.Context, cmd *cli.Command) error { return s.envH.Env(ctx, cmd) }
 
 // ── otpHandler shims ───────────────────────────────────────────────────────
 
-func (s *Action) OTP(c *cli.Context) error { return s.otpH.OTP(c) }
+func (s *Action) OTP(ctx context.Context, cmd *cli.Command) error { return s.otpH.OTP(ctx, cmd) }
 
 // Internal methods accessed from tests.
 func (s *Action) otp(ctx context.Context, name, qrf string, clip, pw, recurse, chained, alsoClip bool) error {
@@ -183,28 +268,43 @@ func (s *Action) otp(ctx context.Context, name, qrf string, clip, pw, recurse, c
 
 // ── miscHandler shims ──────────────────────────────────────────────────────
 
-func (s *Action) AliasesPrint(c *cli.Context) error { return s.misc.AliasesPrint(c) }
-func (s *Action) Version(c *cli.Context) error      { return s.misc.Version(c) }
-func (s *Action) Convert(c *cli.Context) error      { return s.misc.Convert(c) }
-func (s *Action) Reorg(c *cli.Context) error        { return s.misc.Reorg(c) }
+func (s *Action) AliasesPrint(ctx context.Context, cmd *cli.Command) error {
+	return s.misc.AliasesPrint(ctx, cmd)
+}
+
+func (s *Action) Version(ctx context.Context, cmd *cli.Command) error {
+	return s.misc.Version(ctx, cmd)
+}
+
+func (s *Action) Convert(ctx context.Context, cmd *cli.Command) error {
+	return s.misc.Convert(ctx, cmd)
+}
+func (s *Action) Reorg(ctx context.Context, cmd *cli.Command) error { return s.misc.Reorg(ctx, cmd) }
 func (s *Action) ReorgAfterEdit(ctx context.Context, initial, modified []string) error {
 	return s.misc.ReorgAfterEdit(ctx, initial, modified)
 }
-func (s *Action) Process(c *cli.Context) error          { return s.misc.Process(c) }
-func (s *Action) Unclip(c *cli.Context) error           { return s.misc.Unclip(c) }
-func (s *Action) Update(c *cli.Context) error           { return s.misc.Update(c) }
-func (s *Action) REPL(c *cli.Context) error             { return s.misc.REPL(c) }
-func (s *Action) Doctor(c *cli.Context) error           { return s.misc.Doctor(c) }
-func (s *Action) Complete(c *cli.Context)               { s.misc.Complete(c) }
-func (s *Action) CompletionOpenBSDKsh(a *cli.App) error { return s.misc.CompletionOpenBSDKsh(a) }
-func (s *Action) CompletionBash(c *cli.Context) error   { return s.misc.CompletionBash(c) }
-func (s *Action) CompletionFish(a *cli.App) error       { return s.misc.CompletionFish(a) }
-func (s *Action) CompletionZSH(a *cli.App) error        { return s.misc.CompletionZSH(a) }
-func (s *Action) Config(c *cli.Context) error           { return s.misc.Config(c) }
-func (s *Action) ConfigComplete(c *cli.Context)         { s.misc.ConfigComplete(c) }
 
-func (s *Action) newGopassCompleter(c *cli.Context) *gopassCompleter {
-	return s.misc.newGopassCompleter(c)
+func (s *Action) Process(ctx context.Context, cmd *cli.Command) error {
+	return s.misc.Process(ctx, cmd)
+}
+func (s *Action) Unclip(ctx context.Context, cmd *cli.Command) error { return s.misc.Unclip(ctx, cmd) }
+func (s *Action) Update(ctx context.Context, cmd *cli.Command) error { return s.misc.Update(ctx, cmd) }
+func (s *Action) REPL(ctx context.Context, cmd *cli.Command) error   { return s.misc.REPL(ctx, cmd) }
+func (s *Action) Doctor(ctx context.Context, cmd *cli.Command) error { return s.misc.Doctor(ctx, cmd) }
+func (s *Action) Complete(ctx context.Context, cmd *cli.Command)     { s.misc.Complete(ctx, cmd) }
+func (s *Action) CompletionOpenBSDKsh(a *cli.Command) error          { return s.misc.CompletionOpenBSDKsh(a) }
+func (s *Action) CompletionBash(ctx context.Context, cmd *cli.Command) error {
+	return s.misc.CompletionBash(ctx, cmd)
+}
+func (s *Action) CompletionFish(a *cli.Command) error                { return s.misc.CompletionFish(a) }
+func (s *Action) CompletionZSH(a *cli.Command) error                 { return s.misc.CompletionZSH(a) }
+func (s *Action) Config(ctx context.Context, cmd *cli.Command) error { return s.misc.Config(ctx, cmd) }
+func (s *Action) ConfigComplete(ctx context.Context, cmd *cli.Command) {
+	s.misc.ConfigComplete(ctx, cmd)
+}
+
+func (s *Action) newGopassCompleter(ctx context.Context, cmd *cli.Command) *gopassCompleter {
+	return s.misc.newGopassCompleter(ctx, cmd)
 }
 
 func (s *Action) setConfigValue(ctx context.Context, store, key, value string) error {
@@ -217,10 +317,10 @@ func (s *Action) printConfigValues(ctx context.Context, store string, needles ..
 
 // ── searchHandler internal shims ───────────────────────────────────────────
 
-func (s *Action) find(ctx context.Context, c *cli.Context, needle string, cb showFunc, fuzzy bool) error {
-	return s.search.find(ctx, c, needle, cb, fuzzy)
+func (s *Action) find(ctx context.Context, cmd *cli.Command, needle string, cb showFunc, fuzzy bool) error {
+	return s.search.find(ctx, cmd, needle, cb, fuzzy)
 }
 
-func (s *Action) findSelection(ctx context.Context, c *cli.Context, choices []string, needle string, cb showFunc) error {
-	return s.search.findSelection(ctx, c, choices, needle, cb)
+func (s *Action) findSelection(ctx context.Context, cmd *cli.Command, choices []string, needle string, cb showFunc) error {
+	return s.search.findSelection(ctx, cmd, choices, needle, cb)
 }

@@ -39,7 +39,9 @@ func TestHistory(t *testing.T) {
 	ctx = act.cfg.WithConfig(ctx)
 
 	t.Run("can initialize", func(t *testing.T) {
-		require.NoError(t, act.IsInitialized(gptest.CliCtx(ctx, t)))
+		_, errIsInit := act.IsInitialized(ctx, gptest.CliCtx(ctx, t))
+
+		require.NoError(t, errIsInit)
 	})
 
 	buf := &bytes.Buffer{}
@@ -56,16 +58,16 @@ func TestHistory(t *testing.T) {
 
 	t.Run("insert bar", func(t *testing.T) {
 		defer buf.Reset()
-		require.NoError(t, act.Insert(gptest.CliCtx(ctx, t, "bar")))
+		require.NoError(t, act.Insert(ctx, gptest.CliCtx(ctx, t, "bar")))
 	})
 
 	t.Run("history bar", func(t *testing.T) {
 		defer buf.Reset()
-		require.NoError(t, act.History(gptest.CliCtx(ctx, t, "bar")))
+		require.NoError(t, act.History(ctx, gptest.CliCtx(ctx, t, "bar")))
 	})
 
 	t.Run("history --password bar", func(t *testing.T) {
 		defer buf.Reset()
-		require.NoError(t, act.History(gptest.CliCtxWithFlags(ctx, t, map[string]string{"password": "true"}, "bar")))
+		require.NoError(t, act.History(ctx, gptest.CliCtxWithFlags(ctx, t, map[string]string{"password": "true"}, "bar")))
 	})
 }

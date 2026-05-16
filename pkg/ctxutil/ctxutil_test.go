@@ -1,13 +1,13 @@
 package ctxutil
 
 import (
-	"flag"
+	"context"
 	"testing"
 
 	"github.com/gopasspw/gopass/internal/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 func TestTerminal(t *testing.T) {
@@ -169,19 +169,25 @@ func TestGlobalFlags(t *testing.T) {
 	t.Parallel()
 
 	ctx := config.NewContextInMemory()
-	app := cli.NewApp()
 
-	fs := flag.NewFlagSet("default", flag.ContinueOnError)
-	sf := cli.BoolFlag{
-		Name:  "yes",
-		Usage: "yes",
+	var captured context.Context
+
+	cmd := &cli.Command{
+		Flags: []cli.Flag{
+			&cli.BoolFlag{
+				Name:  "yes",
+				Usage: "yes",
+			},
+		},
+		Action: func(c context.Context, cmd *cli.Command) error {
+			captured = WithGlobalFlags(c, cmd)
+
+			return nil
+		},
 	}
-	require.NoError(t, sf.Apply(fs))
-	require.NoError(t, fs.Parse([]string{"--yes"}))
-	c := cli.NewContext(app, fs, nil)
-	c.Context = ctx
 
-	assert.True(t, IsAlwaysYes(WithGlobalFlags(c)))
+	require.NoError(t, cmd.Run(ctx, []string{"test", "--yes"}))
+	assert.True(t, IsAlwaysYes(captured))
 }
 
 func TestHidden(t *testing.T) {

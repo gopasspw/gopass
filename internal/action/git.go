@@ -1,6 +1,7 @@
 package action
 
 import (
+	"context"
 	"os"
 	"os/exec"
 	"strings"
@@ -8,26 +9,26 @@ import (
 	"github.com/gopasspw/gopass/internal/action/exit"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 // Git passes the git command to the underlying backend.
-func (s *syncHandler) Git(c *cli.Context) error {
-	ctx := ctxutil.WithGlobalFlags(c)
-	store := c.String("store")
+func (s *syncHandler) Git(ctx context.Context, cmd *cli.Command) error {
+	ctx = ctxutil.WithGlobalFlags(ctx, cmd)
+	store := cmd.String("store")
 
 	sub, err := s.Store.GetSubStore(store)
 	if err != nil || sub == nil {
 		return exit.Error(exit.Git, err, "failed to get sub store %s: %s", store, err)
 	}
 
-	args := c.Args().Slice()
+	args := cmd.Args().Slice()
 	out.Noticef(ctx, "Running 'git %s' in %s...", strings.Join(args, " "), sub.Path())
-	cmd := exec.CommandContext(ctx, "git", args...)
-	cmd.Dir = sub.Path()
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	cmd.Stdin = os.Stdin
+	gitCmd := exec.CommandContext(ctx, "git", args...)
+	gitCmd.Dir = sub.Path()
+	gitCmd.Stdout = os.Stdout
+	gitCmd.Stderr = os.Stderr
+	gitCmd.Stdin = os.Stdin
 
-	return cmd.Run()
+	return gitCmd.Run()
 }

@@ -1,7 +1,7 @@
 package pwgen
 
 import (
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 // GetCommands returns the pwgen subcommand.

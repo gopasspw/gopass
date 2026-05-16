@@ -6,7 +6,7 @@ import (
 	"html/template"
 	"strings"
 
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 // ErrUnknownType is returned when an unknown type is encountered.
@@ -84,7 +84,7 @@ func formatFlagFunc(typ string) func(cli.Flag) (string, error) {
 }
 
 // GetCompletion returns a fish completion script.
-func GetCompletion(a *cli.App) (string, error) {
+func GetCompletion(a *cli.Command) (string, error) {
 	tplFuncs := template.FuncMap{
 		"formatShortFlag":    formatFlagFunc("short"),
 		"formatLongFlag":     formatFlagFunc("long"),

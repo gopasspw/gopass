@@ -12,17 +12,17 @@ import (
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/clipboard"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 // Create displays the password creation wizard.
-func (s *generateHandler) Create(c *cli.Context) error {
-	ctx := ctxutil.WithGlobalFlags(c)
+func (s *generateHandler) Create(ctx context.Context, cmd *cli.Command) error {
+	ctx = ctxutil.WithGlobalFlags(ctx, cmd)
 
 	out.Printf(ctx, "🌟 Welcome to the secret creation wizard (gopass create)!")
 	out.Printf(ctx, "🧪 Hint: Use 'gopass edit -c' for more control!")
 
-	wiz, err := create.New(ctx, s.Store.Storage(ctx, c.String("store")))
+	wiz, err := create.New(ctx, s.Store.Storage(ctx, cmd.String("store")))
 	if err != nil {
 		return exit.Error(exit.Unknown, err, "Failed to initialize wizard")
 	}
@@ -35,7 +35,7 @@ func (s *generateHandler) Create(c *cli.Context) error {
 	}
 	// no need to ask if there is only one action available.
 	if len(acts) == 1 {
-		return acts.Run(ctx, c, 0)
+		return acts.Run(ctx, cmd, 0)
 	}
 
 	act, sel := cui.GetSelection(ctx, "Please select the type of secret you would like to create", acts.Selection())
@@ -43,19 +43,19 @@ func (s *generateHandler) Create(c *cli.Context) error {
 	case "default":
 		fallthrough
 	case "show":
-		return acts.Run(ctx, c, sel)
+		return acts.Run(ctx, cmd, sel)
 	default:
 		return exit.Error(exit.Aborted, nil, "user aborted")
 	}
 }
 
 // createPrintOrCopy will display the created password (or copy to clipboard).
-func (s *generateHandler) createPrintOrCopy(ctx context.Context, c *cli.Context, name, password string, genPw bool) error {
+func (s *generateHandler) createPrintOrCopy(ctx context.Context, cmd *cli.Command, name, password string, genPw bool) error {
 	if !genPw {
 		return nil
 	}
 
-	if c.Bool("print") {
+	if cmd.Bool("print") {
 		fmt.Fprintf(out.Stdout, "The generated password for %s is:\n%s\n", name, password)
 
 		return nil

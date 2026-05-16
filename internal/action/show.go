@@ -21,7 +21,7 @@ import (
 	"github.com/gopasspw/gopass/pkg/gopass/secrets"
 	"github.com/gopasspw/gopass/pkg/pwgen/pwrules"
 	"github.com/gopasspw/gopass/pkg/qrcon"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 func isTrailingFlag(arg string) bool {
@@ -30,9 +30,9 @@ func isTrailingFlag(arg string) bool {
 		arg == "-C" || arg == "--alsoclip"
 }
 
-func showParseTrailingFlags(ctx context.Context, c *cli.Context) context.Context {
-	for i := 1; i < c.Args().Len(); i++ {
-		arg := c.Args().Get(i)
+func showParseTrailingFlags(ctx context.Context, cmd *cli.Command) context.Context {
+	for i := 1; i < cmd.Args().Len(); i++ {
+		arg := cmd.Args().Get(i)
 
 		var clipVal string
 
@@ -66,12 +66,12 @@ func showParseTrailingFlags(ctx context.Context, c *cli.Context) context.Context
 	return ctx
 }
 
-func showParseArgs(c *cli.Context) context.Context {
-	ctx := ctxutil.WithGlobalFlags(c)
-	if c.IsSet("clip") {
+func showParseArgs(ctx context.Context, cmd *cli.Command) context.Context {
+	ctx = ctxutil.WithGlobalFlags(ctx, cmd)
+	if cmd.IsSet("clip") {
 		ctx = WithOnlyClip(ctx, true)
 
-		if v := c.String("clip"); v != "" && v != "true" {
+		if v := cmd.String("clip"); v != "" && v != "true" {
 			line, err := strconv.Atoi(v)
 			if err == nil && line >= 0 {
 				ctx = WithClipLine(ctx, line)
@@ -79,43 +79,43 @@ func showParseArgs(c *cli.Context) context.Context {
 		}
 	}
 
-	if c.IsSet("unsafe") {
-		ctx = ctxutil.WithForce(ctx, c.Bool("unsafe"))
+	if cmd.IsSet("unsafe") {
+		ctx = ctxutil.WithForce(ctx, cmd.Bool("unsafe"))
 	}
 
-	if c.IsSet("safe") {
+	if cmd.IsSet("safe") {
 		cfg, _ := config.FromContext(ctx)
-		_ = cfg.SetEnv("show.safecontent", strconv.FormatBool(c.Bool("safe")))
+		_ = cfg.SetEnv("show.safecontent", strconv.FormatBool(cmd.Bool("safe")))
 		ctx = cfg.WithConfig(ctx)
 	}
 
-	if c.IsSet("qr") {
-		ctx = WithPrintQR(ctx, c.Bool("qr"))
+	if cmd.IsSet("qr") {
+		ctx = WithPrintQR(ctx, cmd.Bool("qr"))
 	}
-	if c.IsSet("qrbody") {
-		ctx = WithQRBody(ctx, c.Bool("qrbody"))
-	}
-
-	if c.IsSet("password") {
-		ctx = WithPasswordOnly(ctx, c.Bool("password"))
+	if cmd.IsSet("qrbody") {
+		ctx = WithQRBody(ctx, cmd.Bool("qrbody"))
 	}
 
-	if c.IsSet("revision") {
-		ctx = WithRevision(ctx, c.String("revision"))
+	if cmd.IsSet("password") {
+		ctx = WithPasswordOnly(ctx, cmd.Bool("password"))
+	}
+
+	if cmd.IsSet("revision") {
+		ctx = WithRevision(ctx, cmd.String("revision"))
 	}
 
 	ctx = WithAlsoClip(ctx, config.Bool(ctx, "show.autoclip"))
-	if c.IsSet("alsoclip") {
-		ctx = WithAlsoClip(ctx, c.Bool("alsoclip"))
+	if cmd.IsSet("alsoclip") {
+		ctx = WithAlsoClip(ctx, cmd.Bool("alsoclip"))
 	}
 
-	if c.IsSet("noparsing") {
-		ctx = ctxutil.WithShowParsing(ctx, !c.Bool("noparsing"))
+	if cmd.IsSet("noparsing") {
+		ctx = ctxutil.WithShowParsing(ctx, !cmd.Bool("noparsing"))
 	}
 
-	if c.IsSet("chars") {
+	if cmd.IsSet("chars") {
 		iv := []int{}
-		for v := range strings.SplitSeq(c.String("chars"), ",") {
+		for v := range strings.SplitSeq(cmd.String("chars"), ",") {
 			v = strings.TrimSpace(v)
 			if v == "" {
 				continue
@@ -134,20 +134,20 @@ func showParseArgs(c *cli.Context) context.Context {
 }
 
 // Show the content of a secret file.
-func (s *secretHandler) Show(c *cli.Context) error {
-	name := c.Args().First()
+func (s *secretHandler) Show(ctx context.Context, cmd *cli.Command) error {
+	name := cmd.Args().First()
 
-	ctx := showParseArgs(c)
+	ctx = showParseArgs(ctx, cmd)
 
 	// handle flags appearing after the secret name (e.g. "gopass secret -c").
-	ctx = showParseTrailingFlags(ctx, c)
+	ctx = showParseTrailingFlags(ctx, cmd)
 
-	if key := c.Args().Get(1); key != "" && !isTrailingFlag(key) {
+	if key := cmd.Args().Get(1); key != "" && !isTrailingFlag(key) {
 		debug.Log("Adding key to ctx: %s", key)
 		ctx = WithKey(ctx, key)
 	}
 
-	if err := s.show(ctx, c, name, true); err != nil {
+	if err := s.show(ctx, cmd, name, true); err != nil {
 		return exit.Error(exit.Decrypt, err, "%s", err)
 	}
 
@@ -155,13 +155,13 @@ func (s *secretHandler) Show(c *cli.Context) error {
 }
 
 // show displays the given secret/key.
-func (s *secretHandler) show(ctx context.Context, c *cli.Context, name string, recurse bool) error {
+func (s *secretHandler) show(ctx context.Context, cmd *cli.Command, name string, recurse bool) error {
 	if name == "" {
 		return exit.Error(exit.Usage, nil, "Usage: %s show [name]", s.Name)
 	}
 
 	if s.Store.IsDir(ctx, name) && !s.Store.Exists(ctx, name) {
-		return s.listFn(c)
+		return s.listFn(ctx, cmd)
 	}
 
 	if s.Store.IsDir(ctx, name) && ctxutil.IsTerminal(ctx) && !IsPasswordOnly(ctx) {
@@ -172,19 +172,19 @@ func (s *secretHandler) show(ctx context.Context, c *cli.Context, name string, r
 	ctx = config.WithMount(ctx, mp)
 
 	if HasRevision(ctx) {
-		return s.showHandleRevision(ctx, c, name, GetRevision(ctx))
+		return s.showHandleRevision(ctx, cmd, name, GetRevision(ctx))
 	}
 
 	sec, err := s.Store.Get(ctx, name)
 	if err != nil {
-		return s.showHandleError(ctx, c, name, recurse, err)
+		return s.showHandleError(ctx, cmd, name, recurse, err)
 	}
 
 	return s.showHandleOutput(ctx, name, sec)
 }
 
 // showHandleRevision displays a single revision.
-func (s *secretHandler) showHandleRevision(ctx context.Context, c *cli.Context, name, revision string) error {
+func (s *secretHandler) showHandleRevision(ctx context.Context, cmd *cli.Command, name, revision string) error {
 	revision, err := s.parseRevision(ctx, name, revision)
 	if err != nil {
 		return exit.Error(exit.Unknown, err, "Failed to get revisions: %s", err)
@@ -192,7 +192,7 @@ func (s *secretHandler) showHandleRevision(ctx context.Context, c *cli.Context, 
 
 	ctx, sec, err := s.Store.GetRevision(ctx, name, revision)
 	if err != nil {
-		return s.showHandleError(ctx, c, name, false, err)
+		return s.showHandleError(ctx, cmd, name, false, err)
 	}
 
 	return s.showHandleOutput(ctx, name, sec)
@@ -453,7 +453,7 @@ func (s *secretHandler) hasAliasDomain(ctx context.Context, name string) string 
 }
 
 // showHandleError handles errors retrieving secrets.
-func (s *secretHandler) showHandleError(ctx context.Context, c *cli.Context, name string, recurse bool, err error) error {
+func (s *secretHandler) showHandleError(ctx context.Context, cmd *cli.Command, name string, recurse bool, err error) error {
 	if !errors.Is(err, store.ErrNotFound) || !recurse || !ctxutil.IsTerminal(ctx) {
 		if IsClip(ctx) {
 			_ = notify.Notify(ctx, "gopass - error", fmt.Sprintf("failed to retrieve secret %q: %s", name, err))
@@ -471,8 +471,7 @@ func (s *secretHandler) showHandleError(ctx context.Context, c *cli.Context, nam
 	}
 
 	out.Warningf(ctx, "Entry %q not found. Starting search...", name)
-	c.Context = ctx
-	if err := s.findFuzzyFn(c); err != nil {
+	if err := s.findFuzzyFn(ctx, cmd); err != nil {
 		if IsClip(ctx) {
 			_ = notify.Notify(ctx, "gopass - error", err.Error())
 		}

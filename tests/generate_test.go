@@ -16,11 +16,11 @@ func TestGenerate(t *testing.T) {
 
 	out, err := ts.run("generate")
 	require.Error(t, err)
-	assert.Equal(t, "\nError: please provide a password name\n", out)
+	assert.Equal(t, "please provide a password name\n", out)
 
 	out, err = ts.run("generate foo 0")
 	require.Error(t, err)
-	assert.Equal(t, "\nError: password length must not be zero\n", out)
+	assert.Equal(t, "password length must not be zero\n", out)
 
 	out, err = ts.run("generate -p baz 42")
 	require.NoError(t, err)

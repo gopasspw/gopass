@@ -1,6 +1,7 @@
 package gitfs
 
 import (
+	"context"
 	"os"
 	"os/exec"
 	"strings"
@@ -8,7 +9,7 @@ import (
 	"github.com/gopasspw/gopass/internal/action/exit"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 // Commands returns the commands that are available for the gitfs backend.
@@ -17,7 +18,7 @@ import (
 // approach could be taken with the Action function. We could wrap it, parse
 // "global" flags like store and put that into the context. A bit hacky
 // but on the other hand less ugly wrt. the function signature.
-func (l loader) Commands(i func(*cli.Context) error, s func(string) (string, error)) []*cli.Command {
+func (l loader) Commands(i cli.BeforeFunc, s func(string) (string, error)) []*cli.Command {
 	return []*cli.Command{
 		{
 			Name:  "git",
@@ -27,24 +28,24 @@ func (l loader) Commands(i func(*cli.Context) error, s func(string) (string, err
 				"specified by git-command-args.",
 			Hidden: true,
 			Before: i,
-			Action: func(c *cli.Context) error {
-				ctx := ctxutil.WithGlobalFlags(c)
-				store := c.String("store")
+			Action: func(ctx context.Context, cmd *cli.Command) error {
+				ctx = ctxutil.WithGlobalFlags(ctx, cmd)
+				store := cmd.String("store")
 
 				path, err := s(store)
 				if err != nil {
 					return exit.Error(exit.Unknown, err, "failed to get sub store %s: %s", store, err)
 				}
 
-				args := c.Args().Slice()
+				args := cmd.Args().Slice()
 				out.Noticef(ctx, "Running 'git %s' in %s...", strings.Join(args, " "), path)
-				cmd := exec.CommandContext(ctx, "git", args...)
-				cmd.Dir = path
-				cmd.Stdout = os.Stdout
-				cmd.Stderr = os.Stderr
-				cmd.Stdin = os.Stdin
+				gitCmd := exec.CommandContext(ctx, "git", args...)
+				gitCmd.Dir = path
+				gitCmd.Stdout = os.Stdout
+				gitCmd.Stderr = os.Stderr
+				gitCmd.Stdin = os.Stdin
 
-				return cmd.Run()
+				return gitCmd.Run()
 			},
 			Flags: []cli.Flag{
 				&cli.StringFlag{

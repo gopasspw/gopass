@@ -23,19 +23,19 @@ func TestMove(t *testing.T) {
 	t.Run("move w/o args", func(t *testing.T) {
 		out, err := ts.run("move")
 		require.Error(t, err)
-		assert.Equal(t, "\nError: Usage: "+filepath.Base(ts.Binary)+" mv old-path new-path\n", out)
+		assert.Equal(t, "Usage: "+filepath.Base(ts.Binary)+" mv old-path new-path\n", out)
 	})
 
 	t.Run("move w/o destination", func(t *testing.T) {
 		out, err := ts.run("move foo")
 		require.Error(t, err)
-		assert.Equal(t, "\nError: Usage: "+filepath.Base(ts.Binary)+" mv old-path new-path\n", out)
+		assert.Equal(t, "Usage: "+filepath.Base(ts.Binary)+" mv old-path new-path\n", out)
 	})
 
 	t.Run("move non existing source", func(t *testing.T) {
 		out, err := ts.run("move foo bar")
 		require.Error(t, err)
-		assert.Equal(t, "\nError: source foo does not exist in source store : entry is not in the password store\n", out)
+		assert.Equal(t, "source foo does not exist in source store : entry is not in the password store\n", out)
 	})
 
 	// populate store with secrets
@@ -48,7 +48,7 @@ func TestMove(t *testing.T) {
 
 	t.Run("move existing secret from non-existing destination", func(t *testing.T) {
 		out, _ := ts.run("move foo/bar foo/baz")
-		assert.Equal(t, "\nError: source foo/bar does not exist in source store : entry is not in the password store\n", out)
+		assert.Equal(t, "source foo/bar does not exist in source store : entry is not in the password store\n", out)
 	})
 
 	t.Run("show source secret", func(t *testing.T) {

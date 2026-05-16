@@ -24,19 +24,19 @@ import (
 	"github.com/gopasspw/gopass/pkg/pwgen/pwrules"
 	"github.com/gopasspw/gopass/pkg/pwgen/xkcdgen"
 	"github.com/gopasspw/gopass/pkg/termio"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 var reNumber = regexp.MustCompile(`^\d+$`)
 
 // Generate and save a password.
-func (s *generateHandler) Generate(c *cli.Context) error {
-	ctx := ctxutil.WithGlobalFlags(c)
-	ctx = WithClip(ctx, c.Bool("clip"))
-	force := c.Bool("force")
-	edit := c.Bool("edit") // nolint:ifshort
+func (s *generateHandler) Generate(ctx context.Context, cmd *cli.Command) error {
+	ctx = ctxutil.WithGlobalFlags(ctx, cmd)
+	ctx = WithClip(ctx, cmd.Bool("clip"))
+	force := cmd.Bool("force")
+	edit := cmd.Bool("edit") // nolint:ifshort
 
-	args, kvps := parseArgs(c)
+	args, kvps := parseArgs(ctx, cmd)
 	name := args.Get(0)
 	key, length := keyAndLength(args)
 
@@ -53,10 +53,10 @@ func (s *generateHandler) Generate(c *cli.Context) error {
 
 	// Check for custom commit message
 	commitMsg := "Generated Password"
-	if c.IsSet("commit-message") {
-		commitMsg = c.String("commit-message")
+	if cmd.IsSet("commit-message") {
+		commitMsg = cmd.String("commit-message")
 	}
-	if c.Bool("interactive-commit") {
+	if cmd.Bool("interactive-commit") {
 		commitMsg = ""
 	}
 	ctx = ctxutil.WithCommitMessage(ctx, commitMsg)
@@ -72,26 +72,25 @@ func (s *generateHandler) Generate(c *cli.Context) error {
 	ctx = config.WithMount(ctx, mp)
 
 	// generate password.
-	password, err := s.generatePassword(ctx, c, length, name)
+	password, err := s.generatePassword(ctx, cmd, length, name)
 	if err != nil {
 		return err
 	}
 
 	// display or copy to clipboard.
-	if err := s.generateCopyOrPrint(ctx, c, name, key, password); err != nil {
+	if err := s.generateCopyOrPrint(ctx, cmd, name, key, password); err != nil {
 		return err
 	}
 
 	// write generated password to store.
-	ctx, err = s.generateSetPassword(ctx, name, key, password, kvps, c.Bool("force-regen"))
+	ctx, err = s.generateSetPassword(ctx, name, key, password, kvps, cmd.Bool("force-regen"))
 	if err != nil {
 		return err
 	}
 
 	// if requested launch editor to add more data to the generated secret.
 	if edit {
-		c.Context = ctx
-		if err := s.editFn(c); err != nil {
+		if err := s.editFn(ctx, cmd); err != nil {
 			return exit.Error(exit.Unknown, err, "failed to edit %q: %s", name, err)
 		}
 	}
@@ -117,7 +116,7 @@ func keyAndLength(args argList) (string, string) {
 
 // generateCopyOrPrint will print the password to the screen or copy to the
 // clipboard.
-func (s *generateHandler) generateCopyOrPrint(ctx context.Context, c *cli.Context, name, key, password string) error {
+func (s *generateHandler) generateCopyOrPrint(ctx context.Context, cmd *cli.Command, name, key, password string) error {
 	entry := name
 	if key != "" {
 		entry += " " + key
@@ -134,20 +133,20 @@ func (s *generateHandler) generateCopyOrPrint(ctx context.Context, c *cli.Contex
 		}
 		// if autoclip is on and we're not printing the password to the terminal
 		// at least leave a notice that we did indeed copy it.
-		if config.AsBool(s.cfg.Get("generate.autoclip")) && !c.Bool("print") {
+		if config.AsBool(s.cfg.Get("generate.autoclip")) && !cmd.Bool("print") {
 			out.Print(ctx, "Copied to clipboard")
 
 			return nil
 		}
 	}
 
-	if !c.Bool("print") {
+	if !cmd.Bool("print") {
 		out.Printf(ctx, "Not printing secrets by default. Use 'gopass show %s' to display the password.", entry)
 
 		return nil
 	}
 
-	if c.IsSet("print") && !c.Bool("print") && config.Bool(ctx, "show.safecontent") {
+	if cmd.IsSet("print") && !cmd.Bool("print") && config.Bool(ctx, "show.safecontent") {
 		debug.Log("safecontent suppressing printing")
 
 		return nil
@@ -179,25 +178,25 @@ func hasPwRuleForSecret(ctx context.Context, name string) (string, pwrules.Rule)
 }
 
 // generatePassword will run through the password generation steps.
-func (s *generateHandler) generatePassword(ctx context.Context, c *cli.Context, length, name string) (string, error) {
-	if domain, rule := hasPwRuleForSecret(ctx, name); domain != "" && !c.Bool("force") {
+func (s *generateHandler) generatePassword(ctx context.Context, cmd *cli.Command, length, name string) (string, error) {
+	if domain, rule := hasPwRuleForSecret(ctx, name); domain != "" && !cmd.Bool("force") {
 		return s.generatePasswordForRule(ctx, length, domain, rule)
 	}
 
 	cfg, mp := config.FromContext(ctx)
 
 	generator := cfg.GetM(mp, "generate.generator")
-	if c.IsSet("generator") {
-		generator = c.String("generator")
+	if cmd.IsSet("generator") {
+		generator = cmd.String("generator")
 	}
 
 	if generator == "xkcd" {
-		return s.generatePasswordXKCD(ctx, c, length)
+		return s.generatePasswordXKCD(ctx, cmd, length)
 	}
 
 	symbols := false
-	if c.IsSet("symbols") {
-		symbols = c.Bool("symbols")
+	if cmd.IsSet("symbols") {
+		symbols = cmd.Bool("symbols")
 	} else {
 		if cfg.GetM(mp, "generate.symbols") != "" {
 			symbols = config.AsBool(cfg.GetM(mp, "generate.symbols"))
@@ -225,7 +224,7 @@ func (s *generateHandler) generatePassword(ctx context.Context, c *cli.Context, 
 
 	switch generator {
 	case "memorable":
-		if isStrict(ctx, c) {
+		if isStrict(ctx, cmd) {
 			return pwgen.GenerateMemorablePassword(pwlen, symbols, true), nil
 		}
 
@@ -233,7 +232,7 @@ func (s *generateHandler) generatePassword(ctx context.Context, c *cli.Context, 
 	case "external":
 		return pwgen.GenerateExternal(pwlen)
 	default:
-		if isStrict(ctx, c) {
+		if isStrict(ctx, cmd) {
 			return pwgen.GeneratePasswordWithAllClasses(pwlen, symbols)
 		}
 
@@ -307,25 +306,25 @@ func (s *generateHandler) generatePasswordForRule(ctx context.Context, length, d
 
 // generatePasswordXKCD walks through the steps necessary to create an XKCD-style
 // password.
-func (s *generateHandler) generatePasswordXKCD(ctx context.Context, c *cli.Context, length string) (string, error) {
-	sep := config.String(c.Context, "pwgen.xkcd-sep")
-	if c.IsSet("xkcd-sep") {
-		sep = c.String("xkcd-sep")
+func (s *generateHandler) generatePasswordXKCD(ctx context.Context, cmd *cli.Command, length string) (string, error) {
+	sep := config.String(ctx, "pwgen.xkcd-sep")
+	if cmd.IsSet("xkcd-sep") {
+		sep = cmd.String("xkcd-sep")
 	}
-	lang := config.String(c.Context, "pwgen.xkcd-lang")
-	if c.IsSet("xkcd-lang") {
-		lang = c.String("xkcd-lang")
+	lang := config.String(ctx, "pwgen.xkcd-lang")
+	if cmd.IsSet("xkcd-lang") {
+		lang = cmd.String("xkcd-lang")
 	}
-	capitalize := config.Bool(c.Context, "pwgen.xkcd-capitalize")
-	if c.IsSet("xkcd-capitalize") {
-		capitalize = c.Bool("xkcd-capitalize")
+	capitalize := config.Bool(ctx, "pwgen.xkcd-capitalize")
+	if cmd.IsSet("xkcd-capitalize") {
+		capitalize = cmd.Bool("xkcd-capitalize")
 	}
-	num := config.Bool(c.Context, "pwgen.xkcd-numbers")
-	if c.IsSet("xkcd-numbers") {
-		num = c.Bool("xkcd-numbers")
+	num := config.Bool(ctx, "pwgen.xkcd-numbers")
+	if cmd.IsSet("xkcd-numbers") {
+		num = cmd.Bool("xkcd-numbers")
 	}
 
-	pwlen := config.Int(c.Context, "pwgen.xkcd-len")
+	pwlen := config.Int(ctx, "pwgen.xkcd-len")
 	switch {
 	case length != "":
 		// using the command line supplied value
@@ -449,12 +448,12 @@ func setMetadata(sec gopass.Secret, kvps map[string]string) {
 }
 
 // CompleteGenerate implements the completion heuristic for the generate command.
-func (s *generateHandler) CompleteGenerate(c *cli.Context) {
-	ctx := ctxutil.WithGlobalFlags(c)
-	if c.Args().Len() < 1 {
+func (s *generateHandler) CompleteGenerate(ctx context.Context, cmd *cli.Command) {
+	ctx = ctxutil.WithGlobalFlags(ctx, cmd)
+	if cmd.Args().Len() < 1 {
 		return
 	}
-	needle := c.Args().Get(0) // nolint:ifshort
+	needle := cmd.Args().Get(0) // nolint:ifshort
 
 	_, err := s.Store.IsInitialized(ctx) // important to make sure the structs are not nil.
 	if err != nil {
@@ -532,10 +531,10 @@ func filterPrefix(in []string, prefix string) []string {
 	return out
 }
 
-func isStrict(ctx context.Context, c *cli.Context) bool {
+func isStrict(ctx context.Context, cmd *cli.Command) bool {
 	cfg, mp := config.FromContext(ctx)
 
-	if c.Bool("strict") {
+	if cmd.Bool("strict") {
 		return true
 	}
 

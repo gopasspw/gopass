@@ -7,7 +7,7 @@ import (
 	"github.com/gopasspw/gopass/internal/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 func TestCreateActions(t *testing.T) {
@@ -20,7 +20,7 @@ func TestCreateActions(t *testing.T) {
 		},
 		{
 			Name: "bar",
-			Fn: func(context.Context, *cli.Context) error {
+			Fn: func(context.Context, *cli.Command) error {
 				return nil
 			},
 		},

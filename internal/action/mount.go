@@ -19,28 +19,28 @@ import (
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/gopasspw/gopass/pkg/set"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 // MountRemove removes an existing mount.
-func (s *mountHandler) MountRemove(c *cli.Context) error {
-	ctx := ctxutil.WithGlobalFlags(c)
-	if c.Args().Len() != 1 {
+func (s *mountHandler) MountRemove(ctx context.Context, cmd *cli.Command) error {
+	ctx = ctxutil.WithGlobalFlags(ctx, cmd)
+	if cmd.Args().Len() != 1 {
 		return exit.Error(exit.Usage, nil, "Usage: %s mount remove [alias]", s.Name)
 	}
 
-	if err := s.Store.RemoveMount(ctx, c.Args().Get(0)); err != nil {
+	if err := s.Store.RemoveMount(ctx, cmd.Args().Get(0)); err != nil {
 		out.Errorf(ctx, "Failed to remove mount: %s", err)
 	}
 
-	out.Printf(ctx, "Password Store %s umounted", c.Args().Get(0))
+	out.Printf(ctx, "Password Store %s umounted", cmd.Args().Get(0))
 
 	return nil
 }
 
 // MountsPrint prints all existing mounts.
-func (s *mountHandler) MountsPrint(c *cli.Context) error {
-	ctx := ctxutil.WithGlobalFlags(c)
+func (s *mountHandler) MountsPrint(ctx context.Context, cmd *cli.Command) error {
+	ctx = ctxutil.WithGlobalFlags(ctx, cmd)
 	if len(s.Store.Mounts()) < 1 {
 		out.Printf(ctx, "No mounts")
 
@@ -66,33 +66,33 @@ func (s *mountHandler) MountsPrint(c *cli.Context) error {
 
 // MountsComplete will print a list of existings mount points for bash
 // completion.
-func (s *mountHandler) MountsComplete(*cli.Context) {
+func (s *mountHandler) MountsComplete(ctx context.Context, cmd *cli.Command) {
 	for alias := range s.Store.Mounts() {
 		fmt.Fprintln(stdout, alias)
 	}
 }
 
 // MountAdd adds a new mount.
-func (s *mountHandler) MountAdd(c *cli.Context) error {
-	ctx := ctxutil.WithGlobalFlags(c)
+func (s *mountHandler) MountAdd(ctx context.Context, cmd *cli.Command) error {
+	ctx = ctxutil.WithGlobalFlags(ctx, cmd)
 
 	var alias, localPath string
-	switch c.Args().Len() {
+	switch cmd.Args().Len() {
 	case 0:
 		return exit.Error(exit.Usage, nil, "usage: %s mounts add <local path> OR %s mounts add <alias> <local path>", s.Name, s.Name)
 	case 1:
-		localPath = c.Args().Get(0)
+		localPath = cmd.Args().Get(0)
 		alias = filepath.Base(localPath)
 	default:
-		alias = c.Args().Get(0)
-		localPath = c.Args().Get(1)
+		alias = cmd.Args().Get(0)
+		localPath = cmd.Args().Get(1)
 	}
 
 	if s.Store.Exists(ctx, alias) {
 		out.Warningf(ctx, "shadowing %s entry", alias)
 	}
 
-	if c.Bool("create") && !set.New(alias).IsSubset(set.New(s.Store.MountPoints()...)) {
+	if cmd.Bool("create") && !set.New(alias).IsSubset(set.New(s.Store.MountPoints()...)) {
 		debug.Log("creating new mount %s at %s", alias, localPath)
 
 		return s.initFn(ctx, alias, localPath)
@@ -121,8 +121,8 @@ func (s *mountHandler) MountAdd(c *cli.Context) error {
 }
 
 // MountsVersions prints the backend versions for each mount.
-func (s *mountHandler) MountsVersions(c *cli.Context) error {
-	ctx := ctxutil.WithGlobalFlags(c)
+func (s *mountHandler) MountsVersions(ctx context.Context, cmd *cli.Command) error {
+	ctx = ctxutil.WithGlobalFlags(ctx, cmd)
 
 	cryptoVer := versionInfo(ctx, s.Store.Crypto(ctx, ""))
 	storageVer := versionInfo(ctx, s.Store.Storage(ctx, ""))

@@ -52,7 +52,7 @@ func TestMerge(t *testing.T) {
 	require.NoError(t, act.Store.Set(ctx, "bar/zab", sec))
 	buf.Reset()
 
-	require.NoError(t, act.Merge(gptest.CliCtxWithFlags(ctx, t, map[string]string{"force": "true"}, "bar/baz", "bar/zab")))
+	require.NoError(t, act.Merge(ctx, gptest.CliCtxWithFlags(ctx, t, map[string]string{"force": "true"}, "bar/baz", "bar/zab")))
 
 	sec, err = act.Store.Get(ctx, "bar/baz")
 	require.NoError(t, err)
