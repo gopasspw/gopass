@@ -49,6 +49,7 @@ func (o *osKeyring) Set(ctx context.Context, name, value string) {
 	if err := keyring.Set("gopass", name, value); err != nil {
 		debug.Log("failed to set %s: %v", name, err)
 		out.Warningf(ctx, "Failed to cache passphrase in OS keyring: %s", err)
+
 		return
 	}
 	o.knownKeys[name] = true
