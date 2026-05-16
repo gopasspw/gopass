@@ -4,10 +4,12 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/gopasspw/gopass/internal/cache"
 	"github.com/gopasspw/gopass/internal/config"
+	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/gopasspw/gopass/pkg/pinentry/cli"
 	"github.com/twpayne/go-pinentry/v4"
@@ -16,7 +18,7 @@ import (
 
 type cacher interface {
 	Get(string) (string, bool)
-	Set(string, string)
+	Set(context.Context, string, string)
 	Remove(string)
 	Purge()
 }
@@ -43,9 +45,11 @@ func (o *osKeyring) Get(key string) (string, bool) {
 	return sec, true
 }
 
-func (o *osKeyring) Set(name, value string) {
+func (o *osKeyring) Set(ctx context.Context, name, value string) {
 	if err := keyring.Set("gopass", name, value); err != nil {
 		debug.Log("failed to set %s: %w", name, err)
+		out.Warningf(ctx, "Failed to cache passphrase in OS keyring: %s", err)
+		return
 	}
 	o.knownKeys[name] = true
 }
@@ -77,6 +81,8 @@ type askPass struct {
 	cache   cacher
 }
 
+var keyringWarningOnce sync.Once
+
 func newAskPass(ctx context.Context) *askPass {
 	a := &askPass{
 		cache: cache.NewInMemTTL[string, string](time.Hour, 24*time.Hour),
@@ -86,6 +92,10 @@ func newAskPass(ctx context.Context) *askPass {
 		if err := keyring.Set("gopass", "sentinel", "empty"); err == nil {
 			debug.V(1).Log("using OS keychain to cache age credentials")
 			a.cache = newOsKeyring()
+		} else {
+			keyringWarningOnce.Do(func() {
+				out.Warningf(ctx, "OS keyring is not available. Passphrase caching will not persist. Disable age.usekeychain or install a keyring provider (e.g. gnome-keyring): %s", err)
+			})
 		}
 	}
 
@@ -96,7 +106,7 @@ func (a *askPass) Ping(_ context.Context) error {
 	return nil
 }
 
-func (a *askPass) Passphrase(key string, reason string, repeat bool) (string, error) {
+func (a *askPass) Passphrase(ctx context.Context, key string, reason string, repeat bool) (string, error) {
 	if value, found := a.cache.Get(key); found || a.testing {
 		debug.V(1).Log("Read value for %s from cache", key)
 
@@ -110,7 +120,7 @@ func (a *askPass) Passphrase(key string, reason string, repeat bool) (string, er
 	}
 
 	debug.V(1).Log("Updated value for %s in cache", key)
-	a.cache.Set(key, pw)
+	a.cache.Set(ctx, key, pw)
 
 	return pw, nil
 }

@@ -72,7 +72,7 @@ func (w *wrappedRecipient) Wrap(fileKey []byte) ([]*age.Stanza, error) {
 
 // Identities returns all identities, used for decryption.
 func (a *Age) Identities(ctx context.Context) ([]age.Identity, error) {
-	pwcb := a.effectivePwCallback(fmt.Sprintf("to read the age keyring from %s", a.identity))
+	pwcb := a.effectivePwCallback(ctx, fmt.Sprintf("to read the age keyring from %s", a.identity))
 	ppcb := a.effectivePwPurgeCallback()
 
 	debug.V(1).Log("reading native identities from %s", a.identity)
@@ -368,7 +368,7 @@ func (a *Age) addIdentity(ctx context.Context, id age.Identity) error {
 // without parsing individual identity lines. This avoids invoking external age
 // plugins (e.g. age-plugin-yubikey) merely to read existing file contents.
 func (a *Age) loadIdentityFile(ctx context.Context) (string, error) {
-	pwcb := a.effectivePwCallback(fmt.Sprintf("to read the age keyring from %s", a.identity))
+	pwcb := a.effectivePwCallback(ctx, fmt.Sprintf("to read the age keyring from %s", a.identity))
 	ppcb := a.effectivePwPurgeCallback()
 
 	buf, err := a.decryptFile(ctx, a.identity, pwcb, ppcb)
@@ -380,7 +380,7 @@ func (a *Age) loadIdentityFile(ctx context.Context) (string, error) {
 }
 
 func (a *Age) saveIdentities(ctx context.Context, ids []string, newFile bool) error {
-	pwcb := a.effectivePwCallback(fmt.Sprintf("to save the age keyring to %s", a.identity))
+	pwcb := a.effectivePwCallback(ctx, fmt.Sprintf("to save the age keyring to %s", a.identity))
 
 	// ensure directory exists.
 	if err := os.MkdirAll(filepath.Dir(a.identity), 0o700); err != nil {

@@ -1,6 +1,7 @@
 package cache
 
 import (
+	"context"
 	"sync"
 	"time"
 )
@@ -79,7 +80,7 @@ func (c *InMemTTL[K, V]) purgeExpired() {
 }
 
 // Set creates or overwrites an entry.
-func (c *InMemTTL[K, V]) Set(key K, value V) {
+func (c *InMemTTL[K, V]) Set(_ context.Context, key K, value V) {
 	c.Lock()
 	defer c.Unlock()
 

@@ -119,7 +119,7 @@ func getSSHDir() (string, error) {
 }
 
 // parseSSHIdentity parses a SSH public key file and returns the recipient and the identity.
-func (a *Age) parseSSHIdentity(_ context.Context, pubFn string) (string, age.Identity, error) {
+func (a *Age) parseSSHIdentity(ctx context.Context, pubFn string) (string, age.Identity, error) {
 	privFn := strings.TrimSuffix(pubFn, ".pub")
 	_, err := os.Stat(privFn)
 	if err != nil {
@@ -148,7 +148,7 @@ func (a *Age) parseSSHIdentity(_ context.Context, pubFn string) (string, age.Ide
 		var perr *ssh.PassphraseMissingError
 		if errors.As(err, &perr) {
 			id, err := agessh.NewEncryptedSSHIdentity(pubkey, privBuf, func() ([]byte, error) {
-				return a.effectivePwCallback(fmt.Sprintf("to unlock the SSH key %s", pubFn))(pubFn, false)
+				return a.effectivePwCallback(ctx, fmt.Sprintf("to unlock the SSH key %s", pubFn))(pubFn, false)
 			})
 
 			return recp, id, err

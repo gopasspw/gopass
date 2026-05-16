@@ -100,7 +100,7 @@ type Keypair struct {
 
 func (a *Age) loadIdentitiesFromKeyring(ctx context.Context) ([]string, error) {
 	oldKeyring := OldKeyringPath()
-	pwcb := a.effectivePwCallback(fmt.Sprintf("to load the old age keyring at %s", oldKeyring))
+	pwcb := a.effectivePwCallback(ctx, fmt.Sprintf("to load the old age keyring at %s", oldKeyring))
 	ppcb := a.effectivePwPurgeCallback()
 
 	buf, err := a.decryptFile(ctx, oldKeyring, pwcb, ppcb)
