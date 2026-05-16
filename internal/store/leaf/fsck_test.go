@@ -93,7 +93,16 @@ func TestFsckCheckCaseConflicts(t *testing.T) {
 	}
 
 	err := s.fsckCheckCaseConflicts(ctx)
-	assert.Error(t, err, "case conflicts should be reported")
+	if runtime.GOOS == "linux" {
+		// On case-sensitive filesystems the conflicting entries were stored
+		// successfully, so the check must report them.
+		assert.Error(t, err, "case conflicts should be reported")
+	} else {
+		// On case-insensitive filesystems (macOS, Windows) the Set calls
+		// above returned ErrMeaninglessWrite, so no conflicting entries were
+		// ever written and the check should find nothing.
+		assert.NoError(t, err, "no case conflicts expected on case-insensitive filesystem")
+	}
 }
 
 func TestCompareStringSlices(t *testing.T) {
