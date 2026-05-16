@@ -92,13 +92,13 @@ func (a *Age) SetPasswordPurgeCallback(cb func(string)) {
 // effectivePwCallback returns the password callback to use for the given
 // operation hint. If an external callback was configured it is returned;
 // otherwise a closure using the interactive askPass prompt is returned.
-func (a *Age) effectivePwCallback(hint string) func(string, bool) ([]byte, error) {
+func (a *Age) effectivePwCallback(ctx context.Context, hint string) func(string, bool) ([]byte, error) {
 	if a.pwCallback != nil {
 		return a.pwCallback
 	}
 
 	return func(prompt string, confirm bool) ([]byte, error) {
-		pw, err := a.askPass.Passphrase(prompt, hint, confirm)
+		pw, err := a.askPass.Passphrase(ctx, prompt, hint, confirm)
 
 		return []byte(pw), err
 	}
