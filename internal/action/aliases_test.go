@@ -31,5 +31,5 @@ func TestAliases(t *testing.T) {
 		stdout = os.Stdout
 	}()
 
-	require.NoError(t, act.AliasesPrint(gptest.CliCtx(ctx, t)))
+	require.NoError(t, act.AliasesPrint(ctx, gptest.CliCtx(ctx, t)))
 }

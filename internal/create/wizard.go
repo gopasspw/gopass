@@ -27,7 +27,7 @@ import (
 	"github.com/gopasspw/gopass/pkg/set"
 	"github.com/gopasspw/gopass/pkg/termio"
 	"github.com/martinhoefling/goxkcdpwgen/xkcdpwgen"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 	"go.yaml.in/yaml/v3"
 )
 
@@ -154,7 +154,7 @@ func (w *Wizard) parseTemplates(ctx context.Context, s backend.Storage) ([]Templ
 }
 
 // ActionCallback is the callback for the creation calls to print and copy the credentials.
-type ActionCallback func(context.Context, *cli.Context, string, string, bool) error
+type ActionCallback func(context.Context, *cli.Command, string, string, bool) error
 
 // Actions returns a list of actions that can be performed on the wizard. The actions directly
 // interact with the underlying storage.
@@ -174,12 +174,12 @@ func (w *Wizard) Actions(s *root.Store, cb ActionCallback) cui.Actions {
 	return acts
 }
 
-func mkActFunc(tpl Template, s *root.Store, cb ActionCallback) func(context.Context, *cli.Context) error { //nolint:cyclop
+func mkActFunc(tpl Template, s *root.Store, cb ActionCallback) func(context.Context, *cli.Command) error { //nolint:cyclop
 	debug.Log("creating action func for %+v, cb: %p", tpl, cb)
 
-	return func(ctx context.Context, c *cli.Context) error {
-		name := c.Args().First()
-		store := c.String("store")
+	return func(ctx context.Context, cmd *cli.Command) error {
+		name := cmd.Args().First()
+		store := cmd.String("store")
 
 		// select store.
 		if store == "" {
@@ -187,7 +187,7 @@ func mkActFunc(tpl Template, s *root.Store, cb ActionCallback) func(context.Cont
 		}
 		ctx = config.WithMount(ctx, store)
 
-		force := c.Bool("force")
+		force := cmd.Bool("force")
 
 		if err := hook.Invoke(ctx, "create.pre-hook", name); err != nil {
 			return err
@@ -235,7 +235,7 @@ func mkActFunc(tpl Template, s *root.Store, cb ActionCallback) func(context.Cont
 				}
 				_ = sec.Set(k, sv)
 			case "multiline":
-				ed := editor.Path(c)
+				ed := editor.Path(ctx, cmd)
 
 				content, err := renderTemplate(ctx, k, s)
 				if err != nil {
@@ -336,7 +336,7 @@ func mkActFunc(tpl Template, s *root.Store, cb ActionCallback) func(context.Cont
 		}
 		out.OKf(ctx, "Credentials saved to %q", name)
 
-		return cb(ctx, c, name, password, genPw)
+		return cb(ctx, cmd, name, password, genPw)
 	}
 }
 

@@ -19,29 +19,29 @@ import (
 	"github.com/mattn/go-tty"
 	"github.com/pquerna/otp/hotp"
 	"github.com/pquerna/otp/totp"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 // OTP implements OTP token handling for TOTP and HOTP.
-func (s *otpHandler) OTP(c *cli.Context) error {
-	ctx := ctxutil.WithGlobalFlags(c)
-	name := c.Args().First()
+func (s *otpHandler) OTP(ctx context.Context, cmd *cli.Command) error {
+	ctx = ctxutil.WithGlobalFlags(ctx, cmd)
+	name := cmd.Args().First()
 	if name == "" {
 		return exit.Error(exit.Usage, nil, "Usage: %s otp <NAME>", s.Name)
 	}
 
-	qrf := c.String("qr")
+	qrf := cmd.String("qr")
 	clip := config.Bool(ctx, "otp.onlyclip")
-	if c.IsSet("clip") {
-		clip = c.Bool("clip")
+	if cmd.IsSet("clip") {
+		clip = cmd.Bool("clip")
 	}
 	alsoClip := config.Bool(ctx, "otp.autoclip")
-	if c.IsSet("alsoclip") {
-		alsoClip = c.Bool("alsoclip")
+	if cmd.IsSet("alsoclip") {
+		alsoClip = cmd.Bool("alsoclip")
 	}
-	chained := c.Bool("chained")
-	pw := c.Bool("password")
-	snip := c.Bool("snip")
+	chained := cmd.Bool("chained")
+	pw := cmd.Bool("password")
+	snip := cmd.Bool("snip")
 
 	if snip {
 		qr, err := otp.ParseScreen(ctx)
@@ -251,7 +251,7 @@ func (s *otpHandler) otpHandleError(ctx context.Context, name, qrf string, clip,
 	}
 
 	out.Printf(ctx, "Entry %q not found. Starting search...", name)
-	cb := func(ctx context.Context, c *cli.Context, name string, recurse bool) error {
+	cb := func(ctx context.Context, cmd *cli.Command, name string, recurse bool) error {
 		return s.otp(ctx, name, qrf, clip, pw, false, chained, alsoClip)
 	}
 	if err := s.findFn(ctx, nil, name, cb, false); err != nil {

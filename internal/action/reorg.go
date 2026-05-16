@@ -13,14 +13,14 @@ import (
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/termio"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 // Reorg is the action that allows to reorganize a part of the store.
-func (s *miscHandler) Reorg(c *cli.Context) error {
-	ctx := ctxutil.WithGlobalFlags(c)
+func (s *miscHandler) Reorg(ctx context.Context, cmd *cli.Command) error {
+	ctx = ctxutil.WithGlobalFlags(ctx, cmd)
 
-	prefix := c.Args().Get(0)
+	prefix := cmd.Args().Get(0)
 
 	// list secrets
 	secrets, err := s.Store.List(ctx, -1)
@@ -53,7 +53,7 @@ func (s *miscHandler) Reorg(c *cli.Context) error {
 	if !ctxutil.IsInteractive(ctx) {
 		return exit.Error(exit.Unsupported, nil, "reorg is not supported in non-interactive mode")
 	}
-	editorPath := editor.Path(c)
+	editorPath := editor.Path(ctx, cmd)
 	modifiedContent, err := editor.Invoke(ctx, editorPath, initialContent)
 	if err != nil {
 		return exit.Error(exit.Unknown, err, "failed to invoke editor: %s", err)

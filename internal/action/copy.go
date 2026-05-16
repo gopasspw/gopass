@@ -7,27 +7,27 @@ import (
 	"github.com/gopasspw/gopass/internal/action/exit"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/termio"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 // Copy the contents of a file to another one.
-func (s *secretHandler) Copy(c *cli.Context) error {
-	ctx := ctxutil.WithGlobalFlags(c)
-	force := c.Bool("force")
+func (s *secretHandler) Copy(ctx context.Context, cmd *cli.Command) error {
+	ctx = ctxutil.WithGlobalFlags(ctx, cmd)
+	force := cmd.Bool("force")
 
-	if c.Args().Len() != 2 {
+	if cmd.Args().Len() != 2 {
 		return exit.Error(exit.Usage, nil, "Usage: %s cp <FROM> <TO>", s.Name)
 	}
 
-	from := c.Args().Get(0)
-	to := c.Args().Get(1)
+	from := cmd.Args().Get(0)
+	to := cmd.Args().Get(1)
 
 	// Check for custom commit message
 	commitMsg := fmt.Sprintf("Copied %s to %s", from, to)
-	if c.IsSet("commit-message") {
-		commitMsg = c.String("commit-message")
+	if cmd.IsSet("commit-message") {
+		commitMsg = cmd.String("commit-message")
 	}
-	if c.Bool("interactive-commit") {
+	if cmd.Bool("interactive-commit") {
 		commitMsg = ""
 	}
 	ctx = ctxutil.WithCommitMessage(ctx, commitMsg)

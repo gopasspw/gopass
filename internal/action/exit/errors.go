@@ -6,7 +6,7 @@ import (
 	"text/tabwriter"
 
 	"github.com/gopasspw/gopass/pkg/debug"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 // Exit code constants. Values are fixed and must never be re-ordered or

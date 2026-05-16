@@ -8,13 +8,13 @@ import (
 	"github.com/gopasspw/gopass/tests/gptest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 func testCommand(t *testing.T, cmd *cli.Command) {
 	t.Helper()
 
-	if len(cmd.Subcommands) < 1 {
+	if len(cmd.Commands) < 1 {
 		assert.NotNil(t, cmd.Action, cmd.Name)
 	}
 
@@ -32,7 +32,7 @@ func testCommand(t *testing.T, cmd *cli.Command) {
 		}
 	}
 
-	for _, scmd := range cmd.Subcommands {
+	for _, scmd := range cmd.Commands {
 		testCommand(t, scmd)
 	}
 }

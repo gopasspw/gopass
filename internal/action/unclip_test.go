@@ -31,6 +31,6 @@ func TestUnclip(t *testing.T) {
 	ctx = act.cfg.WithConfig(ctx)
 
 	t.Run("unlcip should fail", func(t *testing.T) {
-		require.Error(t, act.Unclip(gptest.CliCtxWithFlags(ctx, t, map[string]string{"timeout": "0"})))
+		require.Error(t, act.Unclip(ctx, gptest.CliCtxWithFlags(ctx, t, map[string]string{"timeout": "0"})))
 	})
 }

@@ -16,7 +16,7 @@ func TestInsert(t *testing.T) {
 
 	out, err := ts.run("insert")
 	require.Error(t, err)
-	assert.Equal(t, "\nError: Usage: "+filepath.Base(ts.Binary)+" insert name\n", out)
+	assert.Equal(t, "Usage: "+filepath.Base(ts.Binary)+" insert name\n", out)
 
 	_, err = ts.runCmd([]string{ts.Binary, "insert", "some/secret"}, []byte("moar"))
 	require.NoError(t, err)
@@ -50,7 +50,7 @@ func TestInsert(t *testing.T) {
 
 		out, err = ts.run("insert some/other")
 		require.Error(t, err)
-		assert.Equal(t, "\nError: not overwriting your current secret\n", out)
+		assert.Equal(t, "not overwriting your current secret\n", out)
 
 		out, err = ts.run("show -o some/other")
 		require.NoError(t, err)
@@ -66,7 +66,7 @@ func TestInsert(t *testing.T) {
 
 		out, err = ts.run("show -o some/other")
 		require.Error(t, err)
-		assert.Equal(t, "\nError: empty secret\n", out)
+		assert.Equal(t, "empty secret\n", out)
 
 		_, err = ts.runCmd([]string{ts.Binary, "insert", "-f", "some/other"}, []byte("final"))
 		require.NoError(t, err)
@@ -86,7 +86,7 @@ func TestInsert(t *testing.T) {
 
 		out, err = ts.run("insert some/other test:inline2")
 		require.Error(t, err)
-		assert.Equal(t, "\nError: not overwriting your current secret\n", out)
+		assert.Equal(t, "not overwriting your current secret\n", out)
 
 		out, err = ts.run("show some/other Test")
 		require.NoError(t, err)

@@ -15,19 +15,19 @@ import (
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/gopasspw/gopass/pkg/termio"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 // RCSInit initializes a git repo including basic configuration.
-func (s *setupHandler) RCSInit(c *cli.Context) error {
-	ctx := ctxutil.WithGlobalFlags(c)
-	store := c.String("store")
-	un := termio.DetectName(c.Context, c)
-	ue := termio.DetectEmail(c.Context, c)
+func (s *setupHandler) RCSInit(ctx context.Context, cmd *cli.Command) error {
+	ctx = ctxutil.WithGlobalFlags(ctx, cmd)
+	store := cmd.String("store")
+	un := termio.DetectName(ctx, cmd)
+	ue := termio.DetectEmail(ctx, cmd)
 
-	if c.IsSet("storage") {
+	if cmd.IsSet("storage") {
 		var err error
-		ctx, err = backend.WithStorageBackendString(ctx, c.String("storage"))
+		ctx, err = backend.WithStorageBackendString(ctx, cmd.String("storage"))
 		if err != nil {
 			return exit.Error(exit.Unknown, err, "Failed to set storage backend: %s", err)
 		}
@@ -118,11 +118,11 @@ func (s *setupHandler) getUserData(ctx context.Context, store, name, email strin
 }
 
 // RCSAddRemote adds a new git remote.
-func (s *setupHandler) RCSAddRemote(c *cli.Context) error {
-	ctx := ctxutil.WithGlobalFlags(c)
-	store := c.String("store")
-	remote := c.Args().Get(0)
-	url := c.Args().Get(1)
+func (s *setupHandler) RCSAddRemote(ctx context.Context, cmd *cli.Command) error {
+	ctx = ctxutil.WithGlobalFlags(ctx, cmd)
+	store := cmd.String("store")
+	remote := cmd.Args().Get(0)
+	url := cmd.Args().Get(1)
 
 	if remote == "" || url == "" {
 		return exit.Error(exit.Usage, nil, "Usage: %s git remote add <REMOTE> <URL>", s.Name)
@@ -132,10 +132,10 @@ func (s *setupHandler) RCSAddRemote(c *cli.Context) error {
 }
 
 // RCSRemoveRemote removes a git remote.
-func (s *setupHandler) RCSRemoveRemote(c *cli.Context) error {
-	ctx := ctxutil.WithGlobalFlags(c)
-	store := c.String("store")
-	remote := c.Args().Get(0)
+func (s *setupHandler) RCSRemoveRemote(ctx context.Context, cmd *cli.Command) error {
+	ctx = ctxutil.WithGlobalFlags(ctx, cmd)
+	store := cmd.String("store")
+	remote := cmd.Args().Get(0)
 
 	if remote == "" {
 		return exit.Error(exit.Usage, nil, "Usage: %s git remote rm <REMOTE>", s.Name)
@@ -145,21 +145,21 @@ func (s *setupHandler) RCSRemoveRemote(c *cli.Context) error {
 }
 
 // RCSPull pulls from a git remote.
-func (s *setupHandler) RCSPull(c *cli.Context) error {
-	ctx := ctxutil.WithGlobalFlags(c)
-	store := c.String("store")
-	origin := c.Args().Get(0)
-	branch := c.Args().Get(1)
+func (s *setupHandler) RCSPull(ctx context.Context, cmd *cli.Command) error {
+	ctx = ctxutil.WithGlobalFlags(ctx, cmd)
+	store := cmd.String("store")
+	origin := cmd.Args().Get(0)
+	branch := cmd.Args().Get(1)
 
 	return s.Store.RCSPull(ctx, store, origin, branch)
 }
 
 // RCSPush pushes to a git remote.
-func (s *setupHandler) RCSPush(c *cli.Context) error {
-	ctx := ctxutil.WithGlobalFlags(c)
-	store := c.String("store")
-	origin := c.Args().Get(0)
-	branch := c.Args().Get(1)
+func (s *setupHandler) RCSPush(ctx context.Context, cmd *cli.Command) error {
+	ctx = ctxutil.WithGlobalFlags(ctx, cmd)
+	store := cmd.String("store")
+	origin := cmd.Args().Get(0)
+	branch := cmd.Args().Get(1)
 
 	if err := s.Store.RCSPush(ctx, store, origin, branch); err != nil {
 		if errors.Is(err, si.ErrGitNoRemote) {
@@ -176,9 +176,9 @@ func (s *setupHandler) RCSPush(c *cli.Context) error {
 }
 
 // RCSStatus prints the rcs status.
-func (s *setupHandler) RCSStatus(c *cli.Context) error {
-	ctx := ctxutil.WithGlobalFlags(c)
-	store := c.String("store")
+func (s *setupHandler) RCSStatus(ctx context.Context, cmd *cli.Command) error {
+	ctx = ctxutil.WithGlobalFlags(ctx, cmd)
+	store := cmd.String("store")
 
 	return s.Store.RCSStatus(ctx, store)
 }

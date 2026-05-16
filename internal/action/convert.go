@@ -1,6 +1,8 @@
 package action
 
 import (
+	"context"
+
 	"github.com/gopasspw/gopass/internal/action/exit"
 	"github.com/gopasspw/gopass/internal/backend"
 	"github.com/gopasspw/gopass/internal/backend/crypto/age"
@@ -9,16 +11,16 @@ import (
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/gopasspw/gopass/pkg/termio"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 // Convert converts a store to a different set of backends.
-func (s *miscHandler) Convert(c *cli.Context) error {
-	ctx := ctxutil.WithGlobalFlags(c)
+func (s *miscHandler) Convert(ctx context.Context, cmd *cli.Command) error {
+	ctx = ctxutil.WithGlobalFlags(ctx, cmd)
 	ctx = age.WithOnlyNative(ctx, true)
 
-	store := c.String("store")
-	move := c.Bool("move")
+	store := cmd.String("store")
+	move := cmd.Bool("move")
 
 	sub, err := s.Store.GetSubStore(store)
 	if err != nil {
@@ -35,7 +37,7 @@ func (s *miscHandler) Convert(c *cli.Context) error {
 		return exit.Error(exit.Unknown, err, "unknown source storage backend %q: %s", oldStorage, err)
 	}
 
-	if sv := c.String("storage"); sv != "" {
+	if sv := cmd.String("storage"); sv != "" {
 		var err error
 		storage, err = backend.StorageRegistry.Backend(sv)
 		if err != nil {
@@ -50,7 +52,7 @@ func (s *miscHandler) Convert(c *cli.Context) error {
 		return exit.Error(exit.Unknown, err, "unknown source crypto backend %q: %s", oldCrypto, err)
 	}
 
-	if sv := c.String("crypto"); sv != "" {
+	if sv := cmd.String("crypto"); sv != "" {
 		var err error
 		crypto, err = backend.CryptoRegistry.Backend(sv)
 		if err != nil {

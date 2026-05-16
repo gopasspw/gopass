@@ -20,7 +20,7 @@ import (
 	"github.com/gopasspw/gopass/internal/tree"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/debug"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 	"github.com/xhit/go-str2duration/v2"
 )
 
@@ -31,8 +31,8 @@ var (
 )
 
 // Sync all stores with their remotes.
-func (s *syncHandler) Sync(c *cli.Context) error {
-	return s.sync(ctxutil.WithGlobalFlags(c), c.String("store"), false)
+func (s *syncHandler) Sync(ctx context.Context, cmd *cli.Command) error {
+	return s.sync(ctxutil.WithGlobalFlags(ctx, cmd), cmd.String("store"), false)
 }
 
 func (s *syncHandler) autoSync(ctx context.Context) error {

@@ -4,13 +4,13 @@ import (
 	"context"
 	"errors"
 
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 // Action is a action which can be selected.
 type Action struct {
 	Name string
-	Fn   func(context.Context, *cli.Context) error
+	Fn   func(context.Context, *cli.Command) error
 }
 
 // Actions is a list of actions.
@@ -27,7 +27,7 @@ func (ca Actions) Selection() []string {
 }
 
 // Run executes the selected action.
-func (ca Actions) Run(ctx context.Context, c *cli.Context, i int) error {
+func (ca Actions) Run(ctx context.Context, cmd *cli.Command, i int) error {
 	if len(ca) < i || i >= len(ca) {
 		return errors.New("action not found")
 	}
@@ -35,5 +35,5 @@ func (ca Actions) Run(ctx context.Context, c *cli.Context, i int) error {
 		return errors.New("action invalid")
 	}
 
-	return ca[i].Fn(ctx, c)
+	return ca[i].Fn(ctx, cmd)
 }

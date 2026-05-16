@@ -1,12 +1,11 @@
 package zsh
 
 import (
-	"flag"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 type unknownFlag struct{}
@@ -15,7 +14,19 @@ func (u *unknownFlag) String() string {
 	return ""
 }
 
-func (u *unknownFlag) Apply(*flag.FlagSet) error {
+func (u *unknownFlag) Get() any {
+	return nil
+}
+
+func (u *unknownFlag) PreParse() error {
+	return nil
+}
+
+func (u *unknownFlag) PostParse() error {
+	return nil
+}
+
+func (u *unknownFlag) Set(string, string) error {
 	return nil
 }
 
@@ -51,7 +62,7 @@ func TestFormatFlag(t *testing.T) {
 func TestGetCompletion(t *testing.T) {
 	t.Parallel()
 
-	app := cli.NewApp()
+	app := &cli.Command{Name: "zsh.test"}
 	sv, err := GetCompletion(app)
 	require.NoError(t, err)
 	assert.Contains(t, sv, "#compdef zsh.test")

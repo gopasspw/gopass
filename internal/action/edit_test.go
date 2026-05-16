@@ -30,15 +30,15 @@ func TestEdit(t *testing.T) {
 	}()
 
 	// edit
-	require.Error(t, act.Edit(gptest.CliCtx(ctx, t)))
+	require.Error(t, act.Edit(ctx, gptest.CliCtx(ctx, t)))
 	buf.Reset()
 
 	// edit foo (existing)
-	require.Error(t, act.Edit(gptest.CliCtx(ctx, t, "foo")))
+	require.Error(t, act.Edit(ctx, gptest.CliCtx(ctx, t, "foo")))
 	buf.Reset()
 
 	// edit bar (new)
-	require.Error(t, act.Edit(gptest.CliCtx(ctx, t, "foo")))
+	require.Error(t, act.Edit(ctx, gptest.CliCtx(ctx, t, "foo")))
 	buf.Reset()
 }
 

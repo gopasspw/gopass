@@ -41,26 +41,25 @@ func TestCopy(t *testing.T) {
 
 	// copy foo bar
 	c := gptest.CliCtx(ctx, t, "foo", "bar")
-	require.NoError(t, act.Copy(c))
+	require.NoError(t, act.Copy(ctx, c))
 	buf.Reset()
 
 	// copy foo bar (again, should fail)
 	{
 		ctx := ctxutil.WithAlwaysYes(ctx, false)
 		ctx = ctxutil.WithInteractive(ctx, false)
-		c.Context = ctx
-		require.Error(t, act.Copy(c))
+		require.Error(t, act.Copy(ctx, c))
 		buf.Reset()
 	}
 
 	// copy not-found still-not-there
 	c = gptest.CliCtx(ctx, t, "not-found", "still-not-there")
-	require.Error(t, act.Copy(c))
+	require.Error(t, act.Copy(ctx, c))
 	buf.Reset()
 
 	// copy
 	c = gptest.CliCtx(ctx, t)
-	require.Error(t, act.Copy(c))
+	require.Error(t, act.Copy(ctx, c))
 	buf.Reset()
 
 	// insert bam/baz
@@ -69,10 +68,10 @@ func TestCopy(t *testing.T) {
 
 	// recursive copy: bam/ -> zab
 	c = gptest.CliCtx(ctx, t, "bam", "zab")
-	require.NoError(t, act.Copy(c))
+	require.NoError(t, act.Copy(ctx, c))
 	buf.Reset()
 
-	require.NoError(t, act.List(gptest.CliCtx(ctx, t)))
+	require.NoError(t, act.List(ctx, gptest.CliCtx(ctx, t)))
 	want := `gopass
 ├── bam/
 │   ├── baz
@@ -124,31 +123,30 @@ func TestCopyGpg(t *testing.T) {
 
 	// generate foo
 	c := gptest.CliCtx(ctx, t, "foo")
-	require.NoError(t, act.Generate(c))
+	require.NoError(t, act.Generate(ctx, c))
 	buf.Reset()
 
 	// copy foo bar
 	c = gptest.CliCtx(ctx, t, "foo", "bar")
-	require.NoError(t, act.Copy(c))
+	require.NoError(t, act.Copy(ctx, c))
 	buf.Reset()
 
 	// copy foo bar (again, should fail)
 	{
 		ctx := ctxutil.WithAlwaysYes(ctx, false)
 		ctx = ctxutil.WithInteractive(ctx, false)
-		c.Context = ctx
-		require.Error(t, act.Copy(c))
+		require.Error(t, act.Copy(ctx, c))
 		buf.Reset()
 	}
 
 	// copy not-found still-not-there
 	c = gptest.CliCtx(ctx, t, "not-found", "still-not-there")
-	require.Error(t, act.Copy(c))
+	require.Error(t, act.Copy(ctx, c))
 	buf.Reset()
 
 	// copy
 	c = gptest.CliCtx(ctx, t)
-	require.Error(t, act.Copy(c))
+	require.Error(t, act.Copy(ctx, c))
 	buf.Reset()
 
 	// insert bam/baz
@@ -157,10 +155,10 @@ func TestCopyGpg(t *testing.T) {
 
 	// recursive copy: bam/ -> zab
 	c = gptest.CliCtx(ctx, t, "bam", "zab")
-	require.NoError(t, act.Copy(c))
+	require.NoError(t, act.Copy(ctx, c))
 	buf.Reset()
 
-	require.NoError(t, act.List(gptest.CliCtx(ctx, t)))
+	require.NoError(t, act.List(ctx, gptest.CliCtx(ctx, t)))
 	want := `gopass
 ├── bam/
 │   ├── baz
@@ -207,31 +205,30 @@ func TestCopyWithTrailingSlash(t *testing.T) {
 
 	// generate foo
 	c := gptest.CliCtx(ctx, t, "foo")
-	require.NoError(t, act.Generate(c))
+	require.NoError(t, act.Generate(ctx, c))
 	buf.Reset()
 
 	// copy foo bar
 	c = gptest.CliCtx(ctx, t, "foo", "bar")
-	require.NoError(t, act.Copy(c))
+	require.NoError(t, act.Copy(ctx, c))
 	buf.Reset()
 
 	// copy foo bar (again, should fail)
 	{
 		ctx := ctxutil.WithAlwaysYes(ctx, false)
 		ctx = ctxutil.WithInteractive(ctx, false)
-		c.Context = ctx
-		require.Error(t, act.Copy(c))
+		require.Error(t, act.Copy(ctx, c))
 		buf.Reset()
 	}
 
 	// copy not-found still-not-there
 	c = gptest.CliCtx(ctx, t, "not-found", "still-not-there")
-	require.Error(t, act.Copy(c))
+	require.Error(t, act.Copy(ctx, c))
 	buf.Reset()
 
 	// copy
 	c = gptest.CliCtx(ctx, t)
-	require.Error(t, act.Copy(c))
+	require.Error(t, act.Copy(ctx, c))
 	buf.Reset()
 
 	// Create a directory structure
@@ -240,11 +237,11 @@ func TestCopyWithTrailingSlash(t *testing.T) {
 
 	// Test copying a directory with trailing slash
 	c = gptest.CliCtx(ctx, t, "secret/", "new/")
-	require.NoError(t, act.Copy(c))
+	require.NoError(t, act.Copy(ctx, c))
 	buf.Reset()
 
 	// Verify the result: structure should be preserved
-	require.NoError(t, act.List(gptest.CliCtx(ctx, t)))
+	require.NoError(t, act.List(ctx, gptest.CliCtx(ctx, t)))
 	want := `gopass
 ├── bar
 ├── foo

@@ -13,7 +13,7 @@ import (
 	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/gopasspw/gopass/pkg/fsutil"
 	"github.com/gopasspw/gopass/pkg/termio"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 const logo = `
@@ -27,29 +27,32 @@ const logo = `
 
 // IsInitialized returns an error if the store is not properly
 // prepared.
-func (s *setupHandler) IsInitialized(c *cli.Context) error {
-	ctx := ctxutil.WithGlobalFlags(c)
+func (s *setupHandler) IsInitialized(ctx context.Context, cmd *cli.Command) (context.Context, error) {
+	ctx = ctxutil.WithGlobalFlags(ctx, cmd)
 	inited, err := s.Store.IsInitialized(ctx)
 	if err != nil {
-		return exit.Error(exit.Unknown, err, "Failed to initialize store: %s", err)
+		return ctx, exit.Error(exit.Unknown, err, "Failed to initialize store: %s", err)
 	}
 
 	if inited {
 		debug.Log("Store is fully initialized and ready to go\n\nAll systems go. 🚀\n")
-		name := c.Args().First()
+		var name string
+		if cmd.Args() != nil {
+			name = cmd.Args().First()
+		}
 		// setting the mount point here is not enough when we're using the REPL mode
 		ctx = config.WithMount(ctx, s.Store.MountPoint(name))
 		s.printReminderFn(ctx)
-		if c.Command.Name != "sync" && !c.Bool("nosync") {
+		if cmd.Name != "sync" && !cmd.Bool("nosync") {
 			_ = s.autoSyncFn(ctx)
 		}
 
-		return nil
+		return ctx, nil
 	}
 
 	debug.Log("Store needs to be initialized.\n\nAbort. Abort. Abort. 🚫\n")
 	if !ctxutil.IsInteractive(ctx) {
-		return exit.Error(exit.NotInitialized, nil, "password-store is not initialized. Try '%s init'", s.Name)
+		return ctx, exit.Error(exit.NotInitialized, nil, "password-store is not initialized. Try '%s init'", s.Name)
 	}
 
 	out.Printf(ctx, logo)
@@ -58,34 +61,34 @@ func (s *setupHandler) IsInitialized(c *cli.Context) error {
 
 	contSetup, err := termio.AskForBool(ctx, "❓ Do you want to continue to setup?", false)
 	if err != nil {
-		return err
+		return ctx, err
 	}
 	if contSetup {
-		return s.Setup(c)
+		return ctx, s.Setup(ctx, cmd)
 	}
 
 	out.Printf(ctx, "☝ Please run 'gopass setup'")
 
-	return exit.Error(exit.NotInitialized, err, "not initialized")
+	return ctx, exit.Error(exit.NotInitialized, err, "not initialized")
 }
 
 // Init a new password store with a first gpg id.
-func (s *setupHandler) Init(c *cli.Context) error {
-	ctx := ctxutil.WithGlobalFlags(c)
-	path := c.String("path")
-	alias := c.String("store")
+func (s *setupHandler) Init(ctx context.Context, cmd *cli.Command) error {
+	ctx = ctxutil.WithGlobalFlags(ctx, cmd)
+	path := cmd.String("path")
+	alias := cmd.String("store")
 
-	ctx, err := initParseContext(ctx, c)
+	ctx, err := initParseContext(ctx, cmd)
 	if err != nil {
 		return err
 	}
 	out.Printf(ctx, "🍭 Initializing a new password store ...")
 
-	if name := termio.DetectName(c.Context, c); name != "" {
+	if name := termio.DetectName(ctx, cmd); name != "" {
 		ctx = ctxutil.WithUsername(ctx, name)
 	}
 
-	if email := termio.DetectEmail(c.Context, c); email != "" {
+	if email := termio.DetectEmail(ctx, cmd); email != "" {
 		ctx = ctxutil.WithEmail(ctx, email)
 	}
 
@@ -98,25 +101,25 @@ func (s *setupHandler) Init(c *cli.Context) error {
 		out.Errorf(ctx, "Store is already initialized!")
 	}
 
-	if err := s.init(ctx, alias, path, c.Args().Slice()...); err != nil {
+	if err := s.init(ctx, alias, path, cmd.Args().Slice()...); err != nil {
 		return exit.Error(exit.Unknown, err, "Failed to initialize store: %s", err)
 	}
 
 	return nil
 }
 
-func initParseContext(ctx context.Context, c *cli.Context) (context.Context, error) {
-	if c.IsSet("crypto") {
+func initParseContext(ctx context.Context, cmd *cli.Command) (context.Context, error) {
+	if cmd.IsSet("crypto") {
 		var err error
-		ctx, err = backend.WithCryptoBackendString(ctx, c.String("crypto"))
+		ctx, err = backend.WithCryptoBackendString(ctx, cmd.String("crypto"))
 		if err != nil {
 			return ctx, exit.Error(exit.Unknown, err, "Failed to set crypto backend: %s", err)
 		}
 	}
 
-	if c.IsSet("storage") {
+	if cmd.IsSet("storage") {
 		var err error
-		ctx, err = backend.WithStorageBackendString(ctx, c.String("storage"))
+		ctx, err = backend.WithStorageBackendString(ctx, cmd.String("storage"))
 		if err != nil {
 			return ctx, exit.Error(exit.Unknown, err, "Failed to set storage backend: %s", err)
 		}

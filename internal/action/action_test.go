@@ -2,7 +2,6 @@ package action
 
 import (
 	"context"
-	"flag"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -16,7 +15,7 @@ import (
 	"github.com/gopasspw/gopass/tests/gptest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 func newMock(ctx context.Context, path string) (*Action, error) {
@@ -35,10 +34,17 @@ func newMock(ctx context.Context, path string) (*Action, error) {
 		return nil, err
 	}
 
-	fs := flag.NewFlagSet("default", flag.ContinueOnError)
-	c := cli.NewContext(cli.NewApp(), fs, nil)
-	c.Context = ctx
-	if err := act.IsInitialized(c); err != nil {
+	cmd := &cli.Command{
+		ExitErrHandler: func(_ context.Context, _ *cli.Command, _ error) {
+			// suppress os.Exit during testing
+		},
+		Action: func(c context.Context, cmd *cli.Command) error {
+			_, err := act.IsInitialized(c, cmd)
+
+			return err
+		},
+	}
+	if err := cmd.Run(ctx, []string{"test"}); err != nil {
 		// we still return the action since this might be expected sometimes
 		return act, err
 	}

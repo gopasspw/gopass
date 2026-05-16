@@ -44,7 +44,7 @@ func TestEnvLeafHappyPath(t *testing.T) {
 	require.NoError(t, act.insertStdin(ctx, "baz", []byte(pw), false))
 	buf.Reset()
 
-	require.NoError(t, act.Env(gptest.CliCtx(ctx, t, "baz", "env")))
+	require.NoError(t, act.Env(ctx, gptest.CliCtx(ctx, t, "baz", "env")))
 	assert.Contains(t, buf.String(), fmt.Sprintf("BAZ=%s\n", pw))
 }
 
@@ -79,7 +79,7 @@ func TestEnvLeafHappyPathKeepCase(t *testing.T) {
 
 	flags := make(map[string]string, 1)
 	flags["keep-case"] = "true"
-	require.NoError(t, act.Env(gptest.CliCtxWithFlags(ctx, t, flags, "BaZ", "env")))
+	require.NoError(t, act.Env(ctx, gptest.CliCtxWithFlags(ctx, t, flags, "BaZ", "env")))
 	assert.Contains(t, buf.String(), fmt.Sprintf("BaZ=%s\n", pw))
 }
 
@@ -95,7 +95,7 @@ func TestEnvSecretNotFound(t *testing.T) {
 	ctx = act.cfg.WithConfig(ctx)
 
 	// Command-line would be: "gopass env non-existing true".
-	require.EqualError(t, act.Env(gptest.CliCtx(ctx, t, "non-existing", "true")),
+	require.EqualError(t, act.Env(ctx, gptest.CliCtx(ctx, t, "non-existing", "true")),
 		"Secret non-existing not found")
 }
 
@@ -118,7 +118,7 @@ func TestEnvProgramNotFound(t *testing.T) {
 	}
 
 	// Command-line would be: "gopass env foo non-existing".
-	require.EqualError(t, act.Env(gptest.CliCtx(ctx, t, "foo", "non-existing")),
+	require.EqualError(t, act.Env(ctx, gptest.CliCtx(ctx, t, "foo", "non-existing")),
 		wanted)
 }
 
@@ -135,7 +135,7 @@ func TestEnvProgramNotSpecified(t *testing.T) {
 	ctx = act.cfg.WithConfig(ctx)
 
 	// Command-line would be: "gopass env foo".
-	require.EqualError(t, act.Env(gptest.CliCtx(ctx, t, "foo")),
+	require.EqualError(t, act.Env(ctx, gptest.CliCtx(ctx, t, "foo")),
 		"Missing subcommand to execute")
 }
 
@@ -151,7 +151,7 @@ func TestEnvFlagsMutuallyExclusive(t *testing.T) {
 	ctx = act.cfg.WithConfig(ctx)
 
 	flags := map[string]string{"stdin": "true", "file": "true"}
-	require.EqualError(t, act.Env(gptest.CliCtxWithFlags(ctx, t, flags, "foo", "true")),
+	require.EqualError(t, act.Env(ctx, gptest.CliCtxWithFlags(ctx, t, flags, "foo", "true")),
 		"Only one of --stdin, --file or --exec may be specified")
 }
 
@@ -169,7 +169,7 @@ func TestEnvStdinRequiresLeaf(t *testing.T) {
 	require.NoError(t, act.insertStdin(ctx, "dir/key1", []byte("pw1"), false))
 
 	flags := map[string]string{"stdin": "true"}
-	require.EqualError(t, act.Env(gptest.CliCtxWithFlags(ctx, t, flags, "dir", "cat")),
+	require.EqualError(t, act.Env(ctx, gptest.CliCtxWithFlags(ctx, t, flags, "dir", "cat")),
 		"--stdin requires a single secret, not a directory")
 }
 
@@ -204,7 +204,7 @@ func TestEnvStdin(t *testing.T) {
 
 	// cat reads from stdin and writes to stdout; we expect the raw password value.
 	flags := map[string]string{"stdin": "true"}
-	require.NoError(t, act.Env(gptest.CliCtxWithFlags(ctx, t, flags, "baz", "cat")))
+	require.NoError(t, act.Env(ctx, gptest.CliCtxWithFlags(ctx, t, flags, "baz", "cat")))
 	assert.Equal(t, pw, buf.String())
 }
 
@@ -239,7 +239,7 @@ func TestEnvFile(t *testing.T) {
 
 	// env prints all env vars; we expect BAZ_FILE=<tempfile_path> in the output.
 	flags := map[string]string{"file": "true"}
-	require.NoError(t, act.Env(gptest.CliCtxWithFlags(ctx, t, flags, "baz", "env")))
+	require.NoError(t, act.Env(ctx, gptest.CliCtxWithFlags(ctx, t, flags, "baz", "env")))
 	assert.Contains(t, buf.String(), "BAZ_FILE=")
 
 	// Verify the temp file is cleaned up after the command returns.
@@ -268,7 +268,7 @@ func TestEnvExecNotFound(t *testing.T) {
 	ctx = act.cfg.WithConfig(ctx)
 
 	flags := map[string]string{"exec": "true"}
-	err = act.Env(gptest.CliCtxWithFlags(ctx, t, flags, "foo", "non-existing-gopass-test-cmd"))
+	err = act.Env(ctx, gptest.CliCtxWithFlags(ctx, t, flags, "foo", "non-existing-gopass-test-cmd"))
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "non-existing-gopass-test-cmd")
 }
@@ -289,7 +289,7 @@ func TestEnvExecUnsupportedOnWindows(t *testing.T) {
 	ctx = act.cfg.WithConfig(ctx)
 
 	flags := map[string]string{"exec": "true"}
-	require.EqualError(t, act.Env(gptest.CliCtxWithFlags(ctx, t, flags, "foo", "cmd")),
+	require.EqualError(t, act.Env(ctx, gptest.CliCtxWithFlags(ctx, t, flags, "foo", "cmd")),
 		"--exec is not supported on Windows")
 }
 
@@ -319,6 +319,6 @@ func TestEnvDefaultModeUnchanged(t *testing.T) {
 	require.NoError(t, act.insertStdin(ctx, "baz", []byte(pw), false))
 	buf.Reset()
 
-	require.NoError(t, act.Env(gptest.CliCtx(ctx, t, "baz", "env")))
+	require.NoError(t, act.Env(ctx, gptest.CliCtx(ctx, t, "baz", "env")))
 	assert.Contains(t, buf.String(), fmt.Sprintf("BAZ=%s\n", pw))
 }

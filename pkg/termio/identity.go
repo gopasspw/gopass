@@ -6,7 +6,7 @@ import (
 
 	"github.com/gopasspw/gitconfig"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 var (
@@ -27,12 +27,12 @@ var (
 // DetectName tries to guess the name of the logged in user.
 // It checks the context, the command line flags, environment variables,
 // and the git config.
-func DetectName(ctx context.Context, c *cli.Context) string {
+func DetectName(ctx context.Context, cmd *cli.Command) string {
 	cand := make([]string, 0, 10)
 	cand = append(cand, ctxutil.GetUsername(ctx))
 
-	if c != nil {
-		cand = append(cand, c.String("name"))
+	if cmd != nil {
+		cand = append(cand, cmd.String("name"))
 	}
 
 	for _, k := range NameVars {
@@ -54,12 +54,12 @@ func DetectName(ctx context.Context, c *cli.Context) string {
 // DetectEmail tries to guess the email of the logged in user.
 // It checks the context, the command line flags, environment variables,
 // and the git config.
-func DetectEmail(ctx context.Context, c *cli.Context) string {
+func DetectEmail(ctx context.Context, cmd *cli.Command) string {
 	cand := make([]string, 0, 10)
 	cand = append(cand, ctxutil.GetEmail(ctx))
 
-	if c != nil {
-		cand = append(cand, c.String("email"))
+	if cmd != nil {
+		cand = append(cand, cmd.String("email"))
 	}
 
 	for _, k := range EmailVars {

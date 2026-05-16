@@ -16,7 +16,7 @@ func TestDelete(t *testing.T) {
 
 	out, err := ts.run("delete")
 	require.Error(t, err)
-	assert.Equal(t, "\nError: Usage: "+filepath.Base(ts.Binary)+" rm name\n", out)
+	assert.Equal(t, "Usage: "+filepath.Base(ts.Binary)+" rm name\n", out)
 
 	out, err = ts.run("delete foobarbaz")
 	require.Error(t, err)

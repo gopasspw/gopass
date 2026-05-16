@@ -17,18 +17,18 @@ import (
 	"github.com/gopasspw/gopass/pkg/gopass"
 	"github.com/gopasspw/gopass/pkg/gopass/secrets"
 	"github.com/gopasspw/gopass/pkg/termio"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 // Insert a string as content to a secret file.
-func (s *secretHandler) Insert(c *cli.Context) error {
-	ctx := ctxutil.WithGlobalFlags(c)
-	echo := c.Bool("echo")
-	multiline := c.Bool("multiline")
-	force := c.Bool("force")
-	appending := c.Bool("append")
+func (s *secretHandler) Insert(ctx context.Context, cmd *cli.Command) error {
+	ctx = ctxutil.WithGlobalFlags(ctx, cmd)
+	echo := cmd.Bool("echo")
+	multiline := cmd.Bool("multiline")
+	force := cmd.Bool("force")
+	appending := cmd.Bool("append")
 
-	args, kvps := parseArgs(c)
+	args, kvps := parseArgs(ctx, cmd)
 	name := args.Get(0)
 	key := args.Get(1)
 
@@ -36,18 +36,18 @@ func (s *secretHandler) Insert(c *cli.Context) error {
 		return exit.Error(exit.NoName, nil, "Usage: %s insert name", s.Name)
 	}
 
-	return s.insert(ctx, c, name, key, echo, multiline, force, appending, kvps)
+	return s.insert(ctx, cmd, name, key, echo, multiline, force, appending, kvps)
 }
 
-func (s *secretHandler) insert(ctx context.Context, c *cli.Context, name, key string, echo, multiline, force, appending bool, kvps map[string]string) error {
+func (s *secretHandler) insert(ctx context.Context, cmd *cli.Command, name, key string, echo, multiline, force, appending bool, kvps map[string]string) error {
 	var content []byte
 
 	// Check for custom commit message
 	commitMsg := "Inserted user supplied password"
-	if c.IsSet("commit-message") {
-		commitMsg = c.String("commit-message")
+	if cmd.IsSet("commit-message") {
+		commitMsg = cmd.String("commit-message")
 	}
-	if c.Bool("interactive-commit") {
+	if cmd.Bool("interactive-commit") {
 		commitMsg = ""
 	}
 	ctx = ctxutil.WithCommitMessage(ctx, commitMsg)
@@ -83,7 +83,7 @@ func (s *secretHandler) insert(ctx context.Context, c *cli.Context, name, key st
 
 	// if multi-line input is requested start an editor.
 	if multiline && ctxutil.IsInteractive(ctx) {
-		return s.insertMultiline(ctx, c, name)
+		return s.insertMultiline(ctx, cmd, name)
 	}
 
 	// if echo mode is requested use a simple string input function.
@@ -234,7 +234,7 @@ func (s *secretHandler) insertYAML(ctx context.Context, name, key string, conten
 	return nil
 }
 
-func (s *secretHandler) insertMultiline(ctx context.Context, c *cli.Context, name string) error {
+func (s *secretHandler) insertMultiline(ctx context.Context, cmd *cli.Command, name string) error {
 	buf := []byte{}
 	if s.Store.Exists(ctx, name) {
 		var err error
@@ -244,7 +244,7 @@ func (s *secretHandler) insertMultiline(ctx context.Context, c *cli.Context, nam
 		}
 		buf = sec.Bytes()
 	}
-	ed := editor.Path(c)
+	ed := editor.Path(ctx, cmd)
 	content, err := editor.Invoke(ctx, ed, buf)
 	if err != nil {
 		return exit.Error(exit.Unknown, err, "failed to start editor: %s", err)

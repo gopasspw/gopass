@@ -44,7 +44,7 @@ func TestConvert(t *testing.T) {
 	require.NoError(t, act.Store.Set(ctx, "bar/baz", sec))
 	buf.Reset()
 
-	require.NoError(t, act.Convert(gptest.CliCtxWithFlags(ctx, t, map[string]string{
+	require.NoError(t, act.Convert(ctx, gptest.CliCtxWithFlags(ctx, t, map[string]string{
 		"move":    "true",
 		"storage": "fs",
 		"crypto":  "age",

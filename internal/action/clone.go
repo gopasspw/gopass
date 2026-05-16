@@ -20,50 +20,50 @@ import (
 	"github.com/gopasspw/gopass/pkg/fsutil"
 	"github.com/gopasspw/gopass/pkg/set"
 	"github.com/gopasspw/gopass/pkg/termio"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 // Clone will fetch and mount a new password store from a git repo.
 // It can also be used to clone a new password store to a submount.
-func (s *setupHandler) Clone(c *cli.Context) error {
-	ctx := ctxutil.WithGlobalFlags(c)
-	if c.IsSet("crypto") {
+func (s *setupHandler) Clone(ctx context.Context, cmd *cli.Command) error {
+	ctx = ctxutil.WithGlobalFlags(ctx, cmd)
+	if cmd.IsSet("crypto") {
 		var err error
-		ctx, err = backend.WithCryptoBackendString(ctx, c.String("crypto"))
+		ctx, err = backend.WithCryptoBackendString(ctx, cmd.String("crypto"))
 		if err != nil {
 			return exit.Error(exit.Unknown, err, "Failed to set crypto backend: %s", err)
 		}
 	}
 
-	if c.IsSet("storage") {
+	if cmd.IsSet("storage") {
 		var err error
-		ctx, err = backend.WithStorageBackendString(ctx, c.String("storage"))
+		ctx, err = backend.WithStorageBackendString(ctx, cmd.String("storage"))
 		if err != nil {
 			return exit.Error(exit.Unknown, err, "Failed to set storage backend: %s", err)
 		}
 	}
 
-	path := c.String("path")
+	path := cmd.String("path")
 
-	if c.Args().Len() < 1 {
+	if cmd.Args().Len() < 1 {
 		return exit.Error(exit.Usage, nil, "Usage: %s clone repo [mount]", s.Name)
 	}
 
 	// gopass clone [--crypto=foo] [--path=/some/store] git://foo/bar team0.
-	repo := c.Args().Get(0)
+	repo := cmd.Args().Get(0)
 	mount := ""
-	if c.Args().Len() > 1 {
-		mount = c.Args().Get(1)
+	if cmd.Args().Len() > 1 {
+		mount = cmd.Args().Get(1)
 	}
 
 	out.Printf(ctx, logo)
 	out.Printf(ctx, "🌟 Welcome to gopass!")
 	out.Printf(ctx, "🌟 Cloning an existing password store from %q ...", repo)
 
-	if name := termio.DetectName(ctx, c); name != "" {
+	if name := termio.DetectName(ctx, cmd); name != "" {
 		ctx = ctxutil.WithUsername(ctx, name)
 	}
-	if email := termio.DetectEmail(ctx, c); email != "" {
+	if email := termio.DetectEmail(ctx, cmd); email != "" {
 		ctx = ctxutil.WithEmail(ctx, email)
 	}
 
@@ -96,7 +96,7 @@ func (s *setupHandler) Clone(c *cli.Context) error {
 		return nil
 	}
 
-	if !c.Bool("check-keys") {
+	if !cmd.Bool("check-keys") {
 		return nil
 	}
 

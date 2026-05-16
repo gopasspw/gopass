@@ -14,41 +14,41 @@ import (
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/schollz/closestmatch"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 // Find runs find without fuzzy search.
-func (s *searchHandler) Find(c *cli.Context) error {
-	return s.findCmd(c, nil, false)
+func (s *searchHandler) Find(ctx context.Context, cmd *cli.Command) error {
+	return s.findCmd(ctx, cmd, nil, false)
 }
 
 // FindFuzzy runs find with fuzzy search.
-func (s *searchHandler) FindFuzzy(c *cli.Context) error {
-	return s.findCmd(c, s.showFn, true)
+func (s *searchHandler) FindFuzzy(ctx context.Context, cmd *cli.Command) error {
+	return s.findCmd(ctx, cmd, s.showFn, true)
 }
 
-func (s *searchHandler) findCmd(c *cli.Context, cb showFunc, fuzzy bool) error {
-	ctx := ctxutil.WithGlobalFlags(c)
-	if c.IsSet("clip") {
-		ctx = WithOnlyClip(ctx, c.Bool("clip"))
-		ctx = WithClip(ctx, c.Bool("clip"))
+func (s *searchHandler) findCmd(ctx context.Context, cmd *cli.Command, cb showFunc, fuzzy bool) error {
+	ctx = ctxutil.WithGlobalFlags(ctx, cmd)
+	if cmd.IsSet("clip") {
+		ctx = WithOnlyClip(ctx, cmd.Bool("clip"))
+		ctx = WithClip(ctx, cmd.Bool("clip"))
 	}
 
-	if c.IsSet("unsafe") {
-		ctx = ctxutil.WithForce(ctx, c.Bool("unsafe"))
+	if cmd.IsSet("unsafe") {
+		ctx = ctxutil.WithForce(ctx, cmd.Bool("unsafe"))
 	}
 
-	if !c.Args().Present() {
+	if !cmd.Args().Present() {
 		return exit.Error(exit.Usage, nil, "Usage: %s find <pattern>", s.Name)
 	}
 
-	return s.find(ctx, c, c.Args().First(), cb, fuzzy)
+	return s.find(ctx, cmd, cmd.Args().First(), cb, fuzzy)
 }
 
 // see action.show - context, cli context, name, key, rescurse.
-type showFunc func(context.Context, *cli.Context, string, bool) error
+type showFunc func(context.Context, *cli.Command, string, bool) error
 
-func (s *searchHandler) find(ctx context.Context, c *cli.Context, needle string, cb showFunc, fuzzy bool) error {
+func (s *searchHandler) find(ctx context.Context, cmd *cli.Command, needle string, cb showFunc, fuzzy bool) error {
 	// get all existing entries.
 	haystack, err := s.Store.List(ctx, tree.INF)
 	if err != nil {
@@ -56,7 +56,7 @@ func (s *searchHandler) find(ctx context.Context, c *cli.Context, needle string,
 	}
 
 	// filter our the ones from the haystack matching the needle.
-	choices, err := filter(haystack, needle, c.Bool("regex"))
+	choices, err := filter(haystack, needle, cmd.Bool("regex"))
 	if err != nil {
 		return exit.Error(exit.Usage, err, "%s", err)
 	}
@@ -69,7 +69,7 @@ func (s *searchHandler) find(ctx context.Context, c *cli.Context, needle string,
 	}
 
 	// JSON output: emit the matches as a JSON array (possibly empty) and return.
-	if c != nil && c.Bool("json") {
+	if cmd != nil && cmd.Bool("json") {
 		if len(choices) < 1 {
 			return exit.Error(exit.NotFound, nil, "no results found")
 		}
@@ -86,7 +86,7 @@ func (s *searchHandler) find(ctx context.Context, c *cli.Context, needle string,
 		}
 		out.OKf(ctx, "Found exact match in %q", choices[0])
 
-		return cb(ctx, c, choices[0], false)
+		return cb(ctx, cmd, choices[0], false)
 	}
 
 	// if there are still no results we abort.
@@ -96,7 +96,7 @@ func (s *searchHandler) find(ctx context.Context, c *cli.Context, needle string,
 
 	// do not invoke wizard if not printing to terminal or if
 	// gopass find/search was invoked directly (for scripts).
-	if !ctxutil.IsTerminal(ctx) || (c != nil && c.Command.Name == "find") {
+	if !ctxutil.IsTerminal(ctx) || (cmd != nil && cmd.Name == "find") {
 		for _, value := range choices {
 			out.Printf(ctx, value)
 		}
@@ -104,11 +104,11 @@ func (s *searchHandler) find(ctx context.Context, c *cli.Context, needle string,
 		return nil
 	}
 
-	return s.findSelection(ctx, c, choices, needle, cb)
+	return s.findSelection(ctx, cmd, choices, needle, cb)
 }
 
 // findSelection runs a wizard that lets the user select an entry.
-func (s *searchHandler) findSelection(ctx context.Context, c *cli.Context, choices []string, needle string, cb showFunc) error {
+func (s *searchHandler) findSelection(ctx context.Context, cmd *cli.Command, choices []string, needle string, cb showFunc) error {
 	if cb == nil {
 		return fmt.Errorf("callback is nil")
 	}
@@ -125,29 +125,29 @@ func (s *searchHandler) findSelection(ctx context.Context, c *cli.Context, choic
 		// display or copy selected entry.
 		fmt.Fprintln(stdout, choices[sel])
 
-		return cb(ctx, c, choices[sel], false)
+		return cb(ctx, cmd, choices[sel], false)
 	case "copy":
 		// display selected entry.
 		fmt.Fprintln(stdout, choices[sel])
 
-		return cb(WithClip(ctx, true), c, choices[sel], false)
+		return cb(WithClip(ctx, true), cmd, choices[sel], false)
 	case "show":
 		// display selected entry.
 		fmt.Fprintln(stdout, choices[sel])
 
-		return cb(WithClip(ctx, false), c, choices[sel], false)
+		return cb(WithClip(ctx, false), cmd, choices[sel], false)
 	case "sync":
 		// run sync and re-run show/find workflow.
-		if err := s.syncFn(c); err != nil {
+		if err := s.syncFn(ctx, cmd); err != nil {
 			return err
 		}
 
-		return cb(ctx, c, needle, true)
+		return cb(ctx, cmd, needle, true)
 	case "edit":
 		// edit selected entry.
 		fmt.Fprintln(stdout, choices[sel])
 
-		return s.editFn(ctx, c, choices[sel])
+		return s.editFn(ctx, cmd, choices[sel])
 	default:
 		return exit.Error(exit.Aborted, nil, "user aborted")
 	}

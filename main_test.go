@@ -2,7 +2,7 @@ package main
 
 import (
 	"bytes"
-	"flag"
+	"context"
 	"os"
 	"testing"
 
@@ -19,7 +19,7 @@ import (
 	"github.com/gopasspw/gopass/tests/gptest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 func TestVersionPrinter(t *testing.T) {
@@ -130,19 +130,20 @@ func TestGetCommands(t *testing.T) {
 	act, err := action.New(cfg, semver.Version{})
 	require.NoError(t, err)
 
-	app := cli.NewApp()
-	fs := flag.NewFlagSet("default", flag.ContinueOnError)
-	c := cli.NewContext(app, fs, nil)
-	c.Context = ctx
+	app := &cli.Command{
+		ExitErrHandler: func(_ context.Context, _ *cli.Command, _ error) {
+			// suppress os.Exit during testing
+		},
+	}
 
 	commands := getCommands(act, app)
 	assert.Len(t, commands, 43)
 
 	prefix := ""
-	testCommands(t, c, commands, prefix)
+	testCommands(t, ctx, app, commands, prefix)
 }
 
-func testCommands(t *testing.T, c *cli.Context, commands []*cli.Command, prefix string) {
+func testCommands(t *testing.T, ctx context.Context, app *cli.Command, commands []*cli.Command, prefix string) {
 	t.Helper()
 
 	for _, cmd := range commands {
@@ -150,31 +151,76 @@ func testCommands(t *testing.T, c *cli.Context, commands []*cli.Command, prefix 
 			continue
 		}
 
-		if len(cmd.Subcommands) > 0 {
-			testCommands(t, c, cmd.Subcommands, prefix+"."+cmd.Name)
+		if len(cmd.Commands) > 0 {
+			testCommands(t, ctx, app, cmd.Commands, prefix+"."+cmd.Name)
 		}
 
 		if cmd.Before != nil {
-			if err := cmd.Before(c); err != nil {
+			if _, err := runCmdBefore(ctx, cmd); err != nil {
 				continue
 			}
 		}
 
-		if cmd.BashComplete != nil {
-			cmd.BashComplete(c)
+		if cmd.ShellComplete != nil {
+			cmd.ShellComplete(ctx, cmd)
 		}
 
 		if cmd.Action != nil {
 			fullName := prefix + "." + cmd.Name
 			if _, found := commandsWithError[fullName]; found {
-				require.Error(t, cmd.Action(c), "Command %s should fail", fullName)
+				require.Error(t, runCmdAction(ctx, cmd), "Command %s should fail", fullName)
 
 				continue
 			}
 
-			require.NoError(t, cmd.Action(c), "Command %s should not fail", fullName)
+			require.NoError(t, runCmdAction(ctx, cmd), "Command %s should not fail", fullName)
 		}
 	}
+}
+
+// runCmdAction invokes cmd.Action by running it through a parent cli.Command
+// so that parsedArgs and flags are properly initialized.
+func runCmdAction(ctx context.Context, cmd *cli.Command) error {
+	wrapper := &cli.Command{
+		ExitErrHandler: func(_ context.Context, _ *cli.Command, _ error) {
+			// suppress os.Exit during testing
+		},
+		Commands: []*cli.Command{cmd},
+	}
+
+	return wrapper.Run(ctx, []string{"test", cmd.Name}) //nolint:wrapcheck
+}
+
+// runCmdBefore invokes cmd.Before by running it through a parent cli.Command.
+func runCmdBefore(ctx context.Context, cmd *cli.Command) (context.Context, error) {
+	var capturedCtx context.Context
+	var capturedErr error
+
+	origBefore := cmd.Before
+	cmd.Before = func(c context.Context, cmd *cli.Command) (context.Context, error) {
+		capturedCtx, capturedErr = origBefore(c, cmd)
+
+		return capturedCtx, capturedErr
+	}
+	// Use an action that does nothing so we can isolate the Before call
+	origAction := cmd.Action
+	cmd.Action = func(_ context.Context, _ *cli.Command) error { return nil }
+
+	wrapper := &cli.Command{
+		ExitErrHandler: func(_ context.Context, _ *cli.Command, _ error) {},
+		Commands:       []*cli.Command{cmd},
+	}
+	_ = wrapper.Run(ctx, []string{"test", cmd.Name})
+
+	// Restore original handlers
+	cmd.Before = origBefore
+	cmd.Action = origAction
+
+	if capturedCtx == nil {
+		capturedCtx = ctx
+	}
+
+	return capturedCtx, capturedErr
 }
 
 func TestInitContext(t *testing.T) {

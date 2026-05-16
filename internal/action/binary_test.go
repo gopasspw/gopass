@@ -34,10 +34,10 @@ func TestBinary(t *testing.T) {
 	require.NotNil(t, act)
 	ctx = act.cfg.WithConfig(ctx)
 
-	require.Error(t, act.Cat(gptest.CliCtx(ctx, t)))
-	require.Error(t, act.BinaryCopy(gptest.CliCtx(ctx, t)))
-	require.Error(t, act.BinaryMove(gptest.CliCtx(ctx, t)))
-	require.Error(t, act.Sum(gptest.CliCtx(ctx, t)))
+	require.Error(t, act.Cat(ctx, gptest.CliCtx(ctx, t)))
+	require.Error(t, act.BinaryCopy(ctx, gptest.CliCtx(ctx, t)))
+	require.Error(t, act.BinaryMove(ctx, gptest.CliCtx(ctx, t)))
+	require.Error(t, act.Sum(ctx, gptest.CliCtx(ctx, t)))
 }
 
 func TestBinaryCat(t *testing.T) {
@@ -70,7 +70,7 @@ func TestBinaryCat(t *testing.T) {
 	})
 
 	t.Run("binary cat bar", func(t *testing.T) {
-		require.NoError(t, act.Cat(gptest.CliCtx(ctx, t, "bar")))
+		require.NoError(t, act.Cat(ctx, gptest.CliCtx(ctx, t, "bar")))
 	})
 
 	stdinfile := filepath.Join(u.Dir, "stdin")
@@ -85,7 +85,7 @@ func TestBinaryCat(t *testing.T) {
 			_ = fd.Close()
 		}()
 
-		require.NoError(t, act.Cat(gptest.CliCtx(ctx, t, "baz")))
+		require.NoError(t, act.Cat(ctx, gptest.CliCtx(ctx, t, "baz")))
 	})
 
 	t.Run("compare output", func(t *testing.T) {
@@ -132,7 +132,7 @@ func TestBinaryCatSizes(t *testing.T) {
 				_ = fd.Close()
 			}()
 
-			require.NoError(t, act.Cat(gptest.CliCtx(ctx, t, "baz")))
+			require.NoError(t, act.Cat(ctx, gptest.CliCtx(ctx, t, "baz")))
 		}
 		catFn()
 
@@ -186,28 +186,28 @@ func TestBinaryCopy(t *testing.T) {
 
 	t.Run("binary copy bar tempdir/bar", func(t *testing.T) {
 		defer buf.Reset()
-		require.NoError(t, act.BinaryCopy(gptest.CliCtx(ctx, t, "bar", outfile)))
+		require.NoError(t, act.BinaryCopy(ctx, gptest.CliCtx(ctx, t, "bar", outfile)))
 	})
 
 	t.Run("binary copy tempdir/bar tempdir/bar", func(t *testing.T) {
 		defer buf.Reset()
 
-		require.Error(t, act.BinaryCopy(gptest.CliCtx(ctx, t, outfile, outfile)))
+		require.Error(t, act.BinaryCopy(ctx, gptest.CliCtx(ctx, t, outfile, outfile)))
 	})
 
 	t.Run("binary copy bar bar", func(t *testing.T) {
 		defer buf.Reset()
-		require.Error(t, act.BinaryCopy(gptest.CliCtx(ctx, t, "bar", "bar")))
+		require.Error(t, act.BinaryCopy(ctx, gptest.CliCtx(ctx, t, "bar", "bar")))
 	})
 
 	t.Run("binary move tempdir/bar bar2", func(t *testing.T) {
 		defer buf.Reset()
-		require.NoError(t, act.BinaryMove(gptest.CliCtx(ctx, t, outfile, "bar2")))
+		require.NoError(t, act.BinaryMove(ctx, gptest.CliCtx(ctx, t, outfile, "bar2")))
 	})
 
 	t.Run("binary move bar2 tempdir/bar", func(t *testing.T) {
 		defer buf.Reset()
-		require.NoError(t, act.BinaryMove(gptest.CliCtx(ctx, t, "bar2", outfile)))
+		require.NoError(t, act.BinaryMove(ctx, gptest.CliCtx(ctx, t, "bar2", outfile)))
 	})
 }
 
@@ -237,7 +237,7 @@ func TestBinarySum(t *testing.T) {
 	})
 
 	t.Run("binary sum bar", func(t *testing.T) {
-		require.NoError(t, act.Sum(gptest.CliCtx(ctx, t, "bar")))
+		require.NoError(t, act.Sum(ctx, gptest.CliCtx(ctx, t, "bar")))
 		buf.Reset()
 	})
 }

@@ -41,7 +41,7 @@ func TestRecipients(t *testing.T) {
 
 	t.Run("print recipients tree", func(t *testing.T) {
 		defer buf.Reset()
-		require.NoError(t, act.RecipientsPrint(gptest.CliCtx(ctx, t)))
+		require.NoError(t, act.RecipientsPrint(ctx, gptest.CliCtx(ctx, t)))
 
 		hint := `Hint: run 'gopass sync' to import any missing public keys`
 		want := `gopass
@@ -53,39 +53,39 @@ func TestRecipients(t *testing.T) {
 
 	t.Run("complete recipients", func(t *testing.T) {
 		defer buf.Reset()
-		act.RecipientsComplete(gptest.CliCtx(ctx, t))
+		act.RecipientsComplete(ctx, gptest.CliCtx(ctx, t))
 		want := "0xDEADBEEF\n"
 		assert.Equal(t, want, buf.String())
 	})
 
 	t.Run("add recipients w/o args", func(t *testing.T) {
 		defer buf.Reset()
-		require.Error(t, act.RecipientsAdd(gptest.CliCtx(ctx, t)))
+		require.Error(t, act.RecipientsAdd(ctx, gptest.CliCtx(ctx, t)))
 	})
 
 	t.Run("remove recipients w/o args", func(t *testing.T) {
 		defer buf.Reset()
-		require.Error(t, act.RecipientsRemove(gptest.CliCtx(ctx, t)))
+		require.Error(t, act.RecipientsRemove(ctx, gptest.CliCtx(ctx, t)))
 	})
 
 	t.Run("add recipient 0xFEEDBEEF", func(t *testing.T) {
 		defer buf.Reset()
-		require.NoError(t, act.RecipientsAdd(gptest.CliCtx(ctx, t, "0xFEEDBEEF")))
+		require.NoError(t, act.RecipientsAdd(ctx, gptest.CliCtx(ctx, t, "0xFEEDBEEF")))
 	})
 
 	t.Run("add recipient 0xBEEFFEED", func(t *testing.T) {
 		defer buf.Reset()
-		require.NoError(t, act.RecipientsAdd(gptest.CliCtx(ctx, t, "0xBEEFFEED")))
+		require.NoError(t, act.RecipientsAdd(ctx, gptest.CliCtx(ctx, t, "0xBEEFFEED")))
 	})
 
 	t.Run("remove recipient 0xDEADBEEF", func(t *testing.T) {
 		defer buf.Reset()
-		require.NoError(t, act.RecipientsRemove(gptest.CliCtx(ctx, t, "0xDEADBEEF")))
+		require.NoError(t, act.RecipientsRemove(ctx, gptest.CliCtx(ctx, t, "0xDEADBEEF")))
 	})
 
 	t.Run("print recipients as JSON", func(t *testing.T) {
 		defer buf.Reset()
-		require.NoError(t, act.RecipientsPrint(gptest.CliCtxWithFlags(ctx, t, map[string]string{"json": "true"})))
+		require.NoError(t, act.RecipientsPrint(ctx, gptest.CliCtxWithFlags(ctx, t, map[string]string{"json": "true"})))
 		var jsonOut []string
 		require.NoError(t, json.Unmarshal(buf.Bytes(), &jsonOut))
 		// after removing 0xDEADBEEF there should still be other recipients
@@ -123,7 +123,7 @@ func TestRecipientsGpg(t *testing.T) {
 
 	t.Run("print recipients tree", func(t *testing.T) {
 		defer buf.Reset()
-		require.NoError(t, act.RecipientsPrint(gptest.CliCtx(ctx, t)))
+		require.NoError(t, act.RecipientsPrint(ctx, gptest.CliCtx(ctx, t)))
 
 		hint := `Hint: run 'gopass sync' to import any missing public keys`
 		want := `gopass
@@ -135,53 +135,53 @@ func TestRecipientsGpg(t *testing.T) {
 
 	t.Run("complete recipients", func(t *testing.T) {
 		defer buf.Reset()
-		act.RecipientsComplete(gptest.CliCtx(ctx, t))
+		act.RecipientsComplete(ctx, gptest.CliCtx(ctx, t))
 		want := "BE73F104\n"
 		assert.Equal(t, want, buf.String())
 	})
 
 	t.Run("add recipients w/o args", func(t *testing.T) {
 		defer buf.Reset()
-		require.Error(t, act.RecipientsAdd(gptest.CliCtx(ctx, t)))
+		require.Error(t, act.RecipientsAdd(ctx, gptest.CliCtx(ctx, t)))
 	})
 
 	t.Run("remove recipients w/o args", func(t *testing.T) {
 		defer buf.Reset()
-		require.Error(t, act.RecipientsRemove(gptest.CliCtx(ctx, t)))
+		require.Error(t, act.RecipientsRemove(ctx, gptest.CliCtx(ctx, t)))
 	})
 
 	t.Run("add recipient 0xFEEDBEEF", func(t *testing.T) {
 		defer buf.Reset()
-		require.NoError(t, act.RecipientsAdd(gptest.CliCtx(ctx, t, "0xFEEDBEEF")))
+		require.NoError(t, act.RecipientsAdd(ctx, gptest.CliCtx(ctx, t, "0xFEEDBEEF")))
 	})
 
 	t.Run("add recipient 0xBEEFFEED", func(t *testing.T) {
 		defer buf.Reset()
-		require.NoError(t, act.RecipientsAdd(gptest.CliCtxWithFlags(ctx, t, map[string]string{"force": "true"}, "0xBEEFFEED")))
+		require.NoError(t, act.RecipientsAdd(ctx, gptest.CliCtxWithFlags(ctx, t, map[string]string{"force": "true"}, "0xBEEFFEED")))
 	})
 
 	t.Run("remove recipient 0x82EBD945BE73F104", func(t *testing.T) {
 		defer buf.Reset()
-		require.NoError(t, act.RecipientsRemove(gptest.CliCtx(ctx, t, "0x82EBD945BE73F104")))
+		require.NoError(t, act.RecipientsRemove(ctx, gptest.CliCtx(ctx, t, "0x82EBD945BE73F104")))
 	})
 
 	t.Run("add recipient 0xFEEDFEED", func(t *testing.T) {
 		defer buf.Reset()
-		require.NoError(t, act.RecipientsAdd(gptest.CliCtxWithFlags(ctx, t, map[string]string{"force": "true"}, "0xFEEDFEED")))
+		require.NoError(t, act.RecipientsAdd(ctx, gptest.CliCtxWithFlags(ctx, t, map[string]string{"force": "true"}, "0xFEEDFEED")))
 	})
 
 	t.Run("remove recipient 0xFEEDFEED", func(t *testing.T) {
 		defer buf.Reset()
-		require.NoError(t, act.RecipientsRemove(gptest.CliCtx(ctx, t, "0xFEEDFEED")))
+		require.NoError(t, act.RecipientsRemove(ctx, gptest.CliCtx(ctx, t, "0xFEEDFEED")))
 	})
 
 	t.Run("add recipient 0xFEEDFEED", func(t *testing.T) {
 		defer buf.Reset()
-		require.NoError(t, act.RecipientsAdd(gptest.CliCtxWithFlags(ctx, t, map[string]string{"force": "true"}, "0xFEEDFEED")))
+		require.NoError(t, act.RecipientsAdd(ctx, gptest.CliCtxWithFlags(ctx, t, map[string]string{"force": "true"}, "0xFEEDFEED")))
 	})
 
 	t.Run("remove recipient 0xFEEDFEED (force)", func(t *testing.T) {
 		defer buf.Reset()
-		require.NoError(t, act.RecipientsRemove(gptest.CliCtxWithFlags(ctx, t, map[string]string{"force": "true"}, "0xFEEDFEED")))
+		require.NoError(t, act.RecipientsRemove(ctx, gptest.CliCtxWithFlags(ctx, t, map[string]string{"force": "true"}, "0xFEEDFEED")))
 	})
 }

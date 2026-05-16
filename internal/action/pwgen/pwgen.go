@@ -5,6 +5,7 @@
 package pwgen
 
 import (
+	"context"
 	"strconv"
 
 	"github.com/gopasspw/gopass/internal/action/exit"
@@ -12,14 +13,14 @@ import (
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/pwgen"
 	"github.com/gopasspw/gopass/pkg/pwgen/xkcdgen"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 	"golang.org/x/term"
 )
 
 // Pwgen handles the pwgen subcommand.
-func Pwgen(c *cli.Context) error {
+func Pwgen(ctx context.Context, cmd *cli.Command) error {
 	pwLen := 12
-	if lenStr := c.Args().Get(0); lenStr != "" {
+	if lenStr := cmd.Args().Get(0); lenStr != "" {
 		i, err := strconv.Atoi(lenStr)
 		if err != nil {
 			return exit.Error(exit.Usage, err, "Failed to convert password length arg: %s", err)
@@ -30,7 +31,7 @@ func Pwgen(c *cli.Context) error {
 	}
 
 	pwNum := 10
-	if numStr := c.Args().Get(1); numStr != "" {
+	if numStr := cmd.Args().Get(1); numStr != "" {
 		i, err := strconv.Atoi(numStr)
 		if err != nil {
 			return exit.Error(exit.Usage, err, "Failed to convert password number arg: %s", err)
@@ -40,35 +41,35 @@ func Pwgen(c *cli.Context) error {
 		}
 	}
 
-	if c.Bool("xkcd") || c.Bool("xkcd-capitalize") || c.Bool("xkcd-numbers") {
-		return xkcdGen(c, pwLen, pwNum)
+	if cmd.Bool("xkcd") || cmd.Bool("xkcd-capitalize") || cmd.Bool("xkcd-numbers") {
+		return xkcdGen(ctx, cmd, pwLen, pwNum)
 	}
 
-	return pwGen(c, pwLen, pwNum)
+	return pwGen(ctx, cmd, pwLen, pwNum)
 }
 
-func xkcdGen(c *cli.Context, length, num int) error {
-	sep := config.String(c.Context, "pwgen.xkcd-sep")
-	if c.IsSet("xkcd-sep") {
-		sep = c.String("xkcd-sep")
+func xkcdGen(ctx context.Context, cmd *cli.Command, length, num int) error {
+	sep := config.String(ctx, "pwgen.xkcd-sep")
+	if cmd.IsSet("xkcd-sep") {
+		sep = cmd.String("xkcd-sep")
 	}
-	lang := config.String(c.Context, "pwgen.xkcd-lang")
-	if c.IsSet("xkcd-lang") {
-		lang = c.String("xkcd-lang")
+	lang := config.String(ctx, "pwgen.xkcd-lang")
+	if cmd.IsSet("xkcd-lang") {
+		lang = cmd.String("xkcd-lang")
 	}
 	if length < 1 {
-		length = config.Int(c.Context, "pwgen.xkcd-len")
+		length = config.Int(ctx, "pwgen.xkcd-len")
 		if length < 1 {
 			length = 4
 		}
 	}
-	capitalize := config.Bool(c.Context, "pwgen.xkcd-capitalize")
-	if c.IsSet("xkcd-capitalize") {
-		capitalize = c.Bool("xkcd-capitalize")
+	capitalize := config.Bool(ctx, "pwgen.xkcd-capitalize")
+	if cmd.IsSet("xkcd-capitalize") {
+		capitalize = cmd.Bool("xkcd-capitalize")
 	}
-	numbers := config.Bool(c.Context, "pwgen.xkcd-numbers")
-	if c.IsSet("xkcd-numbers") {
-		numbers = c.Bool("xkcd-numbers")
+	numbers := config.Bool(ctx, "pwgen.xkcd-numbers")
+	if cmd.IsSet("xkcd-numbers") {
+		numbers = cmd.Bool("xkcd-numbers")
 	}
 
 	for range num {
@@ -76,36 +77,34 @@ func xkcdGen(c *cli.Context, length, num int) error {
 		if err != nil {
 			return err
 		}
-		out.Print(c.Context, s)
+		out.Print(ctx, s)
 	}
 
 	return nil
 }
 
-func pwGen(c *cli.Context, pwLen, pwNum int) error {
-	ctx := c.Context
-
+func pwGen(ctx context.Context, cmd *cli.Command, pwLen, pwNum int) error {
 	perLine := numPerLine(pwLen)
-	if c.Bool("one-per-line") {
+	if cmd.Bool("one-per-line") {
 		perLine = 1
 	}
 
 	charset := pwgen.CharAlphaNum
 
 	switch {
-	case c.Bool("no-numerals") && c.Bool("no-capitalize"):
+	case cmd.Bool("no-numerals") && cmd.Bool("no-capitalize"):
 		charset = pwgen.Lower
-	case c.Bool("no-numerals"):
+	case cmd.Bool("no-numerals"):
 		charset = pwgen.CharAlpha
-	case c.Bool("no-capitalize"):
+	case cmd.Bool("no-capitalize"):
 		charset = pwgen.Digits + pwgen.Lower
 	}
 
-	if c.Bool("ambiguous") {
+	if cmd.Bool("ambiguous") {
 		charset = pwgen.Prune(charset, pwgen.Ambiq)
 	}
 
-	if c.Bool("symbols") {
+	if cmd.Bool("symbols") {
 		charset += pwgen.Syms
 	}
 

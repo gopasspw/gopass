@@ -38,7 +38,7 @@ func TestDoctor(t *testing.T) {
 	// run doctor — the plain-crypto test store uses no GPG or age,
 	// so those binary checks always pass; store permissions and
 	// recipient checks should also pass.
-	err = act.Doctor(gptest.CliCtx(ctx, t))
+	err = act.Doctor(ctx, gptest.CliCtx(ctx, t))
 	// accept both nil (all pass) and a Doctor exit code (some check failed) —
 	// the test just verifies the command runs without panicking.
 	if err != nil {
@@ -47,7 +47,7 @@ func TestDoctor(t *testing.T) {
 	buf.Reset()
 
 	// --verbose shows each check result
-	err = act.Doctor(gptest.CliCtxWithFlags(ctx, t, map[string]string{"verbose": "true"}))
+	err = act.Doctor(ctx, gptest.CliCtxWithFlags(ctx, t, map[string]string{"verbose": "true"}))
 	if err != nil {
 		assert.Contains(t, err.Error(), "doctor found")
 	}

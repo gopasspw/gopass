@@ -11,7 +11,7 @@ import (
 	"github.com/gopasspw/gopass/tests/gptest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 func TestBashEscape(t *testing.T) {
@@ -55,7 +55,7 @@ func TestComplete(t *testing.T) {
 	require.NotNil(t, act)
 	ctx = act.cfg.WithConfig(ctx)
 
-	app := cli.NewApp()
+	app := &cli.Command{Name: "action.test"}
 	app.Commands = []*cli.Command{
 		{
 			Name:    "test",
@@ -66,14 +66,14 @@ func TestComplete(t *testing.T) {
 	t.Run("complete foo", func(t *testing.T) {
 		defer buf.Reset()
 
-		act.Complete(gptest.CliCtx(ctx, t))
+		act.Complete(ctx, gptest.CliCtx(ctx, t))
 		assert.Equal(t, "foo\n", buf.String())
 	})
 
 	t.Run("bash completion", func(t *testing.T) {
 		defer buf.Reset()
 
-		require.NoError(t, act.CompletionBash(nil))
+		require.NoError(t, act.CompletionBash(ctx, nil))
 		assert.Contains(t, buf.String(), "action.test")
 	})
 

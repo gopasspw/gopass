@@ -3,20 +3,21 @@
 package editor
 
 import (
+	"context"
 	"os"
 
 	"github.com/gopasspw/gopass/internal/config"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 // Path return the name/path of the preferred editor
-func Path(c *cli.Context) string {
-	if c != nil {
-		if ed := c.String("editor"); ed != "" {
+func Path(ctx context.Context, cmd *cli.Command) string {
+	if cmd != nil {
+		if ed := cmd.String("editor"); ed != "" {
 			return ed
 		}
 	}
-	if ed := config.String(c.Context, "edit.editor"); ed != "" {
+	if ed := config.String(ctx, "edit.editor"); ed != "" {
 		return ed
 	}
 	if ed := os.Getenv("EDITOR"); ed != "" {

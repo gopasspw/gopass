@@ -34,6 +34,6 @@ func TestMove(t *testing.T) {
 
 	t.Run("move foo to bar", func(t *testing.T) {
 		defer buf.Reset()
-		require.NoError(t, act.Move(gptest.CliCtx(ctx, t, "foo", "bar")))
+		require.NoError(t, act.Move(ctx, gptest.CliCtx(ctx, t, "foo", "bar")))
 	})
 }

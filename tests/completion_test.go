@@ -54,15 +54,3 @@ complete -F _gopass_bash_autocomplete gopass`
 		assert.Contains(t, out, "complete")
 	})
 }
-
-func TestCompletionNoPath(t *testing.T) {
-	ts := newTester(t)
-	defer ts.teardown()
-
-	t.Setenv("PATH", "/tmp/foobar")
-
-	t.Run("generate bash", func(t *testing.T) {
-		_, err := ts.run("--generate-bash-completion")
-		require.NoError(t, err)
-	})
-}

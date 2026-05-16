@@ -13,9 +13,9 @@ _{{ $prog }} () {
 	case "${cmd}" in
 {{- range .Commands }}
 	  {{ .Name }}{{ range .Aliases }}|{{ . }}{{ end }})
-	      {{- if .Subcommands }}
+	      {{- if .Commands }}
 	      local -a subcommands
-	      subcommands=({{ range .Subcommands }}
+	      subcommands=({{ range .Commands }}
 	      "{{ .Name }}:{{ .Usage }}"{{ end }}
 	      )
 	      _describe -t commands "{{ $prog }} {{ .Name }}" subcommands

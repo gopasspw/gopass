@@ -2,7 +2,7 @@ package action
 
 import (
 	"bytes"
-	"flag"
+	"context"
 	"fmt"
 	"os"
 	"regexp"
@@ -18,7 +18,7 @@ import (
 	"github.com/gopasspw/gopass/tests/gptest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 func TestRuleLookup(t *testing.T) {
@@ -51,7 +51,7 @@ func TestGenerate(t *testing.T) {
 
 	// generate
 	t.Run("generate", func(t *testing.T) {
-		require.Error(t, act.Generate(gptest.CliCtx(ctx, t)))
+		require.Error(t, act.Generate(ctx, gptest.CliCtx(ctx, t)))
 		buf.Reset()
 	})
 
@@ -61,7 +61,7 @@ func TestGenerate(t *testing.T) {
 			t.Skip("skipping test in short mode.")
 		}
 
-		require.NoError(t, act.Generate(gptest.CliCtx(ctx, t, "foobar")))
+		require.NoError(t, act.Generate(ctx, gptest.CliCtx(ctx, t, "foobar")))
 		buf.Reset()
 	})
 
@@ -72,7 +72,7 @@ func TestGenerate(t *testing.T) {
 			t.Skip("skipping test in short mode.")
 		}
 
-		require.NoError(t, act.Generate(gptest.CliCtx(ctx, t, "foobar")))
+		require.NoError(t, act.Generate(ctx, gptest.CliCtx(ctx, t, "foobar")))
 		buf.Reset()
 	})
 
@@ -82,7 +82,7 @@ func TestGenerate(t *testing.T) {
 			t.Skip("skipping test in short mode.")
 		}
 
-		require.NoError(t, act.Generate(gptest.CliCtxWithFlags(ctx, t, map[string]string{"edit": "true", "editor": "/usr/bin/env cat"}, "foobar")))
+		require.NoError(t, act.Generate(ctx, gptest.CliCtxWithFlags(ctx, t, map[string]string{"edit": "true", "editor": "/usr/bin/env cat"}, "foobar")))
 		buf.Reset()
 	})
 
@@ -92,7 +92,7 @@ func TestGenerate(t *testing.T) {
 			t.Skip("skipping test in short mode.")
 		}
 
-		require.NoError(t, act.Generate(gptest.CliCtxWithFlags(ctx, t, map[string]string{"force": "true"}, "foobar")))
+		require.NoError(t, act.Generate(ctx, gptest.CliCtxWithFlags(ctx, t, map[string]string{"force": "true"}, "foobar")))
 		buf.Reset()
 	})
 
@@ -102,7 +102,7 @@ func TestGenerate(t *testing.T) {
 			t.Skip("skipping test in short mode.")
 		}
 
-		require.NoError(t, act.Generate(gptest.CliCtxWithFlags(ctx, t, map[string]string{"force": "true"}, "foobar", "32")))
+		require.NoError(t, act.Generate(ctx, gptest.CliCtxWithFlags(ctx, t, map[string]string{"force": "true"}, "foobar", "32")))
 		buf.Reset()
 	})
 
@@ -112,7 +112,7 @@ func TestGenerate(t *testing.T) {
 			t.Skip("skipping test in short mode.")
 		}
 
-		require.NoError(t, act.Generate(gptest.CliCtxWithFlags(ctx, t, map[string]string{"force": "true", "print": "true", "symbols": "true"}, "foobar", "32")))
+		require.NoError(t, act.Generate(ctx, gptest.CliCtxWithFlags(ctx, t, map[string]string{"force": "true", "print": "true", "symbols": "true"}, "foobar", "32")))
 		passIsAlphaNum(t, buf.String(), false)
 		buf.Reset()
 	})
@@ -123,32 +123,32 @@ func TestGenerate(t *testing.T) {
 			t.Skip("skipping test in short mode.")
 		}
 
-		require.NoError(t, act.Generate(gptest.CliCtxWithFlags(ctx, t, map[string]string{"force": "true", "print": "true", "symbols": "false"}, "foobar", "32")))
+		require.NoError(t, act.Generate(ctx, gptest.CliCtxWithFlags(ctx, t, map[string]string{"force": "true", "print": "true", "symbols": "false"}, "foobar", "32")))
 		passIsAlphaNum(t, buf.String(), true)
 		buf.Reset()
 	})
 
 	// generate --force --xkcd foobar 32
 	t.Run("generate --force --xkcd foobar 32", func(t *testing.T) {
-		require.NoError(t, act.Generate(gptest.CliCtxWithFlags(ctx, t, map[string]string{"force": "true", "xkcd": "true", "lang": "en"}, "foobar", "32")))
+		require.NoError(t, act.Generate(ctx, gptest.CliCtxWithFlags(ctx, t, map[string]string{"force": "true", "xkcd": "true", "lang": "en"}, "foobar", "32")))
 		buf.Reset()
 	})
 
 	// generate --force --xkcd foobar baz 32
 	t.Run("generate --force --xkcd foobar baz 32", func(t *testing.T) {
-		require.NoError(t, act.Generate(gptest.CliCtxWithFlags(ctx, t, map[string]string{"force": "true", "xkcd": "true", "lang": "en"}, "foobar", "baz", "32")))
+		require.NoError(t, act.Generate(ctx, gptest.CliCtxWithFlags(ctx, t, map[string]string{"force": "true", "xkcd": "true", "lang": "en"}, "foobar", "baz", "32")))
 		buf.Reset()
 	})
 
 	// generate --force --xkcd foobar baz
 	t.Run("generate --force --xkcd foobar baz", func(t *testing.T) {
-		require.NoError(t, act.Generate(gptest.CliCtxWithFlags(ctx, t, map[string]string{"force": "true", "xkcd": "true", "lang": "en"}, "foobar", "baz")))
+		require.NoError(t, act.Generate(ctx, gptest.CliCtxWithFlags(ctx, t, map[string]string{"force": "true", "xkcd": "true", "lang": "en"}, "foobar", "baz")))
 		buf.Reset()
 	})
 
 	// generate --force --xkcd --print foobar baz
 	t.Run("generate --force --xkcd --print foobar baz", func(t *testing.T) {
-		require.NoError(t, act.Generate(gptest.CliCtxWithFlags(ctx, t, map[string]string{"force": "true", "xkcd": "true", "print": "true", "lang": "en"}, "foobar", "baz")))
+		require.NoError(t, act.Generate(ctx, gptest.CliCtxWithFlags(ctx, t, map[string]string{"force": "true", "xkcd": "true", "print": "true", "lang": "en"}, "foobar", "baz")))
 		buf.Reset()
 	})
 
@@ -160,7 +160,7 @@ func TestGenerate(t *testing.T) {
 		}()
 		require.NoError(t, act.cfg.Set("", "generate.autoclip", "true"))
 		ctx := ctxutil.WithTerminal(ctx, false)
-		require.NoError(t, act.Generate(gptest.CliCtxWithFlags(ctx, t, map[string]string{"force": "true"}, "foobar", "24")))
+		require.NoError(t, act.Generate(ctx, gptest.CliCtxWithFlags(ctx, t, map[string]string{"force": "true"}, "foobar", "24")))
 		assert.Contains(t, buf.String(), "Not printing secrets by default")
 		buf.Reset()
 	})
@@ -173,7 +173,7 @@ func TestGenerate(t *testing.T) {
 		}()
 		require.NoError(t, act.cfg.Set("", "generate.autoclip", "true"))
 		ctx := ctxutil.WithTerminal(ctx, true)
-		require.NoError(t, act.Generate(gptest.CliCtxWithFlags(ctx, t, map[string]string{"force": "true"}, "foobar", "24")))
+		require.NoError(t, act.Generate(ctx, gptest.CliCtxWithFlags(ctx, t, map[string]string{"force": "true"}, "foobar", "24")))
 		assert.Contains(t, buf.String(), "Copied to clipboard")
 		buf.Reset()
 	})
@@ -182,7 +182,7 @@ func TestGenerate(t *testing.T) {
 	t.Run("generate --force foobar", func(t *testing.T) {
 		t.Setenv("GOPASS_PW_DEFAULT_LENGTH", "42")
 
-		require.NoError(t, act.Generate(gptest.CliCtxWithFlags(ctx, t, map[string]string{"force": "true", "print": "true", "symbols": "false"}, "foobar")))
+		require.NoError(t, act.Generate(ctx, gptest.CliCtxWithFlags(ctx, t, map[string]string{"force": "true", "print": "true", "symbols": "false"}, "foobar")))
 		lines := strings.Split(strings.TrimSpace(buf.String()), "\n")
 		assert.Len(t, lines[3], 42)
 		buf.Reset()
@@ -196,7 +196,7 @@ func TestGenerate(t *testing.T) {
 			t.Skip("skipping test in short mode.")
 		}
 
-		require.NoError(t, act.Generate(gptest.CliCtxWithFlags(ctx, t, map[string]string{"force": "true", "print": "true", "symbols": "false"}, "foobar")))
+		require.NoError(t, act.Generate(ctx, gptest.CliCtxWithFlags(ctx, t, map[string]string{"force": "true", "print": "true", "symbols": "false"}, "foobar")))
 		lines := strings.Split(strings.TrimSpace(buf.String()), "\n")
 		assert.Len(t, lines[3], 24) // 24 = default value used as fallback
 		buf.Reset()
@@ -245,12 +245,18 @@ func TestKeyAndLength(t *testing.T) {
 		},
 	} {
 		t.Run(fmt.Sprintf("%v", tc.in), func(t *testing.T) {
-			app := cli.NewApp()
-			fs := flag.NewFlagSet("default", flag.ContinueOnError)
-			require.NoError(t, fs.Parse(append([]string{"foobar"}, tc.in...)))
-			c := cli.NewContext(app, fs, nil)
-			args, _ := parseArgs(c)
-			k, l := keyAndLength(args)
+			var gotArgs argList
+
+			cmd := &cli.Command{
+				Action: func(c context.Context, cmd *cli.Command) error {
+					gotArgs, _ = parseArgs(c, cmd)
+
+					return nil
+				},
+			}
+			// "foobar" is the binary name (consumed by cli), "myname" is the secret name (args[0]).
+			require.NoError(t, cmd.Run(context.Background(), append([]string{"foobar", "myname"}, tc.in...)))
+			k, l := keyAndLength(gotArgs)
 			assert.Equal(t, tc.key, k, "Key from %+v", tc.in)
 			assert.Equal(t, tc.length, l, "Length from %+v", tc.in)
 		})

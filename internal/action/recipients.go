@@ -13,7 +13,7 @@ import (
 	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/gopasspw/gopass/pkg/set"
 	"github.com/gopasspw/gopass/pkg/termio"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 var removalWarning = `
@@ -34,10 +34,10 @@ credentials.
 `
 
 // RecipientsPrint prints all recipients per store.
-func (s *recipientHandler) RecipientsPrint(c *cli.Context) error {
-	ctx := ctxutil.WithGlobalFlags(c)
+func (s *recipientHandler) RecipientsPrint(ctx context.Context, cmd *cli.Command) error {
+	ctx = ctxutil.WithGlobalFlags(ctx, cmd)
 
-	if c.Bool("json") {
+	if cmd.Bool("json") {
 		t, err := s.Store.RecipientsTree(ctx, false)
 		if err != nil {
 			return exit.Error(exit.List, err, "failed to list recipients: %s", err)
@@ -48,7 +48,7 @@ func (s *recipientHandler) RecipientsPrint(c *cli.Context) error {
 
 	out.Printf(ctx, "Hint: run 'gopass sync' to import any missing public keys")
 
-	t, err := s.Store.RecipientsTree(ctx, c.Bool("pretty"))
+	t, err := s.Store.RecipientsTree(ctx, cmd.Bool("pretty"))
 	if err != nil {
 		return exit.Error(exit.List, err, "failed to list recipients: %s", err)
 	}
@@ -71,8 +71,8 @@ func (s *recipientHandler) recipientsList(ctx context.Context) []string {
 
 // RecipientsComplete will print a list of recipients for bash
 // completion.
-func (s *recipientHandler) RecipientsComplete(c *cli.Context) {
-	ctx := ctxutil.WithGlobalFlags(c)
+func (s *recipientHandler) RecipientsComplete(ctx context.Context, cmd *cli.Command) {
+	ctx = ctxutil.WithGlobalFlags(ctx, cmd)
 	if ok, err := s.Store.IsInitialized(ctx); err != nil || !ok {
 		debug.Log("store not initialized: %v", err)
 
@@ -85,17 +85,17 @@ func (s *recipientHandler) RecipientsComplete(c *cli.Context) {
 }
 
 // RecipientsAck updates `recipients.hash`.
-func (s *recipientHandler) RecipientsAck(c *cli.Context) error {
-	ctx := ctxutil.WithGlobalFlags(c)
+func (s *recipientHandler) RecipientsAck(ctx context.Context, cmd *cli.Command) error {
+	ctx = ctxutil.WithGlobalFlags(ctx, cmd)
 
 	return s.Store.SaveRecipients(ctxutil.WithHidden(ctx, true), true)
 }
 
 // RecipientsAdd adds new recipients.
-func (s *recipientHandler) RecipientsAdd(c *cli.Context) error {
-	ctx := ctxutil.WithGlobalFlags(c)
-	store := c.String("store")
-	force := c.Bool("force")
+func (s *recipientHandler) RecipientsAdd(ctx context.Context, cmd *cli.Command) error {
+	ctx = ctxutil.WithGlobalFlags(ctx, cmd)
+	store := cmd.String("store")
+	force := cmd.Bool("force")
 	added := 0
 
 	// select store.
@@ -112,7 +112,7 @@ func (s *recipientHandler) RecipientsAdd(c *cli.Context) error {
 	crypto := s.Store.Crypto(ctx, store)
 
 	// select recipient.
-	recipients := c.Args().Slice()
+	recipients := cmd.Args().Slice()
 	if len(recipients) < 1 {
 		out.Notice(ctx, "Fetching available recipients. Please wait...")
 
@@ -173,14 +173,14 @@ func (s *recipientHandler) RecipientsAdd(c *cli.Context) error {
 }
 
 // RecipientsRemove removes recipients.
-func (s *recipientHandler) RecipientsRemove(c *cli.Context) error {
-	ctx := ctxutil.WithGlobalFlags(c)
-	store := c.String("store")
-	force := c.Bool("force")
+func (s *recipientHandler) RecipientsRemove(ctx context.Context, cmd *cli.Command) error {
+	ctx = ctxutil.WithGlobalFlags(ctx, cmd)
+	store := cmd.String("store")
+	force := cmd.Bool("force")
 	removed := 0
 
 	// select store if none is given.
-	if !c.IsSet("store") {
+	if !cmd.IsSet("store") {
 		store = cui.AskForStore(ctx, s.Store)
 	}
 
@@ -189,7 +189,7 @@ func (s *recipientHandler) RecipientsRemove(c *cli.Context) error {
 	crypto := s.Store.Crypto(ctx, store)
 
 	// ask to select a recipient if none are given.
-	recipients := c.Args().Slice()
+	recipients := cmd.Args().Slice()
 	if len(recipients) < 1 {
 		rs, err := s.recipientsSelectForRemoval(ctx, store)
 		if err != nil {

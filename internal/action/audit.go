@@ -13,12 +13,12 @@ import (
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/gopasspw/gopass/pkg/fsutil"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 // Audit validates passwords against common flaws.
-func (s *auditHandler) Audit(c *cli.Context) error {
-	ctx := ctxutil.WithGlobalFlags(c)
+func (s *auditHandler) Audit(ctx context.Context, cmd *cli.Command) error {
+	ctx = ctxutil.WithGlobalFlags(ctx, cmd)
 
 	_ = s.rem.Reset("audit")
 	out.Print(ctx, "Auditing passwords for common flaws ...")
@@ -28,7 +28,7 @@ func (s *auditHandler) Audit(c *cli.Context) error {
 		return exit.Error(exit.List, err, "failed to get store tree: %s", err)
 	}
 
-	if filter := c.Args().First(); filter != "" {
+	if filter := cmd.Args().First(); filter != "" {
 		subtree, err := t.FindFolder(filter)
 		if err != nil {
 			return exit.Error(exit.Unknown, err, "failed to find subtree: %s", err)
@@ -46,7 +46,7 @@ func (s *auditHandler) Audit(c *cli.Context) error {
 	}
 
 	var excludes string
-	st := s.Store.Storage(ctx, c.Args().First())
+	st := s.Store.Storage(ctx, cmd.Args().First())
 	if buf, err := st.Get(ctx, ".gopass-audit-ignore"); err == nil && buf != nil {
 		excludes = string(buf)
 	}
@@ -55,30 +55,30 @@ func (s *auditHandler) Audit(c *cli.Context) error {
 		out.Warningf(ctx, "Excluding %d secrets based on .gopass-audit-ignore", len(list)-len(nList))
 	}
 
-	a := audit.New(c.Context, s.Store)
+	a := audit.New(ctx, s.Store)
 	r, err := a.Batch(ctx, nList)
 	if err != nil {
 		return exit.Error(exit.Unknown, err, "failed to audit password store: %s", err)
 	}
 
-	if p := c.String("template"); p != "" && fsutil.IsFile(p) {
+	if p := cmd.String("template"); p != "" && fsutil.IsFile(p) {
 		r.Template = p
 	}
 
-	switch c.String("format") {
+	switch cmd.String("format") {
 	case "html":
-		return saveReport(ctx, r.RenderHTML, c.String("output-file"), "html")
+		return saveReport(ctx, r.RenderHTML, cmd.String("output-file"), "html")
 	case "csv":
-		return saveReport(ctx, r.RenderCSV, c.String("output-file"), "csv")
+		return saveReport(ctx, r.RenderCSV, cmd.String("output-file"), "csv")
 	case "json":
-		return saveReport(ctx, r.RenderJSON, c.String("output-file"), "json")
+		return saveReport(ctx, r.RenderJSON, cmd.String("output-file"), "json")
 	default:
 		var err error
-		if c.Bool("full") {
+		if cmd.Bool("full") {
 			debug.Log("Printing full report")
 			err = r.PrintResults(ctx)
 		}
-		if c.Bool("summary") {
+		if cmd.Bool("summary") {
 			debug.Log("Printing summary")
 
 			nerr := r.PrintSummary(ctx)
@@ -87,7 +87,7 @@ func (s *auditHandler) Audit(c *cli.Context) error {
 				err = nerr
 			}
 		}
-		if !c.Bool("full") && !c.Bool("summary") {
+		if !cmd.Bool("full") && !cmd.Bool("summary") {
 			nerr := r.PrintSummary(ctx)
 			if err == nil {
 				err = nerr

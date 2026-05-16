@@ -12,25 +12,25 @@ import (
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/gopasspw/gopass/pkg/termio"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 // Delete a secret file with its content.
-func (s *secretHandler) Delete(c *cli.Context) error {
-	ctx := ctxutil.WithGlobalFlags(c)
-	recursive := c.Bool("recursive")
+func (s *secretHandler) Delete(ctx context.Context, cmd *cli.Command) error {
+	ctx = ctxutil.WithGlobalFlags(ctx, cmd)
+	recursive := cmd.Bool("recursive")
 
-	name := c.Args().First()
+	name := cmd.Args().First()
 	if name == "" {
 		return exit.Error(exit.Usage, nil, "Usage: %s rm name", s.Name)
 	}
 
 	if recursive {
-		if len(c.Args().Tail()) > 1 {
+		if len(cmd.Args().Tail()) > 1 {
 			return exit.Error(exit.Usage, nil, "Deleting multiple keys is not supported in recursive mode")
 		}
 
-		return s.deleteRecursive(ctx, name, c.Bool("force"))
+		return s.deleteRecursive(ctx, name, cmd.Bool("force"))
 	}
 
 	if s.Store.IsDir(ctx, name) && !s.Store.Exists(ctx, name) {
@@ -38,10 +38,10 @@ func (s *secretHandler) Delete(c *cli.Context) error {
 	}
 
 	// specifying a key is optional.
-	key := c.Args().Get(1)
+	key := cmd.Args().Get(1)
 
 	// multiple secrets, so not a key
-	if len(c.Args().Tail()) > 1 {
+	if len(cmd.Args().Tail()) > 1 {
 		key = ""
 	}
 
@@ -50,15 +50,15 @@ func (s *secretHandler) Delete(c *cli.Context) error {
 	if key != "" {
 		commitMsg = fmt.Sprintf("Deleted key %s from %s", key, name)
 	}
-	if c.IsSet("commit-message") {
-		commitMsg = c.String("commit-message")
+	if cmd.IsSet("commit-message") {
+		commitMsg = cmd.String("commit-message")
 	}
-	if c.Bool("interactive-commit") {
+	if cmd.Bool("interactive-commit") {
 		commitMsg = ""
 	}
 	ctx = ctxutil.WithCommitMessage(ctx, commitMsg)
 
-	names := append([]string{name}, c.Args().Tail()...)
+	names := append([]string{name}, cmd.Args().Tail()...)
 
 	if key != "" && s.Store.Exists(ctx, key) {
 		return exit.Error(exit.Unsupported, nil, "Key %q clashes with a secret of this name, use 'gopass edit %s' to delete", key, name)
@@ -68,7 +68,7 @@ func (s *secretHandler) Delete(c *cli.Context) error {
 		return exit.Error(exit.NotFound, nil, "Secret %q does not exist", name)
 	}
 
-	if !c.Bool("force") { // don't check if it's force anyway.
+	if !cmd.Bool("force") { // don't check if it's force anyway.
 		qStr := fmt.Sprintf("☠ Are you sure you would like to delete %q?", names)
 		if key != "" {
 			qStr = fmt.Sprintf("☠ Are you sure you would like to delete %q from %q?", key, name)

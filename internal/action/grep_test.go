@@ -33,7 +33,7 @@ func TestGrep(t *testing.T) {
 	c := gptest.CliCtx(ctx, t, "foo")
 	t.Run("empty store", func(t *testing.T) {
 		defer buf.Reset()
-		require.NoError(t, act.Grep(c))
+		require.NoError(t, act.Grep(ctx, c))
 	})
 
 	t.Run("add some secret", func(t *testing.T) {
@@ -47,12 +47,12 @@ func TestGrep(t *testing.T) {
 
 	t.Run("should find existing", func(t *testing.T) {
 		defer buf.Reset()
-		require.NoError(t, act.Grep(c))
+		require.NoError(t, act.Grep(ctx, c))
 	})
 
 	t.Run("RE2", func(t *testing.T) {
 		defer buf.Reset()
 		c := gptest.CliCtxWithFlags(ctx, t, map[string]string{"regexp": "true"}, "f..bar")
-		require.NoError(t, act.Grep(c))
+		require.NoError(t, act.Grep(ctx, c))
 	})
 }

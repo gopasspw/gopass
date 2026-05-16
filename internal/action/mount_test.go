@@ -37,28 +37,28 @@ func TestMounts(t *testing.T) {
 
 	t.Run("print mounts", func(t *testing.T) {
 		defer buf.Reset()
-		require.NoError(t, act.MountsPrint(gptest.CliCtx(ctx, t)))
+		require.NoError(t, act.MountsPrint(ctx, gptest.CliCtx(ctx, t)))
 	})
 
 	t.Run("complete mounts", func(t *testing.T) {
 		defer buf.Reset()
-		act.MountsComplete(gptest.CliCtx(ctx, t))
+		act.MountsComplete(ctx, gptest.CliCtx(ctx, t))
 		assert.Empty(t, buf.String())
 	})
 
 	t.Run("remove no non-existing mount", func(t *testing.T) {
 		defer buf.Reset()
-		require.Error(t, act.MountRemove(gptest.CliCtx(ctx, t)))
+		require.Error(t, act.MountRemove(ctx, gptest.CliCtx(ctx, t)))
 	})
 
 	t.Run("remove non-existing mount", func(t *testing.T) {
 		defer buf.Reset()
-		require.NoError(t, act.MountRemove(gptest.CliCtx(ctx, t, "foo")))
+		require.NoError(t, act.MountRemove(ctx, gptest.CliCtx(ctx, t, "foo")))
 	})
 
 	t.Run("add non-existing mount", func(t *testing.T) {
 		defer buf.Reset()
-		require.Error(t, act.MountAdd(gptest.CliCtx(ctx, t, "foo", filepath.Join(u.Dir, "mount1"))))
+		require.Error(t, act.MountAdd(ctx, gptest.CliCtx(ctx, t, "foo", filepath.Join(u.Dir, "mount1"))))
 	})
 
 	t.Run("add some mounts", func(t *testing.T) {
@@ -71,6 +71,6 @@ func TestMounts(t *testing.T) {
 
 	t.Run("print mounts", func(t *testing.T) {
 		defer buf.Reset()
-		require.NoError(t, act.MountsPrint(gptest.CliCtx(ctx, t)))
+		require.NoError(t, act.MountsPrint(ctx, gptest.CliCtx(ctx, t)))
 	})
 }

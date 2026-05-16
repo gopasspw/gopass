@@ -2,6 +2,7 @@ package action
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
 	"time"
@@ -15,14 +16,14 @@ import (
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/gopasspw/gopass/pkg/gopass/secrets"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 // Merge implements the merge subcommand that allows merging multiple entries.
-func (s *secretHandler) Merge(c *cli.Context) error {
-	ctx := ctxutil.WithGlobalFlags(c)
-	to := c.Args().First()
-	from := c.Args().Tail()
+func (s *secretHandler) Merge(ctx context.Context, cmd *cli.Command) error {
+	ctx = ctxutil.WithGlobalFlags(ctx, cmd)
+	to := cmd.Args().First()
+	from := cmd.Args().Tail()
 
 	if to == "" {
 		return exit.Error(exit.Usage, nil, "usage: %s merge <to> <from> [<from>]", s.Name)
@@ -32,10 +33,10 @@ func (s *secretHandler) Merge(c *cli.Context) error {
 		return exit.Error(exit.Usage, nil, "usage: %s merge <to> <from> [<from>]", s.Name)
 	}
 
-	ed := editor.Path(c)
+	ed := editor.Path(ctx, cmd)
 
 	content := &bytes.Buffer{}
-	for _, k := range c.Args().Slice() {
+	for _, k := range cmd.Args().Slice() {
 		if !s.Store.Exists(ctx, k) {
 			continue
 		}
@@ -56,7 +57,7 @@ func (s *secretHandler) Merge(c *cli.Context) error {
 	}
 
 	newContent := content.Bytes()
-	if !c.Bool("force") {
+	if !cmd.Bool("force") {
 		var err error
 		// invoke the editor to let the user edit the content
 		newContent, err = editor.Invoke(ctx, ed, content.Bytes())
@@ -73,19 +74,19 @@ func (s *secretHandler) Merge(c *cli.Context) error {
 	nSec := secrets.ParseAKV(newContent)
 
 	// if the secret has a password, we check it's strength
-	if pw := nSec.Password(); pw != "" && !c.Bool("force") {
+	if pw := nSec.Password(); pw != "" && !cmd.Bool("force") {
 		audit.Single(ctx, pw)
 	}
 
 	// write result (back) to store
-	if err := s.Store.Set(ctxutil.WithCommitMessage(ctx, fmt.Sprintf("Merged %+v", c.Args().Slice())), to, nSec); err != nil {
+	if err := s.Store.Set(ctxutil.WithCommitMessage(ctx, fmt.Sprintf("Merged %+v", cmd.Args().Slice())), to, nSec); err != nil {
 		if !errors.Is(err, store.ErrMeaninglessWrite) {
 			return exit.Error(exit.Encrypt, err, "failed to encrypt secret %s: %s", to, err)
 		}
 		out.Warningf(ctx, "No need to write: the secret is already there and with the right value")
 	}
 
-	if !c.Bool("delete") {
+	if !cmd.Bool("delete") {
 		return nil
 	}
 

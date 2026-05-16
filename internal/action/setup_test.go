@@ -43,8 +43,10 @@ func TestSetupAgeGitFS(t *testing.T) {
 	require.NoError(t, os.Remove(u.GPConfig()))
 
 	c := gptest.CliCtxWithFlags(ctx, t, map[string]string{"storage": "gitfs", "crypto": "age"})
-	require.Error(t, act.IsInitialized(c))
-	require.NoError(t, act.Setup(c))
+	_, errIsInit := act.IsInitialized(ctx, c)
+
+	require.Error(t, errIsInit)
+	require.NoError(t, act.Setup(ctx, c))
 	assert.Contains(t, buf.String(), "Welcome to gopass")
 
 	crypto := act.Store.Crypto(ctx, "")
@@ -81,15 +83,17 @@ func TestSetupPlainFS(t *testing.T) {
 	}()
 
 	c := gptest.CliCtx(ctx, t, "foo.bar@example.org")
-	require.NoError(t, act.IsInitialized(c))
+	_, errIsInit := act.IsInitialized(ctx, c)
+
+	require.NoError(t, errIsInit)
 	buf.Reset()
 
-	require.Error(t, act.Init(c))
+	require.Error(t, act.Init(ctx, c))
 	assert.Contains(t, buf.String(), "already initialized")
 	buf.Reset()
 
 	// this will abort because the store is already initialized
-	require.NoError(t, act.Setup(c))
+	require.NoError(t, act.Setup(ctx, c))
 	assert.Contains(t, buf.String(), "already initialized")
 	buf.Reset()
 
@@ -106,7 +110,9 @@ func TestSetupPlainFS(t *testing.T) {
 
 	// un-initialize the store
 	require.NoError(t, os.Remove(filepath.Join(u.StoreDir(""), plain.IDFile)))
-	require.Error(t, act.IsInitialized(c))
+	_, errIsInit = act.IsInitialized(ctx, c)
+
+	require.Error(t, errIsInit)
 	buf.Reset()
 
 	// remove existing config and store
@@ -114,7 +120,7 @@ func TestSetupPlainFS(t *testing.T) {
 	require.NoError(t, os.Remove(u.GPConfig()))
 
 	// re-initialize the store, i.e. test that a fresh setup with plain and fs works
-	require.NoError(t, act.Setup(c))
+	require.NoError(t, act.Setup(ctx, c))
 	assert.Contains(t, buf.String(), "Welcome to gopass")
 	buf.Reset()
 }

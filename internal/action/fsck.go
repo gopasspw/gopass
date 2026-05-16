@@ -14,18 +14,18 @@ import (
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/fsutil"
 	"github.com/gopasspw/gopass/pkg/termio"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 // Fsck checks the store integrity.
-func (s *auditHandler) Fsck(c *cli.Context) error {
+func (s *auditHandler) Fsck(ctx context.Context, cmd *cli.Command) error {
 	_ = s.rem.Reset("fsck")
 
-	filter := c.Args().First()
+	filter := cmd.Args().First()
 
-	ctx := ctxutil.WithGlobalFlags(c)
-	if c.IsSet("decrypt") {
-		ctx = leaf.WithFsckDecrypt(ctx, c.Bool("decrypt"))
+	ctx = ctxutil.WithGlobalFlags(ctx, cmd)
+	if cmd.IsSet("decrypt") {
+		ctx = leaf.WithFsckDecrypt(ctx, cmd.Bool("decrypt"))
 	}
 
 	out.Printf(ctx, "Checking password store integrity ...")
@@ -53,7 +53,7 @@ func (s *auditHandler) Fsck(c *cli.Context) error {
 	ctx = out.AddPrefix(ctx, "\n")
 
 	// the main work in done by the sub stores.
-	if err := s.Store.Fsck(ctx, c.String("store"), filter, progress); err != nil {
+	if err := s.Store.Fsck(ctx, cmd.String("store"), filter, progress); err != nil {
 		return exit.Error(exit.Fsck, err, "fsck found errors: %s", err)
 	}
 	bar.Done()

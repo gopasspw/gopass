@@ -44,7 +44,7 @@ func TestLink(t *testing.T) {
 	require.NoError(t, act.Store.Set(ctx, "bar/baz", sec))
 	buf.Reset()
 
-	require.NoError(t, act.Link(gptest.CliCtx(ctx, t, "bar/baz", "other/linkdest")))
+	require.NoError(t, act.Link(ctx, gptest.CliCtx(ctx, t, "bar/baz", "other/linkdest")))
 
 	// original secret should be equal to the linkdest
 	oSec, err := act.Store.Get(ctx, "bar/baz")

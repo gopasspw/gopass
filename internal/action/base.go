@@ -8,7 +8,7 @@ import (
 	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/reminder"
 	"github.com/gopasspw/gopass/internal/store/root"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 // base holds the fields common to all handler types. Every handler embeds
@@ -25,24 +25,24 @@ type base struct {
 // copy, move, link, merge).
 type secretHandler struct {
 	*base
-	findFn           func(ctx context.Context, c *cli.Context, needle string, cb showFunc, fuzzy bool) error
+	findFn           func(ctx context.Context, cmd *cli.Command, needle string, cb showFunc, fuzzy bool) error
 	renderTemplateFn func(ctx context.Context, name string, content []byte) ([]byte, bool)
-	listFn           func(c *cli.Context) error
-	findFuzzyFn      func(c *cli.Context) error
+	listFn           func(ctx context.Context, cmd *cli.Command) error
+	findFuzzyFn      func(ctx context.Context, cmd *cli.Command) error
 }
 
 // searchHandler handles search and list operations (find, grep, list, history).
 type searchHandler struct {
 	*base
 	showFn showFunc
-	editFn func(ctx context.Context, c *cli.Context, name string) error
-	syncFn func(c *cli.Context) error
+	editFn func(ctx context.Context, cmd *cli.Command, name string) error
+	syncFn func(ctx context.Context, cmd *cli.Command) error
 }
 
 // generateHandler handles password generation (generate, create).
 type generateHandler struct {
 	*base
-	editFn           func(c *cli.Context) error
+	editFn           func(ctx context.Context, cmd *cli.Command) error
 	renderTemplateFn func(ctx context.Context, name string, content []byte) ([]byte, bool)
 }
 
@@ -93,7 +93,7 @@ type envHandler struct {
 type otpHandler struct {
 	*base
 	insertYAMLFn func(ctx context.Context, name, key string, content []byte, kvps map[string]string) error
-	findFn       func(ctx context.Context, c *cli.Context, needle string, cb showFunc, fuzzy bool) error
+	findFn       func(ctx context.Context, cmd *cli.Command, needle string, cb showFunc, fuzzy bool) error
 }
 
 // miscHandler handles miscellaneous operations that do not fit a narrower
