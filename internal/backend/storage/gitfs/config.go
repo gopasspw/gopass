@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/gopasspw/gopass/internal/backend"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store"
 )
@@ -75,13 +76,14 @@ func (g *Git) InitConfig(ctx context.Context, userName, userEmail string) error 
 		return fmt.Errorf("failed to fix git config: %w", err)
 	}
 
-	if err := os.WriteFile(filepath.Join(g.fs.Path(), ".gitattributes"), []byte("*.gpg diff=gpg\n"), fileMode); err != nil {
+	gitattributes, commitMsg := gitattributesForBackend(ctx)
+	if err := os.WriteFile(filepath.Join(g.fs.Path(), ".gitattributes"), []byte(gitattributes), fileMode); err != nil {
 		return fmt.Errorf("failed to initialize git: %w", err)
 	}
 	if err := g.Add(ctx, g.fs.Path()+"/.gitattributes"); err != nil {
 		out.Warningf(ctx, "Failed to add .gitattributes to git")
 	}
-	if err := g.Commit(ctx, "Configure git repository for gpg file diff."); err != nil {
+	if err := g.Commit(ctx, commitMsg); err != nil {
 		out.Warningf(ctx, "Failed to commit .gitattributes to git")
 	}
 
@@ -122,4 +124,14 @@ func (g *Git) ConfigList(ctx context.Context) (map[string]string, error) {
 	}
 
 	return kv, nil
+}
+
+// gitattributesForBackend returns the .gitattributes content and commit message
+// appropriate for the active crypto backend.
+func gitattributesForBackend(ctx context.Context) (string, string) {
+	if backend.GetCryptoBackend(ctx) == backend.Age {
+		return "*.age binary\n", "Configure git repository for age file handling."
+	}
+
+	return "*.gpg diff=gpg\n", "Configure git repository for gpg file diff."
 }
