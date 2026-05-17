@@ -1,4 +1,5 @@
 # Releases
+# Releases
 
 Note: Only members who have at least `write` [access](https://github.com/gopasspw/gopass/settings/access) to the gopass repo can create releases.
 
@@ -10,6 +11,7 @@ Note: We use semantic versioning for the command line interface and tool behavio
 but not for the API (i.e. `pkg/gopass`). Maintaining both properties in the
 same repository / Go module is too cumbersome.
 
+## Development overview
 ## Development overview
 
 Preparing and creating a new release requires a number of steps.
@@ -24,11 +26,12 @@ Starting right after the previous release these are roughly:
 * After all blockers have been addressed we move the remaining issues to the next milestone and prepare the release
 
 ## Cutting a release
+## Cutting a release
 
 This section is a reference for contributors with write access to the gopass
 repository.
 
-### Preparation
+## Preparation
 
 gopass release should work with the latest upstream version of goreleaser.
 
@@ -38,10 +41,13 @@ cd $GOPATH/src/github.com/goreleaser/goreleaser
 go install
 ```
 
-### Releasing a new release
+## Releasing a new release
 
 This subsection applies to a new release in direct succession of the previous one, i.e. releasing what's in the master branch. If you need to cherry-pick
 and base a release off of a previous one see the next subsection.
+
+This is also the starting point for release candidates. The release helper accepts
+any valid semantic version, including prerelease identifiers such as `-rc.1`.
 
 We develop new features and fixes and feature branches which are frequently
 merged into master in our own forks of the repository.
@@ -55,15 +61,74 @@ Once approved the PR will be merged and a tag needs to be pushed to trigger
 the release process automation (using GitHub actions).
 
 ```bash
-$ go run helpers/release/main.go
+go run helpers/release/main.go
 # Follow the instructions to release a new minor version.
 # If you want to skip a patch level or bump the minor version
 # specify a version argument.
-$ go run helpers/release/main.go v1.18.2
+go run helpers/release/main.go v1.18.2
 # If that confuses the changelog parser, you can specify a previous version
 # as well.
-$ go run helpers/release/main.go v1.18.2 v1.17.2
+go run helpers/release/main.go v1.18.2 v1.17.2
 ```
+
+## Releasing a release candidate
+
+Release candidates are regular semver prereleases. Use versions like
+`v1.19.0-rc.1`, `v1.19.0-rc.2`, and so on.
+
+The GitHub release will automatically be marked as a prerelease because
+`.goreleaser.yml` uses `release.prerelease: auto`.
+
+Use this workflow when you want to let users test a near-final build before the
+stable tag is published:
+
+1. Start from a clean, up-to-date `master` branch.
+1. Pick the target stable version you are preparing, for example `v1.19.0`.
+1. Prepare the first release candidate with an explicit prerelease version:
+
+```bash
+go run helpers/release/main.go v1.19.0-rc.1
+```
+
+1. Push the generated `release/v1.19.0-rc.1` branch and open a PR against `master`.
+1. After the PR is reviewed and merged, create and push the signed tag:
+
+```bash
+git tag -s v1.19.0-rc.1
+git push origin v1.19.0-rc.1
+```
+
+1. Ask testers to use prereleases explicitly, for example with `gopass update --pre`.
+
+If you need another release candidate after additional fixes landed on `master`,
+run the helper again with the next prerelease number:
+
+```bash
+go run helpers/release/main.go v1.19.0-rc.2
+```
+
+The helper will automatically use the latest existing `v1.19.0-rc.N` tag as the
+previous version for changelog generation. You can still pass the previous version
+explicitly if you need to override that behavior:
+
+```bash
+go run helpers/release/main.go v1.19.0-rc.2 v1.19.0-rc.1
+```
+
+Once the final release is ready, run the helper without a prerelease suffix. If
+`VERSION` still contains the release candidate version, the helper will promote it
+to the final stable version automatically:
+
+```bash
+go run helpers/release/main.go
+# or explicitly
+go run helpers/release/main.go v1.19.0
+```
+
+Notes:
+
+* Do not set `PATCH_RELEASE=true` for normal release candidates that should be cut from `master`. That mode is only for staying on the current branch, e.g. for cherry-pick releases.
+* The changelog for the final stable release will still cover the full delta since the last stable tag, even if one or more release candidates were published before.
 
 After the helper ran it will show you instructions how to push your release
 branch and create a PR for review. Once it's merged a maintainer only needs
@@ -88,7 +153,7 @@ cosign verify-blob \
 Once the checksum file is verified, use it to validate the archive or package
 you downloaded with your usual checksum tooling.
 
-### Releasing a cherry-pick release
+## Releasing a cherry-pick release
 
 This subsection applies to a new release that should be based on a previous
 release that is not a direct ancestor of the master branch, i.e. because
@@ -115,4 +180,3 @@ of the last commit.
 
 Internal paths are stripped using `-trimpath` and appropriate `-ldflags` (e.g.
 `-s`, `-w`). See the Makefile header for the exact set of flags.
-

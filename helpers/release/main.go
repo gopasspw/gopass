@@ -77,6 +77,7 @@ func main() {
 	fmt.Println("☝  Checking pre-conditions ...")
 
 	prevVer, nextVer := getVersions()
+	patchRelease := isPatchRelease()
 
 	// - check that workdir is clean
 	if !isGitClean() {
@@ -84,7 +85,7 @@ func main() {
 	}
 	fmt.Println("✅ git is clean")
 
-	if len(nextVer.Pre) < 1 {
+	if !patchRelease {
 		// - check out master
 		if err := gitCoMaster(); err != nil {
 			panic(err)
@@ -95,6 +96,8 @@ func main() {
 			panic(err)
 		}
 		fmt.Println("✅ Fetched changes for master")
+	} else {
+		fmt.Println("✅ PATCH_RELEASE is set, staying on the current branch")
 	}
 	// - check that workdir is clean
 	if !isGitClean() {
@@ -213,6 +216,15 @@ func getVersions() (semver.Version, semver.Version) {
 	nextVer := prevVer
 	if nextVerFlag != "" {
 		nextVer = semver.MustParse(nextVerFlag)
+		if prevVerFlag == "" && len(nextVer.Pre) > 0 {
+			rcPrevVer, err := gitPreviousVersionFor(nextVer)
+			if err != nil {
+				panic(err)
+			}
+			if rcPrevVer.GT(prevVer) {
+				prevVer = rcPrevVer
+			}
+		}
 		if nextVer.LTE(prevVer) {
 			usage()
 			panic("next version must be greather than the previous version")
@@ -366,6 +378,9 @@ func writeChangelog(prev, next semver.Version) error {
 		// all existing lines are just copied over
 		fmt.Fprintln(fh, line)
 	}
+	if err := scanner.Err(); err != nil {
+		return err
+	}
 
 	// renaming the new file to the old file
 	return os.Rename("CHANGELOG.new", "CHANGELOG.md")
@@ -442,23 +457,73 @@ func gitCommitHash() (string, error) {
 	return strings.TrimSpace(string(buf)), nil
 }
 
-func gitVersion() (semver.Version, error) {
-	buf, err := exec.Command("git", "tag", "--sort=version:refname").CombinedOutput()
+func isPatchRelease() bool {
+	return os.Getenv("PATCH_RELEASE") != ""
+}
+
+func gitPreviousVersionFor(next semver.Version) (semver.Version, error) {
+	versions, err := gitVersions()
 	if err != nil {
 		return semver.Version{}, err
 	}
 
-	lines := strings.Split(strings.TrimSpace(string(buf)), "\n")
-	if len(lines) < 1 {
-		return semver.Version{}, fmt.Errorf("no output")
+	for i := len(versions); i > 0; i-- {
+		v := versions[i-1]
+		if v.GTE(next) {
+			continue
+		}
+		if sameReleaseSeries(v, next) {
+			return v, nil
+		}
 	}
 
-	for i := len(lines); i > 0; i-- {
-		sv := strings.TrimPrefix(lines[i-1], "v")
+	return semver.Version{}, nil
+}
+
+func sameReleaseSeries(a, b semver.Version) bool {
+	return a.Major == b.Major && a.Minor == b.Minor && a.Patch == b.Patch
+}
+
+func gitVersions() ([]semver.Version, error) {
+	buf, err := exec.Command("git", "tag", "--sort=version:refname").CombinedOutput()
+	if err != nil {
+		return nil, err
+	}
+
+	lines := strings.Split(strings.TrimSpace(string(buf)), "\n")
+	if len(lines) < 1 {
+		return nil, fmt.Errorf("no output")
+	}
+
+	versions := make([]semver.Version, 0, len(lines))
+	for _, line := range lines {
+		sv := strings.TrimPrefix(strings.TrimSpace(line), "v")
+		if sv == "" {
+			continue
+		}
 		v, err := semver.Parse(sv)
 		if err != nil {
 			continue
 		}
+
+		versions = append(versions, v)
+	}
+
+	if len(versions) < 1 {
+		return nil, fmt.Errorf("no valid version found")
+	}
+
+	return versions, nil
+}
+
+func gitVersion() (semver.Version, error) {
+	versions, err := gitVersions()
+	if err != nil {
+		return semver.Version{}, err
+	}
+
+	for i := len(versions); i > 0; i-- {
+		v := versions[i-1]
 		if len(v.Pre) > 0 {
 			continue
 		}
@@ -553,4 +618,11 @@ func changelogEntries(since semver.Version) ([]string, error) {
 
 func usage() {
 	fmt.Printf("Usage: %s [next version] [prev version]\n", "go run helpers/release/main.go")
+	fmt.Println()
+	fmt.Println("Examples:")
+	fmt.Println("  go run helpers/release/main.go")
+	fmt.Println("  go run helpers/release/main.go v1.18.2")
+	fmt.Println("  go run helpers/release/main.go v1.19.0-rc.1")
+	fmt.Println("  go run helpers/release/main.go v1.19.0-rc.2 v1.19.0-rc.1")
+	fmt.Println("  PATCH_RELEASE=true go run helpers/release/main.go v1.18.2 v1.17.2")
 }
