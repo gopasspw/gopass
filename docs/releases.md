@@ -1,4 +1,4 @@
-## Releases
+# Releases
 
 Note: Only members who have at least `write` [access](https://github.com/gopasspw/gopass/settings/access) to the gopass repo can create releases.
 
@@ -10,7 +10,7 @@ Note: We use semantic versioning for the command line interface and tool behavio
 but not for the API (i.e. `pkg/gopass`). Maintaining both properties in the
 same repository / Go module is too cumbersome.
 
-### Development overview
+## Development overview
 
 Preparing and creating a new release requires a number of steps.
 Starting right after the previous release these are roughly:
@@ -23,7 +23,7 @@ Starting right after the previous release these are roughly:
   * This usually either happens in Slack or on semi-regular video calls
 * After all blockers have been addressed we move the remaining issues to the next milestone and prepare the release
 
-### Cutting a release
+## Cutting a release
 
 This section is a reference for contributors with write access to the gopass
 repository.
@@ -73,6 +73,21 @@ Afterwards a maintainer should run the post-release automation that will
 perform some cleanup, create new GitHub milestones and send out PRs to
 rolling release distributions.
 
+### Verifying published assets
+
+Release automation publishes `SHA256SUMS` together with a keyless cosign bundle
+named `SHA256SUMS.sigstore.json`. After downloading both assets from a GitHub
+release, verify them with:
+
+```bash
+cosign verify-blob \
+  --bundle SHA256SUMS.sigstore.json \
+  SHA256SUMS
+```
+
+Once the checksum file is verified, use it to validate the archive or package
+you downloaded with your usual checksum tooling.
+
 ### Releasing a cherry-pick release
 
 This subsection applies to a new release that should be based on a previous
@@ -90,7 +105,7 @@ This can still use our release automation but it will require some adjustments:
 * Push the release branch printed at the end to the repository (or your fork) and open a PR.
   * IMPORANT: This PR will not be merged into master! We will just use it to create a tag and trigger the release automation.
 
-### Reproducible Builds
+## Reproducible Builds
 
 `gopass` supports [reproducible builds](https://reproducible-builds.org/). When
 building from git [`SOURCE_DATE_EPOCH`](https://reproducible-builds.org/docs/source-date-epoch/)
@@ -98,6 +113,6 @@ can be used to override the compile date, .e.g `SOURCE_DATE_EPOCH=$(git log -1 -
 When building a release `goreleaser` will automatically use the exact timestamp
 of the last commit.
 
-Internal paths are stripped using `-trimpath` and appropriate `-ldflags` (e.g. 
+Internal paths are stripped using `-trimpath` and appropriate `-ldflags` (e.g.
 `-s`, `-w`). See the Makefile header for the exact set of flags.
 

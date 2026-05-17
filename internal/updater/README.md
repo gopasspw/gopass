@@ -26,14 +26,20 @@ The configuration for those is spread across the repository and the GitHub Actio
 A new release is published by pushing a version tag (`v*`) to the repository. Once that happens the GHA workflow `autorelease.yml` is kicked off. It is configured in `.github/workflows/autorelease.yml` and through a number of injected environment variables from the GHA settings. Most importantly `GPG_PRIVATE_KEY` which contains the armored
 GPG private part of the current release signing key and the respective passphrase in `PASSPHRASE`.
 
-GoReleaser is controlled by `.goreleaser.yml` in the root of this repository. The relevant sections there are `checksum` to ensure a checksum file is generated and the `signs` section to sign the checksum file using the provided `GPG_FINGERPRINT` in the workflow.
+GoReleaser is controlled by `.goreleaser.yml` in the root of this repository. The relevant sections there are `checksum` to ensure a checksum file is generated and the `signs` section to sign the checksum file. We currently publish both a GPG signature for the updater (`SHA256SUMS.sig`) and a keyless cosign bundle (`SHA256SUMS.sigstore.json`) for external verification.
+
+For maintainers running local snapshot releases: signing is skipped unless the
+required release credentials are available. Set `GPG_FINGERPRINT` to produce the
+GPG checksum signature locally, and set `COSIGN_KEY` to produce a local cosign
+bundle. Keyless cosign signing only runs in GitHub Actions where OIDC identity
+is available.
 
 ## Managing keys and related assets
 
 The relase signing key is set to expire every other year, so we need to follow a certain key rotation protocol to allow for a seamless key rotation.
 
 * At T-6 Month we should notice that `TestGPGVerifyIn6Months` starts to fail.
-    * There is likely a loss obstrusive way to achieve that, but I'll leave it at that for now.
+  * There is likely a loss obstrusive way to achieve that, but I'll leave it at that for now.
 * We should then create an issue to track the key rollover (this should never happen in secret). The entire security posture isn't perfect but that's the best I can do with my resources. Help always appreciated.
 * For the actual rollout we first need to generate a new key. That needs to be done by exactly one core maintainer with write access to the repo and the GHA secrets since only they can inject the new key, fingerprint and passphrase.
 * To generate the key run: `gpg --expert --full-generate-key` and select `RSA and RSA`, `3072` (bits) and a validity of `2y`. Use `Gopass Release Signing Key YYYY` as the name, `GitHub Actions only` as the comment and `release@gopass.pw` as the email.
@@ -52,9 +58,9 @@ The relase signing key is set to expire every other year, so we need to follow a
   * Create a file that contains `gopass-sign-test\n` and run `gpg -u 0xKEYID --armor --output /tmp/testdata.sig --detatch-sign testdata`. Use the correct KEYID (the one of the NEW key).
   * Hint: Make sure the input only contains one line break, not two.
   * Paste the content of /tmp/testdata.sig into the `testSignature` in `verify_test.go`. Make sure all tests pass.
-* Navigate to https://github.com/gopasspw/gopass/settings/secrets/actions
-    * Paste the armored private part of the new key into the existing `GPG_PRIVATE_KEY` secret.
-    * Paste the corresponding passphrase into `PASSPHRASE`.
+* Navigate to <https://github.com/gopasspw/gopass/settings/secrets/actions>
+  * Paste the armored private part of the new key into the existing `GPG_PRIVATE_KEY` secret.
+  * Paste the corresponding passphrase into `PASSPHRASE`.
 * At this point you should be able to safely delete the old public key from verify.go and kick off a new release.
 * At the very end upload the new key to some keyservers:  `gpg --send-keys 0xKEYID` and possibly `gpg --keyserver pgp.mit.edu --send-keys 0xKEYID`.
   * In case you mess up during key generation you might need to start over and you don't want to have conflicting keys on a keyserver where you can't delete them.
