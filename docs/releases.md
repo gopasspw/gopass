@@ -1,5 +1,4 @@
 # Releases
-# Releases
 
 Note: Only members who have at least `write` [access](https://github.com/gopasspw/gopass/settings/access) to the gopass repo can create releases.
 
@@ -11,7 +10,6 @@ Note: We use semantic versioning for the command line interface and tool behavio
 but not for the API (i.e. `pkg/gopass`). Maintaining both properties in the
 same repository / Go module is too cumbersome.
 
-## Development overview
 ## Development overview
 
 Preparing and creating a new release requires a number of steps.
@@ -25,7 +23,6 @@ Starting right after the previous release these are roughly:
   * This usually either happens in Slack or on semi-regular video calls
 * After all blockers have been addressed we move the remaining issues to the next milestone and prepare the release
 
-## Cutting a release
 ## Cutting a release
 
 This section is a reference for contributors with write access to the gopass
