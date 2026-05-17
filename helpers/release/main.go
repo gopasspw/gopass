@@ -365,16 +365,19 @@ func printDryRun(prevVer, nextVer semver.Version, patchRelease bool) error {
 
 func updateDeps() error {
 	if sv := os.Getenv("GOPASS_NOUPGRADE"); sv == "" {
+		fmt.Println("🕑 Updating dependencies ...")
 		cmd := exec.Command("make", "upgrade")
 		cmd.Stderr = os.Stderr
 
 		if err := cmd.Run(); err != nil {
 			return err
 		}
+
+		fmt.Println("✅ Updated dependencies")
 	}
 
 	if sv := os.Getenv("GOPASS_NOTEST"); sv != "" {
-		fmt.Printf("⚠ GOPASS_NOTEST=%v, skipping 'make gha-linux'", sv)
+		fmt.Printf("⚠ GOPASS_NOTEST=%v, skipping 'make gha-linux'\n", sv)
 
 		return nil
 	}
@@ -386,6 +389,7 @@ func updateDeps() error {
 		return err
 	}
 
+	fmt.Println("🕑 Running tests with 'make gha-linux', this might take a while. Output is logged to", fn)
 	cmd := exec.Command("make", "gha-linux")
 	cmd.Stderr = io.MultiWriter(fh, os.Stderr)
 	cmd.Stdout = fh
@@ -405,7 +409,7 @@ func updateDeps() error {
 
 	if err := cmd.Run(); err != nil {
 		_ = fh.Close()
-		fmt.Printf("⚠ 'make gha-linux' failed. Please see the log at %s!", fn)
+		fmt.Printf("⚠ 'make gha-linux' failed. Please see the log at %s!\n", fn)
 
 		return err
 	}
@@ -413,6 +417,8 @@ func updateDeps() error {
 	// remove the log, we don't need it anymore
 	_ = fh.Close()
 	_ = os.RemoveAll(fn)
+
+	fmt.Println("✅ Tests passed")
 
 	return nil
 }
