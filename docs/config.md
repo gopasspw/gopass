@@ -8,6 +8,7 @@ Some configuration options are only available through setting environment variab
 | ---------------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `CHECKPOINT_DISABLE`         | `bool`   | Set to any non-empty value to disable calling the GitHub API when running `gopass version`.                                                                       |
 | `GOPASS_AGE_PASSWORD`        | `string` | Set to any value (including the empty string) to use as a password for the age identity file containing your secret age identities.                               |
+| `GOPASS_AGE_STDIN_PASSPHRASE` | `bool`   | Set to any non-empty value to force reading the age identity passphrase from the terminal instead of pinentry. Intended for scripted or test environments.        |
 | `GOPASS_AUTOSYNC_INTERVAL`   | `int`    | Set this to the number of days between autosync runs.                                                                                                             |
 | `GOPASS_CHARACTER_SET`       | `bool`   | Set to any non-empty value to restrict the character set used in generated passwords.                                                                             |
 | `GOPASS_CLIPBOARD_CLEAR_CMD` | `string` | Use an external command to remove a password from the clipboard. See [GPaste](usecases/gpaste.md) for an example                                                  |

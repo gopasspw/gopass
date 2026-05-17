@@ -3,6 +3,7 @@ package age
 import (
 	"context"
 	"fmt"
+	"os"
 	"strings"
 	"sync"
 	"time"
@@ -10,8 +11,10 @@ import (
 	"github.com/gopasspw/gopass/internal/cache"
 	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/out"
+	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/gopasspw/gopass/pkg/pinentry/cli"
+	"github.com/gopasspw/gopass/pkg/termio"
 	"github.com/twpayne/go-pinentry/v4"
 	"github.com/zalando/go-keyring"
 )
@@ -127,6 +130,22 @@ func (a *askPass) Passphrase(ctx context.Context, key string, reason string, rep
 }
 
 func (a *askPass) getPassphrase(reason string, repeat bool) (string, error) {
+	if os.Getenv("GOPASS_AGE_STDIN_PASSPHRASE") != "" {
+		debug.Log("GOPASS_AGE_STDIN_PASSPHRASE is set, using CLI fallback")
+		pf := cli.New()
+		if repeat {
+			_ = pf.Set("REPEAT")
+		}
+
+		ctx := ctxutil.WithTerminal(context.Background(), false)
+		pw, err := termio.AskForPassword(ctx, reason, repeat)
+		if err != nil {
+			return "", fmt.Errorf("failed to ask for passphrase: %w", err)
+		}
+
+		return pw, nil
+	}
+
 	opts := []pinentry.ClientOption{
 		pinentry.WithBinaryNameFromGnuPGAgentConf(),
 		pinentry.WithDesc(strings.TrimSuffix(reason, ":") + "."),
