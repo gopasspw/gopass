@@ -60,7 +60,11 @@ Releasing it involves sending a PR that needs to be reviwed by the maintainers.
 Once approved the PR will be merged and a tag needs to be pushed to trigger
 the release process automation (using GitHub actions).
 
+If you want to inspect the computed versions and changelog input before writing
+files or creating a release branch, run the helper in dry-run mode first.
+
 ```bash
+go run helpers/release/main.go --dry-run
 go run helpers/release/main.go
 # Follow the instructions to release a new minor version.
 # If you want to skip a patch level or bump the minor version
@@ -87,6 +91,7 @@ stable tag is published:
 1. Prepare the first release candidate with an explicit prerelease version:
 
 ```bash
+go run helpers/release/main.go --dry-run v1.19.0-rc.1
 go run helpers/release/main.go v1.19.0-rc.1
 ```
 
@@ -129,6 +134,7 @@ Notes:
 
 * Do not set `PATCH_RELEASE=true` for normal release candidates that should be cut from `master`. That mode is only for staying on the current branch, e.g. for cherry-pick releases.
 * The changelog for the final stable release will still cover the full delta since the last stable tag, even if one or more release candidates were published before.
+* Maintainers should create RC tags from the merged `release/vX.Y.Z-rc.N` branch and push them as signed tags named exactly `vX.Y.Z-rc.N` so goreleaser publishes them as prereleases.
 
 After the helper ran it will show you instructions how to push your release
 branch and create a PR for review. Once it's merged a maintainer only needs

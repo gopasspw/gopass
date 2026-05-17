@@ -70,13 +70,20 @@ const logo = `
 
  `
 
+type releaseArgs struct {
+	nextVersion string
+	prevVersion string
+	dryRun      bool
+}
+
 func main() {
 	fmt.Println(logo)
 	fmt.Println()
 	fmt.Println("🌟 Preparing a new gopass release.")
 	fmt.Println("☝  Checking pre-conditions ...")
 
-	prevVer, nextVer := getVersions()
+	args := parseReleaseArgs(os.Args)
+	prevVer, nextVer := getVersionsForArgs(args)
 	patchRelease := isPatchRelease()
 
 	// - check that workdir is clean
@@ -104,6 +111,14 @@ func main() {
 		panic("git is dirty")
 	}
 	fmt.Println("✅ git is still clean")
+
+	if args.dryRun {
+		if err := printDryRun(prevVer, nextVer, patchRelease); err != nil {
+			panic(err)
+		}
+
+		return
+	}
 
 	fmt.Println()
 	fmt.Printf("✅ New version will be: %s\n", nextVer.String())
@@ -179,14 +194,12 @@ func main() {
 }
 
 func getVersions() (semver.Version, semver.Version) {
-	nextVerFlag := ""
-	if len(os.Args) > 1 && !strings.HasPrefix(os.Args[1], "-test.") {
-		nextVerFlag = strings.TrimSpace(strings.TrimPrefix(os.Args[1], "v"))
-	}
-	prevVerFlag := ""
-	if len(os.Args) > 2 && !strings.HasPrefix(os.Args[2], "-test.") {
-		prevVerFlag = strings.TrimSpace(strings.TrimPrefix(os.Args[2], "v"))
-	}
+	return getVersionsForArgs(parseReleaseArgs(os.Args))
+}
+
+func getVersionsForArgs(args releaseArgs) (semver.Version, semver.Version) {
+	nextVerFlag := args.nextVersion
+	prevVerFlag := args.prevVersion
 
 	// obtain the last tagged version from git
 	gitVer, err := gitVersion()
@@ -255,6 +268,99 @@ Will use
 		nextVer)
 
 	return prevVer, nextVer
+}
+
+func parseReleaseArgs(args []string) releaseArgs {
+	parsed := releaseArgs{}
+	positionals := make([]string, 0, 2)
+
+	for _, arg := range args[1:] {
+		if strings.HasPrefix(arg, "-test.") {
+			continue
+		}
+
+		switch arg {
+		case "--dry-run", "-n":
+			parsed.dryRun = true
+		case "--help", "-h":
+			usage()
+			os.Exit(0)
+		default:
+			if strings.HasPrefix(arg, "-") {
+				usage()
+				panic(fmt.Sprintf("unknown flag %q", arg))
+			}
+
+			positionals = append(positionals, strings.TrimSpace(strings.TrimPrefix(arg, "v")))
+		}
+	}
+
+	if len(positionals) > 2 {
+		usage()
+		panic("too many positional arguments")
+	}
+
+	if len(positionals) > 0 {
+		parsed.nextVersion = positionals[0]
+	}
+	if len(positionals) > 1 {
+		parsed.prevVersion = positionals[1]
+	}
+
+	return parsed
+}
+
+func printDryRun(prevVer, nextVer semver.Version, patchRelease bool) error {
+	notes, err := changelogEntries(prevVer)
+	if err != nil {
+		return err
+	}
+
+	mode := "master release"
+	if patchRelease {
+		mode = "patch/cherry-pick release"
+	}
+
+	releaseType := "stable"
+	if len(nextVer.Pre) > 0 {
+		releaseType = "prerelease"
+	}
+
+	upgradeStep := "make upgrade"
+	if os.Getenv("GOPASS_NOUPGRADE") != "" {
+		upgradeStep = "skipped because GOPASS_NOUPGRADE is set"
+	}
+
+	validationStep := "make gha-linux"
+	if sv := os.Getenv("GOPASS_NOTEST"); sv != "" {
+		validationStep = fmt.Sprintf("skipped because GOPASS_NOTEST=%v", sv)
+	}
+
+	fmt.Println()
+	fmt.Println("🔎 Dry run, stopping before prompts, file writes, or branch creation.")
+	fmt.Printf("Mode: %s\n", mode)
+	fmt.Printf("Release type: %s\n", releaseType)
+	fmt.Printf("Previous version: %s\n", prevVer.String())
+	fmt.Printf("Next version: %s\n", nextVer.String())
+	fmt.Printf("Dependency step: %s\n", upgradeStep)
+	fmt.Printf("Validation step: %s\n", validationStep)
+	fmt.Printf("Would update: %s\n", strings.Join([]string{"VERSION", "version.go", "CHANGELOG.md", "bash.completion", "fish.completion", "zsh.completion", "gopass.1"}, ", "))
+	fmt.Printf("Would create branch: release/v%s\n", nextVer.String())
+	fmt.Printf("Would create commit: Tag v%s\n", nextVer.String())
+	fmt.Printf("Would later tag and push: v%s\n", nextVer.String())
+	fmt.Println()
+	fmt.Println("Planned changelog entries:")
+	if len(notes) < 1 {
+		fmt.Println("- none")
+
+		return nil
+	}
+
+	for _, note := range notes {
+		fmt.Printf("- %s\n", note)
+	}
+
+	return nil
 }
 
 func updateDeps() error {
@@ -617,12 +723,14 @@ func changelogEntries(since semver.Version) ([]string, error) {
 }
 
 func usage() {
-	fmt.Printf("Usage: %s [next version] [prev version]\n", "go run helpers/release/main.go")
+	fmt.Printf("Usage: %s [--dry-run] [next version] [prev version]\n", "go run helpers/release/main.go")
 	fmt.Println()
 	fmt.Println("Examples:")
 	fmt.Println("  go run helpers/release/main.go")
+	fmt.Println("  go run helpers/release/main.go --dry-run")
 	fmt.Println("  go run helpers/release/main.go v1.18.2")
 	fmt.Println("  go run helpers/release/main.go v1.19.0-rc.1")
 	fmt.Println("  go run helpers/release/main.go v1.19.0-rc.2 v1.19.0-rc.1")
+	fmt.Println("  go run helpers/release/main.go --dry-run v1.19.0-rc.2")
 	fmt.Println("  PATCH_RELEASE=true go run helpers/release/main.go v1.18.2 v1.17.2")
 }

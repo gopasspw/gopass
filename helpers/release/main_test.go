@@ -33,6 +33,14 @@ func withArgs(t *testing.T, args ...string) {
 	})
 }
 
+func TestParseReleaseArgs(t *testing.T) {
+	args := parseReleaseArgs([]string{"release", "--dry-run", "v1.3.0-rc.2", "v1.3.0-rc.1"})
+
+	assert.True(t, args.dryRun)
+	assert.Equal(t, "1.3.0-rc.2", args.nextVersion)
+	assert.Equal(t, "1.3.0-rc.1", args.prevVersion)
+}
+
 // TestGetVersions tests the getVersions function.
 func TestGetVersions(t *testing.T) {
 	// Create a temporary directory for the test.
@@ -87,6 +95,20 @@ func TestGetVersionsReleaseCandidateUsesPreviousRC(t *testing.T) {
 
 	assert.Equal(t, "1.3.0-rc.1", prevVer.String())
 	assert.Equal(t, "1.3.0-rc.2", nextVer.String())
+}
+
+func TestGetVersionsForArgsIgnoresDryRun(t *testing.T) {
+	tempDir := t.TempDir()
+	dir := gitutils.InitGitDirWithRemote(t, tempDir)
+	chdir(t, dir)
+
+	require.NoError(t, os.WriteFile("VERSION", []byte("1.2.3\n"), 0o644))
+	require.NoError(t, gitutils.GitTagAndPush(dir, "v1.2.3"))
+
+	prevVer, nextVer := getVersionsForArgs(releaseArgs{dryRun: true})
+
+	assert.Equal(t, "1.2.3", prevVer.String())
+	assert.Equal(t, "1.2.4", nextVer.String())
 }
 
 // TestWriteVersion tests the writeVersion function.
