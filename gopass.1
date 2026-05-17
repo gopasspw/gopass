@@ -1,5 +1,5 @@
 
-.TH GOPASS "1" "December 2025" "gopass (github.com/gopasspw/gopass) 1.16.1" "User Commands"
+.TH GOPASS "1" "May 2026" "gopass (github.com/gopasspw/gopass) 1.17.0-rc.1" "User Commands"
 .SH NAME
 gopass - The standard Unix password manager
 .SH SYNOPSIS
@@ -14,10 +14,6 @@ Copy the password and show everything
 .TP
 \fB\-\-chars\fR,
 Print specific characters from the secret
-.TP
-\fB\-\-clip\fR,
-\fB\-c\fR,
-Copy the password value into the clipboard
 .TP
 \fB\-\-noparsing\fR,
 \fB\-n\fR,
@@ -40,9 +36,12 @@ Print the body as a QR Code
 \fB\-r\fR,
 Show a past revision. Does NOT support RCS specific shortcuts. Use exact revision or -<N> to select the Nth oldest revision of this entry.
 .TP
+\fB\-\-safe\fR,
+\fB\-s\fR,
+Do not display unsafe content (e.g. the password) even if safecontent is disabled
+.TP
 \fB\-\-unsafe\fR,
 \fB\-u\fR,
-\fB\-\-force\fR,
 \fB\-f\fR,
 Display unsafe content (e.g. the password) even if safecontent is enabled
 .TP
@@ -75,7 +74,7 @@ This command decrypts all secrets and checks for common flaws and (optionally) a
 .B Flags
 .TP
 \fB\-\-format\fR,
-Output format. text, csv or html. Default: text
+Output format. text, csv, html or json. Default: text
 .TP
 \fB\-\-full\fR,
 Print full details of all findings. Default: false
@@ -192,6 +191,16 @@ Open an editor for the commit message
 \fB\-\-recursive\fR,
 \fB\-r\fR,
 Recursive delete files and folders
+.SS doctor
+Check your gopass installation for common issues
+
+Runs a series of diagnostic checks on the gopass installation: binary dependencies, git configuration, store permissions, recipient key validity, and git remote connectivity. Exits with a non-zero status if any check fails.
+
+.B Flags
+.TP
+\fB\-\-verbose\fR,
+\fB\-v\fR,
+Show passing checks in addition to warnings and errors
 .SS edit
 Edit new or existing secrets
 
@@ -222,9 +231,18 @@ This command runs a sub process with the environment populated from the keys of 
 
 .B Flags
 .TP
+\fB\-\-exec\fR,
+Replace the current process with the subprocess via exec(3) rather than spawning a child process (not supported on Windows)
+.TP
+\fB\-\-file\fR,
+Write each secret to a ramdisk temp file and export KEY_FILE=/path instead of KEY=value
+.TP
 \fB\-\-keep-case\fR,
 \fB\-\-kc\fR,
 Do not capitalize the environment variable and instead retain the original capitalization
+.TP
+\fB\-\-stdin\fR,
+Pipe the secret's password to the subprocess's stdin instead of setting an environment variable
 .SS find
 Search for secrets
 
@@ -232,14 +250,16 @@ This command will first attempt a simple pattern match on the name of the secret
 
 .B Flags
 .TP
+\fB\-\-json\fR,
+\fB\-j\fR,
+Output matches as JSON array
+.TP
 \fB\-\-regex\fR,
 \fB\-r\fR,
 Interpret pattern as regular expression
 .TP
 \fB\-\-unsafe\fR,
 \fB\-u\fR,
-\fB\-\-force\fR,
-\fB\-f\fR,
 In the case of an exact match, display the password even if safecontent is enabled
 .SS fsck
 Check store integrity, clean up artifacts and possibly re-write secrets
@@ -256,11 +276,11 @@ Limit fsck to this mount point
 .SS fscopy
 Copy files from or to the password store
 
-This command either reads a file from the filesystem and writes the encoded and encrypted version in the store or it decrypts and decodes a secret and writes the result to a file. Either source or destination must be a file and the other one a secret. If you want the source to be securely removed after copying, use 'gopass binary move'
+This command either reads a file from the filesystem and writes the encoded and encrypted version in the store or it decrypts and decodes a secret and writes the result to a file. Either source or destination must be a file and the other one a secret. If you want the source to be securely removed after copying, use 'gopass fsmove'
 .SS fsmove
 Move files from or to the password store
 
-This command either reads a file from the filesystem and writes the encoded and encrypted version in the store or it decrypts and decodes a secret and writes the result to a file. Either source or destination must be a file and the other one a secret. The source will be wiped from disk or from the store after it has been copied successfully and validated. If you don't want the source to be removed use 'gopass binary copy'
+This command either reads a file from the filesystem and writes the encoded and encrypted version in the store or it decrypts and decodes a secret and writes the result to a file. Either source or destination must be a file and the other one a secret. The source will be wiped from disk or from the store after it has been copied successfully and validated. If you don't want the source to be removed use 'gopass fscopy'
 .SS generate
 Generate a new password
 
@@ -285,7 +305,6 @@ Open secret for editing after generating a password
 Force to overwrite existing password
 .TP
 \fB\-\-force-regen\fR,
-\fB\-t\fR,
 Force full re-generation, incl. evaluation of templates. Will overwrite the entire secret!
 .TP
 \fB\-\-generator\fR,
@@ -296,19 +315,9 @@ Choose a password generator, use one of: cryptic, memorable, xkcd or external. D
 \fB\-i\fR,
 Open an editor for the commit message
 .TP
-\fB\-\-lang\fR,
-\fB\-\-xkcdlang\fR,
-\fB\-\-xl\fR,
-Language to generate password from, currently only en (english, default) or de are supported
-.TP
 \fB\-\-print\fR,
 \fB\-p\fR,
 Print the generated password to the terminal
-.TP
-\fB\-\-sep\fR,
-\fB\-\-xkcdsep\fR,
-\fB\-\-xs\fR,
-Word separator for generated passwords. If no separator is specified, the words are combined without spaces/separator and the first character of words is capitalised.
 .TP
 \fB\-\-strict\fR,
 Require strict character class rules
@@ -316,6 +325,24 @@ Require strict character class rules
 \fB\-\-symbols\fR,
 \fB\-s\fR,
 Use symbols in the password
+.TP
+\fB\-\-xkcd-capitalize\fR,
+\fB\-\-xkcdcapitalize\fR,
+Capitalize first letter of each word in the generated XKCD password
+.TP
+\fB\-\-xkcd-lang\fR,
+\fB\-\-lang\fR,
+\fB\-\-xkcdlang\fR,
+Language to generate XKCD password from, currently only en (english, default) or de are supported
+.TP
+\fB\-\-xkcd-numbers\fR,
+\fB\-\-xkcdnumbers\fR,
+Add a random number to the end of the generated XKCD password
+.TP
+\fB\-\-xkcd-sep\fR,
+\fB\-\-sep\fR,
+\fB\-\-xkcdsep\fR,
+Word separator for generated XKCD passwords. If no separator is specified, the words are combined without spaces/separator and the first character of words is capitalised.
 .SS git
 Run a git command inside a password store: gopass git [--store=<store>] <git-command>
 
@@ -413,6 +440,10 @@ Print a flat list
 \fB\-d\fR,
 Print a flat list of folders
 .TP
+\fB\-\-json\fR,
+\fB\-j\fR,
+Output as JSON array
+.TP
 \fB\-\-limit\fR,
 \fB\-l\fR,
 Display no more than this many levels of the tree
@@ -490,6 +521,8 @@ Scan screen content to insert a OTP QR code into provided entry
 Process a template file
 
 This command processes a template file. It will read the template file and replace all variables with their values.
+
+.B Flags
 .SS pwgen
 Generate passwords
 
@@ -500,11 +533,6 @@ Print any number of password to the console. The optional length parameter speci
 \fB\-\-ambiguous\fR,
 \fB\-B\fR,
 Do not include characters that could be easily confused with each other, like '1' and 'l' or '0' and 'O'
-.TP
-\fB\-\-lang\fR,
-\fB\-\-xkcdlang\fR,
-\fB\-\-xl\fR,
-Language to generate password from, currently only en (english, default) or de are supported
 .TP
 \fB\-\-no-capitalize\fR,
 \fB\-A\fR,
@@ -518,11 +546,6 @@ Do not include numerals in the generated passwords.
 \fB\-1\fR,
 Print one password per line
 .TP
-\fB\-\-sep\fR,
-\fB\-\-xkcdsep\fR,
-\fB\-\-xs\fR,
-Word separator for generated xkcd style password. If no separator is specified, the words are combined without spaces/separator and the first character of words is capitalised. This flag implies -xkcd
-.TP
 \fB\-\-symbols\fR,
 \fB\-y\fR,
 Include at least one symbol in the password.
@@ -531,13 +554,27 @@ Include at least one symbol in the password.
 \fB\-x\fR,
 Use multiple random english words combined to a password. By default, space is used as separator and all words are lowercase
 .TP
+\fB\-\-xkcd-capitalize\fR,
 \fB\-\-xkcdcapitalize\fR,
 \fB\-\-xc\fR,
 Capitalize first letter of each word in generated xkcd style password. This flag implies -xkcd
 .TP
+\fB\-\-xkcd-lang\fR,
+\fB\-\-lang\fR,
+\fB\-\-xkcdlang\fR,
+\fB\-\-xl\fR,
+Language to generate password from, currently only en (english, default) or de are supported
+.TP
+\fB\-\-xkcd-numbers\fR,
 \fB\-\-xkcdnumbers\fR,
 \fB\-\-xn\fR,
 Add a random number to the end of the generated xkcd style password. This flag implies -xkcd
+.TP
+\fB\-\-xkcd-sep\fR,
+\fB\-\-sep\fR,
+\fB\-\-xkcdsep\fR,
+\fB\-\-xs\fR,
+Word separator for generated xkcd style password. If no separator is specified, the words are combined without spaces/separator and the first character of words is capitalised. This flag implies -xkcd
 .SS rcs
 Run a RCS command inside a password store
 
@@ -548,6 +585,10 @@ Edit recipient permissions
 This command displays all existing recipients for all mounted stores. The subcommands allow adding or removing recipients.
 
 .B Flags
+.TP
+\fB\-\-json\fR,
+\fB\-j\fR,
+Output recipients as JSON array
 .TP
 \fB\-\-pretty\fR,
 Pretty print recipients
@@ -596,10 +637,6 @@ Copy the password and show everything
 \fB\-\-chars\fR,
 Print specific characters from the secret
 .TP
-\fB\-\-clip\fR,
-\fB\-c\fR,
-Copy the password value into the clipboard
-.TP
 \fB\-\-noparsing\fR,
 \fB\-n\fR,
 Do not parse the output.
@@ -621,9 +658,12 @@ Print the body as a QR Code
 \fB\-r\fR,
 Show a past revision. Does NOT support RCS specific shortcuts. Use exact revision or -<N> to select the Nth oldest revision of this entry.
 .TP
+\fB\-\-safe\fR,
+\fB\-s\fR,
+Do not display unsafe content (e.g. the password) even if safecontent is disabled
+.TP
 \fB\-\-unsafe\fR,
 \fB\-u\fR,
-\fB\-\-force\fR,
 \fB\-f\fR,
 Display unsafe content (e.g. the password) even if safecontent is enabled
 .TP

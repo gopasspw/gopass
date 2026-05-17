@@ -14,11 +14,11 @@ func getVersion() semver.Version {
 
 	return semver.Version{
 		Major: 1,
-		Minor: 16,
-		Patch: 1,
+		Minor: 17,
+		Patch: 0,
 		Pre: []semver.PRVersion{
 			{VersionStr: "git"},
 		},
-		Build: []string{"d601d3ef"},
+		Build: []string{"4599b407"},
 	}
 }
