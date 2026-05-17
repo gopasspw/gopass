@@ -39,6 +39,9 @@ builds:
     goarm:
       - 6
       - 7
+    ignore:
+      - goos: windows
+        goarch: arm
     mod_timestamp: '{{ .CommitTimestamp }}'
 archives:
   - id: gopass
@@ -156,9 +159,40 @@ milestones:
 
 signs:
   -
-    id: gopass
+    id: gopass-gpg
+    cmd: sh
     artifacts: checksum
-    args: ["--batch", "-u", "{{ .Env.GPG_FINGERPRINT }}", "--armor", "--output", "${signature}", "--detach-sign", "${artifact}"]
+    env:
+      - "ARTIFACT=${artifact}"
+      - "SIGNATURE=${signature}"
+    args:
+      - -ec
+      - |
+        if [ -n "${GPG_FINGERPRINT:-}" ]; then
+          exec gpg --batch -u "${GPG_FINGERPRINT}" --armor --output "${SIGNATURE}" --detach-sign "${ARTIFACT}"
+        fi
+
+        echo "skipping GPG signing; set GPG_FINGERPRINT to sign locally" >&2
+  -
+    id: gopass-cosign
+    cmd: sh
+    artifacts: checksum
+    signature: "${artifact}.sigstore.json"
+    env:
+      - "ARTIFACT=${artifact}"
+      - "SIGNATURE=${signature}"
+    args:
+      - -ec
+      - |
+        if [ "${GITHUB_ACTIONS}" = "true" ]; then
+          exec cosign sign-blob --bundle="${SIGNATURE}" "${ARTIFACT}" --yes
+        fi
+
+        if [ -n "${COSIGN_KEY:-}" ]; then
+          exec cosign sign-blob --key "${COSIGN_KEY}" --bundle="${SIGNATURE}" "${ARTIFACT}" --yes
+        fi
+
+        echo "skipping cosign signing outside GitHub Actions; set COSIGN_KEY to sign locally" >&2
 
 # creates SBOMs of all archives and the source tarball using syft
 # https://goreleaser.com/customization/sbom
