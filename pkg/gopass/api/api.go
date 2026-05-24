@@ -1,6 +1,12 @@
 // Package api provides a gopass API implementation.
 // It provides a simple interface to interact with the gopass password store.
 // It is used by the gopass CLI and other tools to access the password store.
+//
+// # Stability
+//
+// This package is best-effort stable. Breaking changes are announced via a
+// [PKG-BREAK] entry in CHANGELOG.md with a minimum deprecation window of two
+// minor releases or three months. See docs/adr/A-12-pkg-api-stability.md.
 package api
 
 import (

@@ -30,6 +30,7 @@
 * [UX] Surface GOPASS_AUTOSYNC_INTERVAL deprecation as a visible warning (U-7)
 * [DOCUMENTATION] Fix documentation vs. implementation mismatches in config.md, show.md, find.md, generate.md, secrets.md, and ARCHITECTURE.md
 * [DOCUMENTATION] Fully document wizard template format, attribute types, and file naming convention (I-7)
+* [DOCUMENTATION] Define pkg/gopass API stability contract: best-effort stable policy with [PKG-BREAK] changelog tag and minimum deprecation window (A-12)
 
 ## 1.16.1 / 2025-12-13
 
