@@ -1,6 +1,6 @@
 module github.com/gopasspw/gopass
 
-go 1.25
+go 1.25.0
 
 require (
 	filippo.io/age v1.3.1
@@ -15,7 +15,7 @@ require (
 	github.com/gokyle/twofactor v1.0.1
 	github.com/google/go-cmp v0.7.0
 	github.com/google/go-github/v61 v61.0.0
-	github.com/gopasspw/clipboard v0.0.4
+	github.com/gopasspw/clipboard v0.0.5-0.20260524141134-6b387ae5aa1a
 	github.com/gopasspw/gitconfig v0.0.4
 	github.com/gopasspw/gopass-hibp v1.15.18
 	github.com/hashicorp/golang-lru/v2 v2.0.7
@@ -44,7 +44,7 @@ require (
 	golang.org/x/mod v0.33.0
 	golang.org/x/net v0.47.0
 	golang.org/x/oauth2 v0.33.0
-	golang.org/x/sys v0.38.0
+	golang.org/x/sys v0.45.0
 	golang.org/x/term v0.37.0
 )
 
