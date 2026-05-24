@@ -29,7 +29,7 @@ func TestCompletion(t *testing.T) {
      COMPREPLY=()
      cur="${COMP_WORDS[COMP_CWORD]}"
      # Use error handling to prevent crashes from invalid flags
-     opts=$( ${COMP_WORDS[@]:0:$COMP_CWORD} --generate-bash-completion 2>/dev/null ) || opts=""
+     opts=$( ${COMP_WORDS[@]:0:$COMP_CWORD} --generate-shell-completion 2>/dev/null ) || opts=""
      local IFS=$'\n'
      COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
      return 0

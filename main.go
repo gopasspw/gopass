@@ -110,7 +110,7 @@ func runApp(ctx context.Context, app *cli.Command) error {
 
 func isShellCompletion() bool {
 	for _, arg := range os.Args {
-		if arg == "--generate-bash-completion" {
+		if arg == "--generate-shell-completion" {
 			return true
 		}
 	}
