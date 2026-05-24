@@ -1,6 +1,12 @@
 // Package apimock provides a mock implementation of the gopass API.
 // This is useful for testing purposes and allows to simulate different
 // scenarios without relying on a real backend.
+//
+// # Stability
+//
+// This package is a testing helper with no stability guarantee. Its exported
+// symbols may change without a deprecation window. Consumers outside the
+// gopass module should vendor or copy the parts they need.
 package apimock
 
 import (
