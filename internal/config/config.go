@@ -12,6 +12,7 @@ import (
 
 	"github.com/gopasspw/gitconfig"
 	"github.com/gopasspw/gopass/pkg/debug"
+	"github.com/gopasspw/gopass/pkg/fsutil"
 )
 
 const (
@@ -123,7 +124,13 @@ func newWithOptions(noWrites bool) *Config {
 		}
 	}
 	// load again, this might add a per-store config from the root store
-	c.root.LoadAll(rootPath)
+	// expand ~ in rootPath before passing to LoadAll since the gitconfig
+	// library does not perform tilde expansion
+	if rootPath != "" {
+		c.root.LoadAll(fsutil.CleanPath(rootPath))
+	} else {
+		c.root.LoadAll("")
+	}
 	c.root.NoWrites = noWrites
 
 	if rootPath := c.root.Get("mounts.path"); rootPath == "" {
@@ -260,22 +267,22 @@ func (c *Config) SetEnv(key, value string) error {
 
 // Path returns the root store path.
 func (c *Config) Path() string {
-	return c.Get("mounts.path")
+	return fsutil.CleanPath(c.Get("mounts.path"))
 }
 
 // MountPath returns the mount store path.
 func (c *Config) MountPath(mountPoint string) string {
-	return c.Get(mpk(mountPoint))
+	return fsutil.CleanPath(c.Get(mpk(mountPoint)))
 }
 
 // SetPath is a shortcut to set the root store path.
 func (c *Config) SetPath(path string) error {
-	return c.Set("", "mounts.path", path)
+	return c.Set("", "mounts.path", fsutil.ShrinkPath(path))
 }
 
 // SetMountPath is a shortcut to set a mount to a path.
 func (c *Config) SetMountPath(mount, path string) error {
-	return c.Set("", mpk(mount), path)
+	return c.Set("", mpk(mount), fsutil.ShrinkPath(path))
 }
 
 // mpk for mountPathKey.
