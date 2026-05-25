@@ -47,7 +47,7 @@ func CleanPath(path string) string {
 	// to the user's homedir to be replaced with one of these two values.
 	if len(path) > 1 && path[:2] == "~/" {
 		if hd := os.Getenv("GOPASS_HOMEDIR"); hd != "" {
-			return filepath.Clean(hd + path[2:])
+			return filepath.Clean(hd + path[1:])
 		}
 
 		if home, err := os.UserHomeDir(); err == nil {
@@ -60,6 +60,28 @@ func CleanPath(path string) string {
 	}
 
 	return filepath.Clean(path)
+}
+
+// ShrinkPath replaces the leading home directory in path with a tilde (~).
+// If GOPASS_HOMEDIR is set it is used as the home directory reference; otherwise
+// os.UserHomeDir is consulted. This makes paths portable across machines when
+// stored in config files that are shared/synced across platforms.
+func ShrinkPath(path string) string {
+	if hd := os.Getenv("GOPASS_HOMEDIR"); hd != "" {
+		if rel, err := filepath.Rel(hd, path); err == nil && !strings.HasPrefix(rel, "..") {
+			return "~/" + filepath.ToSlash(rel)
+		}
+
+		return path
+	}
+
+	if home, err := os.UserHomeDir(); err == nil {
+		if rel, err := filepath.Rel(home, path); err == nil && !strings.HasPrefix(rel, "..") {
+			return "~/" + filepath.ToSlash(rel)
+		}
+	}
+
+	return path
 }
 
 // IsDir checks if a certain path exists and is a directory.

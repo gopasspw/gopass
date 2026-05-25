@@ -9,6 +9,7 @@ import (
 	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
+	"github.com/gopasspw/gopass/pkg/fsutil"
 	"github.com/gopasspw/gopass/tests/gptest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -50,7 +51,7 @@ core.nopager = true
 core.notifications = true
 generate.autoclip = true
 `
-		want += "mounts.path = " + u.StoreDir("") + "\n" +
+		want += "mounts.path = " + fsutil.ShrinkPath(u.StoreDir("")) + "\n" +
 			"pwgen.xkcd-lang = en\n"
 		assert.Equal(t, want, buf.String())
 	})
@@ -96,7 +97,7 @@ core.nopager = true
 core.notifications = true
 generate.autoclip = true
 `
-		want += "mounts.path = " + u.StoreDir("") + "\n" +
+		want += "mounts.path = " + fsutil.ShrinkPath(u.StoreDir("")) + "\n" +
 			"pwgen.xkcd-lang = en\n"
 
 		assert.Equal(t, want, buf.String(), "action.printConfigValues")
