@@ -42,7 +42,7 @@ func (g *GPG) Encrypt(ctx context.Context, plaintext []byte, recipients []string
 			badRecipients = append(badRecipients, r)
 			errmsg := fmt.Sprintf("Not using invalid key %q for encryption. Check its expiration date, its encryption capabilities and trust.", r)
 			debug.Log(errmsg)
-			out.Printf(ctx, errmsg)
+			out.Warningf(ctx, errmsg)
 
 			continue
 		}
