@@ -189,6 +189,17 @@ func (s *Store) useableKeys(ctx context.Context, name string) ([]string, error) 
 		return rs.IDs(), nil
 	}
 
+	// Warn explicitly about any recipient whose key is expired or otherwise
+	// unusable. Without this check the recipient is silently dropped from the
+	// encryption target list, making newly-written secrets unreadable to them
+	// without any indication that this happened.
+	for _, r := range rs.IDs() {
+		validKeys, err := s.crypto.FindRecipients(ctx, r)
+		if err != nil || len(validKeys) < 1 {
+			out.Warningf(ctx, "Recipient %q has no useable key (key may be expired or untrusted). This secret will NOT be encrypted for %q.", r, r)
+		}
+	}
+
 	debug.Log("useableKeys: %v", kl)
 
 	return kl, nil
