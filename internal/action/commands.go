@@ -6,6 +6,7 @@ import (
 
 	"github.com/gopasspw/gopass/internal/backend"
 	"github.com/gopasspw/gopass/pkg/debug"
+	"github.com/gopasspw/gopass/pkg/otp"
 	"github.com/gopasspw/gopass/pkg/set"
 	"github.com/urfave/cli/v3"
 )
@@ -890,7 +891,7 @@ func (s *Action) GetCommands() []*cli.Command {
 			Before:        s.IsInitialized,
 			Action:        s.OTP,
 			ShellComplete: s.Complete,
-			Flags: []cli.Flag{
+			Flags: append([]cli.Flag{
 				&cli.BoolFlag{
 					Name:    "alsoclip",
 					Aliases: []string{"C"},
@@ -916,12 +917,7 @@ func (s *Action) GetCommands() []*cli.Command {
 					Aliases: []string{"o"},
 					Usage:   "Only display the token",
 				},
-				&cli.BoolFlag{
-					Name:    "snip",
-					Aliases: []string{"s"},
-					Usage:   "Scan screen content to insert a OTP QR code into provided entry",
-				},
-			},
+			}, otp.SnipFlags()...),
 		},
 		{
 			Name:  "process",

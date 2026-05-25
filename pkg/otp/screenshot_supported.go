@@ -10,7 +10,19 @@ import (
 	"github.com/kbinani/screenshot"
 	"github.com/makiuchi-d/gozxing"
 	"github.com/makiuchi-d/gozxing/qrcode"
+	"github.com/urfave/cli/v3"
 )
+
+// SnipFlags returns the CLI flags for the screen-capture (snip) feature.
+func SnipFlags() []cli.Flag {
+	return []cli.Flag{
+		&cli.BoolFlag{
+			Name:    "snip",
+			Aliases: []string{"s"},
+			Usage:   "Scan screen content to insert a OTP QR code into provided entry",
+		},
+	}
+}
 
 // ParseScreen will attempt to parse all available screen and will look for otpauth QR codes. It returns the first one
 // it has found.
