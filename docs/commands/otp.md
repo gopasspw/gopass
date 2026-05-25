@@ -8,6 +8,25 @@ Note: HTOP is supported, but requires a `counter` field to keep track of it.
 Note: If `show.safecontent` is enabled, OTP URIs are hidden from the `show` command,
 see the [docs for show](show.md#parsing-and-secrets) to learn more about it.
 
+## Screen capture dependency
+
+The `--snip` mode requires the `github.com/kbinani/screenshot` library to capture the
+contents of the display(s) so that gopass can locate and decode an OTP QR code.  Screen
+capture is **only performed when the user explicitly passes `--snip`** (`-s`); it is never
+triggered automatically.
+
+This capability is compiled in by default on supported platforms
+(`arm`, `arm64`, `amd64`, `386` on Linux, Windows, FreeBSD, and NetBSD; CGo Darwin).
+Users who prefer to omit this surface (e.g. in enterprise or policy-restricted environments)
+can build gopass without it:
+
+```
+go build -tags noscreenshot .
+```
+
+When built with `noscreenshot`, the `--snip` flag will return an error on all platforms
+and the `github.com/kbinani/screenshot` package will not be linked into the binary.
+
 ## Modes of operation
 
 * Generate the current TOTP token from a valid OTP URL

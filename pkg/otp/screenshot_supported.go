@@ -1,4 +1,4 @@
-//go:build (arm || arm64 || amd64 || 386) && (linux || windows || (cgo && darwin) || freebsd || netbsd)
+//go:build (arm || arm64 || amd64 || 386) && (linux || windows || (cgo && darwin) || freebsd || netbsd) && !noscreenshot
 
 package otp
 
