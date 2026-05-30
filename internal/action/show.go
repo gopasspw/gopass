@@ -24,6 +24,24 @@ import (
 	"github.com/urfave/cli/v3"
 )
 
+// clipFlagValue returns the string value of the "clip" GenericFlag.
+func clipFlagValue(cmd *cli.Command) string {
+	v := cmd.Value("clip")
+	if v == nil {
+		return ""
+	}
+
+	if s, ok := v.(fmt.Stringer); ok {
+		return s.String()
+	}
+
+	if s, ok := v.(string); ok {
+		return s
+	}
+
+	return ""
+}
+
 func isTrailingFlag(arg string) bool {
 	return arg == "-c" || arg == "--clip" ||
 		strings.HasPrefix(arg, "-c=") || strings.HasPrefix(arg, "--clip=") ||
@@ -71,7 +89,7 @@ func showParseArgs(ctx context.Context, cmd *cli.Command) context.Context {
 	if cmd.IsSet("clip") {
 		ctx = WithOnlyClip(ctx, true)
 
-		if v := cmd.String("clip"); v != "" && v != "true" {
+		if v := clipFlagValue(cmd); v != "" && v != "true" {
 			line, err := strconv.Atoi(v)
 			if err == nil && line >= 0 {
 				ctx = WithClipLine(ctx, line)
