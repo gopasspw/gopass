@@ -356,6 +356,43 @@ func TestShowClipLine(t *testing.T) {
 	})
 }
 
+func TestShowParseArgsClipLine(t *testing.T) {
+	t.Run("clip flag with line number sets ClipLine", func(t *testing.T) {
+		ctx := config.NewContextInMemory()
+		cmd := gptest.CliCtxWithFlags(ctx, t, map[string]string{"clip": "2"}, "secret")
+		ctx = showParseArgs(ctx, cmd)
+		assert.True(t, IsOnlyClip(ctx), "OnlyClip should be true when -c=N is given")
+		assert.True(t, IsClip(ctx), "Clip should be true when -c=N is given")
+		assert.Equal(t, 2, GetClipLine(ctx), "ClipLine should be 2 for -c=2")
+	})
+
+	t.Run("clip flag without value sets OnlyClip but not ClipLine", func(t *testing.T) {
+		ctx := config.NewContextInMemory()
+		cmd := gptest.CliCtxWithFlags(ctx, t, map[string]string{"clip": "true"}, "secret")
+		ctx = showParseArgs(ctx, cmd)
+		assert.True(t, IsOnlyClip(ctx), "OnlyClip should be true when -c is given")
+		assert.True(t, IsClip(ctx), "Clip should be true when -c is given")
+		assert.Equal(t, -1, GetClipLine(ctx), "ClipLine should be -1 (unset) for plain -c")
+	})
+
+	t.Run("clip flag with zero sets ClipLine to 0", func(t *testing.T) {
+		ctx := config.NewContextInMemory()
+		cmd := gptest.CliCtxWithFlags(ctx, t, map[string]string{"clip": "0"}, "secret")
+		ctx = showParseArgs(ctx, cmd)
+		assert.True(t, IsOnlyClip(ctx))
+		assert.Equal(t, 0, GetClipLine(ctx), "ClipLine should be 0 for -c=0")
+	})
+
+	t.Run("no clip flag leaves defaults", func(t *testing.T) {
+		ctx := config.NewContextInMemory()
+		cmd := gptest.CliCtxWithFlags(ctx, t, nil, "secret")
+		ctx = showParseArgs(ctx, cmd)
+		assert.False(t, IsOnlyClip(ctx), "OnlyClip should be false without -c")
+		assert.False(t, IsClip(ctx), "Clip should be false without -c")
+		assert.Equal(t, -1, GetClipLine(ctx), "ClipLine should be -1 without -c")
+	})
+}
+
 func TestShowAutoClip(t *testing.T) {
 	// make sure we consistently get the unsupported error message
 	ov := clipboard.ForceUnsupported
