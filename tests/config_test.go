@@ -27,7 +27,8 @@ core.follow-references = false
 core.notifications = true
 `
 	wanted += "mounts.path = " + ts.storeDir("root") + "\n" +
-		"pwgen.xkcd-lang = en"
+		`pwgen.xkcd-lang = en
+show.fuzzysearch = true`
 
 	assert.Equal(t, wanted, out)
 
@@ -86,6 +87,7 @@ core.notifications = true
 	wanted += "mounts.path = " + ts.storeDir("root") + "\n"
 	wanted += "pwgen.xkcd-lang = en\n"
 	wanted += "recipients.mnt/m1.hash = 9a4c4b1e0eb9ade2e692ff948f43d9668145eca3df88ffff67e0e21426252907\n"
+	wanted += "show.fuzzysearch = true\n"
 
 	out, err := ts.run("config")
 	require.NoError(t, err)
