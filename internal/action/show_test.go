@@ -2,6 +2,7 @@ package action
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"os"
 	"testing"
@@ -10,11 +11,13 @@ import (
 	"github.com/gopasspw/clipboard"
 	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/out"
+	"github.com/gopasspw/gopass/internal/store"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/gopass/secrets"
 	"github.com/gopasspw/gopass/tests/gptest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/urfave/cli/v3"
 )
 
 func TestShowMulti(t *testing.T) {
@@ -594,6 +597,51 @@ func TestShowHandleError(t *testing.T) {
 	c := gptest.CliCtx(ctx, t)
 	require.Error(t, act.showHandleError(ctx, c, "foo", false, fmt.Errorf("test")))
 	buf.Reset()
+}
+
+func TestShowHandleErrorFuzzySearchToggle(t *testing.T) {
+	u := gptest.NewUnitTester(t)
+
+	ctx := config.NewContextInMemory()
+	ctx = ctxutil.WithAlwaysYes(ctx, true)
+	ctx = ctxutil.WithTerminal(ctx, true)
+	act, err := newMock(ctx, u.StoreDir(""))
+	require.NoError(t, err)
+	require.NotNil(t, act)
+	ctx = act.cfg.WithConfig(ctx)
+
+	called := false
+	act.secrets.findFuzzyFn = func(context.Context, *cli.Command) error {
+		called = true
+
+		return nil
+	}
+
+	t.Run("default config enables fuzzy search", func(t *testing.T) {
+		called = false
+		c := gptest.CliCtx(ctx, t)
+
+		require.NoError(t, act.showHandleError(ctx, c, "missing", true, store.ErrNotFound))
+		assert.True(t, called)
+	})
+
+	t.Run("show.fuzzysearch=false disables fuzzy search", func(t *testing.T) {
+		called = false
+		require.NoError(t, act.cfg.Set("", "show.fuzzysearch", "false"))
+		c := gptest.CliCtx(ctx, t)
+
+		require.Error(t, act.showHandleError(ctx, c, "missing", true, store.ErrNotFound))
+		assert.False(t, called)
+	})
+
+	t.Run("--nofuzzysearch disables fuzzy search for one invocation", func(t *testing.T) {
+		called = false
+		require.NoError(t, act.cfg.Set("", "show.fuzzysearch", "true"))
+		c := gptest.CliCtxWithFlags(ctx, t, map[string]string{"nofuzzysearch": "true"})
+
+		require.Error(t, act.showHandleError(ctx, c, "missing", true, store.ErrNotFound))
+		assert.False(t, called)
+	})
 }
 
 func TestShowPrintQR(t *testing.T) {

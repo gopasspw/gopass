@@ -48,6 +48,14 @@ func isTrailingFlag(arg string) bool {
 		arg == "-C" || arg == "--alsoclip"
 }
 
+func isShowFuzzySearchEnabled(ctx context.Context, cmd *cli.Command) bool {
+	if cmd != nil && cmd.Bool("nofuzzysearch") {
+		return false
+	}
+
+	return config.Bool(ctx, "show.fuzzysearch")
+}
+
 func showParseTrailingFlags(ctx context.Context, cmd *cli.Command) context.Context {
 	for i := 1; i < cmd.Args().Len(); i++ {
 		arg := cmd.Args().Get(i)
@@ -472,7 +480,7 @@ func (s *secretHandler) hasAliasDomain(ctx context.Context, name string) string 
 
 // showHandleError handles errors retrieving secrets.
 func (s *secretHandler) showHandleError(ctx context.Context, cmd *cli.Command, name string, recurse bool, err error) error {
-	if !errors.Is(err, store.ErrNotFound) || !recurse || !ctxutil.IsTerminal(ctx) {
+	if !errors.Is(err, store.ErrNotFound) || !recurse || !ctxutil.IsTerminal(ctx) || !isShowFuzzySearchEnabled(ctx, cmd) {
 		if IsClip(ctx) {
 			_ = notify.Notify(ctx, "gopass - error", fmt.Sprintf("failed to retrieve secret %q: %s", name, err))
 		}

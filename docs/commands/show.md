@@ -30,6 +30,7 @@ Flag | Aliases | Description
 `--password` | `-o` | Display only the password. For use in scripts. Takes precedence over other flags.
 `--revision` | `-r` | Display a specific revision of the entry. Use an exact version identifier from `gopass history` or the special `-<N>` syntax. Does not work with native (e.g. git) refs.
 `--noparsing` | `-n` | Do not parse the content, disable YAML and Key-Value functions.
+`--nofuzzysearch` | | Do not start fuzzy search if the requested entry is not found.
 `--nosync` | | Disable auto-sync for this invocation.
 `--chars` | | Display selected characters from the password.
 
@@ -50,6 +51,7 @@ Note: The parser ensures every parsed secret contains a terminating newline, eve
 * The `--clip` flag will copy the value of the `Password` field to the clipboard and doesn't display any part of the secret.
 * The `--alsoclip` option will copy the value of the `Password` field but also display the secret content depending on the `safecontent` setting, i.e. obstructing the `Password` field if `safecontent` is `true` or just displaying it if not.
 * The `--qr` flags operates complementary to other flags. It will *additionally* format the value of the `Password` entry as a QR code and display it. Other than that it will honor the other options, e.g. `gopass show --qr` will display the QR code *and* the whole secret content below. One special case is the `-o` flag, this flag doesn't make a lot of sense in combination, so if both `--qr` and `-o` are given only the QR code will be displayed.
+* When an entry is not found, `gopass show` can start an interactive fuzzy search by default. This can be disabled globally with `show.fuzzysearch=false` or for one invocation via `--nofuzzysearch`.
 * Since gopass plans to supports different RCS backends we do not support arbitrary git refs as arguments to the `--revision` flag. Using those might work, but this is explicitly not supported and bug reports will be closed as `wont-fix`. There are two issues with using arbitrary git refs is that (a) this doesn't work with non-git RCS backends and (b) git versions a whole repository, not single files. So the revision `HEAD^`
   might not have any changes for a given entry. Thus we only support specifc revisions obtained from `gopass history` or our custom syntax `-N` where N is an integer identifying a specific commit before `HEAD` (cf. `HEAD~N`).
 

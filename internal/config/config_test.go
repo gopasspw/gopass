@@ -47,6 +47,7 @@ func TestConfig(t *testing.T) {
 		"env.string",
 		"mounts.path",
 		"pwgen.xkcd-lang",
+		"show.fuzzysearch",
 	}, cfg.Keys(""))
 	for key, expected := range defaults {
 		assert.Equal(t, expected, cfg.Get(key))
