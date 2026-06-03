@@ -159,3 +159,13 @@ func (r *Store) DiagnoseRecipients(ctx context.Context, store string) leaf.Recip
 
 	return sub.DiagnoseRecipients(ctx)
 }
+
+// JoinTeam performs post-clone / post-setup processing: imports all
+// .public-keys/ into the local keyring, checks decryption, and — if needed
+// — exports the user's own key additively. Returns true if the user's key
+// was newly exported.
+func (r *Store) JoinTeam(ctx context.Context, store string) (bool, error) {
+	sub, _ := r.getStore(store)
+
+	return sub.JoinTeam(ctx)
+}

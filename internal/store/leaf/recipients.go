@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"path"
 	"path/filepath"
 	"strings"
 
@@ -108,6 +107,118 @@ func (s *Store) AllRecipients(ctx context.Context) *recipients.Recipients {
 	}
 
 	return rs
+}
+
+// JoinTeam is the unified join/clone post-processing step. It imports all
+// recipient keys that are already in .public-keys/, checks whether the
+// current user can decrypt the store, and — if not — exports only the
+// user's own public key additively (never removing other recipients).
+//
+// Returns a boolean indicating whether the user's key was newly exported.
+func (s *Store) JoinTeam(ctx context.Context) (bool, error) {
+	// 1. Import every recipient key that the store already ships.
+	if err := s.ImportMissingPublicKeys(ctx); err != nil {
+		return false, fmt.Errorf("failed to import missing public keys: %w", err)
+	}
+
+	// 2. Can we decrypt?
+	if s.hasDecryptionKey(ctx) {
+		debug.Log("JoinTeam: user can already decrypt this store")
+
+		return false, nil
+	}
+
+	// 3. No access yet: export ONLY our own key, additively.
+	ourIDs, err := s.crypto.FindIdentities(ctx)
+	if err != nil || len(ourIDs) == 0 {
+		return false, fmt.Errorf("cannot find own encryption keys: %w", err)
+	}
+
+	ourID := ourIDs[0]
+	debug.Log("JoinTeam: exporting our own key %q to .public-keys/", ourID)
+
+	// Write our public key to .public-keys/<ourID> if it does not exist.
+	exp, ok := s.crypto.(keyExporter)
+	if !ok {
+		return false, fmt.Errorf("crypto backend %T cannot export public keys", s.crypto)
+	}
+
+	if _, err := s.exportPublicKey(ctx, exp, ourID); err != nil {
+		return false, fmt.Errorf("failed to export own public key: %w", err)
+	}
+
+	// Stage the new key file in git.
+	pubKeyPath := filepath.Join(keyDir, ourID)
+	if err := s.storage.TryAdd(ctx, pubKeyPath); err != nil {
+		debug.Log("JoinTeam: failed to stage %s: %s", pubKeyPath, err)
+	}
+
+	return true, nil
+}
+
+// hasDecryptionKey returns true when at least one of the local keyring's
+// identities matches a recipient in the .gpg-id list.
+func (s *Store) hasDecryptionKey(ctx context.Context) bool {
+	recp := s.Recipients(ctx)
+	ids, err := s.crypto.FindIdentities(ctx, recp...)
+
+	return err == nil && len(ids) > 0
+}
+
+// GuardPartialViewWrite ensures the operator can resolve all current
+// recipients (either via the local keyring or via .public-keys/) before a
+// write that regenerates the exported key set. If some recipients are
+// unresolvable, it imports them from .public-keys/; if that still fails, it
+// returns an error and prints actionable guidance instead of silently
+// pushing a reduced set.
+func (s *Store) GuardPartialViewWrite(ctx context.Context) error {
+	rs, err := s.GetRecipients(ctx, "")
+	if err != nil {
+		return fmt.Errorf("failed to read recipient list: %w", err)
+	}
+
+	var unresolved []string
+	for _, id := range rs.IDs() {
+		kl, findErr := s.crypto.FindRecipients(ctx, id)
+		keyringOK := findErr == nil && len(kl) > 0
+
+		pubkeyPath := filepath.Join(keyDir, id)
+		pubkeyExists := s.storage.Exists(ctx, pubkeyPath)
+
+		if !keyringOK && !pubkeyExists {
+			unresolved = append(unresolved, id)
+
+			continue
+		}
+
+		if !keyringOK && pubkeyExists {
+			// Try to import from .public-keys/.
+			debug.Log("GuardPartialViewWrite: importing %s from .public-keys/", id)
+		}
+	}
+
+	// Try importing from .public-keys/ for all recipients not in the keyring.
+	if err := s.ImportMissingPublicKeys(ctx); err != nil {
+		debug.Log("GuardPartialViewWrite: ImportMissingPublicKeys failed: %s", err)
+	}
+
+	// Re-check after import.
+	unresolved = unresolved[:0]
+	for _, id := range rs.IDs() {
+		kl, findErr := s.crypto.FindRecipients(ctx, id)
+		keyringOK := findErr == nil && len(kl) > 0
+
+		if !keyringOK {
+			unresolved = append(unresolved, id)
+		}
+	}
+
+	if len(unresolved) > 0 {
+		return fmt.Errorf("cannot resolve all recipients locally and cannot import them from .public-keys/; "+
+			"unresolved: %v. Run 'gopass sync' to fetch missing keys, or ask a team owner to add your key with 'gopass recipients add <your-key>'", unresolved)
+	}
+
+	return nil
 }
 
 // RecipientDiagnosticLevel encodes the severity of a recipient finding.
@@ -516,7 +627,8 @@ func (s *Store) getRecipients(ctx context.Context, idf string) (*recipients.Reci
 }
 
 // UpdateExportedPublicKeys will export any possibly missing public keys to the
-// stores .public-keys directory.
+// stores .public-keys directory. This operation is strictly additive: it never
+// removes key files. Cleanup is the responsibility of RemoveRecipient (Stage 3).
 func (s *Store) UpdateExportedPublicKeys(ctx context.Context) (bool, error) {
 	exp, ok := s.crypto.(keyExporter)
 	if !ok {
@@ -533,14 +645,9 @@ func (s *Store) UpdateExportedPublicKeys(ctx context.Context) (bool, error) {
 	// add any missing keys
 	failed, exported := s.addMissingKeys(ctx, exp, recipients)
 
-	// remove any extra key files, we do not support this at the local config level
-	// TODO(GH-2620): Temporarily disabled by default until we fix the
-	// key cleanup.
-	if cfg, _ := config.FromContext(ctx); cfg.GetGlobal("recipients.remove-extra-keys") == "true" {
-		f, e := s.removeExtraKeys(ctx, recipients)
-		failed = failed || f
-		exported = exported || e
-	}
+	// NOTE(GH-2620): removeExtraKeys was disabled by default and is now
+	// removed entirely. Key cleanup will move to explicit recipient-scoped
+	// removal in RemoveRecipient (Stage 3).
 
 	if exported && ctxutil.IsGitCommit(ctx) {
 		if err := s.storage.TryCommit(ctx, "Updated exported Public Keys"); err != nil {
@@ -584,58 +691,6 @@ func (s *Store) addMissingKeys(ctx context.Context, exp keyExporter, recipients 
 
 			continue
 		}
-	}
-
-	return failed, exported
-}
-
-func extraKeys(recipients map[string]bool, keys []string) []string {
-	extras := make([]string, 0, len(keys))
-	for _, key := range keys {
-		// do not use filepath, that would break on Windows. storage.List normalizes all paths
-		// returned to normal (forward) slashes. Even on Windows.
-		key := path.Base(key)
-
-		if recipients[key] {
-			debug.Log("Key %s found. Not removing", key)
-
-			continue
-		}
-		extras = append(extras, key)
-	}
-
-	return extras
-}
-
-func (s *Store) removeExtraKeys(ctx context.Context, recipients map[string]bool) (bool, bool) {
-	var failed, exported bool
-
-	keys, err := s.storage.List(ctx, keyDir)
-	if err != nil {
-		failed = true
-
-		out.Errorf(ctx, "Failed to list keys: %s", err)
-	}
-
-	debug.Log("Checking %q for extra keys that need to be removed", keys)
-	for _, key := range extraKeys(recipients, keys) {
-		debug.Log("Removing extra key %s", key)
-
-		if err := s.storage.Delete(ctx, filepath.Join(keyDir, key)); err != nil {
-			out.Errorf(ctx, "Failed to remove extra key %q: %s", key, err)
-
-			continue
-		}
-
-		if err := s.storage.Add(ctx, filepath.Join(keyDir, key)); err != nil {
-			out.Errorf(ctx, "Failed to mark extra key for removal %q: %s", key, err)
-
-			continue
-		}
-
-		// to ensure the commit
-		exported = true
-		debug.Log("Removed extra key %s", key)
 	}
 
 	return failed, exported

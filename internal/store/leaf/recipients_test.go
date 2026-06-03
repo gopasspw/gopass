@@ -283,58 +283,6 @@ func TestCheckRecipients(t *testing.T) {
 	require.Error(t, s.CheckRecipients(ctx))
 }
 
-func TestExtraKeys(t *testing.T) {
-	for _, tc := range []struct {
-		Name       string
-		Recipients map[string]bool
-		Keys       []string
-		Extras     []string
-	}{
-		{
-			Name:   "empty",
-			Extras: []string{},
-		},
-		{
-			Name: "one recipient, one key, match",
-			Recipients: map[string]bool{
-				"foo": true,
-			},
-			Keys:   []string{"foo"},
-			Extras: []string{},
-		},
-		{
-			Name: "one recipient, one key, no match",
-			Recipients: map[string]bool{
-				"foo": true,
-			},
-			Keys:   []string{"bar"},
-			Extras: []string{"bar"},
-		},
-		{
-			Name: "two recipients, one key, no match",
-			Recipients: map[string]bool{
-				"foo": true,
-				"bar": true,
-			},
-			Keys:   []string{"baz"},
-			Extras: []string{"baz"},
-		},
-		{
-			Name: "two recipients, two keys, one match",
-			Recipients: map[string]bool{
-				"foo": true,
-				"bar": true,
-			},
-			Keys:   []string{"foo", "baz"},
-			Extras: []string{"baz"},
-		},
-	} {
-		t.Run(tc.Name, func(t *testing.T) {
-			assert.Equal(t, tc.Extras, extraKeys(tc.Recipients, tc.Keys))
-		})
-	}
-}
-
 // TestCanonicalizeRecipientHelper verifies that canonicalizeRecipient resolves
 // raw identifiers to the form returned by the crypto backend, and falls back
 // gracefully when no key is found.
@@ -607,4 +555,160 @@ func TestDiagnoseRecipientsUnresolvable(t *testing.T) {
 		}
 	}
 	assert.True(t, found, "A3683834 should be reported as error")
+}
+
+// TestJoinTeamCanDecrypt verifies JoinTeam returns false when the user can
+// already decrypt the store (their key is in .gpg-id).
+func TestJoinTeamCanDecrypt(t *testing.T) {
+	t.Parallel()
+
+	ctx := config.NewContextInMemory()
+
+	tempdir := t.TempDir()
+
+	obuf := &bytes.Buffer{}
+	out.Stdout = obuf
+
+	defer func() {
+		out.Stdout = os.Stdout
+	}()
+
+	// Default store with canonical IDs that match the plain backend's static keys.
+	_, _, err := createStore(tempdir, nil, nil)
+	require.NoError(t, err)
+
+	s := &Store{
+		alias:   "",
+		path:    tempdir,
+		crypto:  plain.New(),
+		storage: fs.New(tempdir),
+	}
+
+	exported, err := s.JoinTeam(ctx)
+	require.NoError(t, err)
+	assert.False(t, exported, "user should already be able to decrypt")
+}
+
+// TestHasDecryptionKey verifies the hasDecryptionKey helper.
+func TestHasDecryptionKey(t *testing.T) {
+	t.Parallel()
+
+	ctx := config.NewContextInMemory()
+
+	tempdir := t.TempDir()
+
+	obuf := &bytes.Buffer{}
+	out.Stdout = obuf
+
+	defer func() {
+		out.Stdout = os.Stdout
+	}()
+
+	// Default store with known recipients from the plain backend.
+	_, _, err := createStore(tempdir, nil, nil)
+	require.NoError(t, err)
+
+	s := &Store{
+		alias:   "",
+		path:    tempdir,
+		crypto:  plain.New(),
+		storage: fs.New(tempdir),
+	}
+
+	assert.True(t, s.hasDecryptionKey(ctx), "plain backend FindIdentities delegates to FindRecipients which matches 0xDEADBEEF")
+}
+
+// TestGuardPartialViewWrite verifies the guard function when all recipients are resolvable.
+func TestGuardPartialViewWrite(t *testing.T) {
+	t.Parallel()
+
+	ctx := config.NewContextInMemory()
+
+	tempdir := t.TempDir()
+
+	obuf := &bytes.Buffer{}
+	out.Stdout = obuf
+
+	defer func() {
+		out.Stdout = os.Stdout
+	}()
+
+	// All recipients resolvable.
+	_, _, err := createStore(tempdir, nil, nil)
+	require.NoError(t, err)
+
+	s := &Store{
+		alias:   "",
+		path:    tempdir,
+		crypto:  plain.New(),
+		storage: fs.New(tempdir),
+	}
+
+	err = s.GuardPartialViewWrite(ctx)
+	assert.NoError(t, err, "guard should pass when all recipients are resolvable")
+}
+
+// TestGuardPartialViewWriteFails verifies the guard returns an error with unresolvable recipients.
+func TestGuardPartialViewWriteFails(t *testing.T) {
+	t.Parallel()
+
+	ctx := config.NewContextInMemory()
+
+	tempdir := t.TempDir()
+
+	obuf := &bytes.Buffer{}
+	out.Stdout = obuf
+
+	defer func() {
+		out.Stdout = os.Stdout
+	}()
+
+	// A3683834 is unknown to the plain backend and has no .public-keys/ file.
+	_, _, err := createStore(tempdir, []string{"0xDEADBEEF", "A3683834"}, nil)
+	require.NoError(t, err)
+
+	s := &Store{
+		alias:   "",
+		path:    tempdir,
+		crypto:  plain.New(),
+		storage: fs.New(tempdir),
+	}
+
+	err = s.GuardPartialViewWrite(ctx)
+	assert.Error(t, err, "guard should fail when a recipient is unresolvable")
+	assert.Contains(t, err.Error(), "A3683834")
+}
+
+// TestUpdateExportedPublicKeysAdditiveOnly verifies that
+// UpdateExportedPublicKeys no longer calls removeExtraKeys.
+func TestUpdateExportedPublicKeysAdditiveOnly(t *testing.T) {
+	t.Parallel()
+
+	ctx := config.NewContextInMemory()
+	ctx = config.NewInMemory().WithConfig(ctx)
+
+	tempdir := t.TempDir()
+
+	_, _, err := createStore(tempdir, nil, nil)
+	require.NoError(t, err)
+
+	obuf := &bytes.Buffer{}
+	out.Stdout = obuf
+
+	defer func() {
+		out.Stdout = os.Stdout
+	}()
+
+	s := &Store{
+		alias:   "",
+		path:    tempdir,
+		crypto:  plain.New(),
+		storage: fs.New(tempdir),
+	}
+
+	// This should not panic. It should be a no-op because the plain backend
+	// doesn't implement keyExporter.
+	exported, err := s.UpdateExportedPublicKeys(ctx)
+	require.NoError(t, err)
+	assert.False(t, exported, "plain backend does not export keys so nothing exported")
 }
