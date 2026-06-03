@@ -316,11 +316,27 @@ func (s *Store) DiagnoseRecipients(ctx context.Context) RecipientDiagnostics {
 			})
 
 		case !keyringOK && pubkeyExists:
+			// Key not in (usable) keyring, but present in .public-keys/.
+			// Check if the fingerprint matches a key in the keyring
+			// (expiry / staleness detection, ADR A-13 R-4).
+			pk, pkErr := s.getPublicKey(ctx, rawID)
+			expiredMsg := "key only available via .public-keys/ (not in local keyring); run 'gopass sync' to import it"
+			if pkErr == nil && len(pk) > 0 {
+				fp, fpErr := s.crypto.GetFingerprint(ctx, pk)
+				if fpErr == nil && fp != "" {
+					fpKL, fpFindErr := s.crypto.FindRecipients(ctx, fp)
+					if fpFindErr == nil && len(fpKL) > 0 {
+						// Key is in keyring by fingerprint but not
+						// usable by direct ID lookup — expired.
+						expiredMsg = "key in keyring appears expired or unusable; run 'gopass recipients update' to refresh it in the store, then run 'gopass sync'"
+					}
+				}
+			}
 			diags = append(diags, RecipientDiagnostic{
 				Level:     DiagWarning,
 				Recipient: rawID,
 				Store:     storeLabel,
-				Message:   "key only available via .public-keys/ (not in local keyring); run 'gopass sync' to import it",
+				Message:   expiredMsg,
 			})
 
 		case keyringOK:
@@ -696,6 +712,82 @@ func (s *Store) UpdateExportedPublicKeys(ctx context.Context) (bool, error) {
 	}
 
 	return exported, nil
+}
+
+// UpdateRecipientKeys re-exports the named recipients' public keys from the
+// local keyring into .public-keys/, overwriting stale copies. If no IDs are
+// provided, the current user's own identity is used. This is the command
+// backing 'gopass recipients update' (Stage 4 / GH-1430).
+//
+// The context must carry the PubkeyUpdate flag (via WithPubkeyUpdate) so
+// exportPublicKey overwrites existing files rather than skipping them.
+func (s *Store) UpdateRecipientKeys(ctx context.Context, ids []string) error {
+	exp, ok := s.crypto.(keyExporter)
+	if !ok {
+		return fmt.Errorf("crypto backend %T cannot export public keys", s.crypto)
+	}
+
+	// Default to our own identity.
+	if len(ids) == 0 {
+		ourIDs, err := s.crypto.FindIdentities(ctx)
+		if err != nil {
+			return fmt.Errorf("cannot find own identities: %w", err)
+		}
+		if len(ourIDs) == 0 {
+			return fmt.Errorf("no local identities found; provide explicit recipient IDs to update")
+		}
+		ids = ourIDs
+	}
+
+	// Resolve each ID to canonical form.
+	canonIDs := make([]string, 0, len(ids))
+	for _, id := range ids {
+		canon := s.canonicalizeRecipient(ctx, id)
+		if canon != id {
+			out.Printf(ctx, "Resolved %q to canonical key ID %q", id, canon)
+		}
+		canonIDs = append(canonIDs, canon)
+	}
+
+	// Force overwrite in exportPublicKey.
+	ctx = WithPubkeyUpdate(ctx, true)
+
+	var failed bool
+	var exported []string
+	for _, id := range canonIDs {
+		path, err := s.exportPublicKey(ctx, exp, id)
+		if err != nil {
+			out.Errorf(ctx, "Failed to update public key for %q: %s", id, err)
+			failed = true
+
+			continue
+		}
+		if path == "" {
+			out.Printf(ctx, "Public key for %q is already up-to-date.", id)
+
+			continue
+		}
+
+		out.Printf(ctx, "Updated public key for %q.", id)
+		exported = append(exported, path)
+
+		if err := s.storage.TryAdd(ctx, path); err != nil {
+			debug.Log("UpdateRecipientKeys: failed to stage %s: %s", path, err)
+		}
+	}
+
+	if len(exported) > 0 && ctxutil.IsGitCommit(ctx) {
+		if err := s.storage.TryCommit(ctx, "Updated recipient public keys"); err != nil {
+			out.Errorf(ctx, "Failed to git commit: %s", err)
+			failed = true
+		}
+	}
+
+	if failed {
+		return fmt.Errorf("some key updates failed")
+	}
+
+	return nil
 }
 
 func (s *Store) addMissingKeys(ctx context.Context, exp keyExporter, recipients map[string]bool) (bool, bool) {

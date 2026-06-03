@@ -169,3 +169,12 @@ func (r *Store) JoinTeam(ctx context.Context, store string) (bool, error) {
 
 	return sub.JoinTeam(ctx)
 }
+
+// UpdateRecipientKeys re-exports the named recipients' public keys into
+// .public-keys/. If no IDs are provided, the current user's own identity
+// is used. See leaf.Store.UpdateRecipientKeys for details.
+func (r *Store) UpdateRecipientKeys(ctx context.Context, store string, ids []string) error {
+	sub, _ := r.getStore(store)
+
+	return sub.UpdateRecipientKeys(ctx, ids)
+}

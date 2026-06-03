@@ -142,6 +142,10 @@ func (s *Action) RecipientsCanonicalize(ctx context.Context, cmd *cli.Command) e
 	return s.recipients.RecipientsCanonicalize(ctx, cmd)
 }
 
+func (s *Action) RecipientsUpdate(ctx context.Context, cmd *cli.Command) error {
+	return s.recipients.RecipientsUpdate(ctx, cmd)
+}
+
 // ── setupHandler shims ─────────────────────────────────────────────────────
 
 func (s *Action) IsInitialized(ctx context.Context, cmd *cli.Command) (context.Context, error) {

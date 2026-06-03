@@ -1100,6 +1100,26 @@ func (s *Action) GetCommands() []*cli.Command {
 						},
 					},
 				},
+				{
+					Name:    "update",
+					Aliases: []string{"refresh"},
+					Usage:   "Update public keys of recipients in the store",
+					Description: "" +
+						"This command re-exports the named recipients' (or your own) current " +
+						"public keys from the local keyring into .public-keys/, overwriting " +
+						"stale copies. Use this when you have extended an expired key or " +
+						"added new subkeys, and want other team members to receive the " +
+						"updated key on their next 'gopass sync'.\n\n" +
+						"If no IDs are provided, your own key is updated.",
+					Before: s.IsInitialized,
+					Action: s.RecipientsUpdate,
+					Flags: []cli.Flag{
+						&cli.StringFlag{
+							Name:  "store",
+							Usage: "Store to operate on",
+						},
+					},
+				},
 			},
 		},
 		{

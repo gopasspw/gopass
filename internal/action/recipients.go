@@ -342,3 +342,28 @@ func (s *recipientHandler) RecipientsCanonicalize(ctx context.Context, cmd *cli.
 
 	return nil
 }
+
+// RecipientsUpdate re-exports the named recipients' public keys from the
+// local keyring into .public-keys/, overwriting stale copies. This is the
+// 'gopass recipients update' command (Stage 4 / GH-1430). If no IDs are
+// given, the current user's own identity is updated.
+func (s *recipientHandler) RecipientsUpdate(ctx context.Context, cmd *cli.Command) error {
+	ctx = ctxutil.WithGlobalFlags(ctx, cmd)
+
+	store := cmd.String("store")
+	if store == "" {
+		store = cui.AskForStore(ctx, s.Store)
+	}
+
+	ids := cmd.Args().Slice()
+
+	out.Printf(ctx, "Refreshing public keys in store %q ...", store)
+
+	if err := s.Store.UpdateRecipientKeys(ctx, store, ids); err != nil {
+		return exit.Error(exit.Recipients, err, "failed to update recipient keys: %s", err)
+	}
+
+	out.OKf(ctx, "Done. You may want to run 'gopass sync' to push the updated keys.")
+
+	return nil
+}

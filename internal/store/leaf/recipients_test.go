@@ -814,3 +814,116 @@ func TestUpdateExportedPublicKeysAdditiveOnly(t *testing.T) {
 	require.NoError(t, err)
 	assert.False(t, exported, "plain backend does not export keys so nothing exported")
 }
+
+// TestUpdateRecipientKeysPlainBackend verifies that UpdateRecipientKeys
+// gracefully handles a backend that does not export keys (plain).
+func TestUpdateRecipientKeysPlainBackend(t *testing.T) {
+	t.Parallel()
+
+	ctx := config.NewContextInMemory()
+
+	tempdir := t.TempDir()
+
+	_, _, err := createStore(tempdir, nil, nil)
+	require.NoError(t, err)
+
+	obuf := &bytes.Buffer{}
+	out.Stdout = obuf
+
+	defer func() {
+		out.Stdout = os.Stdout
+	}()
+
+	s := &Store{
+		alias:   "",
+		path:    tempdir,
+		crypto:  plain.New(),
+		storage: fs.New(tempdir),
+	}
+
+	// Plain backend does not implement keyExporter, so this should error.
+	err = s.UpdateRecipientKeys(ctx, nil)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "cannot export")
+}
+
+// TestUpdateRecipientKeysDefaultToOwn verifies that when no IDs are
+// provided, the current user's identity is used.
+func TestUpdateRecipientKeysDefaultToOwn(t *testing.T) {
+	t.Parallel()
+
+	ctx := config.NewContextInMemory()
+
+	tempdir := t.TempDir()
+
+	_, _, err := createStore(tempdir, nil, nil)
+	require.NoError(t, err)
+
+	obuf := &bytes.Buffer{}
+	out.Stdout = obuf
+
+	defer func() {
+		out.Stdout = os.Stdout
+	}()
+
+	s := &Store{
+		alias:   "",
+		path:    tempdir,
+		crypto:  plain.New(),
+		storage: fs.New(tempdir),
+	}
+
+	// Plain backend also doesn't implement keyExporter, but the default-to-own
+	// path calls FindIdentities which returns ["0xDEADBEEF"] (first key in
+	// staticPrivateKeyList). That's the key resolution we want to test.
+	err = s.UpdateRecipientKeys(ctx, nil)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "cannot export")
+}
+
+// TestDiagnoseRecipientsExpiredWarn verifies that the diagnostic produces
+// a more specific message when a key is present in .public-keys/ but not
+// in the usable keyring by direct ID lookup.
+func TestDiagnoseRecipientsPubkeyOnly(t *testing.T) {
+	t.Parallel()
+
+	ctx := config.NewContextInMemory()
+
+	tempdir := t.TempDir()
+
+	obuf := &bytes.Buffer{}
+	out.Stdout = obuf
+
+	defer func() {
+		out.Stdout = os.Stdout
+	}()
+
+	// Create a store with one unresolvable ID that has a .public-keys/ entry.
+	_, _, err := createStore(tempdir, []string{"0xDEADBEEF", "A3683834"}, nil)
+	require.NoError(t, err)
+
+	s := &Store{
+		alias:   "",
+		path:    tempdir,
+		crypto:  plain.New(),
+		storage: fs.New(tempdir),
+	}
+
+	// Add a mock .public-keys/ file for A3683834 so it becomes
+	// "only available via .public-keys/" rather than "not found".
+	require.NoError(t, s.storage.Set(ctx, filepath.Join(".public-keys", "A3683834"), []byte("mock-key-data")))
+
+	diags := s.DiagnoseRecipients(ctx)
+
+	// A3683834 should now be a warning about being only in .public-keys.
+	found := false
+	for _, d := range diags {
+		if d.Recipient == "A3683834" {
+			found = true
+			assert.Equal(t, DiagWarning, d.Level)
+			assert.Contains(t, d.Message, ".public-keys/")
+			assert.Contains(t, d.Message, "gopass sync")
+		}
+	}
+	assert.True(t, found, "A3683834 should be reported as .public-keys/ only warning")
+}

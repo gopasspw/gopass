@@ -31,6 +31,10 @@ func (s *Store) Crypto() backend.Crypto {
 
 // recipientCheck checks if a recipient is already present in the keyring and up-to-date.
 // It returns true if the recipient is fine and the import can be skipped.
+//
+// Stage 4 (GH-1430): When FindRecipients returns empty (key expired / unusable
+// in keyring) but the fingerprint matches a key in the store's .public-keys/,
+// this returns false so ImportMissingPublicKeys can re-import the fresh key.
 func (s *Store) recipientCheck(ctx context.Context, r string) bool {
 	// check if this recipient is missing
 	// we could list all keys outside the loop and just do the lookup here
@@ -63,7 +67,8 @@ func (s *Store) recipientCheck(ctx context.Context, r string) bool {
 			return true
 		}
 	} else {
-		// if key is not found, try to check by fingerprint
+		// Key not found in keyring (may be expired/unusable). Try to
+		// look it up by fingerprint from the .public-keys/ copy.
 		pk, err := s.getPublicKey(ctx, r)
 		if err != nil {
 			debug.Log("failed to get public key for %s: %s", r, err)
@@ -80,10 +85,15 @@ func (s *Store) recipientCheck(ctx context.Context, r string) bool {
 		if err != nil {
 			debug.Log("failed to find recipients for %s: %s", fp, err)
 		}
-		if len(kl) > 0 {
-			debug.Log("key %s with fingerprint %s already in keyring", r, fp)
 
-			return true
+		if len(kl) > 0 {
+			// Stage 4 (GH-1430): key found by fingerprint but
+			// FindRecipients on the original ID returned empty
+			// (e.g. expired). Re-import so the keyring gets the
+			// fresh copy from .public-keys/.
+			debug.Log("key %s with fingerprint %s found in keyring but original ID not usable (expired?); will re-import", r, fp)
+
+			return false
 		}
 	}
 
