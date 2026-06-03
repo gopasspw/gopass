@@ -146,7 +146,16 @@ func (s *Store) ImportMissingPublicKeys(ctx context.Context, newrs ...string) er
 
 			continue
 		}
-		out.Printf(ctx, "Imported public key for %s into Keyring", r)
+
+		// Stage 4 (GH-1430): distinguish fresh import from update.
+		// If the key was already in the keyring (FindRecipients returned
+		// empty but fingerprint matched — expired), say "updated".
+		kl, _ := s.crypto.FindRecipients(ctx, r)
+		if len(kl) == 0 {
+			out.Printf(ctx, "Imported public key for %s into Keyring", r)
+		} else {
+			out.Printf(ctx, "Updated public key for %s in Keyring", r)
+		}
 	}
 
 	return nil

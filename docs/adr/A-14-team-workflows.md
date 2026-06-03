@@ -1,12 +1,14 @@
 # A-14: Effortless Team Workflows
 
-**Status:** proposed (planning only — no code written yet)
+**Status:** implemented (Stages 0–5 complete, June 2026)
 **Sources:**
 [#2762](https://github.com/gopasspw/gopass/issues/2762),
 [#2620](https://github.com/gopasspw/gopass/issues/2620),
 [#1430](https://github.com/gopasspw/gopass/issues/1430)
 **Related:** [ADR A-13](A-13-expired-gpg-key-handling.md),
 [use cases: team-workflows](../usecases/team-workflows.md)
+
+**Implementation:** branch `fix/issue-1430` (covers all three issues)
 
 ---
 

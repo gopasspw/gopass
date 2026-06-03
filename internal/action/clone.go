@@ -116,10 +116,10 @@ func (s *setupHandler) cloneJoinTeam(ctx context.Context, mount string) error {
 	}
 
 	if exported {
-		out.Noticef(ctx, "Your public key has been exported to the store.")
-		out.Noticef(ctx, "Please ask a team owner to run 'gopass recipients add <your-key>' and then 'gopass sync'.")
+		out.Noticef(ctx, "🔑 Your public key has been added to the store's .public-keys/.")
+		out.Noticef(ctx, "Request access: ask a team owner to run 'gopass recipients add <your-key>' and 'gopass sync'.")
 	} else {
-		out.Noticef(ctx, "Found valid decryption keys. You can now decrypt your passwords.")
+		out.OKf(ctx, "You can decrypt this store. Welcome to the team!")
 	}
 
 	return nil
