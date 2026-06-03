@@ -496,6 +496,11 @@ func (s *Store) SetRecipients(ctx context.Context, rs *recipients.Recipients) er
 // RemoveRecipient will remove the given recipient from the store
 // but if this key is not available on this machine we
 // just try to remove it literally.
+//
+// Stage 3 (GH-2620): After removing the recipient from .gpg-id, this
+// method performs recipient-scoped cleanup of the corresponding
+// .public-keys/ and legacy .gpg-keys/ files. Only the explicitly
+// removed recipient's key files are deleted — never an unrelated key.
 func (s *Store) RemoveRecipient(ctx context.Context, key string) error {
 	rs, err := s.GetRecipients(ctx, "")
 	if err != nil {
@@ -503,6 +508,7 @@ func (s *Store) RemoveRecipient(ctx context.Context, key string) error {
 	}
 
 	var removed int
+	var removedIDs []string // track which recipient IDs were removed for key file cleanup
 RECIPIENTS:
 	for _, k := range rs.IDs() { //nolint:whitespace
 		debug.V(1).Log("testing key: %q", k)
@@ -511,6 +517,7 @@ RECIPIENTS:
 			debug.Log("removing recipient based on id match %s", k)
 			if rs.Remove(k) {
 				removed++
+				removedIDs = append(removedIDs, k)
 			}
 
 			continue RECIPIENTS
@@ -530,6 +537,7 @@ RECIPIENTS:
 			debug.Log("removing recipient based on id suffix match: %s %s", key, k)
 			if rs.Remove(k) {
 				removed++
+				removedIDs = append(removedIDs, k)
 			}
 
 			continue RECIPIENTS
@@ -540,6 +548,7 @@ RECIPIENTS:
 				debug.Log("removing recipient based on recipient id match %s", recipientID)
 				if rs.Remove(k) {
 					removed++
+					removedIDs = append(removedIDs, k)
 				}
 
 				continue RECIPIENTS
@@ -553,6 +562,31 @@ RECIPIENTS:
 
 	if err := s.saveRecipients(ctx, rs, "Removed Recipient "+key); err != nil {
 		return fmt.Errorf("failed to save recipients: %w", err)
+	}
+
+	// Stage 3 (GH-2620): recipient-scoped key file cleanup.
+	// Only delete the .public-keys/ and legacy .gpg-keys/ files for the
+	// explicitly removed recipient. This replaces the old blanket
+	// removeExtraKeys which could delete unrelated key files.
+	for _, id := range removedIDs {
+		pubKeyPath := filepath.Join(keyDir, id)
+		if s.storage.Exists(ctx, pubKeyPath) {
+			if err := s.storage.Delete(ctx, pubKeyPath); err != nil {
+				debug.Log("RemoveRecipient: failed to delete %s: %s", pubKeyPath, err)
+			} else {
+				debug.Log("RemoveRecipient: deleted %s", pubKeyPath)
+			}
+		}
+
+		// Legacy .gpg-keys/ directory.
+		legacyPath := filepath.Join(oldKeyDir, id)
+		if s.storage.Exists(ctx, legacyPath) {
+			if err := s.storage.Delete(ctx, legacyPath); err != nil {
+				debug.Log("RemoveRecipient: failed to delete legacy %s: %s", legacyPath, err)
+			} else {
+				debug.Log("RemoveRecipient: deleted legacy %s", legacyPath)
+			}
+		}
 	}
 
 	return s.reencrypt(ctxutil.WithCommitMessage(ctx, "Removed Recipient "+key))

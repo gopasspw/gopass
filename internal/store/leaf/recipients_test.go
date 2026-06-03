@@ -223,6 +223,108 @@ func TestRemoveRecipient(t *testing.T) {
 	assert.Equal(t, []string{"0xFEEDBEEF"}, rs.IDs())
 }
 
+// TestRemoveRecipientScopedCleanup verifies that RemoveRecipient
+// performs recipient-scoped key file cleanup: the removed recipient's
+// .public-keys/ file is deleted, but other recipients' files remain.
+func TestRemoveRecipientScopedCleanup(t *testing.T) {
+	t.Parallel()
+
+	ctx := config.NewContextInMemory()
+	ctx = ctxutil.WithHidden(ctx, true)
+	ctx = config.NewInMemory().WithConfig(ctx)
+
+	tempdir := t.TempDir()
+
+	_, _, err := createStore(tempdir, []string{"0xDEADBEEF", "0xFEEDBEEF"}, nil)
+	require.NoError(t, err)
+
+	obuf := &bytes.Buffer{}
+	out.Stdout = obuf
+
+	defer func() {
+		out.Stdout = os.Stdout
+	}()
+
+	s := &Store{
+		alias:   "",
+		path:    tempdir,
+		crypto:  plain.New(),
+		storage: fs.New(tempdir),
+	}
+
+	// Pre-populate .public-keys/ files for both recipients to simulate
+	// exported keys.
+	require.NoError(t, s.storage.Set(ctx, filepath.Join(".public-keys", "0xDEADBEEF"), []byte("dead-key")))
+	require.NoError(t, s.storage.Set(ctx, filepath.Join(".public-keys", "0xFEEDBEEF"), []byte("feed-key")))
+
+	// Remove 0xDEADBEEF — its .public-keys/ file should be deleted.
+	err = s.RemoveRecipient(ctx, "0xDEADBEEF")
+	require.NoError(t, err)
+
+	rs, err := s.GetRecipients(ctx, "")
+	require.NoError(t, err)
+	assert.Equal(t, []string{"0xFEEDBEEF"}, rs.IDs())
+
+	// 0xDEADBEEF's key file is gone.
+	assert.False(t, s.storage.Exists(ctx, filepath.Join(".public-keys", "0xDEADBEEF")),
+		"removed recipient's .public-keys/ file must be deleted")
+
+	// 0xFEEDBEEF's key file is still there.
+	assert.True(t, s.storage.Exists(ctx, filepath.Join(".public-keys", "0xFEEDBEEF")),
+		"other recipients' .public-keys/ files must be preserved")
+}
+
+// TestRemoveRecipientPreservesOtherKeys verifies that removing a
+// recipient with a legacy .gpg-keys/ file cleans up only the removed
+// key's files and leaves unrelated keys untouched.
+func TestRemoveRecipientPreservesOtherKeys(t *testing.T) {
+	t.Parallel()
+
+	ctx := config.NewContextInMemory()
+	ctx = ctxutil.WithHidden(ctx, true)
+	ctx = config.NewInMemory().WithConfig(ctx)
+
+	tempdir := t.TempDir()
+
+	_, _, err := createStore(tempdir, []string{"0xDEADBEEF", "0xFEEDBEEF"}, nil)
+	require.NoError(t, err)
+
+	obuf := &bytes.Buffer{}
+	out.Stdout = obuf
+
+	defer func() {
+		out.Stdout = os.Stdout
+	}()
+
+	s := &Store{
+		alias:   "",
+		path:    tempdir,
+		crypto:  plain.New(),
+		storage: fs.New(tempdir),
+	}
+
+	// Pre-populate both .public-keys/ and legacy .gpg-keys/ files.
+	require.NoError(t, s.storage.Set(ctx, filepath.Join(".public-keys", "0xDEADBEEF"), []byte("dead-pub")))
+	require.NoError(t, s.storage.Set(ctx, filepath.Join(".gpg-keys", "0xDEADBEEF"), []byte("dead-legacy")))
+	require.NoError(t, s.storage.Set(ctx, filepath.Join(".public-keys", "0xFEEDBEEF"), []byte("feed-pub")))
+	require.NoError(t, s.storage.Set(ctx, filepath.Join(".gpg-keys", "0xFEEDBEEF"), []byte("feed-legacy")))
+
+	err = s.RemoveRecipient(ctx, "0xDEADBEEF")
+	require.NoError(t, err)
+
+	// All of 0xDEADBEEF's key files are gone.
+	assert.False(t, s.storage.Exists(ctx, filepath.Join(".public-keys", "0xDEADBEEF")))
+	assert.False(t, s.storage.Exists(ctx, filepath.Join(".gpg-keys", "0xDEADBEEF")))
+
+	// All of 0xFEEDBEEF's key files remain.
+	assert.True(t, s.storage.Exists(ctx, filepath.Join(".public-keys", "0xFEEDBEEF")))
+	assert.True(t, s.storage.Exists(ctx, filepath.Join(".gpg-keys", "0xFEEDBEEF")))
+
+	rs, err := s.GetRecipients(ctx, "")
+	require.NoError(t, err)
+	assert.Equal(t, []string{"0xFEEDBEEF"}, rs.IDs())
+}
+
 func TestListRecipients(t *testing.T) {
 	t.Parallel()
 
