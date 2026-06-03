@@ -181,3 +181,57 @@ func TestCloneCheckDecryptionKeys(t *testing.T) {
 
 	require.Contains(t, act.cfg.Mounts(), "the-project")
 }
+
+func TestHaveDecryptionKey(t *testing.T) {
+	t.Parallel()
+
+	// fpr models gopass's crypto.Fingerprint: it resolves any GPG-accepted form
+	// of a known key (short ID, long ID, fingerprint or email) to the same
+	// fingerprint, and returns an empty string for unknown keys.
+	const fingerprint = "1234567890ABCDEF1234567890AB17F3ED51DADD9393"
+	aliases := map[string]string{
+		"0x17F3ED51DADD9393":                          fingerprint,                                   // short
+		"0x7890AB17F3ED51DADD9393":                    fingerprint,                                   // long
+		fingerprint:                                   fingerprint,                                   // full fingerprint
+		"0x" + fingerprint:                            fingerprint,                                   // 0x-prefixed fingerprint
+		"someone@example.org":                         fingerprint,                                   // email
+		"1111111111111111111111111111111111111111111": "1111111111111111111111111111111111111111111", // unrelated key
+	}
+	fpr := func(_ context.Context, id string) string {
+		return aliases[id]
+	}
+
+	// Our usable key, always reported in short form by ListIdentities.
+	ids := []string{"0x17F3ED51DADD9393"}
+
+	for _, tc := range []struct {
+		name       string
+		recipients []string
+		want       bool
+	}{
+		{name: "short form recipient", recipients: []string{"0x17F3ED51DADD9393"}, want: true},
+		{name: "long form recipient", recipients: []string{"0x7890AB17F3ED51DADD9393"}, want: true},
+		{name: "fingerprint recipient", recipients: []string{fingerprint}, want: true},
+		{name: "0x fingerprint recipient", recipients: []string{"0x" + fingerprint}, want: true},
+		{name: "email recipient", recipients: []string{"someone@example.org"}, want: true},
+		{name: "mixed recipients with a match", recipients: []string{"1111111111111111111111111111111111111111111", "someone@example.org"}, want: true},
+		{name: "non-recipient key is rejected", recipients: []string{"1111111111111111111111111111111111111111111"}, want: false},
+		{name: "no recipients", recipients: nil, want: false},
+		{name: "unknown recipient", recipients: []string{"0xUNKNOWN"}, want: false},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			got := haveDecryptionKey(context.Background(), fpr, tc.recipients, ids)
+			assert.Equal(t, tc.want, got)
+		})
+	}
+}
+
+func TestHaveDecryptionKeyNoIdentities(t *testing.T) {
+	t.Parallel()
+
+	fpr := func(_ context.Context, id string) string { return "FP-" + id }
+
+	assert.False(t, haveDecryptionKey(context.Background(), fpr, []string{"a", "b"}, nil))
+}

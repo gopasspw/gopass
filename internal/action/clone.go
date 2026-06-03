@@ -214,8 +214,12 @@ func (s *setupHandler) cloneCheckDecryptionKeys(ctx context.Context, mount strin
 	}
 
 	idSet := set.New(ids...)
-	// Check whether any of our usable keys are in recpSet
-	if _, found := recpSet.Choose(idSet.Contains); found {
+	// Check whether any of our usable keys is listed as a recipient. We can not
+	// rely on plain string equality here: .gpg-id may list a recipient in any
+	// GPG-accepted form (short ID, long ID, full fingerprint or email), while
+	// ListIdentities returns our keys in short form. Normalize both sides to a
+	// fingerprint before comparing so every form of the same key matches.
+	if haveDecryptionKey(ctx, crypto.Fingerprint, recpSet.Elements(), idSet.Elements()) {
 		out.Noticef(ctx, "Found valid decryption keys. You can now decrypt your passwords.")
 
 		return nil
@@ -238,6 +242,30 @@ func (s *setupHandler) cloneCheckDecryptionKeys(ctx context.Context, mount strin
 	}
 
 	return nil
+}
+
+// haveDecryptionKey reports whether any of our identities (usable private keys)
+// is listed among the recipients. recipients come from .gpg-id and may be given
+// in any GPG-accepted form (short ID, long ID, fingerprint or email), while ids
+// are our own keys. fpr resolves a key identifier to its fingerprint (returning
+// an empty string for unknown keys). By comparing on the resolved fingerprint we
+// match a recipient regardless of the form it was written in, while a key that
+// is not a recipient at all still does not match.
+func haveDecryptionKey(ctx context.Context, fpr func(context.Context, string) string, recipients, ids []string) bool {
+	recpFprs := set.New[string]()
+	for _, r := range recipients {
+		if fp := fpr(ctx, r); fp != "" {
+			recpFprs.Add(fp)
+		}
+	}
+
+	for _, id := range ids {
+		if fp := fpr(ctx, id); fp != "" && recpFprs.Contains(fp) {
+			return true
+		}
+	}
+
+	return false
 }
 
 func (s *setupHandler) cloneAddMount(ctx context.Context, mount, path string) error {
