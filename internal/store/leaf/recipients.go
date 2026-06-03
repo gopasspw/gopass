@@ -146,31 +146,93 @@ func (s *Store) CheckRecipients(ctx context.Context) error {
 	return nil
 }
 
+// canonicalizeRecipient resolves a raw recipient identifier (email, short key
+// ID, or fingerprint) to its canonical form (full fingerprint) by querying
+// the crypto backend. The canonical form is stored in .gpg-id and used as the
+// .public-keys/ filename so that both are always consistent (GH-2762).
+//
+// Resolution order:
+//  1. crypto.FindRecipients — if exactly one key matches, use its fingerprint.
+//  2. .public-keys/ store copy — parse the armored key to obtain its fingerprint.
+//  3. Fall back to the input unchanged so that the plain test backend and
+//     --force operations continue to work.
+//
+// If multiple keys match, the first is used and a warning is emitted; the
+// action layer is expected to have disambiguated before calling AddRecipient.
+func (s *Store) canonicalizeRecipient(ctx context.Context, id string) string {
+	kl, err := s.crypto.FindRecipients(ctx, id)
+	if err != nil {
+		debug.Log("canonicalizeRecipient: FindRecipients(%q) error: %s", id, err)
+	}
+
+	switch len(kl) {
+	case 1:
+		debug.Log("canonicalizeRecipient: %q -> %q", id, kl[0])
+
+		return kl[0]
+	case 0:
+		// Key not in local keyring; try to read the fingerprint from the
+		// .public-keys/ copy inside the store.
+		pk, err := s.getPublicKey(ctx, id)
+		if err != nil {
+			debug.Log("canonicalizeRecipient: no .public-keys entry for %q, using as-is", id)
+
+			return id
+		}
+
+		fp, err := s.crypto.GetFingerprint(ctx, pk)
+		if err != nil || fp == "" {
+			debug.Log("canonicalizeRecipient: GetFingerprint(%q) error or empty: %v, using as-is", id, err)
+
+			return id
+		}
+
+		debug.Log("canonicalizeRecipient: %q -> %q (via .public-keys/)", id, fp)
+
+		return fp
+	default:
+		// Ambiguous: multiple keys match. Warn and use the first.
+		out.Warningf(ctx, "Recipient %q matched %d keys; using the first: %q. "+
+			"Run 'gpg -k %s' to confirm the correct key.", id, len(kl), kl[0], id)
+
+		return kl[0]
+	}
+}
+
 // AddRecipient adds a new recipient to the list.
 func (s *Store) AddRecipient(ctx context.Context, id string) error {
+	// Resolve the user-supplied identifier to its canonical form (full
+	// fingerprint) before storing it. This ensures that the .gpg-id entry
+	// and the .public-keys/<id> filename always match and are unambiguous.
+	// See GH-2762.
+	canonID := s.canonicalizeRecipient(ctx, id)
+	if canonID != id {
+		out.Printf(ctx, "Resolved %q to canonical key ID %q", id, canonID)
+	}
+
 	rs, err := s.GetRecipients(ctx, "")
 	if err != nil {
 		return fmt.Errorf("failed to read recipient list: %w", err)
 	}
 
-	debug.Log("new recipient: %q - existing: %+v", id, rs)
+	debug.Log("new recipient: %q (canonical: %q) - existing: %+v", id, canonID, rs)
 
-	idAlreadyInStore := rs.Has(id)
+	idAlreadyInStore := rs.Has(canonID)
 	if idAlreadyInStore {
-		if !termio.AskForConfirmation(ctx, fmt.Sprintf("key %q already in store. Do you want to re-encrypt with public key? This is useful if you changed your public key (e.g. added subkeys).", id)) {
+		if !termio.AskForConfirmation(ctx, fmt.Sprintf("key %q already in store. Do you want to re-encrypt with public key? This is useful if you changed your public key (e.g. added subkeys).", canonID)) {
 			return nil
 		}
 	} else {
-		rs.Add(id)
+		rs.Add(canonID)
 
-		if err := s.saveRecipients(ctx, rs, "Added Recipient "+id); err != nil {
+		if err := s.saveRecipients(ctx, rs, "Added Recipient "+canonID); err != nil {
 			return fmt.Errorf("failed to save recipients: %w", err)
 		}
 	}
 
 	out.Printf(ctx, "Reencrypting existing secrets. This may take some time ...")
 
-	commitMsg := "Recipient " + id
+	commitMsg := "Recipient " + canonID
 	if idAlreadyInStore {
 		commitMsg = "Re-encrypted Store for " + commitMsg
 	} else {
@@ -535,6 +597,96 @@ func (s *Store) saveRecipients(ctx context.Context, rs recipientMarshaler, msg s
 	}
 
 	debug.Log("recipients saved")
+
+	return nil
+}
+
+// CanonicalizeRecipients rewrites the .gpg-id file so that every recipient
+// ID is in its canonical (full-fingerprint) form and renames the corresponding
+// .public-keys/ files to match. This migration is safe: it does not change
+// which keys the secrets are encrypted to, it only makes the identifiers
+// unambiguous. It should be run once on stores that contain non-canonical IDs
+// (e.g. email addresses or short key IDs). After running this command, use
+// 'gopass sync' to publish the changes.
+func (s *Store) CanonicalizeRecipients(ctx context.Context) error {
+	rs, err := s.GetRecipients(ctx, "")
+	if err != nil {
+		return fmt.Errorf("failed to get recipients: %w", err)
+	}
+
+	newRS := recipients.New()
+	changed := false
+
+	for _, id := range rs.IDs() {
+		canon := s.canonicalizeRecipient(ctx, id)
+		if canon == id {
+			newRS.Add(id)
+			out.Printf(ctx, "  %s (already canonical)", id)
+
+			continue
+		}
+
+		out.Printf(ctx, "  %s -> %s", id, canon)
+
+		// Rename .public-keys/<id> -> .public-keys/<canon> so that the
+		// filename is consistent with the new .gpg-id entry.
+		if err := s.renamePublicKeyFile(ctx, id, canon, keyDir); err != nil {
+			out.Errorf(ctx, "Failed to rename public key file for %s: %s. Keeping original ID.", id, err)
+			newRS.Add(id) // revert: keep original to avoid ID/file mismatch
+
+			continue
+		}
+
+		// Also handle the legacy .gpg-keys/ directory, best-effort.
+		_ = s.renamePublicKeyFile(ctx, id, canon, oldKeyDir)
+
+		newRS.Add(canon)
+		changed = true
+	}
+
+	if !changed {
+		out.Printf(ctx, "All recipients are already in canonical form.")
+
+		return nil
+	}
+
+	return s.saveRecipients(ctx, newRS, "Canonicalized recipient IDs")
+}
+
+// renamePublicKeyFile moves the key file from dir/<oldID> to dir/<newID> and
+// stages both the new file (add) and the old path (deletion) in git.
+// It is a no-op when the source file does not exist.
+func (s *Store) renamePublicKeyFile(ctx context.Context, oldID, newID, dir string) error {
+	oldPath := filepath.Join(dir, oldID)
+	if !s.storage.Exists(ctx, oldPath) {
+		return nil
+	}
+
+	newPath := filepath.Join(dir, newID)
+
+	pk, err := s.storage.Get(ctx, oldPath)
+	if err != nil {
+		return fmt.Errorf("read %s: %w", oldPath, err)
+	}
+
+	if err := s.storage.Set(ctx, newPath, pk); err != nil {
+		if !errors.Is(err, store.ErrMeaninglessWrite) {
+			return fmt.Errorf("write %s: %w", newPath, err)
+		}
+	}
+
+	if err := s.storage.Delete(ctx, oldPath); err != nil {
+		return fmt.Errorf("delete %s: %w", oldPath, err)
+	}
+
+	// Stage new file and old path (removal) for git.
+	if err := s.storage.TryAdd(ctx, newPath); err != nil {
+		debug.Log("renamePublicKeyFile: failed to stage %s: %s", newPath, err)
+	}
+
+	if err := s.storage.TryAdd(ctx, oldPath); err != nil {
+		debug.Log("renamePublicKeyFile: failed to stage deletion of %s: %s", oldPath, err)
+	}
 
 	return nil
 }

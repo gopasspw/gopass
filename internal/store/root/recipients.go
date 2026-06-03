@@ -139,3 +139,12 @@ func (r *Store) RecipientsTree(ctx context.Context, pretty bool) (*tree.Root, er
 
 	return root, nil
 }
+
+// CanonicalizeRecipients migrates the given store's .gpg-id to use canonical
+// (full-fingerprint) recipient IDs and renames the corresponding .public-keys/
+// files to match. See leaf.Store.CanonicalizeRecipients for details.
+func (r *Store) CanonicalizeRecipients(ctx context.Context, store string) error {
+	sub, _ := r.getStore(store)
+
+	return sub.CanonicalizeRecipients(ctx)
+}

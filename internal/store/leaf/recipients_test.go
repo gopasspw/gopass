@@ -334,3 +334,158 @@ func TestExtraKeys(t *testing.T) {
 		})
 	}
 }
+
+// TestCanonicalizeRecipientHelper verifies that canonicalizeRecipient resolves
+// raw identifiers to the form returned by the crypto backend, and falls back
+// gracefully when no key is found.
+func TestCanonicalizeRecipientHelper(t *testing.T) {
+	t.Parallel()
+
+	ctx := config.NewContextInMemory()
+
+	tempdir := t.TempDir()
+
+	obuf := &bytes.Buffer{}
+	out.Stdout = obuf
+
+	defer func() {
+		out.Stdout = os.Stdout
+	}()
+
+	s := &Store{
+		alias:   "",
+		path:    tempdir,
+		crypto:  plain.New(),
+		storage: fs.New(tempdir),
+	}
+
+	// "DEADBEEF" is a suffix of "0xDEADBEEF" (the ID returned by the plain
+	// backend for the first static key), so FindRecipients returns one match.
+	assert.Equal(t, "0xDEADBEEF", s.canonicalizeRecipient(ctx, "DEADBEEF"))
+	assert.Equal(t, "0xFEEDBEEF", s.canonicalizeRecipient(ctx, "FEEDBEEF"))
+
+	// "0xDEADBEEF" is an exact suffix match, so it resolves to itself.
+	assert.Equal(t, "0xDEADBEEF", s.canonicalizeRecipient(ctx, "0xDEADBEEF"))
+
+	// A key with no match in the keyring or .public-keys/ is returned unchanged.
+	assert.Equal(t, "unknown@example.com", s.canonicalizeRecipient(ctx, "unknown@example.com"))
+}
+
+// TestAddRecipientCanonicalized verifies that AddRecipient stores the
+// canonical form of the recipient ID, not the raw user-supplied input.
+func TestAddRecipientCanonicalized(t *testing.T) {
+	t.Parallel()
+
+	ctx := config.NewContextInMemory()
+	ctx = ctxutil.WithHidden(ctx, true)
+	ctx = config.NewInMemory().WithConfig(ctx)
+
+	tempdir := t.TempDir()
+
+	// Start with a store that only has a single canonical recipient.
+	_, _, err := createStore(tempdir, []string{"0xDEADBEEF"}, nil)
+	require.NoError(t, err)
+
+	obuf := &bytes.Buffer{}
+	out.Stdout = obuf
+
+	defer func() {
+		out.Stdout = os.Stdout
+	}()
+
+	s := &Store{
+		alias:   "",
+		path:    tempdir,
+		crypto:  plain.New(),
+		storage: fs.New(tempdir),
+	}
+
+	// "FEEDBEEF" canonicalizes to "0xFEEDBEEF" via FindRecipients suffix match.
+	err = s.AddRecipient(ctx, "FEEDBEEF")
+	require.NoError(t, err)
+
+	rs, err := s.GetRecipients(ctx, "")
+	require.NoError(t, err)
+
+	assert.Equal(t, []string{"0xDEADBEEF", "0xFEEDBEEF"}, rs.IDs())
+}
+
+// TestCanonicalizeRecipients verifies that CanonicalizeRecipients rewrites
+// non-canonical IDs to the form returned by the crypto backend while leaving
+// already-canonical IDs untouched.
+func TestCanonicalizeRecipients(t *testing.T) {
+	t.Parallel()
+
+	ctx := config.NewContextInMemory()
+	ctx = config.NewInMemory().WithConfig(ctx)
+
+	tempdir := t.TempDir()
+
+	// Create a store with non-canonical short IDs (no "0x" prefix).
+	_, _, err := createStore(tempdir, []string{"DEADBEEF", "FEEDBEEF"}, nil)
+	require.NoError(t, err)
+
+	obuf := &bytes.Buffer{}
+	out.Stdout = obuf
+
+	defer func() {
+		out.Stdout = os.Stdout
+	}()
+
+	s := &Store{
+		alias:   "",
+		path:    tempdir,
+		crypto:  plain.New(),
+		storage: fs.New(tempdir),
+	}
+
+	// Confirm the store starts with non-canonical IDs.
+	rsBefore, err := s.GetRecipients(ctx, "")
+	require.NoError(t, err)
+	assert.Equal(t, []string{"DEADBEEF", "FEEDBEEF"}, rsBefore.IDs())
+
+	err = s.CanonicalizeRecipients(ctx)
+	require.NoError(t, err)
+
+	// After canonicalization, IDs should be in the form returned by FindRecipients.
+	rsAfter, err := s.GetRecipients(ctx, "")
+	require.NoError(t, err)
+	assert.Equal(t, []string{"0xDEADBEEF", "0xFEEDBEEF"}, rsAfter.IDs())
+}
+
+// TestCanonicalizeRecipientsAlreadyCanonical verifies that
+// CanonicalizeRecipients is a no-op when all IDs are already canonical.
+func TestCanonicalizeRecipientsAlreadyCanonical(t *testing.T) {
+	t.Parallel()
+
+	ctx := config.NewContextInMemory()
+	ctx = config.NewInMemory().WithConfig(ctx)
+
+	tempdir := t.TempDir()
+
+	// Default store already uses canonical IDs as returned by the plain backend.
+	genRecs, _, err := createStore(tempdir, nil, nil)
+	require.NoError(t, err)
+
+	obuf := &bytes.Buffer{}
+	out.Stdout = obuf
+
+	defer func() {
+		out.Stdout = os.Stdout
+	}()
+
+	s := &Store{
+		alias:   "",
+		path:    tempdir,
+		crypto:  plain.New(),
+		storage: fs.New(tempdir),
+	}
+
+	err = s.CanonicalizeRecipients(ctx)
+	require.NoError(t, err)
+
+	// Recipients should be unchanged.
+	rs, err := s.GetRecipients(ctx, "")
+	require.NoError(t, err)
+	assert.Equal(t, genRecs, rs.IDs())
+}

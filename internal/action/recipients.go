@@ -318,3 +318,27 @@ func (s *recipientHandler) recipientsSelectForAdd(ctx context.Context, store str
 		return nil, exit.Error(exit.Aborted, nil, "user aborted")
 	}
 }
+
+// RecipientsCanonicalize rewrites the .gpg-id of the given store so that every
+// recipient ID is in its canonical (full-fingerprint) form and renames the
+// corresponding .public-keys/ files to match. This migration does not require
+// re-encryption. After running this command, use 'gopass sync' to publish the
+// changes to other team members.
+func (s *recipientHandler) RecipientsCanonicalize(ctx context.Context, cmd *cli.Command) error {
+	ctx = ctxutil.WithGlobalFlags(ctx, cmd)
+
+	store := cmd.String("store")
+	if store == "" {
+		store = cui.AskForStore(ctx, s.Store)
+	}
+
+	out.Printf(ctx, "Canonicalizing recipient IDs for store %q ...", store)
+
+	if err := s.Store.CanonicalizeRecipients(ctx, store); err != nil {
+		return exit.Error(exit.Recipients, err, "failed to canonicalize recipients: %s", err)
+	}
+
+	out.OKf(ctx, "Done. You may want to run 'gopass sync' to push changes.")
+
+	return nil
+}
