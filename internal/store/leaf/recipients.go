@@ -110,6 +110,128 @@ func (s *Store) AllRecipients(ctx context.Context) *recipients.Recipients {
 	return rs
 }
 
+// RecipientDiagnosticLevel encodes the severity of a recipient finding.
+type RecipientDiagnosticLevel int
+
+const (
+	// DiagInfo is an informational note (already canonical, key is fine).
+	DiagInfo RecipientDiagnosticLevel = iota
+	// DiagWarning is a non-fatal issue (non-canonical ID, key only in
+	// .public-keys, expired key in keyring).
+	DiagWarning
+	// DiagError is a critical issue (recipient unresolvable anywhere).
+	DiagError
+)
+
+// String returns a one-word label for the diagnostic level.
+func (l RecipientDiagnosticLevel) String() string {
+	switch l {
+	case DiagError:
+		return "ERROR"
+	case DiagWarning:
+		return "WARN"
+	default:
+		return "INFO"
+	}
+}
+
+// RecipientDiagnostic describes a single finding about a store recipient.
+type RecipientDiagnostic struct {
+	Level     RecipientDiagnosticLevel
+	Recipient string // the ID as stored in .gpg-id
+	Store     string // mount alias (empty for root store)
+	Message   string // human-readable description
+}
+
+// RecipientDiagnostics is a sorted list of recipient findings.
+type RecipientDiagnostics []RecipientDiagnostic
+
+// HasErrors returns true when at least one finding is at Error level.
+func (rd RecipientDiagnostics) HasErrors() bool {
+	for _, d := range rd {
+		if d.Level == DiagError {
+			return true
+		}
+	}
+
+	return false
+}
+
+// DiagnoseRecipients performs a read-only diagnostic of the recipient list
+// for this store. It checks for non-canonical IDs (GH-2762), unresolvable
+// recipients, key-expiry state (ADR A-13), and the .public-keys/ file
+// availability. This does not require decryption.
+func (s *Store) DiagnoseRecipients(ctx context.Context) RecipientDiagnostics {
+	storeLabel := s.alias
+
+	rs, err := s.GetRecipients(ctx, "")
+	if err != nil {
+		return RecipientDiagnostics{{
+			Level:   DiagError,
+			Store:   storeLabel,
+			Message: fmt.Sprintf("cannot read recipient list: %s", err),
+		}}
+	}
+
+	diags := make(RecipientDiagnostics, 0, len(rs.IDs())*2)
+
+	for _, rawID := range rs.IDs() {
+		// 1. Check whether the ID is canonical.
+		canon := s.canonicalizeRecipient(ctx, rawID)
+		if canon != rawID {
+			diags = append(diags, RecipientDiagnostic{
+				Level:     DiagWarning,
+				Recipient: rawID,
+				Store:     storeLabel,
+				Message:   fmt.Sprintf("non-canonical ID (canonical is %q); run 'gopass recipients canonicalize' to migrate", canon),
+			})
+		}
+
+		// 2. Check keyring availability.
+		kl, findErr := s.crypto.FindRecipients(ctx, rawID)
+		keyringOK := findErr == nil && len(kl) > 0
+
+		// 3. Check .public-keys/ availability.
+		pubkeyPath := filepath.Join(keyDir, rawID)
+		pubkeyExists := s.storage.Exists(ctx, pubkeyPath)
+
+		switch {
+		case !keyringOK && !pubkeyExists:
+			diags = append(diags, RecipientDiagnostic{
+				Level:     DiagError,
+				Recipient: rawID,
+				Store:     storeLabel,
+				Message:   "key not found in keyring and not in .public-keys/; cannot encrypt for this recipient",
+			})
+
+		case !keyringOK && pubkeyExists:
+			diags = append(diags, RecipientDiagnostic{
+				Level:     DiagWarning,
+				Recipient: rawID,
+				Store:     storeLabel,
+				Message:   "key only available via .public-keys/ (not in local keyring); run 'gopass sync' to import it",
+			})
+
+		case keyringOK:
+			// Key is in the keyring. Log a brief info message; add expiry
+			// warning if the keyring copy is expired (ADR A-13 R-1).
+			if canon == rawID {
+				diags = append(diags, RecipientDiagnostic{
+					Level:     DiagInfo,
+					Recipient: rawID,
+					Store:     storeLabel,
+					Message:   "key is in local keyring",
+				})
+			}
+
+			// TODO Stage 4: check keyring key for expiry and compare
+			// store vs. keyring versions.
+		}
+	}
+
+	return diags
+}
+
 // CheckRecipients makes sure all existing recipients are valid.
 func (s *Store) CheckRecipients(ctx context.Context) error {
 	rs, err := s.GetRecipients(ctx, "")

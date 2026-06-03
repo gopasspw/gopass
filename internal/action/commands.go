@@ -367,6 +367,10 @@ func (s *Action) GetCommands() []*cli.Command {
 					Aliases: []string{"v"},
 					Usage:   "Show passing checks in addition to warnings and errors",
 				},
+				&cli.BoolFlag{
+					Name:  "recipients",
+					Usage: "Run a detailed recipient consistency diagnostic (canonical IDs, missing keys, .public-keys/ status)",
+				},
 			},
 		},
 		{

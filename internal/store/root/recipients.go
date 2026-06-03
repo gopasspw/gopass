@@ -9,6 +9,7 @@ import (
 	"github.com/fatih/color"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store"
+	"github.com/gopasspw/gopass/internal/store/leaf"
 	"github.com/gopasspw/gopass/internal/tree"
 	"github.com/gopasspw/gopass/pkg/debug"
 )
@@ -147,4 +148,14 @@ func (r *Store) CanonicalizeRecipients(ctx context.Context, store string) error 
 	sub, _ := r.getStore(store)
 
 	return sub.CanonicalizeRecipients(ctx)
+}
+
+// DiagnoseRecipients performs a read-only diagnostic of the recipient list
+// for the given store. It returns findings about non-canonical IDs,
+// unresolvable recipients, and .public-keys/ availability.
+// See leaf.Store.DiagnoseRecipients for details.
+func (r *Store) DiagnoseRecipients(ctx context.Context, store string) leaf.RecipientDiagnostics {
+	sub, _ := r.getStore(store)
+
+	return sub.DiagnoseRecipients(ctx)
 }

@@ -489,3 +489,122 @@ func TestCanonicalizeRecipientsAlreadyCanonical(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, genRecs, rs.IDs())
 }
+
+// TestDiagnoseRecipientsCanonical verifies that DiagnoseRecipients reports
+// no findings when all IDs are already canonical and in the keyring.
+func TestDiagnoseRecipientsCanonical(t *testing.T) {
+	t.Parallel()
+
+	ctx := config.NewContextInMemory()
+
+	tempdir := t.TempDir()
+
+	obuf := &bytes.Buffer{}
+	out.Stdout = obuf
+
+	defer func() {
+		out.Stdout = os.Stdout
+	}()
+
+	// Default store uses canonical IDs ("0xDEADBEEF", "0xFEEDBEEF").
+	_, _, err := createStore(tempdir, nil, nil)
+	require.NoError(t, err)
+
+	s := &Store{
+		alias:   "",
+		path:    tempdir,
+		crypto:  plain.New(),
+		storage: fs.New(tempdir),
+	}
+
+	diags := s.DiagnoseRecipients(ctx)
+	// All info-level: keys are in keyring and canonical.
+	assert.False(t, diags.HasErrors())
+
+	for _, d := range diags {
+		assert.Equal(t, DiagInfo, d.Level, "diag for %s: %s", d.Recipient, d.Message)
+	}
+}
+
+// TestDiagnoseRecipientsNonCanonical verifies that DiagnoseRecipients flags
+// non-canonical IDs as warnings.
+func TestDiagnoseRecipientsNonCanonical(t *testing.T) {
+	t.Parallel()
+
+	ctx := config.NewContextInMemory()
+
+	tempdir := t.TempDir()
+
+	obuf := &bytes.Buffer{}
+	out.Stdout = obuf
+
+	defer func() {
+		out.Stdout = os.Stdout
+	}()
+
+	// Create store with non-canonical short IDs (no "0x" prefix).
+	_, _, err := createStore(tempdir, []string{"DEADBEEF", "FEEDBEEF"}, nil)
+	require.NoError(t, err)
+
+	s := &Store{
+		alias:   "",
+		path:    tempdir,
+		crypto:  plain.New(),
+		storage: fs.New(tempdir),
+	}
+
+	diags := s.DiagnoseRecipients(ctx)
+	assert.False(t, diags.HasErrors())
+
+	// Both should be flagged as non-canonical (warning level).
+	warnings := 0
+	for _, d := range diags {
+		if d.Level == DiagWarning {
+			warnings++
+			assert.Contains(t, d.Message, "non-canonical")
+		}
+	}
+	assert.Equal(t, 2, warnings, "expected 2 non-canonical warnings")
+}
+
+// TestDiagnoseRecipientsUnresolvable verifies that DiagnoseRecipients reports
+// an error when a recipient is neither in the keyring nor in .public-keys/.
+func TestDiagnoseRecipientsUnresolvable(t *testing.T) {
+	t.Parallel()
+
+	ctx := config.NewContextInMemory()
+
+	tempdir := t.TempDir()
+
+	obuf := &bytes.Buffer{}
+	out.Stdout = obuf
+
+	defer func() {
+		out.Stdout = os.Stdout
+	}()
+
+	// The plain backend knows only DEADBEEF and FEEDBEEF.
+	// "A3683834" is unknown and has no .public-keys/ file.
+	_, _, err := createStore(tempdir, []string{"0xDEADBEEF", "A3683834"}, nil)
+	require.NoError(t, err)
+
+	s := &Store{
+		alias:   "",
+		path:    tempdir,
+		crypto:  plain.New(),
+		storage: fs.New(tempdir),
+	}
+
+	diags := s.DiagnoseRecipients(ctx)
+	assert.True(t, diags.HasErrors())
+
+	// A3683834 should be an error (not in keyring, not in .public-keys/).
+	found := false
+	for _, d := range diags {
+		if d.Recipient == "A3683834" && d.Level == DiagError {
+			found = true
+			assert.Contains(t, d.Message, "not found")
+		}
+	}
+	assert.True(t, found, "A3683834 should be reported as error")
+}
