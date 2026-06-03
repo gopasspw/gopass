@@ -11,6 +11,7 @@ import (
 	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
+	"github.com/gopasspw/gopass/pkg/gopass/secrets"
 	"github.com/gopasspw/gopass/tests/gptest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -208,6 +209,82 @@ func TestBinaryCopy(t *testing.T) {
 	t.Run("binary move bar2 tempdir/bar", func(t *testing.T) {
 		defer buf.Reset()
 		require.NoError(t, act.BinaryMove(ctx, gptest.CliCtx(ctx, t, "bar2", outfile)))
+	})
+}
+
+// TestBinaryCopyNameAmbiguity covers https://github.com/gopasspw/gopass/issues/3340:
+// copying a file into the store must work even when the destination secret name
+// matches the basename of an existing file in the current directory, while the
+// genuine "both arguments are secrets" ambiguity is still rejected.
+func TestBinaryCopyNameAmbiguity(t *testing.T) {
+	u := gptest.NewUnitTester(t)
+
+	ctx := config.NewContextInMemory()
+	ctx = ctxutil.WithAlwaysYes(ctx, true)
+	ctx = ctxutil.WithHidden(ctx, true)
+
+	buf := &bytes.Buffer{}
+	out.Stdout = buf
+	defer func() {
+		out.Stdout = os.Stdout
+	}()
+
+	act, err := newMock(ctx, u.StoreDir(""))
+	require.NoError(t, err)
+	require.NotNil(t, act)
+	ctx = act.cfg.WithConfig(ctx)
+
+	// Operate from a directory that holds a file whose name collides with the
+	// destination secret name, reproducing the exact scenario from the issue.
+	workdir := t.TempDir()
+	old, err := os.Getwd()
+	require.NoError(t, err)
+	require.NoError(t, os.Chdir(workdir))
+	defer func() { require.NoError(t, os.Chdir(old)) }()
+
+	require.NoError(t, os.WriteFile(filepath.Join(workdir, "test"), []byte("0xDEADBEEF\n"), 0o644))
+
+	t.Run("file into same-named store entry succeeds", func(t *testing.T) {
+		defer buf.Reset()
+		// "gopass fscopy test test": source is a real file, destination is the
+		// store entry "test". This used to fail with an ambiguity error.
+		require.NoError(t, act.BinaryCopy(ctx, gptest.CliCtx(ctx, t, "test", "test")))
+		require.True(t, act.Store.Exists(ctx, "test"))
+	})
+
+	t.Run("file into nested same-basename store entry succeeds", func(t *testing.T) {
+		defer buf.Reset()
+		// "gopass fscopy test sub/test": the destination shares the basename of
+		// the on-disk file but is a nested store path. This used to fail with
+		// the ambiguity error too.
+		require.NoError(t, act.BinaryCopy(ctx, gptest.CliCtx(ctx, t, "test", "sub/test")))
+		require.True(t, act.Store.Exists(ctx, "sub/test"))
+	})
+
+	t.Run("file into rooted same-named path no longer reports ambiguity", func(t *testing.T) {
+		defer buf.Reset()
+		// "gopass fscopy test /test": the source is a file so this is routed to
+		// a filesystem-to-store copy. The store rejects a leading-slash secret
+		// name, but the user now gets that clear validation error instead of the
+		// misleading "ambiguity detected" message from #3340.
+		err := act.BinaryCopy(ctx, gptest.CliCtx(ctx, t, "test", "/test"))
+		require.Error(t, err)
+		require.NotContains(t, err.Error(), "ambiguity")
+	})
+
+	t.Run("genuine secret-to-secret ambiguity still errors", func(t *testing.T) {
+		defer buf.Reset()
+		// Set up two secrets that have no matching file on disk, then try to
+		// fscopy between them: this must keep erroring and point at cp.
+		require.NoError(t, act.Store.Set(ctx, "src-secret", secrets.NewAKV()))
+		require.NoError(t, act.Store.Set(ctx, "dst-secret", secrets.NewAKV()))
+		require.Error(t, act.BinaryCopy(ctx, gptest.CliCtx(ctx, t, "src-secret", "dst-secret")))
+	})
+
+	t.Run("unknown source errors", func(t *testing.T) {
+		defer buf.Reset()
+		// Neither a file on disk nor a secret in the store.
+		require.Error(t, act.BinaryCopy(ctx, gptest.CliCtx(ctx, t, "does-not-exist", "dest")))
 	})
 }
 
