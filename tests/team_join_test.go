@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"bytes"
 	"os"
 	"path/filepath"
 	"testing"
@@ -21,6 +22,13 @@ func TestTeamJoinPreservesPublicKeys(t *testing.T) {
 
 	// Create a second GPG key to represent a team member.
 	key2 := createGPGKey(t, ts, "Teammate", "teammate@example.com")
+
+	// Enable exportkeys in the config so .public-keys/ is populated during init.
+	cfgPath := ts.gopassConfig()
+	cfgData, err := os.ReadFile(cfgPath)
+	require.NoError(t, err)
+	cfgData = bytes.ReplaceAll(cfgData, []byte("exportkeys = false"), []byte("exportkeys = true"))
+	require.NoError(t, os.WriteFile(cfgPath, cfgData, 0o600))
 
 	// Init the store with both keys as recipients.
 	out, err := ts.run("init --crypto=gpgcli --storage=fs " + keyID + " " + key2)

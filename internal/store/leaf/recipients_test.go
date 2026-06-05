@@ -777,8 +777,8 @@ func TestGuardPartialViewWriteFails(t *testing.T) {
 	}
 
 	err = s.GuardPartialViewWrite(ctx)
-	assert.Error(t, err, "guard should fail when a recipient is unresolvable")
-	assert.Contains(t, err.Error(), "A3683834")
+	require.Error(t, err, "guard should fail when a recipient is unresolvable")
+	require.Contains(t, err.Error(), "A3683834")
 }
 
 // TestUpdateExportedPublicKeysAdditiveOnly verifies that

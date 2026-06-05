@@ -100,7 +100,7 @@ func (s *miscHandler) doctorRecipientsDiagnostic(ctx context.Context, verbose bo
 			case leaf.DiagWarning:
 				out.Warningf(ctx, "%s %s", prefix, d.Message)
 				totalWarn++
-			default:
+			case leaf.DiagInfo:
 				if !verbose {
 					continue
 				}

@@ -241,9 +241,11 @@ func (l RecipientDiagnosticLevel) String() string {
 		return "ERROR"
 	case DiagWarning:
 		return "WARN"
-	default:
+	case DiagInfo:
 		return "INFO"
 	}
+
+	return "INFO"
 }
 
 // RecipientDiagnostic describes a single finding about a store recipient.
@@ -753,7 +755,7 @@ func (s *Store) UpdateRecipientKeys(ctx context.Context, ids []string) error {
 	ctx = WithPubkeyUpdate(ctx, true)
 
 	var failed bool
-	var exported []string
+	exported := make([]string, 0, len(canonIDs))
 	for _, id := range canonIDs {
 		path, err := s.exportPublicKey(ctx, exp, id)
 		if err != nil {

@@ -32,7 +32,10 @@ func TestRecipientsRefreshDetectsExpired(t *testing.T) {
 	// a valid copy even though the local keyring copy is expired.
 	pubKeysDir := filepath.Join(rootPath, ".public-keys")
 	require.NoError(t, os.MkdirAll(pubKeysDir, 0o700))
-	el := can.EmbeddedKeyRing()
+	// Read the keyring from the GPG homedir (which now contains both the
+	// embedded keyring keys and the expired key).
+	el, err := readGPGKeyRing(ts.gpgDir(), "pubring.gpg")
+	require.NoError(t, err)
 	require.GreaterOrEqual(t, len(el), 2, "expected at least 2 keys in keyring (embedded + expired)")
 	fh, err := os.Create(filepath.Join(pubKeysDir, expiredKeyID))
 	require.NoError(t, err)
@@ -94,4 +97,16 @@ func createExpiredGPGKey(t *testing.T, ts *tester) string {
 	time.Sleep(time.Second)
 
 	return e.PrimaryKey.KeyIdShortString()
+}
+
+// readGPGKeyRing reads a GPG keyring file (e.g. pubring.gpg) from the given
+// directory and returns the parsed entity list.
+func readGPGKeyRing(dir, name string) (openpgp.EntityList, error) {
+	fh, err := os.Open(filepath.Join(dir, name))
+	if err != nil {
+		return nil, err
+	}
+	defer fh.Close() //nolint:errcheck
+
+	return openpgp.ReadKeyRing(fh)
 }

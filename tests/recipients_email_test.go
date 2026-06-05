@@ -18,7 +18,8 @@ func TestDoctorRecipientsDiagnostic(t *testing.T) {
 	// Healthy store — doctor --recipients should succeed.
 	out, err := ts.run("doctor --recipients")
 	require.NoError(t, err, "doctor --recipients on healthy store: %s", out)
-	assert.Contains(t, out, "canonical", "doctor should report canonical IDs")
+	// Without --verbose, info-level messages are suppressed; expect the summary line.
+	assert.Contains(t, out, "Summary", "doctor should output a summary")
 
 	// Verbose mode should give detailed per-recipient output.
 	out, err = ts.run("doctor --recipients --verbose")
@@ -36,7 +37,9 @@ func TestRecipientsAddPreservesCanonical(t *testing.T) {
 	ts.initStore()
 
 	// Add recipient using the same key ID again (re-encrypt scenario).
-	out, err := ts.run("recipients add " + keyID)
+	// The key already exists so AddRecipient will prompt for confirmation;
+	// --yes answers all yes/no prompts automatically.
+	out, err := ts.run("recipients add --force --yes " + keyID)
 	require.NoError(t, err, "recipients add: %s", out)
 
 	// The diagnostic after adding should report canonical IDs.
