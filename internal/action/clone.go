@@ -2,7 +2,6 @@ package action
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -18,7 +17,6 @@ import (
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/gopasspw/gopass/pkg/fsutil"
-	"github.com/gopasspw/gopass/pkg/set"
 	"github.com/gopasspw/gopass/pkg/termio"
 	"github.com/urfave/cli/v3"
 )
@@ -100,7 +98,31 @@ func (s *setupHandler) Clone(ctx context.Context, cmd *cli.Command) error {
 		return nil
 	}
 
-	return s.cloneCheckDecryptionKeys(ctx, mount)
+	// Unified join flow (Stage 2 / GH-2620): imports existing .public-keys/,
+	// checks decryption, and — if needed — exports the user's own key additively.
+	return s.cloneJoinTeam(ctx, mount)
+}
+
+// cloneJoinTeam performs the unified post-clone join processing: import
+// existing keys, check decryption, and if needed export the user's key
+// additively (never removing other recipients). This replaces the old
+// cloneCheckDecryptionKeys path which could regenerate a reduced key set.
+func (s *setupHandler) cloneJoinTeam(ctx context.Context, mount string) error {
+	exported, err := s.Store.JoinTeam(ctx, mount)
+	if err != nil {
+		out.Warningf(ctx, "Join team processing: %s", err)
+
+		return nil
+	}
+
+	if exported {
+		out.Noticef(ctx, "🔑 Your public key has been added to the store's .public-keys/.")
+		out.Noticef(ctx, "Request access: ask a team owner to run 'gopass recipients add <your-key>' and 'gopass sync'.")
+	} else {
+		out.OKf(ctx, "You can decrypt this store. Welcome to the team!")
+	}
+
+	return nil
 }
 
 // storageBackendOrDefault will return a storage backend that can be clone,
@@ -179,63 +201,6 @@ func (s *setupHandler) clone(ctx context.Context, repo, mount, path string) erro
 	}
 
 	out.Printf(ctx, "Your password store is ready to use! Have a look around: `%s list%s`\n", s.Name, mount)
-
-	return nil
-}
-
-func (s *setupHandler) cloneCheckDecryptionKeys(ctx context.Context, mount string) error {
-	crypto := s.getCryptoFor(ctx, mount)
-	if crypto == nil {
-		return fmt.Errorf("can not continue without crypto")
-	}
-	debug.Log("Crypto Backend initialized as: %s", crypto.Name())
-
-	// check for existing GPG/Age keypairs (private/secret keys). We need at least
-	// one useable key pair. If none exists try to create one.
-	if !s.initHasUseablePrivateKeys(ctx, crypto) {
-		out.Printf(ctx, "🔐 No useable cryptographic keys. Generating new key pair")
-		if crypto.Name() == "gpgcli" {
-			out.Printf(ctx, "🕰 Key generation may take up to a few minutes")
-		}
-		if err := s.initGenerateIdentity(ctx, crypto, ctxutil.GetUsername(ctx), ctxutil.GetEmail(ctx)); err != nil {
-			return fmt.Errorf("failed to create new private key: %w", err)
-		}
-		out.Printf(ctx, "🔐 Cryptographic keys generated")
-	}
-
-	debug.Log("We have useable private keys")
-
-	recpSet := set.New(s.Store.ListRecipients(ctx, mount)...)
-	ids, err := crypto.ListIdentities(ctx)
-	if err != nil {
-		out.Warningf(ctx, "Failed to check decryption keys: %s", err)
-
-		return nil
-	}
-
-	idSet := set.New(ids...)
-	// Check whether any of our usable keys are in recpSet
-	if _, found := recpSet.Choose(idSet.Contains); found {
-		out.Noticef(ctx, "Found valid decryption keys. You can now decrypt your passwords.")
-
-		return nil
-	}
-
-	var exported bool
-	if sub, err := s.Store.GetSubStore(mount); err == nil {
-		debug.Log("exporting public keys: %v", idSet.Elements())
-		exported, err = sub.UpdateExportedPublicKeys(ctx)
-		if err != nil {
-			debug.Log("failed to export missing public keys: %w", err)
-		}
-	} else {
-		debug.Log("failed to get sub store: %s", err)
-	}
-
-	out.Noticef(ctx, "Please ask the owner of the password store to add one of your keys: %s", strings.Join(idSet.Elements(), ", "))
-	if exported {
-		out.Noticef(ctx, "The missing keys were exported to the password store. Run `gopass sync` to push them.")
-	}
 
 	return nil
 }

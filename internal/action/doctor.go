@@ -9,6 +9,7 @@ import (
 	"github.com/gopasspw/gopass/internal/action/exit"
 	"github.com/gopasspw/gopass/internal/backend/storage/gitfs"
 	"github.com/gopasspw/gopass/internal/out"
+	"github.com/gopasspw/gopass/internal/store/leaf"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/fsutil"
 	"github.com/urfave/cli/v3"
@@ -16,9 +17,17 @@ import (
 
 // Doctor checks the gopass installation for common issues and prints a
 // diagnostic report. It exits with a non-zero status if any check fails.
+// With --recipients, it performs a detailed recipient consistency check
+// across all stores and reports non-canonical IDs, unresolvable recipients,
+// and .public-keys/ status.
 func (s *miscHandler) Doctor(ctx context.Context, cmd *cli.Command) error {
 	ctx = ctxutil.WithGlobalFlags(ctx, cmd)
 	verbose := cmd.Bool("verbose")
+
+	// --recipients mode: detailed recipient diagnostic (Stage 0 / GH-2762).
+	if cmd.Bool("recipients") {
+		return s.doctorRecipientsDiagnostic(ctx, verbose)
+	}
 
 	type check struct {
 		name string
@@ -52,6 +61,72 @@ func (s *miscHandler) Doctor(ctx context.Context, cmd *cli.Command) error {
 	}
 
 	out.OKf(ctx, "All checks passed")
+
+	return nil
+}
+
+// doctorRecipientsDiagnostic runs a detailed recipient consistency check
+// across all stores and prints findings to stdout. It returns a non-zero
+// exit code if any error-level findings are present.
+func (s *miscHandler) doctorRecipientsDiagnostic(ctx context.Context, verbose bool) error {
+	if verbose {
+		out.Printf(ctx, "Recipient consistency diagnostic — checking all stores ...")
+		out.Printf(ctx, "")
+	}
+
+	foundAny := false
+	hasErrors := false
+	var totalWarn, totalErr, totalInfo int
+
+	for _, mp := range s.doctorMountPoints() {
+		diags := s.Store.DiagnoseRecipients(ctx, mp)
+		if len(diags) == 0 {
+			continue
+		}
+
+		if !foundAny {
+			foundAny = true
+		}
+
+		for _, d := range diags {
+			label := doctorStoreLabel(mp)
+			prefix := fmt.Sprintf("[%s] %s:", label, d.Recipient)
+
+			switch d.Level {
+			case leaf.DiagError:
+				out.Errorf(ctx, "%s %s", prefix, d.Message)
+				hasErrors = true
+				totalErr++
+			case leaf.DiagWarning:
+				out.Warningf(ctx, "%s %s", prefix, d.Message)
+				totalWarn++
+			case leaf.DiagInfo:
+				if !verbose {
+					continue
+				}
+
+				out.Printf(ctx, "%s %s", prefix, d.Message)
+				totalInfo++
+			}
+		}
+	}
+
+	if !foundAny {
+		out.OKf(ctx, "All recipient IDs are canonical and resolvable.")
+
+		return nil
+	}
+
+	out.Printf(ctx, "")
+	out.Printf(ctx, "Summary: %d error(s), %d warning(s), %d info (use --verbose for all details)",
+		totalErr, totalWarn, totalInfo)
+
+	if hasErrors {
+		out.Warningf(ctx, "Run 'gopass recipients canonicalize' to fix non-canonical IDs.")
+		out.Warningf(ctx, "Run 'gopass sync' to import missing recipient keys from remote.")
+
+		return exit.Error(exit.Recipients, nil, "recipient diagnostic found %d error(s)", totalErr)
+	}
 
 	return nil
 }

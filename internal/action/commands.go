@@ -367,6 +367,10 @@ func (s *Action) GetCommands() []*cli.Command {
 					Aliases: []string{"v"},
 					Usage:   "Show passing checks in addition to warnings and errors",
 				},
+				&cli.BoolFlag{
+					Name:  "recipients",
+					Usage: "Run a detailed recipient consistency diagnostic (canonical IDs, missing keys, .public-keys/ status)",
+				},
 			},
 		},
 		{
@@ -1026,6 +1030,27 @@ func (s *Action) GetCommands() []*cli.Command {
 					},
 				},
 				{
+					Name:    "canonicalize",
+					Aliases: []string{"canon"},
+					Usage:   "Canonicalize all recipient IDs in a store",
+					Description: "" +
+						"This command rewrites the .gpg-id file of the given store so that every " +
+						"recipient ID is in its canonical (full-fingerprint) form. It also renames " +
+						"the corresponding .public-keys/ files to match. This migration does not " +
+						"require re-encryption but does rewrite the .gpg-id file and should be " +
+						"run once on existing stores that use non-canonical IDs (e.g. email " +
+						"addresses or short key IDs). After running this command, run " +
+						"'gopass sync' to publish the changes.",
+					Before: s.IsInitialized,
+					Action: s.RecipientsCanonicalize,
+					Flags: []cli.Flag{
+						&cli.StringFlag{
+							Name:  "store",
+							Usage: "Store to operate on",
+						},
+					},
+				},
+				{
 					Name:    "add",
 					Aliases: []string{"authorize"},
 					Usage:   "Add any number of Recipients to any store",
@@ -1072,6 +1097,26 @@ func (s *Action) GetCommands() []*cli.Command {
 						&cli.BoolFlag{
 							Name:  "force",
 							Usage: "Force adding non-existing keys",
+						},
+					},
+				},
+				{
+					Name:    "update",
+					Aliases: []string{"refresh"},
+					Usage:   "Update public keys of recipients in the store",
+					Description: "" +
+						"This command re-exports the named recipients' (or your own) current " +
+						"public keys from the local keyring into .public-keys/, overwriting " +
+						"stale copies. Use this when you have extended an expired key or " +
+						"added new subkeys, and want other team members to receive the " +
+						"updated key on their next 'gopass sync'.\n\n" +
+						"If no IDs are provided, your own key is updated.",
+					Before: s.IsInitialized,
+					Action: s.RecipientsUpdate,
+					Flags: []cli.Flag{
+						&cli.StringFlag{
+							Name:  "store",
+							Usage: "Store to operate on",
 						},
 					},
 				},

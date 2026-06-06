@@ -9,6 +9,7 @@ import (
 	"github.com/fatih/color"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store"
+	"github.com/gopasspw/gopass/internal/store/leaf"
 	"github.com/gopasspw/gopass/internal/tree"
 	"github.com/gopasspw/gopass/pkg/debug"
 )
@@ -138,4 +139,42 @@ func (r *Store) RecipientsTree(ctx context.Context, pretty bool) (*tree.Root, er
 	}
 
 	return root, nil
+}
+
+// CanonicalizeRecipients migrates the given store's .gpg-id to use canonical
+// (full-fingerprint) recipient IDs and renames the corresponding .public-keys/
+// files to match. See leaf.Store.CanonicalizeRecipients for details.
+func (r *Store) CanonicalizeRecipients(ctx context.Context, store string) error {
+	sub, _ := r.getStore(store)
+
+	return sub.CanonicalizeRecipients(ctx)
+}
+
+// DiagnoseRecipients performs a read-only diagnostic of the recipient list
+// for the given store. It returns findings about non-canonical IDs,
+// unresolvable recipients, and .public-keys/ availability.
+// See leaf.Store.DiagnoseRecipients for details.
+func (r *Store) DiagnoseRecipients(ctx context.Context, store string) leaf.RecipientDiagnostics {
+	sub, _ := r.getStore(store)
+
+	return sub.DiagnoseRecipients(ctx)
+}
+
+// JoinTeam performs post-clone / post-setup processing: imports all
+// .public-keys/ into the local keyring, checks decryption, and — if needed
+// — exports the user's own key additively. Returns true if the user's key
+// was newly exported.
+func (r *Store) JoinTeam(ctx context.Context, store string) (bool, error) {
+	sub, _ := r.getStore(store)
+
+	return sub.JoinTeam(ctx)
+}
+
+// UpdateRecipientKeys re-exports the named recipients' public keys into
+// .public-keys/. If no IDs are provided, the current user's own identity
+// is used. See leaf.Store.UpdateRecipientKeys for details.
+func (r *Store) UpdateRecipientKeys(ctx context.Context, store string, ids []string) error {
+	sub, _ := r.getStore(store)
+
+	return sub.UpdateRecipientKeys(ctx, ids)
 }
