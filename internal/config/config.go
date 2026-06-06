@@ -58,6 +58,7 @@ var defaults = map[string]string{
 	"core.notifications":     "true",
 	"core.follow-references": "false",
 	"pwgen.xkcd-lang":        "en",
+	"show.fuzzysearch":       "true",
 }
 
 // Config is a gopass config handler.

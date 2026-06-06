@@ -52,7 +52,8 @@ core.notifications = true
 generate.autoclip = true
 `
 		want += "mounts.path = " + fsutil.ShrinkPath(u.StoreDir("")) + "\n" +
-			"pwgen.xkcd-lang = en\n"
+			"pwgen.xkcd-lang = en\n" +
+			"show.fuzzysearch = true\n"
 		assert.Equal(t, want, buf.String())
 	})
 
@@ -98,7 +99,8 @@ core.notifications = true
 generate.autoclip = true
 `
 		want += "mounts.path = " + fsutil.ShrinkPath(u.StoreDir("")) + "\n" +
-			"pwgen.xkcd-lang = en\n"
+			"pwgen.xkcd-lang = en\n" +
+			"show.fuzzysearch = true\n"
 
 		assert.Equal(t, want, buf.String(), "action.printConfigValues")
 	})
@@ -137,6 +139,7 @@ core.notifications
 generate.autoclip
 mounts.path
 pwgen.xkcd-lang
+show.fuzzysearch
 `
 		assert.Equal(t, want, buf.String())
 	})

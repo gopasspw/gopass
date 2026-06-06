@@ -18,6 +18,7 @@
 * [FEATURE] Add stable structured exit codes; --exit-codes flag lists all codes (I-2)
 * [FEATURE] Add JSON output to audit, list, find, and recipients commands (I-3)
 * [FEATURE] Add show.hidden-keys config option for customizable safecontent redaction (I-5)
+* [FEATURE] Add show.fuzzysearch config and --nofuzzysearch flag to control automatic fuzzy lookup in show
 * [FEATURE] Add --stdin, --file, and --exec modes to gopass env
 * [ENHANCEMENT] Unified secret name validation rejects path traversal and consecutive slashes (I-1)
 * [CLEANUP] Split Action handler into focused handler types (A-1)

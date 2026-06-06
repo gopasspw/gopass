@@ -118,6 +118,10 @@ func ShowFlags() []cli.Flag {
 			Usage:   "Do not parse the output.",
 		},
 		&cli.BoolFlag{
+			Name:  "nofuzzysearch",
+			Usage: "Do not start fuzzy search when an entry is not found",
+		},
+		&cli.BoolFlag{
 			Name:  "nosync",
 			Usage: "Disable auto-sync",
 		},
