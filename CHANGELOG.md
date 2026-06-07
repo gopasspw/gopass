@@ -1,5 +1,28 @@
 # Changelog
 
+## 1.17.0-rc.2 / 2026-06-07
+
+* [chore] Document stability for pkg/gopass (#3438)
+* [chore] Update gopasspw/clipboard (#3436)
+* chore(deps): bump actions/checkout from 6.0.2 to 6.0.3 (#3458)
+* chore(deps): bump docker/build-push-action from 7.1.0 to 7.2.0 (#3455)
+* chore(deps): bump docker/login-action from 4.1.0 to 4.2.0 (#3459)
+* chore(deps): bump docker/metadata-action from 6.0.0 to 6.1.0 (#3452)
+* chore(deps): bump github/codeql-action from 4.35.3 to 4.36.1 (#3456)
+* chore(deps): bump golangci/golangci-lint-action from 9.2.0 to 9.2.1 (#3453)
+* chore(deps): bump goreleaser/goreleaser-action from 7.2.1 to 7.2.2 (#3454)
+* chore(deps): bump sigstore/cosign-installer from 4.1.1 to 4.1.2 (#3457)
+* chore(deps): bump step-security/harden-runner from 2.19.0 to 2.19.4 (#3451)
+* chore: More output before and after long running release ops (#3433)
+* feat(show): add configurable fuzzy-search fallback toggle (#3449)
+* fix: Disable grype, the builder seems to be broken (#3463)
+* fix: clip flag (-c) for cli/v3 GenericFlag compatibility (#3448)
+* fix: store mount paths relative to home dir for cross-platform portability (#3439)
+* fix: update bash completion flag for urfave/cli/v3 compatibility (#3441)
+* fix: warn when recipient key is expired or unusable during encryption (#3443)
+* otp: add noscreenshot build tag and document screen-capture scope (#3442)
+* otp: hide --snip flag when built with noscreenshot tag (#3445)
+
 ## Next
 
 * [SECURITY] Fix path traversal vulnerability in fs storage layer (C-1)
