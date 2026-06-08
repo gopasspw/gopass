@@ -194,14 +194,17 @@ func (s *binaryHandler) binaryCopy(ctx context.Context, cmd *cli.Command, from, 
 		return fmt.Errorf("usage: %s fs%s from to", cmd.Root().Name, op)
 	}
 
+	// The direction is determined by the source: if "from" is a real file on
+	// disk we copy from the filesystem into the store, otherwise we copy from
+	// the store out to the filesystem. We deliberately key off "from" so that a
+	// destination which happens to share a name with a file in the current
+	// directory (e.g. "gopass fscopy test test") is still treated as a store
+	// entry. fscopy does not support copying between two files, so once the
+	// source is known the destination side is unambiguous. See #3340.
 	switch {
-	case isFilePath(from) && isFilePath(to):
-		// copying from on file to another file is not supported.
-		return fmt.Errorf("ambiguity detected. Only from or to can be a file. Use cp to copy between files")
-	case s.Store.Exists(ctx, from) && s.Store.Exists(ctx, to):
-		// copying from one secret to another secret is not supported.
-		return fmt.Errorf("ambiguity detected. Either from or to must be a file. Use gopass cp to copy between secrets")
-	case isFilePath(from) && !isFilePath(to):
+	case isFilePath(from):
+		// the source is a file on disk, so the destination is a store entry,
+		// even if a same-named file happens to exist in the working directory.
 		if s.isInStore(from) {
 			out.Warningf(ctx, "Ambiguity detected. Source %q is in the store. Use --force if intended", from)
 			if !cmd.Bool("force") {
@@ -210,7 +213,13 @@ func (s *binaryHandler) binaryCopy(ctx context.Context, cmd *cli.Command, from, 
 		}
 
 		return s.binaryCopyFromFileToStore(ctx, from, to, deleteSource)
-	case !isFilePath(from):
+	case s.Store.Exists(ctx, from) && s.Store.Exists(ctx, to):
+		// the source is not a file but both names resolve to secrets, so we
+		// cannot tell which one is meant to be the file. Copying from one
+		// secret to another is not supported here; use cp instead.
+		return fmt.Errorf("ambiguity detected. Either from or to must be a file. Use gopass cp to copy between secrets")
+	case s.Store.Exists(ctx, from):
+		// the source is a store entry, so the destination is a file on disk.
 		if s.isInStore(to) {
 			out.Warningf(ctx, "Ambiguity detected. Destination %q is in the store. Use --force if intended", to)
 			if !cmd.Bool("force") {
@@ -220,7 +229,8 @@ func (s *binaryHandler) binaryCopy(ctx context.Context, cmd *cli.Command, from, 
 
 		return s.binaryCopyFromStoreToFile(ctx, from, to, deleteSource)
 	default:
-		return fmt.Errorf("ambiguity detected. Unhandled case. Please report a bug")
+		// the source is neither a file on disk nor an existing secret.
+		return fmt.Errorf("%q is neither a file nor a secret in the store", from)
 	}
 }
 
