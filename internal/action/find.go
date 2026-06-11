@@ -29,10 +29,11 @@ func (s *searchHandler) FindFuzzy(ctx context.Context, cmd *cli.Command) error {
 
 func (s *searchHandler) findCmd(ctx context.Context, cmd *cli.Command, cb showFunc, fuzzy bool) error {
 	ctx = ctxutil.WithGlobalFlags(ctx, cmd)
-	if cmd.IsSet("clip") {
-		ctx = WithOnlyClip(ctx, cmd.Bool("clip"))
-		ctx = WithClip(ctx, cmd.Bool("clip"))
-	}
+	// Note: do not re-parse the clip flag here. The find command has no clip flag,
+	// and when called via fuzzy search from show, the context already carries the
+	// correct clip state set by showParseArgs. Calling cmd.Bool("clip") on the show
+	// command's GenericFlag (OptionalInt) returns false in cli v3, which would
+	// incorrectly overwrite the clip=true already stored in ctx.
 
 	if cmd.IsSet("unsafe") {
 		ctx = ctxutil.WithForce(ctx, cmd.Bool("unsafe"))
