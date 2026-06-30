@@ -41,8 +41,21 @@ func Pwgen(ctx context.Context, cmd *cli.Command) error {
 		}
 	}
 
-	if cmd.Bool("xkcd") || cmd.Bool("xkcd-capitalize") || cmd.Bool("xkcd-numbers") {
+	xkcdSet := cmd.Bool("xkcd") || cmd.Bool("xkcd-capitalize") || cmd.Bool("xkcd-numbers")
+	memorableSet := cmd.Bool("memorable") || cmd.Bool("memorable-capitalize")
+
+	// --memorable and --xkcd both select a generator; rejecting the
+	// combination avoids a silent, surprising choice between the two.
+	if xkcdSet && memorableSet {
+		return exit.Error(exit.Usage, nil, "--memorable and --xkcd are mutually exclusive")
+	}
+
+	if xkcdSet {
 		return xkcdGen(ctx, cmd, pwLen, pwNum)
+	}
+
+	if memorableSet {
+		return memorableGen(ctx, cmd, pwLen, pwNum)
 	}
 
 	return pwGen(ctx, cmd, pwLen, pwNum)
@@ -78,6 +91,29 @@ func xkcdGen(ctx context.Context, cmd *cli.Command, length, num int) error {
 			return err
 		}
 		out.Print(ctx, s)
+	}
+
+	return nil
+}
+
+func memorableGen(ctx context.Context, cmd *cli.Command, length, num int) error {
+	// memorable always injects a digit per word, so --no-numerals would
+	// silently produce digit-laden "no-numerals" passwords. Reject it.
+	if cmd.Bool("no-numerals") {
+		return exit.Error(exit.Usage, nil, "--no-numerals is incompatible with --memorable (memorable passwords always contain digits)")
+	}
+	symbols := cmd.Bool("symbols")
+	capitals := config.Bool(ctx, "pwgen.memorable-capitalize")
+	if cmd.IsSet("memorable-capitalize") {
+		capitals = cmd.Bool("memorable-capitalize")
+	}
+	// --no-capitalize forces lowercase even when the config or
+	// --memorable-capitalize would capitalize (parity with the pwGen path).
+	if cmd.Bool("no-capitalize") {
+		capitals = false
+	}
+	for range num {
+		out.Print(ctx, pwgen.GenerateMemorablePassword(length, symbols, capitals))
 	}
 
 	return nil

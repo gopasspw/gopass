@@ -11,7 +11,7 @@ func GetCommands() []*cli.Command {
 			Name:        "pwgen",
 			Usage:       "Generate passwords",
 			Description: "Print any number of password to the console. The optional length parameter specifies the length of each password.",
-			ArgsUsage:   "[length]",
+			ArgsUsage:   "[length] [count]",
 			Action:      Pwgen,
 			Flags: []cli.Flag{
 				&cli.BoolFlag{
@@ -65,6 +65,16 @@ func GetCommands() []*cli.Command {
 					Name:    "xkcd-numbers",
 					Aliases: []string{"xkcdnumbers", "xn"},
 					Usage:   "Add a random number to the end of the generated xkcd style password. This flag implies -xkcd",
+				},
+				&cli.BoolFlag{
+					Name:    "memorable",
+					Aliases: []string{"m"},
+					Usage:   "Use the memorable (word-based) password generator. The requested length is a minimum (output may be longer). Incompatible with --no-numerals (memorable always includes digits).",
+				},
+				&cli.BoolFlag{
+					Name:    "memorable-capitalize",
+					Aliases: []string{"memorablecapitalize", "mc"},
+					Usage:   "Capitalize (some) words in the generated memorable password. This flag implies --memorable",
 				},
 			},
 		},
