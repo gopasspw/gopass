@@ -17,6 +17,7 @@ import (
 	"github.com/gopasspw/gopass/pkg/appdir"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/debug"
+	"github.com/gopasspw/gopass/pkg/fsutil"
 )
 
 const (
@@ -53,6 +54,9 @@ func New(ctx context.Context, sshKeyPath string) (*Age, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	// Expand ~/ so a custom path set via age.ssh-key-path works without shell expansion.
+	sshKeyPath = fsutil.ExpandHomedir(sshKeyPath)
 
 	a := &Age{
 		ghCache:    ghc,

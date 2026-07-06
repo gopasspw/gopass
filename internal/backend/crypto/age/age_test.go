@@ -1,6 +1,7 @@
 package age
 
 import (
+	"path/filepath"
 	"testing"
 
 	"github.com/gopasspw/gopass/pkg/debug"
@@ -13,6 +14,31 @@ func TestNew(t *testing.T) {
 	a, err := New(ctx, "")
 	require.NoError(t, err)
 	assert.NotNil(t, a)
+}
+
+func TestNewExpandsSshKeyPathTilde(t *testing.T) {
+	td := t.TempDir()
+	t.Setenv("GOPASS_HOMEDIR", td)
+
+	// A leading ~/ is expanded to the home dir (appdir.UserHome honors GOPASS_HOMEDIR).
+	a, err := New(t.Context(), "~/custom-ssh")
+	require.NoError(t, err)
+	assert.Equal(t, filepath.Join(td, "custom-ssh"), a.sshKeyPath)
+
+	// Absolute paths are left untouched by fsutil.ExpandHomedir.
+	a2, err := New(t.Context(), "/opt/keys")
+	require.NoError(t, err)
+	assert.Equal(t, "/opt/keys", a2.sshKeyPath)
+
+	// ~user/ and a bare ~ are NOT expanded: ExpandHomedir only matches the ~/ prefix.
+	a3, err := New(t.Context(), "~alice/keys")
+	require.NoError(t, err)
+	assert.Equal(t, "~alice/keys", a3.sshKeyPath)
+
+	// Empty stays empty (the len>1 guard inside ExpandHomedir).
+	a4, err := New(t.Context(), "")
+	require.NoError(t, err)
+	assert.Empty(t, a4.sshKeyPath)
 }
 
 func TestInitialized(t *testing.T) {
