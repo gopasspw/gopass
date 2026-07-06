@@ -41,7 +41,8 @@ func (a *Age) decryptWithAgent(ctx context.Context, ciphertext []byte) ([]byte, 
 		return plaintext, nil
 	}
 
-	if !strings.Contains(err.Error(), "agent is locked") {
+	if !strings.Contains(err.Error(), "agent is locked") &&
+		!strings.Contains(err.Error(), "no identities specified") {
 		debug.Log("failed to decrypt with agent: %s", err)
 
 		return nil, err
