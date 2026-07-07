@@ -57,7 +57,7 @@ func (s *searchHandler) find(ctx context.Context, cmd *cli.Command, needle strin
 	}
 
 	// filter our the ones from the haystack matching the needle.
-	choices, err := filter(haystack, needle, cmd.Bool("regex"))
+	choices, err := filter(haystack, needle, cmd != nil && cmd.Bool("regex"))
 	if err != nil {
 		return exit.Error(exit.Usage, err, "%s", err)
 	}
