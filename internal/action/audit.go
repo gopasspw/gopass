@@ -56,6 +56,13 @@ func (s *auditHandler) Audit(ctx context.Context, cmd *cli.Command) error {
 	}
 
 	a := audit.New(ctx, s.Store)
+	a := audit.New(c.Context, s.Store)
+	vs, err := parseAuditExpressions(c.String("expr"))
+	if err != nil {
+		return exit.Error(exit.Unknown, err, "failed to parse audit expressions: %s", err)
+	}
+
+	a := audit.New(c.Context, s.Store, vs...)
 	r, err := a.Batch(ctx, nList)
 	if err != nil {
 		return exit.Error(exit.Unknown, err, "failed to audit password store: %s", err)
@@ -96,6 +103,27 @@ func (s *auditHandler) Audit(ctx context.Context, cmd *cli.Command) error {
 
 		return err
 	}
+}
+
+func parseAuditExpressions(exprs string) ([]audit.Validator, error) {
+	if exprs == "" {
+		return nil, nil
+	}
+
+	var vs []audit.Validator
+	for _, expr := range strings.Split(exprs, ",") {
+		expr = strings.TrimSpace(expr)
+		if expr == "" {
+			continue
+		}
+		v, err := audit.NewCELValidator(expr)
+		if err != nil {
+			return nil, err
+		}
+		vs = append(vs, v)
+	}
+
+	return vs, nil
 }
 
 func saveReport(ctx context.Context, f func(io.Writer) error, path, suffix string) error {
