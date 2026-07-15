@@ -79,7 +79,7 @@ func (s *secretHandler) Merge(ctx context.Context, cmd *cli.Command) error {
 	}
 
 	// write result (back) to store
-	if err := s.Store.Set(ctxutil.WithCommitMessage(ctx, fmt.Sprintf("Merged %+v", cmd.Args().Slice())), to, nSec); err != nil {
+	if err := s.Store.Set(ctxutil.WithCommitMessage(ctx, fmt.Sprintf("Merge %+v", cmd.Args().Slice())), to, nSec); err != nil {
 		if !errors.Is(err, store.ErrMeaninglessWrite) {
 			return exit.Error(exit.Encrypt, err, "failed to encrypt secret %s: %s", to, err)
 		}
