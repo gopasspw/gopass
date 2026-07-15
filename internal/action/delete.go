@@ -46,9 +46,9 @@ func (s *secretHandler) Delete(ctx context.Context, cmd *cli.Command) error {
 	}
 
 	// Check for custom commit message
-	commitMsg := fmt.Sprintf("Deleted %s", name)
+	commitMsg := fmt.Sprintf("Delete %s", name)
 	if key != "" {
-		commitMsg = fmt.Sprintf("Deleted key %s from %s", key, name)
+		commitMsg = fmt.Sprintf("Delete key %s from %s", key, name)
 	}
 	if cmd.IsSet("commit-message") {
 		commitMsg = cmd.String("commit-message")

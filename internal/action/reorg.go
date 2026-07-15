@@ -131,7 +131,7 @@ func (s *miscHandler) ReorgAfterEdit(ctx context.Context, initialSecrets, modifi
 	}
 
 	// commit changes
-	if err := storage.TryCommit(ctx, "Reorganized secrets"); err != nil {
+	if err := storage.TryCommit(ctx, "Reorganize secrets"); err != nil {
 		return exit.Error(exit.Git, err, "failed to commit changes: %s", err)
 	}
 

@@ -23,7 +23,7 @@ func (s *secretHandler) Copy(ctx context.Context, cmd *cli.Command) error {
 	to := cmd.Args().Get(1)
 
 	// Check for custom commit message
-	commitMsg := fmt.Sprintf("Copied %s to %s", from, to)
+	commitMsg := fmt.Sprintf("Copy %s to %s", from, to)
 	if cmd.IsSet("commit-message") {
 		commitMsg = cmd.String("commit-message")
 	}

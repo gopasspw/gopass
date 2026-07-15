@@ -39,7 +39,7 @@ func (s *Store) Copy(ctx context.Context, from, to string) error {
 		return fmt.Errorf("failed to get %q from store: %w", from, err)
 	}
 
-	if err := s.Set(ctxutil.WithCommitMessage(ctx, fmt.Sprintf("Copied from %s to %s", from, to)), to, content); err != nil {
+	if err := s.Set(ctxutil.WithCommitMessage(ctx, fmt.Sprintf("Copy from %s to %s", from, to)), to, content); err != nil {
 		if !errors.Is(err, store.ErrMeaninglessWrite) {
 			return fmt.Errorf("failed to save secret %q to store: %w", to, err)
 		}
