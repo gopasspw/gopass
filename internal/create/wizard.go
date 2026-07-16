@@ -38,14 +38,16 @@ const (
 // Attribute is a credential attribute that is being asked for
 // when populating a template.
 type Attribute struct {
-	Name         string `yaml:"name"`
-	Type         string `yaml:"type"`
-	Prompt       string `yaml:"prompt"`
-	Charset      string `yaml:"charset"`
-	Min          int    `yaml:"min"`
-	Max          int    `yaml:"max"`
-	AlwaysPrompt bool   `yaml:"always_prompt"` // always prompt for the crendentials
-	Strict       bool   `yaml:"strict"`        // enforce character class rules (all detected classes must be present)
+	Name         string   `yaml:"name"`
+	Type         string   `yaml:"type"`
+	Prompt       string   `yaml:"prompt"`
+	Charset      string   `yaml:"charset"`
+	Min          int      `yaml:"min"`
+	Max          int      `yaml:"max"`
+	AlwaysPrompt bool     `yaml:"always_prompt"` // always prompt for the crendentials
+	Strict       bool     `yaml:"strict"`        // enforce character class rules (all detected classes must be present)
+	Options      []string `yaml:"options"`       // selectable values for the "choice" attribute type
+	Optional     bool     `yaml:"optional"`      // allow skipping a "password" attribute (e.g. SSO / social login accounts)
 }
 
 // Template is an action template for the create wizard.
@@ -234,6 +236,19 @@ func mkActFunc(tpl Template, s *root.Store, cb ActionCallback) func(context.Cont
 					nameParts = append(nameParts, sv)
 				}
 				_ = sec.Set(k, sv)
+			case "choice":
+				if len(v.Options) < 1 {
+					return fmt.Errorf("choice attribute %s has no options", v.Name)
+				}
+				act, sel := cui.GetSelection(ctx, fmtfn(2, strconv.Itoa(step), v.Prompt), v.Options)
+				if act == "aborted" {
+					return exit.Error(exit.Aborted, nil, "user aborted")
+				}
+				choice := v.Options[sel]
+				if wantForName[k] {
+					nameParts = append(nameParts, choice)
+				}
+				_ = sec.Set(k, choice)
 			case "multiline":
 				ed := editor.Path(ctx, cmd)
 
@@ -271,6 +286,20 @@ func mkActFunc(tpl Template, s *root.Store, cb ActionCallback) func(context.Cont
 				_ = sec.Set(k, sv)
 			case "password":
 				var err error
+				// Optional passwords let a single template cover accounts that
+				// authenticate without a stored password (e.g. login via Google /
+				// SSO / social login). When the user declines, we skip prompting
+				// and leave the password empty instead of storing a blank one.
+				if v.Optional {
+					var hasPw bool
+					hasPw, err = termio.AskForBool(ctx, fmtfn(2, strconv.Itoa(step), "Does this account have a password? (No for SSO / social login)"), true)
+					if err != nil {
+						return err
+					}
+					if !hasPw {
+						continue
+					}
+				}
 				if !v.AlwaysPrompt {
 					genPw, err = termio.AskForBool(ctx, fmtfn(2, strconv.Itoa(step), "Generate Password?"), true)
 					if err != nil {
