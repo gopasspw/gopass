@@ -16,6 +16,16 @@ func TestNew(t *testing.T) {
 	assert.NotNil(t, a)
 }
 
+func TestAgentSpawnGuard(t *testing.T) {
+	// By default this process is not an agent-spawn child.
+	require.False(t, isAgentSpawnProcess())
+	// The guard env short-circuits tryStartAgent when set.
+	t.Setenv(SpawnGuardEnv, "1")
+	require.True(t, isAgentSpawnProcess())
+	// Contract: the env var name is stable (the CLI launcher sets exactly this).
+	assert.Equal(t, "GOPASS_AGE_AGENT_SPAWNING", SpawnGuardEnv)
+}
+
 func TestNewExpandsSshKeyPathTilde(t *testing.T) {
 	td := t.TempDir()
 	t.Setenv("GOPASS_HOMEDIR", td)

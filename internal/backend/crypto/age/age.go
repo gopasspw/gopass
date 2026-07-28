@@ -3,6 +3,7 @@ package age
 import (
 	"context"
 	"fmt"
+	"os"
 	"path/filepath"
 	"strings"
 	"time"
@@ -25,6 +26,13 @@ const (
 	Ext = "age"
 	// IDFile is the name for age recipients.
 	IDFile = ".age-recipients"
+	// SpawnGuardEnv is stamped on a spawned agent-starter process so its
+	// children cannot re-enter tryStartAgent. This is the defense against
+	// fork-bombing when gopass is embedded as a library in a host binary that
+	// does not own the `age agent start` subcommand (e.g. gopass-jsonapi): the
+	// host re-enters New -> tryStartAgent and would spawn another copy ad
+	// infinitum. See internal/agentlauncher for how the standalone CLI sets it.
+	SpawnGuardEnv = "GOPASS_AGE_AGENT_SPAWNING"
 )
 
 type githubSSHCacher interface {
@@ -118,7 +126,25 @@ func (a *Age) effectivePwPurgeCallback() func(string) {
 	return a.askPass.Remove
 }
 
+// isAgentSpawnProcess reports whether the current process was spawned as an
+// agent starter (SpawnGuardEnv is set). Used to short-circuit tryStartAgent so
+// a mis-targeted spawn cannot cascade into a fork bomb.
+func isAgentSpawnProcess() bool {
+	return os.Getenv(SpawnGuardEnv) != ""
+}
+
 func (a *Age) tryStartAgent(ctx context.Context) {
+	// If this process was itself spawned as an agent starter, do not spawn
+	// another. Without this guard, embedding gopass in a host that re-enters
+	// New -> tryStartAgent (e.g. gopass-jsonapi, which runs api.New before CLI
+	// dispatch) fork-bombs. The standalone CLI sets SpawnGuardEnv on the spawned
+	// process via internal/agentlauncher.
+	if isAgentSpawnProcess() {
+		debug.Log("age agent spawn already in progress, skipping autostart to avoid fork bomb")
+
+		return
+	}
+
 	if !config.Bool(ctx, "age.agent-enabled") {
 		debug.Log("age agent disabled")
 
