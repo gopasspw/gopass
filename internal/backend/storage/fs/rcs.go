@@ -19,7 +19,7 @@
 // decision to merge them was made to simplify the leaf store and reduce the
 // indirection layer. If the number of pure-storage backends grows, or if the
 // stub overhead becomes a maintenance burden, see
-// docs/adr/A-3-separate-storage-rcs.md for a ready-made plan to split them
+// docs/adr/A-03-separate-storage-rcs.md for a ready-made plan to split them
 // again.
 package fs
 

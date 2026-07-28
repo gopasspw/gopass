@@ -1,4 +1,4 @@
-# A-6: Minimum Password Length Enforcement
+# A-06: Minimum Password Length Enforcement
 
 **Status:** deferred — user autonomy preserved; warning to be added  
 **Source:** SECURITY_AUDIT_REPORT.md § M-4
