@@ -31,7 +31,7 @@ const (
 	// fork-bombing when gopass is embedded as a library in a host binary that
 	// does not own the `age agent start` subcommand (e.g. gopass-jsonapi): the
 	// host re-enters New -> tryStartAgent and would spawn another copy ad
-	// infinitum. See internal/agentlauncher for how the standalone CLI sets it.
+	// infinitum. See internal/ageagentlauncher for how the standalone CLI sets it.
 	SpawnGuardEnv = "GOPASS_AGE_AGENT_SPAWNING"
 )
 
@@ -138,7 +138,7 @@ func (a *Age) tryStartAgent(ctx context.Context) {
 	// another. Without this guard, embedding gopass in a host that re-enters
 	// New -> tryStartAgent (e.g. gopass-jsonapi, which runs api.New before CLI
 	// dispatch) fork-bombs. The standalone CLI sets SpawnGuardEnv on the spawned
-	// process via internal/agentlauncher.
+	// process via internal/ageagentlauncher.
 	if isAgentSpawnProcess() {
 		debug.Log("age agent spawn already in progress, skipping autostart to avoid fork bomb")
 
@@ -158,8 +158,19 @@ func (a *Age) tryStartAgent(ctx context.Context) {
 		return
 	}
 
+	launcher := GetAgentLauncher(ctx)
+	if launcher == nil {
+		// No launcher registered: this is a library consumer (or a unit test)
+		// that does not own the `age agent start` subcommand. Skip autostart
+		// rather than re-executing os.Args[0], which would fork-bomb. The
+		// standalone CLI registers its launcher via internal/ageagentlauncher.
+		debug.Log("no age agent launcher registered, skipping autostart")
+
+		return
+	}
+
 	debug.Log("age agent not running, starting it...")
-	if err := startAgent(ctx); err != nil {
+	if err := launcher(ctx); err != nil {
 		debug.Log("failed to start age agent: %s", err)
 
 		return
