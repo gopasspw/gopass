@@ -344,7 +344,8 @@ func TestEveryTypeHasASection(t *testing.T) {
 func TestSectionsAreKeepAChangelogOrder(t *testing.T) {
 	t.Parallel()
 
-	assert.Equal(t,
+	assert.Equal(
+		t,
 		[]Section{Added, Changed, Deprecated, Removed, Fixed, Security},
 		Sections,
 	)
