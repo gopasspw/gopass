@@ -10,30 +10,26 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
 	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"regexp"
-	"sort"
+	"slices"
 	"strings"
 	"text/template"
 	"time"
 
 	"github.com/blang/semver/v4"
+	"github.com/gopasspw/gopass/helpers/commitmsg"
 	"github.com/gopasspw/gopass/helpers/gitutils"
 )
 
 var (
 	sleep   = time.Second
 	issueRE = regexp.MustCompile(`#(\d+)\b`)
-	// Supported formats:
-	// [TAG] description
-	// TAG: description
-	subjectRE = regexp.MustCompile(`^(\[\w+\]\s+.*|\S+:\s.*)$`)
-	verTmpl   = `package main
+	verTmpl = `package main
 
 import (
 	"strings"
@@ -311,7 +307,7 @@ func parseReleaseArgs(args []string) releaseArgs {
 }
 
 func printDryRun(prevVer, nextVer semver.Version, patchRelease bool) error {
-	notes, err := changelogEntries(prevVer)
+	notes, unrecognised, err := changelogEntries(prevVer)
 	if err != nil {
 		return err
 	}
@@ -350,15 +346,32 @@ func printDryRun(prevVer, nextVer semver.Version, patchRelease bool) error {
 	fmt.Printf("Would later tag and push: v%s\n", nextVer.String())
 	fmt.Println()
 	fmt.Println("Planned changelog entries:")
+
 	if len(notes) < 1 {
 		fmt.Println("- none")
-
-		return nil
 	}
 
-	for _, note := range notes {
-		fmt.Printf("- %s\n", note)
+	// Group by section so the dry run shows exactly the shape that will be
+	// written, rather than a flat list the release then rearranges.
+	for _, sec := range commitmsg.Sections {
+		var printed bool
+
+		for _, note := range notes {
+			if note.Section != sec {
+				continue
+			}
+
+			if !printed {
+				fmt.Printf("\n### %s\n", sec)
+
+				printed = true
+			}
+
+			fmt.Printf("- %s\n", note.Text)
+		}
 	}
+
+	reportUnrecognised(unrecognised)
 
 	return nil
 }
@@ -450,52 +463,66 @@ func gitCommit(v semver.Version) error {
 }
 
 func writeChangelog(prev, next semver.Version) error {
-	cl, err := changelogEntries(prev)
-	if err != nil {
-		panic(err)
-	}
-
-	// prepend the new changelog entries by first writing the
-	// new content in a new file ...
-	fh, err := os.Create("CHANGELOG.new")
+	entries, unrecognised, err := changelogEntries(prev)
 	if err != nil {
 		return err
 	}
-	defer fh.Close()
+
+	reportUnrecognised(unrecognised)
 
 	ofh, err := os.Open("CHANGELOG.md")
 	if err != nil {
 		return err
 	}
-	defer ofh.Close()
 
-	scanner := bufio.NewScanner(ofh)
+	cl, err := parseChangelog(ofh)
+	_ = ofh.Close()
 
-	var written bool
-	for scanner.Scan() {
-		line := scanner.Text()
-
-		// insert the new section before the last entry
-		if strings.HasPrefix(line, "## ") && !written {
-			fmt.Fprintf(fh, "## %s / %s\n\n", next.String(), time.Now().UTC().Format("2006-01-02"))
-			for _, e := range cl {
-				fmt.Fprint(fh, "* ")
-				fmt.Fprintln(fh, e)
-			}
-			fmt.Fprintln(fh)
-
-			written = true
-		}
-
-		// all existing lines are just copied over
-		fmt.Fprintln(fh, line)
-	}
-	if err := scanner.Err(); err != nil {
+	if err != nil {
 		return err
 	}
 
-	// renaming the new file to the old file
+	cl.release(prev, next, time.Now().UTC().Format("2006-01-02"), entries)
+
+	// write the new content to a new file first, then rename over the old one
+	fh, err := os.Create("CHANGELOG.new")
+	if err != nil {
+		return err
+	}
+
+	if err := cl.render(fh); err != nil {
+		_ = fh.Close()
+
+		return err
+	}
+
+	if err := fh.Close(); err != nil {
+		return err
+	}
+
 	return os.Rename("CHANGELOG.new", "CHANGELOG.md")
+}
+
+// reportUnrecognised prints the commit subjects that could not be classified.
+//
+// These are not the same as the deliberately omitted ones. A subject such as
+// "otp: hide --snip flag" uses a scope where a type belongs, so it names a real
+// user-facing change that no section can be chosen for. Printing them is what
+// keeps such a change from disappearing from the release notes unnoticed.
+func reportUnrecognised(subjects []string) {
+	if len(subjects) == 0 {
+		return
+	}
+
+	fmt.Printf("\n⚠ %d commit(s) could not be classified and produced no changelog entry.\n", len(subjects))
+	fmt.Println("  Their subjects are not valid commit messages. See docs/conventions.md.")
+	fmt.Println("  Add a RELEASE_NOTES= line to the commit body, or add the entry by hand:")
+
+	for _, s := range subjects {
+		fmt.Printf("  - %s\n", s)
+	}
+
+	fmt.Println()
 }
 
 func updateCompletion() error {
@@ -646,7 +673,10 @@ func gitVersion() (semver.Version, error) {
 	return semver.Version{}, fmt.Errorf("no valid version found")
 }
 
-func changelogEntries(since semver.Version) ([]string, error) {
+// changelogEntries collects the changelog entries for every commit since the
+// given version. It returns the classified entries and, separately, the
+// subjects it could not classify, so the caller can report them.
+func changelogEntries(since semver.Version) ([]commitmsg.Entry, []string, error) {
 	// set up a custom output format for the git log command to make it easier to parse here.
 	gitSep := "@@@GIT-SEP@@@"
 	gitDelim := "@@@GIT-DELIM@@@"
@@ -660,11 +690,14 @@ func changelogEntries(since semver.Version) ([]string, error) {
 	}
 	buf, err := exec.Command("git", args...).CombinedOutput()
 	if err != nil {
-		return nil, fmt.Errorf("failed to run git %+v with error %w: %s", args, err, string(buf))
+		return nil, nil, fmt.Errorf("failed to run git %+v with error %w: %s", args, err, string(buf))
 	}
 
 	// gitSep separates each commit from the next
-	notes := make([]string, 0, 10)
+	entries := make([]commitmsg.Entry, 0, 10)
+
+	var unrecognised []string
+
 	commits := strings.SplitSeq(string(buf), gitSep)
 	for commit := range commits {
 		commit := strings.TrimSpace(commit)
@@ -684,48 +717,63 @@ func changelogEntries(since semver.Version) ([]string, error) {
 
 		subject := strings.TrimSpace(p[1])
 
-		// extract github issue numbers from the subject
-		issues := []string{}
-		if m := issueRE.FindStringSubmatch(strings.TrimSpace(subject)); len(m) > 1 {
-			issues = append(issues, m[1])
-		}
-
-		// try to extract the release note from the subject
-		if m := subjectRE.FindStringSubmatch(subject); len(m) > 1 {
-			notes = append(notes, m[1])
-
-			continue
-		}
-
-		// if no suitable subject was parsed, try to parse the body as well
-		for line := range strings.SplitSeq(p[2], "\n") {
-			line := strings.TrimSpace(line)
-
-			if m := issueRE.FindStringSubmatch(line); len(m) > 1 {
-				issues = append(issues, m[1])
-			}
-
-			if !strings.HasPrefix(line, "RELEASE_NOTES=") {
-				continue
-			}
-			p := strings.Split(line, "=")
-			if len(p) < 2 {
-				continue
-			}
-			val := p[1]
-			if strings.ToLower(val) == "n/a" {
-				continue
-			}
-			if len(issues) > 0 {
-				val += " (#" + strings.Join(issues, ", #") + ")"
-			}
-			notes = append(notes, val)
+		entry, disp := commitmsg.Classify(subject, p[2])
+		switch disp {
+		case commitmsg.Include:
+			entry.Text = appendIssues(entry.Text, subject, p[2])
+			entries = append(entries, entry)
+		case commitmsg.Unrecognised:
+			unrecognised = append(unrecognised, subject)
+		case commitmsg.Omitted:
+			// deliberately excluded: dependency bumps, CI, docs, tests
 		}
 	}
 
-	sort.Strings(notes)
+	slices.SortFunc(entries, func(a, b commitmsg.Entry) int {
+		if a.Section != b.Section {
+			return slices.Index(commitmsg.Sections, a.Section) - slices.Index(commitmsg.Sections, b.Section)
+		}
 
-	return notes, nil
+		return strings.Compare(a.Text, b.Text)
+	})
+
+	return entries, unrecognised, nil
+}
+
+// appendIssues appends the referenced issue numbers to an entry, unless the
+// text already carries them. A squash-merged subject usually ends in "(#1234)"
+// already, so this only fires for entries whose text came from a
+// RELEASE_NOTES= override or from a body reference.
+func appendIssues(text, subject, body string) string {
+	issues := []string{}
+
+	if m := issueRE.FindStringSubmatch(subject); len(m) > 1 {
+		issues = append(issues, m[1])
+	}
+
+	for line := range strings.SplitSeq(body, "\n") {
+		if m := issueRE.FindStringSubmatch(strings.TrimSpace(line)); len(m) > 1 {
+			issues = append(issues, m[1])
+		}
+	}
+
+	slices.Sort(issues)
+	issues = slices.Compact(issues)
+
+	missing := make([]string, 0, len(issues))
+
+	for _, i := range issues {
+		if strings.Contains(text, "#"+i) {
+			continue
+		}
+		missing = append(missing, i)
+	}
+
+	if len(missing) == 0 {
+		return text
+	}
+
+	return text + " (#" + strings.Join(missing, ", #") + ")"
 }
 
 func usage() {
