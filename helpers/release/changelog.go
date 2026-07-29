@@ -170,7 +170,7 @@ func (c *changelog) release(prev, next semver.Version, date string, generated []
 
 	for sec := range merged {
 		slices.Sort(merged[sec])
-		merged[sec] = slices.Compact(merged[sec])
+		merged[sec] = dedupeFold(merged[sec])
 	}
 
 	section := []string{fmt.Sprintf("## [%s] - %s", next.String(), date), ""}
@@ -191,6 +191,32 @@ func (c *changelog) release(prev, next semver.Version, date string, generated []
 	c.released = append(section, c.released...)
 	c.unreleased = map[commitmsg.Section][]string{}
 	c.updateLinks(prev, next)
+}
+
+// dedupeFold removes entries that differ only in case from one already kept.
+// The input must be sorted.
+//
+// A hand-written unreleased entry and the subject of the commit that
+// implemented it often describe the same change with a different capital
+// letter, for example "Add gopass doctor diagnostic command (I-4)" against
+// "add gopass doctor diagnostic command (I-4)". It cannot catch two genuinely
+// different wordings of the same change; those still need a human pass before
+// the release.
+func dedupeFold(in []string) []string {
+	out := in[:0]
+	seen := make(map[string]struct{}, len(in))
+
+	for _, s := range in {
+		k := strings.ToLower(s)
+		if _, ok := seen[k]; ok {
+			continue
+		}
+
+		seen[k] = struct{}{}
+		out = append(out, s)
+	}
+
+	return out
 }
 
 // updateLinks rewrites the two link references a release changes: Unreleased

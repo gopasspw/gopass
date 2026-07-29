@@ -254,3 +254,41 @@ func TestReleaseBulletOutsideSubsection(t *testing.T) {
 	assert.Contains(t, got, "### Changed")
 	assert.Contains(t, got, "- a bullet with no subsection")
 }
+
+// TestReleaseDeduplicatesCaseInsensitively covers the common transitional case:
+// a hand-written unreleased entry and the commit subject that implemented it
+// differ only in their first letter.
+func TestReleaseDeduplicatesCaseInsensitively(t *testing.T) {
+	t.Parallel()
+
+	const fixture = `# Changelog
+
+## [Unreleased]
+
+### Added
+
+- Add gopass doctor diagnostic command (I-4)
+
+## [1.16.1] - 2025-12-13
+
+* fix: something
+`
+
+	cl, err := parseChangelog(strings.NewReader(fixture))
+	require.NoError(t, err)
+
+	cl.release(
+		semver.MustParse("1.16.1"),
+		semver.MustParse("1.17.0"),
+		"2026-08-01",
+		[]commitmsg.Entry{
+			{Section: commitmsg.Added, Text: "add gopass doctor diagnostic command (I-4)"},
+		},
+	)
+
+	var buf strings.Builder
+
+	require.NoError(t, cl.render(&buf))
+
+	assert.Equal(t, 1, strings.Count(strings.ToLower(buf.String()), "gopass doctor diagnostic command (i-4)"))
+}

@@ -258,8 +258,8 @@ Will use
 `,
 		gitVer,
 		vfVer,
-		prevVerFlag,
 		nextVerFlag,
+		prevVerFlag,
 		prevVer,
 		nextVer)
 
