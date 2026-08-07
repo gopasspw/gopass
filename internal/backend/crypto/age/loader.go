@@ -24,7 +24,7 @@ type loader struct{}
 func (l loader) New(ctx context.Context) (backend.Crypto, error) {
 	debug.Log("Using Crypto Backend: %s", name)
 
-	return New(ctx, config.String(ctx, "age.ssh-key-path"))
+	return New(ctx, config.Bool(ctx, "age.sshkeys"), config.String(ctx, "age.ssh-key-path"))
 }
 
 func (l loader) Handles(ctx context.Context, s backend.Storage) error {

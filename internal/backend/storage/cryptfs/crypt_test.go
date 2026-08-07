@@ -21,7 +21,7 @@ func newTestCryptFS(ctx context.Context, t *testing.T, td string) (*Crypt, strin
 	t.Helper()
 
 	// setup age identity
-	a, err := age.New(ctx, "")
+	a, err := age.New(ctx, false, "")
 	require.NoError(t, err)
 
 	recp, err := a.GenerateIdentity(ctx, "", "", password)

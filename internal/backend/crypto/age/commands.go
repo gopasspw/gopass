@@ -32,9 +32,13 @@ func (l loader) Commands() []*cli.Command {
 				"identities despite them being deprecated by age, we do so by falling back to the ssh identities" +
 				"for these and keeping a local cache of ssh keys for a given github identity.",
 			Flags: []cli.Flag{
+				&cli.BoolFlag{
+					Name:  "age-sshkeys",
+					Usage: "Load SSH keys from default SSH directory",
+				},
 				&cli.StringFlag{
 					Name:    "age-ssh-key-path",
-					Usage:   "Custom path to SSH key or directory for age backend",
+					Usage:   "Custom path to additional SSH key or directory of keys for age backend",
 					Sources: cli.EnvVars("GOPASS_SSH_DIR"),
 				},
 			},
@@ -100,11 +104,15 @@ func (l loader) Commands() []*cli.Command {
 							Description: "Unlock the age agent and reload identities (will prompt for PIN)",
 							Action: func(ctx context.Context, cmd *cli.Command) error {
 								ctx = ctxutil.WithGlobalFlags(ctx, cmd)
+								loadSSHKeys := config.Bool(ctx, "age.sshkeys")
+								if bv := cmd.Bool("age-sshkeys"); bv {
+									loadSSHKeys = bv
+								}
 								sshKeyPath := config.String(ctx, "age.ssh-key-path")
 								if sv := cmd.String("age-ssh-key-path"); sv != "" {
 									sshKeyPath = sv
 								}
-								a, err := New(ctx, sshKeyPath)
+								a, err := New(ctx, loadSSHKeys, sshKeyPath)
 								if err != nil {
 									return exit.Error(exit.Unknown, err, "failed to create age backend")
 								}
@@ -158,11 +166,15 @@ func (l loader) Commands() []*cli.Command {
 						"List identities",
 					Action: func(ctx context.Context, cmd *cli.Command) error {
 						ctx = ctxutil.WithGlobalFlags(ctx, cmd)
+						loadSSHKeys := config.Bool(ctx, "age.sshkeys")
+						if bv := cmd.Bool("age-sshkeys"); bv {
+							loadSSHKeys = bv
+						}
 						sshKeyPath := config.String(ctx, "age.ssh-key-path")
 						if sv := cmd.String("age-ssh-key-path"); sv != "" {
 							sshKeyPath = sv
 						}
-						a, err := New(ctx, sshKeyPath)
+						a, err := New(ctx, loadSSHKeys, sshKeyPath)
 						if err != nil {
 							return exit.Error(exit.Unknown, err, "failed to create age backend")
 						}
@@ -190,11 +202,15 @@ func (l loader) Commands() []*cli.Command {
 								"Add an existing age identity, interactively",
 							Action: func(ctx context.Context, cmd *cli.Command) error {
 								ctx = ctxutil.WithGlobalFlags(ctx, cmd)
+								loadSSHKeys := config.Bool(ctx, "age.sshkeys")
+								if bv := cmd.Bool("age-sshkeys"); bv {
+									loadSSHKeys = bv
+								}
 								sshKeyPath := config.String(ctx, "age.ssh-key-path")
 								if sv := cmd.String("age-ssh-key-path"); sv != "" {
 									sshKeyPath = sv
 								}
-								a, err := New(ctx, sshKeyPath)
+								a, err := New(ctx, loadSSHKeys, sshKeyPath)
 								if err != nil {
 									return exit.Error(exit.Unknown, err, "failed to create age backend")
 								}
@@ -250,11 +266,15 @@ func (l loader) Commands() []*cli.Command {
 							},
 							Action: func(ctx context.Context, cmd *cli.Command) error {
 								ctx = ctxutil.WithGlobalFlags(ctx, cmd)
+								loadSSHKeys := config.Bool(ctx, "age.sshkeys")
+								if bv := cmd.Bool("age-sshkeys"); bv {
+									loadSSHKeys = bv
+								}
 								sshKeyPath := config.String(ctx, "age.ssh-key-path")
 								if sv := cmd.String("age-ssh-key-path"); sv != "" {
 									sshKeyPath = sv
 								}
-								a, err := New(ctx, sshKeyPath)
+								a, err := New(ctx, loadSSHKeys, sshKeyPath)
 								if err != nil {
 									return exit.Error(exit.Unknown, err, "failed to create age backend")
 								}
@@ -286,11 +306,15 @@ func (l loader) Commands() []*cli.Command {
 								"Remove all identity matching the argument",
 							Action: func(ctx context.Context, cmd *cli.Command) error {
 								ctx = ctxutil.WithGlobalFlags(ctx, cmd)
+								loadSSHKeys := config.Bool(ctx, "age.sshkeys")
+								if bv := cmd.Bool("age-sshkeys"); bv {
+									loadSSHKeys = bv
+								}
 								sshKeyPath := config.String(ctx, "age.ssh-key-path")
 								if sv := cmd.String("age-ssh-key-path"); sv != "" {
 									sshKeyPath = sv
 								}
-								a, err := New(ctx, sshKeyPath)
+								a, err := New(ctx, loadSSHKeys, sshKeyPath)
 								if err != nil {
 									return exit.Error(exit.Unknown, err, "failed to create age backend")
 								}

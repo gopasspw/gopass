@@ -54,7 +54,7 @@ func migrate(ctx context.Context, s backend.Storage) error {
 	}
 
 	// create a new instance so we can use decryptFile.
-	a, err := New(ctx, config.String(ctx, "age.ssh-key-path"))
+	a, err := New(ctx, config.Bool(ctx, "age.sshkeys"), config.String(ctx, "age.ssh-key-path"))
 	if err != nil {
 		return err
 	}

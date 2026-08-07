@@ -40,14 +40,19 @@ func (a *Age) getSSHIdentities(ctx context.Context) (map[string]age.Identity, er
 	ids := make(map[string]age.Identity, 10) // preallocate some space for the cache
 	sshDirs := make([]string, 0, 2)
 
-	sshDir, err := getSSHDir()
-	if err != nil {
-		debug.Log("no .ssh directory found at %s.", sshDir)
+	if a.loadSSHKeys {
+		sshDir, err := getSSHDir()
+		if err != nil {
+			debug.Log("no .ssh directory found at %s.", sshDir)
+		}
+		if sshDir != "" {
+			debug.Log("found .ssh directory at %s", sshDir)
+			sshDirs = append(sshDirs, sshDir)
+		}
+	} else {
+		debug.Log("not loading keys from default SSH dir")
 	}
-	if sshDir != "" {
-		debug.Log("found .ssh directory at %s", sshDir)
-		sshDirs = append(sshDirs, sshDir)
-	}
+
 	// also check the SSH key path, if set
 	if a.sshKeyPath != "" { //nolint:nestif
 		debug.Log("using custom SSH key path %s", a.sshKeyPath)
@@ -75,7 +80,7 @@ func (a *Age) getSSHIdentities(ctx context.Context) (map[string]age.Identity, er
 		debug.Log("searching for SSH identities in %s", sshDir)
 		files, err := os.ReadDir(sshDir)
 		if err != nil {
-			debug.Log("unable to read .ssh dir %s: %s", sshDir, err)
+			debug.Log("unable to read SSH keys from dir %s: %s", sshDir, err)
 
 			return nil, fmt.Errorf("no identities found: %w", ErrNoSSHDir)
 		}

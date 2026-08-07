@@ -39,7 +39,7 @@ type Crypt struct {
 
 // newCrypt creates a new cryptfs backend.
 func newCrypt(ctx context.Context, sub backend.Storage) (*Crypt, error) {
-	a, err := age.New(ctx, "")
+	a, err := age.New(ctx, false, "")
 	if err != nil {
 		return nil, err
 	}
