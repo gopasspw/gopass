@@ -189,20 +189,23 @@ func (a *Age) tryStartAgent(ctx context.Context) {
 	}
 
 	// send identities to agent
-	ids, err := a.getAllIdentities(ctx)
+	ids, err := a.getAllIds(ctx)
 	if err != nil {
 		debug.Log("failed to get identities: %s", err)
 
 		return
 	}
 
-	idStrs := make([]string, 0, len(ids))
-	for _, id := range ids {
-		idStrs = append(idStrs, fmt.Sprintf("%s", id))
-	}
+	sIds, err := a.identitiesToString(ids)
+	if err != nil {
+		debug.Log("failed to serialize identities: %s", err)
 
-	if err := client.SendIdentities(strings.Join(idStrs, "\n")); err != nil {
-		debug.Log("failed to send identities to agent: %s", err)
+		return
+	}
+	if sIds != "" {
+		if err := client.SendIdentities(sIds); err != nil {
+			debug.Log("failed to send identities to agent: %s", err)
+		}
 	}
 
 	// set timeout
@@ -263,13 +266,35 @@ func (a *Age) Lock() {
 	a.askPass.Lock()
 }
 
+// identitiesToString serializes the given identities into a single-line,
+// space-separated string for the age agent's line-oriented "identities"
+// command.
+//
+// The agent reads commands one line at a time and parses only the tokens on
+// that line (it re-joins them with newlines before parsing). Sending identities
+// newline-separated therefore turns every identity after the first into a
+// spurious "unknown command" that the agent discards. All identities must live
+// on a single line, i.e. space-separated.
+//
+// Only natively serializable identity types are included. SSH identities
+// (filippo.io/age/agessh) expose no String() form for the private key and
+// cannot be round-tripped through the wire format; they are skipped here, and
+// decryption for them falls back to the local code path exactly as before. All
+// of these encodings are bech32 and therefore whitespace-free, so separating
+// them with spaces is unambiguous to the agent's space-splitting parser.
 func (a *Age) identitiesToString(ids []age.Identity) (string, error) {
-	var sb strings.Builder
+	parts := make([]string, 0, len(ids))
 	for _, id := range ids {
-		fmt.Fprintln(&sb, id)
+		s, ok := identityToString(id)
+		if !ok {
+			debug.Log("skipping non-serializable identity %T for agent transfer", id)
+
+			continue
+		}
+		parts = append(parts, s)
 	}
 
-	return sb.String(), nil
+	return strings.Join(parts, " "), nil
 }
 
 // String implements fmt.Stringer.

@@ -144,3 +144,48 @@ func TestDecryptSelfHealsOnFreshAgent(t *testing.T) {
 	require.NoError(t, err, "agent should hold identities after Age.Decrypt self-heals")
 	require.Equal(t, plaintext, pt2)
 }
+
+// TestDecryptMultipleIdentitiesViaAgent reproduces the original user-facing
+// symptom on the full path: a keyring with several identities, Age.Decrypt
+// routing through the agent's self-heal, and a secret encrypted to a NON-first
+// identity decrypting via the agent.
+//
+// Before the framing fix the client sent identities newline-separated, so the
+// line-oriented agent parsed only the first one; when map iteration put another
+// identity first the agent never received the one this secret was encrypted to
+// and silently fell back to local decryption (the browser-vs-CLI discrepancy).
+// Here the agent must end up holding BOTH identities — proven by a raw client
+// decrypting id2's ciphertext after Age.Decrypt self-heals.
+func TestDecryptMultipleIdentitiesViaAgent(t *testing.T) {
+	useShortTempDir(t)
+	a := newTestAge(t)
+	ctx := ctxWithAgentEnabled(t)
+
+	id1, err := age.GenerateX25519Identity()
+	require.NoError(t, err)
+	id2, err := age.GenerateX25519Identity()
+	require.NoError(t, err)
+
+	require.NoError(t, a.addIdentity(ctx, id1))
+	require.NoError(t, a.addIdentity(ctx, id2))
+
+	// launchd-style agent: reachable, zero identities.
+	ag := startFreshAgent(t)
+	defer ag.Shutdown(ctx)
+
+	// Secret encrypted to id2 only — the agent must hold id2 to decrypt it.
+	plaintext := []byte("the owls are not what they seem")
+	ciphertext := encryptToRecipient(t, id2.Recipient(), plaintext)
+
+	// Age.Decrypt must succeed and route through the agent.
+	pt, err := a.Decrypt(ctx, ciphertext)
+	require.NoError(t, err)
+	require.Equal(t, plaintext, pt)
+
+	// Proof the agent loaded BOTH identities (not just whichever sorted first):
+	// a raw client with no local fallback can decrypt id2's ciphertext.
+	raw := agent.NewClient()
+	pt2, err := raw.Decrypt(ciphertext)
+	require.NoError(t, err, "agent must hold id2 after self-heal, not just the first identity")
+	require.Equal(t, plaintext, pt2)
+}
