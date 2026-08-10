@@ -28,7 +28,7 @@ func (s *secretHandler) Move(ctx context.Context, cmd *cli.Command) error {
 	}
 
 	// Check for custom commit message
-	commitMsg := fmt.Sprintf("Moved %s to %s", from, to)
+	commitMsg := fmt.Sprintf("Move %s to %s", from, to)
 	if cmd.IsSet("commit-message") {
 		commitMsg = cmd.String("commit-message")
 	}

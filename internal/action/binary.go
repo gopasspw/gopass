@@ -250,7 +250,7 @@ func (s *binaryHandler) binaryCopyFromFileToStore(ctx context.Context, from, to 
 		return fmt.Errorf("failed to parse secret from input: %w", err)
 	}
 	if err := s.Store.Set(
-		ctxutil.WithCommitMessage(ctx, fmt.Sprintf("Copied data from %s to %s", from, to)), to, sec); err != nil {
+		ctxutil.WithCommitMessage(ctx, fmt.Sprintf("Copy data from %s to %s", from, to)), to, sec); err != nil {
 		return fmt.Errorf("failed to save buffer to store: %w", err)
 	}
 

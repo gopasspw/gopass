@@ -317,7 +317,7 @@ func (s *Store) RemoveRecipient(ctx, id string) error {
     canon := s.matchRecipient(ctx, id)      // existing fuzzy match, returns canonical
     rs.Remove(canon)
     if rs.Len() == 0 { return errLastRecipient }
-    s.saveRecipients(ctx, rs, "Removed Recipient "+canon)
+    s.saveRecipients(ctx, rs, "Remove Recipient "+canon)
     // recipient-scoped cleanup (NOT blanket):
     s.storage.Delete(ctx, filepath.Join(keyDir, canon))
     s.storage.Delete(ctx, filepath.Join(oldKeyDir, canon))  // legacy

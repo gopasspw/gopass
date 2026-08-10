@@ -52,7 +52,7 @@ func (s *generateHandler) Generate(ctx context.Context, cmd *cli.Command) error 
 	}
 
 	// Check for custom commit message
-	commitMsg := "Generated Password"
+	commitMsg := "Generate Password"
 	if cmd.IsSet("commit-message") {
 		commitMsg = cmd.String("commit-message")
 	}
