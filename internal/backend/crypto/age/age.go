@@ -3,6 +3,7 @@ package age
 import (
 	"context"
 	"fmt"
+	"os"
 	"path/filepath"
 	"strings"
 	"time"
@@ -25,6 +26,13 @@ const (
 	Ext = "age"
 	// IDFile is the name for age recipients.
 	IDFile = ".age-recipients"
+	// SpawnGuardEnv is stamped on a spawned agent-starter process so its
+	// children cannot re-enter tryStartAgent. This is the defense against
+	// fork-bombing when gopass is embedded as a library in a host binary that
+	// does not own the `age agent start` subcommand (e.g. gopass-jsonapi): the
+	// host re-enters New -> tryStartAgent and would spawn another copy ad
+	// infinitum. See internal/ageagentlauncher for how the standalone CLI sets it.
+	SpawnGuardEnv = "GOPASS_AGE_AGENT_SPAWNING"
 )
 
 type githubSSHCacher interface {
@@ -118,7 +126,25 @@ func (a *Age) effectivePwPurgeCallback() func(string) {
 	return a.askPass.Remove
 }
 
+// isAgentSpawnProcess reports whether the current process was spawned as an
+// agent starter (SpawnGuardEnv is set). Used to short-circuit tryStartAgent so
+// a mis-targeted spawn cannot cascade into a fork bomb.
+func isAgentSpawnProcess() bool {
+	return os.Getenv(SpawnGuardEnv) != ""
+}
+
 func (a *Age) tryStartAgent(ctx context.Context) {
+	// If this process was itself spawned as an agent starter, do not spawn
+	// another. Without this guard, embedding gopass in a host that re-enters
+	// New -> tryStartAgent (e.g. gopass-jsonapi, which runs api.New before CLI
+	// dispatch) fork-bombs. The standalone CLI sets SpawnGuardEnv on the spawned
+	// process via internal/ageagentlauncher.
+	if isAgentSpawnProcess() {
+		debug.Log("age agent spawn already in progress, skipping autostart to avoid fork bomb")
+
+		return
+	}
+
 	if !config.Bool(ctx, "age.agent-enabled") {
 		debug.Log("age agent disabled")
 
@@ -132,8 +158,19 @@ func (a *Age) tryStartAgent(ctx context.Context) {
 		return
 	}
 
+	launcher := GetAgentLauncher(ctx)
+	if launcher == nil {
+		// No launcher registered: this is a library consumer (or a unit test)
+		// that does not own the `age agent start` subcommand. Skip autostart
+		// rather than re-executing os.Args[0], which would fork-bomb. The
+		// standalone CLI registers its launcher via internal/ageagentlauncher.
+		debug.Log("no age agent launcher registered, skipping autostart")
+
+		return
+	}
+
 	debug.Log("age agent not running, starting it...")
-	if err := startAgent(ctx); err != nil {
+	if err := launcher(ctx); err != nil {
 		debug.Log("failed to start age agent: %s", err)
 
 		return
