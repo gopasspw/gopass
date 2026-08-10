@@ -1,4 +1,4 @@
-# A-5: Template Engine Uses `text/template` Instead of `html/template`
+# A-05: Template Engine Uses `text/template` Instead of `html/template`
 
 **Status:** deferred — current design is acceptable given the constraints  
 **Source:** SECURITY_AUDIT_REPORT.md § M-2

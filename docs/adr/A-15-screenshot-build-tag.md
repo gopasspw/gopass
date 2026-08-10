@@ -1,4 +1,4 @@
-# A-13: `noscreenshot` Build Tag for OTP Screen-Capture Feature
+# A-15: `noscreenshot` Build Tag for OTP Screen-Capture Feature
 
 **Status:** accepted  
 **Source:** [GitHub Issue #3415](https://github.com/gopasspw/gopass/issues/3415)

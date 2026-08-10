@@ -1,4 +1,4 @@
-# A-7: Hook System Dead Code and CVE-2023-24055
+# A-07: Hook System Dead Code and CVE-2023-24055
 
 **Status:** deferred — hooks remain disabled; safe re-enablement path documented  
 **Source:** SECURITY_AUDIT_REPORT.md § M-5

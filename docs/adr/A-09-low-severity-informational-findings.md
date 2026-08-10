@@ -1,4 +1,4 @@
-# A-9: Low Severity and Informational Findings
+# A-09: Low Severity and Informational Findings
 
 **Status:** accepted — risks documented; mitigations noted where applicable  
 **Source:** SECURITY_AUDIT_REPORT.md § L-1 through L-6

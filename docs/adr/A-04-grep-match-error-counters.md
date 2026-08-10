@@ -1,4 +1,4 @@
-# A-4: Fix `grep` Match and Error Counters
+# A-04: Fix `grep` Match and Error Counters
 
 **Status:** open — not yet fixed  
 **Source:** SECURITY_AUDIT_REPORT.md § M-1, § Q-5

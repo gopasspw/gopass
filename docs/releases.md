@@ -8,7 +8,10 @@ Goreleaser automates most but not all steps of a new release.
 
 Note: We use semantic versioning for the command line interface and tool behaviour
 but not for the API (i.e. `pkg/gopass`). Maintaining both properties in the
-same repository / Go module is too cumbersome.
+same repository / Go module is too cumbersome. `pkg/gopass` is instead governed
+by the best-effort stability contract in [ADR A-12](adr/A-12-pkg-api-stability.md).
+See [conventions.md](conventions.md) section 2 for the full policy, including how
+a break confined to `pkg/` is versioned.
 
 ## Development overview
 
