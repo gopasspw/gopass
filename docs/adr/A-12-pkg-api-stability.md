@@ -41,8 +41,9 @@ Option D (separate repository) is deferred for the same reasons.
   appear in any release without prior notice.
 * **Breaking changes** (removal or signature change of an exported symbol, change of error
   semantics, change of an interface method set) require:
-  1. A `[PKG-BREAK]` entry in the `## Next` section of `CHANGELOG.md` describing what changed
-     and how consumers should migrate.
+  1. A `PKG-BREAK:` footer on the commit, which produces a `[PKG-BREAK]`-prefixed entry in the
+     `## [Unreleased]` section of `CHANGELOG.md` describing what changed and how consumers
+     should migrate.
   2. A minimum deprecation window of **two minor releases or three months**, whichever is
      longer, between the first deprecation notice and removal. During this window the old
      symbol must remain available (possibly with a `// Deprecated:` GoDoc comment pointing to
@@ -50,15 +51,29 @@ Option D (separate repository) is deferred for the same reasons.
 
 ### Changelog tag convention
 
-Breaking changes to `pkg/` are tagged `[PKG-BREAK]` in `CHANGELOG.md`:
+A breaking change to `pkg/` is declared with a `PKG-BREAK:` commit footer:
 
 ```
-[PKG-BREAK] pkg/gopass: Remove Store.GetRevision — use Store.History instead (deprecated since 1.17.0)
+refactor(pkg/gopass): drop Store.GetRevision in favour of Store.History
+
+Deprecated since 1.17.0; the two-minor / three-month window has elapsed.
+
+PKG-BREAK: pkg/gopass: Remove Store.GetRevision — use Store.History instead
+Signed-off-by: Your Name <your@example.com>
 ```
 
-The existing `helpers/changelog` generator reads `CHANGELOG.md` verbatim; no changes to that
-tool are needed. The `[PKG-BREAK]` tag is a pure text convention, consistent with existing
-tags such as `[SECURITY]`, `[BUGFIX]`, and `[FEATURE]`.
+`helpers/commitmsg` reads that footer and `helpers/release` renders the entry with a
+`[PKG-BREAK]` prefix inside the appropriate Keep a Changelog subsection, normally `Changed`.
+A `Changelog-Section: Removed` footer moves it to `Removed` when the symbol is gone rather
+than changed.
+
+The footer is the machine-readable form of the tag. Writing `[PKG-BREAK]` by hand into
+`## [Unreleased]` also works and is preserved by the release helper.
+
+Note: `CHANGELOG.md` now follows Keep a Changelog 1.1.0, so `[SECURITY]`, `[BUGFIX]` and
+`[FEATURE]` are no longer tags — they are the `Security`, `Fixed` and `Added` subsections.
+`[PKG-BREAK]` remains a bullet prefix because it qualifies an entry rather than categorising
+it. See [docs/conventions.md](../conventions.md).
 
 ### Enforcement
 
