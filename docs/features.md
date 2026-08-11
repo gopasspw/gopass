@@ -42,7 +42,7 @@ Some examples are available in our [example password store](https://github.com/g
 ## Mobile apps
 
 - [Pass - Password Store](https://apps.apple.com/us/app/pass-password-store/id1205820573) - iOS, [source code](https://github.com/mssun/passforios), [supports only 1 repository now](https://github.com/mssun/passforios/issues/88)
-- [Password Store](https://play.google.com/store/apps/details?id=dev.msfjarvis.aps) - Android, [source code](https://github.com/android-password-store/android-password-store)
+- [Password Store](https://f-droid.org/en/packages/app.passwordstore.agrahn) - Android, [source code](https://github.com/agrahn/Android-Password-Store)
 
 ## Standard Features
 
