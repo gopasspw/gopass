@@ -40,7 +40,7 @@ func New(dir string) *Store {
 // returning an error if a path traversal is detected.
 func (s *Store) safePath(name string) (string, error) {
 	resolved := filepath.Join(s.path, filepath.Clean(name))
-	if !strings.HasPrefix(resolved, s.path+string(filepath.Separator)) {
+	if resolved != s.path && !strings.HasPrefix(resolved, s.path+string(filepath.Separator)) {
 		return "", fmt.Errorf("path traversal detected: %q escapes store root", name)
 	}
 
@@ -239,7 +239,12 @@ func (s *Store) IsDir(ctx context.Context, name string) bool {
 	if runtime.GOOS == "windows" {
 		name = filepath.FromSlash(name)
 	}
-	path := filepath.Join(s.path, filepath.Clean(name))
+	path, err := s.safePath(name)
+	if err != nil {
+		debug.V(2).Log("%s: %s", name, err)
+
+		return false
+	}
 	isDir := fsutil.IsDir(path)
 	debug.V(2).Log("%s at %s is a directory? %t", name, path, isDir)
 
@@ -248,7 +253,10 @@ func (s *Store) IsDir(ctx context.Context, name string) bool {
 
 // Prune removes a named directory.
 func (s *Store) Prune(ctx context.Context, prefix string) error {
-	path := filepath.Join(s.path, filepath.Clean(prefix))
+	path, err := s.safePath(prefix)
+	if err != nil {
+		return err
+	}
 	debug.Log("Purning %s from %s", prefix, path)
 
 	if err := os.RemoveAll(path); err != nil {
