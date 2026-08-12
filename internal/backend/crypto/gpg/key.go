@@ -63,13 +63,8 @@ func (k Key) IsUseable(alwaysTrust bool) bool {
 // String implement fmt.Stringer. This method produces output that is close to, but
 // not exactly the same, as the output from GPG itself.
 func (k Key) String() string {
-	fp := ""
-	if len(k.Fingerprint) > 24 {
-		fp = k.Fingerprint[24:]
-	}
-
 	var out strings.Builder
-	fmt.Fprintf(&out, "%s   %dD/0x%s %s", k.KeyType, k.KeyLength, fp, k.CreationDate.Format("2006-01-02"))
+	fmt.Fprintf(&out, "%s   %dD/%s %s", k.KeyType, k.KeyLength, k.ID(), k.CreationDate.Format("2006-01-02"))
 	if !k.ExpirationDate.IsZero() {
 		fmt.Fprintf(&out, " [expires: %s]", k.ExpirationDate.Format("2006-01-02"))
 	}
@@ -85,11 +80,12 @@ func (k Key) String() string {
 // OneLine prints a terse representation of this key on one line (includes only
 // the first identity!).
 func (k Key) OneLine() string {
-	if len(k.Fingerprint) < 24 {
+	id := k.ID()
+	if id == "" {
 		return fmt.Sprintf("(invalid:%s)", k.Fingerprint)
 	}
 
-	return fmt.Sprintf("0x%s - %s", k.Fingerprint[24:], k.Identity().ID())
+	return fmt.Sprintf("%s - %s", id, k.Identity().ID())
 }
 
 // Identity returns the first identity.
@@ -112,9 +108,15 @@ func (k Key) Identity() Identity {
 
 // ID returns the short fingerprint.
 func (k Key) ID() string {
-	if len(k.Fingerprint) < 25 {
-		return ""
+	if len(k.Fingerprint) == 64 {
+		return fmt.Sprintf("0x%s", k.Fingerprint[:16])
+	}
+	if len(k.Fingerprint) >= 40 {
+		return fmt.Sprintf("0x%s", k.Fingerprint[len(k.Fingerprint)-16:])
+	}
+	if len(k.Fingerprint) >= 24 {
+		return fmt.Sprintf("0x%s", k.Fingerprint[24:])
 	}
 
-	return fmt.Sprintf("0x%s", k.Fingerprint[24:])
+	return ""
 }

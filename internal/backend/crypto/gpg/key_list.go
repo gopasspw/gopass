@@ -73,7 +73,7 @@ func (kl KeyList) FindKey(id string) (Key, error) {
 			return k, nil
 		}
 
-		if strings.HasSuffix(k.Fingerprint, id) {
+		if strings.HasSuffix(k.Fingerprint, id) || strings.HasPrefix(k.Fingerprint, id) {
 			return k, nil
 		}
 
@@ -88,7 +88,7 @@ func (kl KeyList) FindKey(id string) (Key, error) {
 		}
 
 		for sk := range k.SubKeys {
-			if strings.HasSuffix(sk, id) {
+			if strings.HasSuffix(sk, id) || strings.HasPrefix(sk, id) {
 				return k, nil
 			}
 		}
