@@ -86,14 +86,17 @@ func main() {
 	ctx = queue.WithQueue(ctx, q)
 	ctx, app := setupApp(ctx, sv)
 
-	if err := runApp(ctx, app); err != nil {
-		log.Fatal(err)
-	}
+	runErr := runApp(ctx, app)
 
-	// process all pending queue items
+	// process all pending queue items, even on failure: a command can have written a
+	// secret before erroring, and its commit/push is queued at this point.
 	_ = q.Close(ctx)
 
 	writeMemProfile()
+
+	if runErr != nil {
+		log.Fatal(runErr)
+	}
 
 	debug.Log("gopass %s shutting down ...\n\n", sv.String())
 }
