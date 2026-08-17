@@ -114,6 +114,13 @@ func (a *Agent) handleConnection(ctx context.Context, conn net.Conn) {
 	}()
 
 	scanner := bufio.NewScanner(conn)
+	// the decrypt command carries the base64-encoded ciphertext on a single
+	// line, so we need to raise the default 64 KiB token limit to handle
+	// larger secrets (see issue #3508). No buffer is preallocated: the
+	// scanner starts at bufio's small initial size and only doubles as the
+	// longest received line requires, up to this limit. The 16 MiB maximum
+	// matches the privateKeySizeLimit used when parsing identities.
+	scanner.Buffer(nil, 1<<24) // 16 MiB max line size
 	for scanner.Scan() {
 		line := scanner.Text()
 		debug.Log("received: %s", line)
@@ -216,6 +223,9 @@ func (a *Agent) handleConnection(ctx context.Context, conn net.Conn) {
 		default:
 			fmt.Fprintln(conn, "ERR unknown command")
 		}
+	}
+	if err := scanner.Err(); err != nil {
+		debug.Log("agent connection scan error: %s", err)
 	}
 }
 
