@@ -88,6 +88,12 @@ func extractZip(buf []byte, dfh io.WriteCloser, dest string) (string, error) {
 		if zrd.File[i].Name != "gopass.exe" {
 			continue
 		}
+		if zrd.File[i].UncompressedSize64 > uint64(maxExtractSize) {
+			_ = dfh.Close()
+			_ = os.Remove(dest)
+
+			return "", fmt.Errorf("%w: gopass.exe exceeds %d bytes", errArchiveMemberTooBig, maxExtractSize)
+		}
 
 		file, err := zrd.File[i].Open()
 		if err != nil {
@@ -140,6 +146,12 @@ func extractTar(rd io.Reader, dfh io.WriteCloser, dest string) (string, error) {
 
 		if name != "gopass" {
 			continue
+		}
+		if header.Size > maxExtractSize {
+			_ = dfh.Close()
+			_ = os.Remove(dest)
+
+			return "", fmt.Errorf("%w: gopass exceeds %d bytes", errArchiveMemberTooBig, maxExtractSize)
 		}
 
 		n, err := io.CopyN(dfh, tarReader, maxExtractSize+1)
