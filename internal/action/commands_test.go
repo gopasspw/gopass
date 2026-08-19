@@ -86,6 +86,7 @@ func TestHiddenPullPushCommands(t *testing.T) {
 			err := cmd.Action(ctx, gptest.CliCtx(ctx, t))
 			if tc.wantErr {
 				require.Error(t, err)
+
 				return
 			}
 

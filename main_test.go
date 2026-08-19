@@ -89,7 +89,9 @@ var commandsWithError = set.Map([]string{
 	".mounts.remove",
 	".move",
 	".otp",
+	".pull",
 	".process",
+	".push",
 	".recipients.add",
 	".recipients.remove",
 	".show",
@@ -137,7 +139,7 @@ func TestGetCommands(t *testing.T) {
 	}
 
 	commands := getCommands(act, app)
-	assert.Len(t, commands, 43)
+	assert.Len(t, commands, 45)
 
 	prefix := ""
 	testCommands(t, ctx, app, commands, prefix)
