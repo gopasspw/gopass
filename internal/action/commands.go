@@ -944,6 +944,42 @@ func (s *Action) GetCommands() []*cli.Command {
 			},
 		},
 		{
+			Name:      "pull",
+			Usage:     "Pull a store from its remote",
+			ArgsUsage: "[remote] [branch]",
+			Description: "" +
+				"Pull the selected store from its configured remote. " +
+				"If no remote or branch is specified the storage backend defaults are used.",
+			Before: s.IsInitialized,
+			Action: s.RCSPull,
+			Hidden: true,
+			Flags: []cli.Flag{
+				&cli.StringFlag{
+					Name:    "store",
+					Aliases: []string{"s"},
+					Usage:   "Select the store to pull",
+				},
+			},
+		},
+		{
+			Name:      "push",
+			Usage:     "Push a store to its remote",
+			ArgsUsage: "[remote] [branch]",
+			Description: "" +
+				"Push the selected store to its configured remote. " +
+				"If no remote or branch is specified the storage backend defaults are used.",
+			Before: s.IsInitialized,
+			Action: s.RCSPush,
+			Hidden: true,
+			Flags: []cli.Flag{
+				&cli.StringFlag{
+					Name:    "store",
+					Aliases: []string{"s"},
+					Usage:   "Select the store to push",
+				},
+			},
+		},
+		{
 			Name:      "rcs",
 			Usage:     "Run a RCS command inside a password store",
 			ArgsUsage: "[init|push|pull]",

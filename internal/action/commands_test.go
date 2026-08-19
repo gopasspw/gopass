@@ -52,3 +52,54 @@ func TestCommands(t *testing.T) {
 		})
 	}
 }
+
+func TestHiddenPullPushCommands(t *testing.T) {
+	u := gptest.NewUnitTester(t)
+
+	ctx := config.NewContextInMemory()
+	ctx = ctxutil.WithAlwaysYes(ctx, true)
+	ctx = ctxutil.WithInteractive(ctx, false)
+
+	act, err := newMock(ctx, u.StoreDir(""))
+	require.NoError(t, err)
+	require.NotNil(t, act)
+	ctx = act.cfg.WithConfig(ctx)
+	require.NoError(t, act.RCSInit(ctx, gptest.CliCtxWithFlags(ctx, t, map[string]string{
+		"name":  "foobar",
+		"email": "foo.bar@example.org",
+	})))
+
+	tests := []struct {
+		name    string
+		wantErr bool
+	}{
+		{name: "pull", wantErr: true},
+		{name: "push"},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			cmd := findCommand(act.GetCommands(), tc.name)
+			require.NotNil(t, cmd)
+			assert.True(t, cmd.Hidden)
+
+			err := cmd.Action(ctx, gptest.CliCtx(ctx, t))
+			if tc.wantErr {
+				require.Error(t, err)
+				return
+			}
+
+			require.NoError(t, err)
+		})
+	}
+}
+
+func findCommand(cmds []*cli.Command, name string) *cli.Command {
+	for _, cmd := range cmds {
+		if cmd.Name == name {
+			return cmd
+		}
+	}
+
+	return nil
+}
