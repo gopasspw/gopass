@@ -1,12 +1,9 @@
 package pwgen
 
 import (
-	"bytes"
 	crand "crypto/rand"
+	"errors"
 	"fmt"
-	"io"
-	"math/rand"
-	"os"
 	"strings"
 	"testing"
 
@@ -40,39 +37,25 @@ func TestPwgenCharset(t *testing.T) {
 	assert.Empty(t, GeneratePasswordCharsetCheck(4, "a"))
 }
 
-func TestPwgenNoCrandFallback(t *testing.T) {
-	oldFallback := randFallback
+func TestPwgenEntropyFailurePanics(t *testing.T) {
 	oldReader := crand.Reader
-	crand.Reader = strings.NewReader("")
+	crand.Reader = errReader{err: errors.New("entropy unavailable")}
 
 	defer func() {
 		crand.Reader = oldReader
-		randFallback = oldFallback
 	}()
 
-	oldOut := os.Stdout
-	r, w, _ := os.Pipe()
-	os.Stdout = w
-	os.Stderr = w
-	done := make(chan string)
+	require.PanicsWithError(t, "entropy unavailable", func() {
+		randomInteger(1024)
+	})
+}
 
-	go func() {
-		buf := &bytes.Buffer{}
-		_, _ = io.Copy(buf, r)
-		done <- buf.String()
-	}()
+type errReader struct {
+	err error
+}
 
-	// if we seed math/rand with 1789, the first "random number" will be 42
-	randFallback = rand.New(rand.NewSource(1789))
-
-	n := randomInteger(1024)
-
-	require.NoError(t, w.Close())
-
-	os.Stdout = oldOut
-
-	assert.Equal(t, 42, n)
-	assert.Equal(t, "WARNING: No crypto/rand available. Falling back to PRNG\n", <-done)
+func (r errReader) Read([]byte) (int, error) {
+	return 0, r.err
 }
 
 func TestContainsAllClasses(t *testing.T) {
