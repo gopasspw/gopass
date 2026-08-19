@@ -15,6 +15,11 @@ import (
 	"github.com/gopasspw/gopass/pkg/debug"
 )
 
+var (
+	maxExtractSize         int64 = 512 << 20
+	errArchiveMemberTooBig       = errors.New("archive member too large")
+)
+
 func extractFile(buf []byte, filename, dest string) error {
 	mode := os.FileMode(0o755)
 	dir := filepath.Dir(dest)
@@ -88,13 +93,22 @@ func extractZip(buf []byte, dfh io.WriteCloser, dest string) (string, error) {
 		if err != nil {
 			return "", fmt.Errorf("failed to read from zip file: %w", err)
 		}
+		defer func() {
+			_ = file.Close()
+		}()
 
-		n, err := io.Copy(dfh, file)
-		if err != nil {
+		n, err := io.CopyN(dfh, file, maxExtractSize+1)
+		if err != nil && !errors.Is(err, io.EOF) {
 			_ = dfh.Close()
 			_ = os.Remove(dest)
 
 			return "", fmt.Errorf("failed to read gopass.exe from zip file: %w", err)
+		}
+		if n > maxExtractSize {
+			_ = dfh.Close()
+			_ = os.Remove(dest)
+
+			return "", fmt.Errorf("%w: gopass.exe exceeds %d bytes", errArchiveMemberTooBig, maxExtractSize)
 		}
 		// success
 		debug.Log("wrote %d bytes to %v", n, dest)
@@ -128,12 +142,18 @@ func extractTar(rd io.Reader, dfh io.WriteCloser, dest string) (string, error) {
 			continue
 		}
 
-		n, err := io.Copy(dfh, tarReader)
-		if err != nil {
+		n, err := io.CopyN(dfh, tarReader, maxExtractSize+1)
+		if err != nil && !errors.Is(err, io.EOF) {
 			_ = dfh.Close()
 			_ = os.Remove(dest)
 
 			return "", fmt.Errorf("failed to read gopass from tar file: %w", err)
+		}
+		if n > maxExtractSize {
+			_ = dfh.Close()
+			_ = os.Remove(dest)
+
+			return "", fmt.Errorf("%w: gopass exceeds %d bytes", errArchiveMemberTooBig, maxExtractSize)
 		}
 		// success
 		debug.Log("wrote %d bytes to %v", n, dest)
