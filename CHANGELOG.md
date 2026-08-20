@@ -12,26 +12,31 @@ conventions this file is generated from.
 
 ## [Unreleased]
 
+## [1.17.0-rc.3] - 2026-08-20
+
 ### Added
 
-- Add gopass doctor diagnostic command (I-4)
-- Add stable structured exit codes; --exit-codes flag lists all codes (I-2)
-- Add JSON output to audit, list, find, and recipients commands (I-3)
-- Add show.hidden-keys config option for customizable safecontent redaction (I-5)
-- Add show.fuzzysearch config and --nofuzzysearch flag to control automatic fuzzy lookup in show
 - Add --stdin, --file, and --exec modes to gopass env
+- Add JSON output to audit, list, find, and recipients commands (I-3)
+- Add gopass doctor diagnostic command (I-4)
+- Add show.fuzzysearch config and --nofuzzysearch flag to control automatic fuzzy lookup in show
+- Add show.hidden-keys config option for customizable safecontent redaction (I-5)
+- Add stable structured exit codes; --exit-codes flag lists all codes (I-2)
+- changelog: migrate to Keep a Changelog 1.1.0 (#3506) (#3414)
+- gpg: support v5/v6 PGP keys with 64-character fingerprints (#3496)
+- pwgen: add memorable generator support (#3494)
 
 ### Changed
 
-- Unified secret name validation rejects path traversal and consecutive slashes (I-1)
-- Split Action handler into focused handler types (A-1)
-- Replace context-key config system with typed structs (A-2)
-- Replace sort.Strings with slices.Sort throughout (S-3)
-- Protect autosyncLastRun with a mutex (S-6)
-- Standardize XKCD password generator flag names to --xkcd-sep, --xkcd-lang etc. (U-4)
+- Define pkg/gopass API stability contract: best-effort stable policy with [PKG-BREAK] changelog tag and minimum deprecation window (A-12)
 - Fix documentation vs. implementation mismatches in config.md, show.md, find.md, generate.md, secrets.md, and ARCHITECTURE.md
 - Fully document wizard template format, attribute types, and file naming convention (I-7)
-- Define pkg/gopass API stability contract: best-effort stable policy with [PKG-BREAK] changelog tag and minimum deprecation window (A-12)
+- Protect autosyncLastRun with a mutex (S-6)
+- Replace context-key config system with typed structs (A-2)
+- Replace sort.Strings with slices.Sort throughout (S-3)
+- Split Action handler into focused handler types (A-1)
+- Standardize XKCD password generator flag names to --xkcd-sep, --xkcd-lang etc. (U-4)
+- Unified secret name validation rejects path traversal and consecutive slashes (I-1)
 
 ### Deprecated
 
@@ -39,23 +44,37 @@ conventions this file is generated from.
 
 ### Removed
 
-- Remove misleading --force / -f aliases from --unsafe in show and find (U-1)
 - Remove cryptic -t alias from --force-regen in generate (U-6)
+- Remove misleading --force / -f aliases from --unsafe in show and find (U-1)
 
 ### Fixed
 
 - Add thread safety to SSH identity cache (M-3)
-- Fix grep match and error counters in audit summary (B-1)
-- Fix autoSync debounce timestamp to update on success instead of failure (B-2)
-- Fix create wizard maximum-length check (B-3)
-- Fix queue goroutine leak and Add() post-Close() panic (B-8)
-- Fix convert backend name in error messages (B-5, B-6)
+- Avoid NPE when attempting to edit a non-existing secret (#3489)
 - Default audit output to summary when no format flag is given (B-7)
+- Fix autoSync debounce timestamp to update on success instead of failure (B-2)
+- Fix convert backend name in error messages (B-5, B-6)
+- Fix create wizard maximum-length check (B-3)
+- Fix grep match and error counters in audit summary (B-1)
+- Fix queue goroutine leak and Add() post-Close() panic (B-8)
+- add hidden pull and push commands (#3532)
+- age: expand ~/ in age.ssh-key-path (#3474)
+- age: raise agent scanner buffer limit to handle large decrypt payloads (#3529) (#3508)
+- age: recover agent on missing identities, not only when locked (#3488)
+- age: send agent identities space-separated on a single line (#3509)
+- drain background queue before exiting on failure (#3528)
+- highlight linked secrets in ls output (#3536)
+- honor core.autopush during root-store move operations (#3535)
+- pwgen: remove math/rand fallback (#3531)
+- restore clip flag through fuzzy search in show command (#3466)
+- tempfile: mount macOS ramdisk read-write (#3527)
+- updater: cap archive/icon extraction writes and surface oversize errors (#3530)
+- use imperative mood in generated commit messages (#3492) (#1222)
 
 ### Security
 
-- Fix path traversal vulnerability in fs storage layer (C-1)
 - Bound symlink traversal to store root (H-2)
+- Fix path traversal vulnerability in fs storage layer (C-1)
 - Restrict template engine secret access and fix error information leakage (H-1)
 - Validate editor binary path before invocation (H-3)
 - Warn on env command secret exposure via environment variables (C-2)
@@ -1207,7 +1226,8 @@ the runtime behaviour, but we could not test this on all platforms, yet.
 * [ENHANCEMENT] Simplified recipient management
 * [ENHANCEMENT] Interactive questions for missing parameters
 
-[Unreleased]: https://github.com/gopasspw/gopass/compare/v1.16.1...HEAD
+[Unreleased]: https://github.com/gopasspw/gopass/compare/v1.17.0-rc.3...HEAD
+[1.17.0-rc.3]: https://github.com/gopasspw/gopass/compare/v1.17.0-rc.2...v1.17.0-rc.3
 [1.16.1]: https://github.com/gopasspw/gopass/compare/v1.16.0...v1.16.1
 [1.16.0]: https://github.com/gopasspw/gopass/compare/v1.15.18...v1.16.0
 [1.15.18]: https://github.com/gopasspw/gopass/compare/v1.15.17...v1.15.18
