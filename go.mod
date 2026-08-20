@@ -17,7 +17,7 @@ require (
 	github.com/google/go-github/v61 v61.0.0
 	github.com/gopasspw/clipboard v0.0.5-0.20260524141134-6b387ae5aa1a
 	github.com/gopasspw/gitconfig v0.0.4
-	github.com/gopasspw/gopass-hibp v1.15.18
+	github.com/gopasspw/gopass-hibp v1.16.1
 	github.com/hashicorp/golang-lru/v2 v2.0.7
 	github.com/jsimonetti/pwscheme v0.0.0-20220922140336-67a4d090f150
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51

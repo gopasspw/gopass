@@ -82,8 +82,8 @@ github.com/gopasspw/clipboard v0.0.5-0.20260524141134-6b387ae5aa1a h1:L7qDnmetJ6
 github.com/gopasspw/clipboard v0.0.5-0.20260524141134-6b387ae5aa1a/go.mod h1:i0cShr7JEbOXZ/iKM5RyfBLbu1FPzouO8BTCJy0uHy8=
 github.com/gopasspw/gitconfig v0.0.4 h1:7JE0iTm92OdXCtkS33CnbqcAEqQXYWTUriYFf3sRTBk=
 github.com/gopasspw/gitconfig v0.0.4/go.mod h1:W5AHsZgCbBRsc8TnElO82GYflOz/l2dIndncymoCv+A=
-github.com/gopasspw/gopass-hibp v1.15.18 h1:OoMr1ugY0aso5Qjn3MRPaVJoYGuwdhaebUxKP611Cj0=
-github.com/gopasspw/gopass-hibp v1.15.18/go.mod h1:5JOaWMoQbOFTRUdiCOw3JTNPtjbUPWKpw7OEFjQwAdo=
+github.com/gopasspw/gopass-hibp v1.16.1 h1:PD38NEYCiFlVxKJWp2IiJYgSSnaBQ3B7oGavV+F8qvs=
+github.com/gopasspw/gopass-hibp v1.16.1/go.mod h1:5WZTNON2U+XNe4UoeHWlSrN/VLggmv32EDrGjvnhYjM=
 github.com/hashicorp/golang-lru/v2 v2.0.7 h1:a+bsQ5rvGLjzHuww6tVxozPZFVghXaHOwFs4luLUK2k=
 github.com/hashicorp/golang-lru/v2 v2.0.7/go.mod h1:QeFd9opnmA6QUJc5vARoKUSoFhyfM2/ZepoAG6RGpeM=
 github.com/hexops/gotextdiff v1.0.3 h1:gitA9+qJrrTCsiCl7+kh75nPqQt1cx4ZkudSTLoUqJM=
