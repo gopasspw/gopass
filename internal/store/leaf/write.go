@@ -72,7 +72,7 @@ func (s *Store) Set(ctx context.Context, name string, sec gopass.Byter) error {
 		return nil, s.gitCommitAndPush(commitCtx, name)
 	})
 
-	ctx, err = t(ctx)
+	_, err = t(ctx)
 
 	return err
 }
