@@ -13,20 +13,15 @@ import (
 
 // Encrypt will encrypt the given payload.
 func (a *Age) Encrypt(ctx context.Context, plaintext []byte, recipients []string) ([]byte, error) {
-	// add our own public keys to the recipients to ensure we can decrypt it later.
-	idRecps, err := a.IdentityRecipients(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("failed to fetch identity recipients for encryption: %w", err)
-	}
-	// parse the most specific recipients file and add it to the final
-	// recipients, too.
+	// Parse the most specific recipients file and use only those configured
+	// recipients for encryption.
 	recp, err := a.parseRecipients(ctx, recipients)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse recipients file for encryption: %w", err)
 	}
 
 	// dedupe also order recipients so that native ones are first
-	recp = dedupe(append(recp, idRecps...))
+	recp = dedupe(recp)
 
 	return a.encrypt(plaintext, recp...)
 }
