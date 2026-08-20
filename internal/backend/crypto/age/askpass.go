@@ -156,7 +156,8 @@ func (a *askPass) getPassphrase(reason string, repeat bool) (string, error) {
 	if repeat {
 		opts = append(opts, pinentry.WithRepeat("Confirm"))
 	} else {
-		opts = append(opts,
+		opts = append(
+			opts,
 			pinentry.WithOption(pinentry.OptionAllowExternalPasswordCache),
 			pinentry.WithKeyInfo("gopass/age-identities"),
 		)
