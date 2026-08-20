@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -23,7 +25,7 @@ func TestMain(m *testing.M) {
 		os.Exit(1)
 	}
 
-	if err := os.Setenv("GNUPGHOME", home); err != nil {
+	if err := os.Setenv("GNUPGHOME", gpgHomeEnv(home, runtime.GOOS)); err != nil {
 		cleanup()
 		_ = os.RemoveAll(base)
 		_, _ = fmt.Fprintf(os.Stderr, "set GNUPGHOME for tests: %v\n", err)
@@ -45,6 +47,19 @@ func prepareTestGPGHome(base string) (string, func(), error) {
 	return home, func() { _ = os.RemoveAll(home) }, nil
 }
 
+func gpgHomeEnv(home, goos string) string {
+	if goos != "windows" {
+		return home
+	}
+
+	home = strings.ReplaceAll(home, `\`, "/")
+	if len(home) >= 2 && home[1] == ':' {
+		return "/" + strings.ToLower(home[:1]) + home[2:]
+	}
+
+	return home
+}
+
 func TestPrepareTestGPGHome(t *testing.T) {
 	base := t.TempDir()
 	home, cleanup, err := prepareTestGPGHome(base)
@@ -56,5 +71,12 @@ func TestPrepareTestGPGHome(t *testing.T) {
 	info, err := os.Stat(home)
 	require.NoError(t, err)
 	require.True(t, info.IsDir())
-	require.Equal(t, os.FileMode(0o700), info.Mode().Perm())
+	if runtime.GOOS != "windows" {
+		require.Equal(t, os.FileMode(0o700), info.Mode().Perm())
+	}
+}
+
+func TestGPGHomeEnv(t *testing.T) {
+	require.Equal(t, "/c/msys64/tmp/gopass/.gnupg", gpgHomeEnv(`C:\msys64\tmp\gopass\.gnupg`, "windows"))
+	require.Equal(t, "/tmp/gopass/.gnupg", gpgHomeEnv("/tmp/gopass/.gnupg", "linux"))
 }
