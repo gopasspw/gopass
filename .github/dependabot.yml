@@ -6,3 +6,38 @@ updates:
     schedule:
       interval: "monthly"
     open-pull-requests-limit: 15
+    # Give a freshly published action a few days to be pulled if it turns out
+    # to be broken or compromised before we adopt it.
+    cooldown:
+      default-days: 7
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+
+  - package-ecosystem: "gomod"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    cooldown:
+      default-days: 7
+      # Major bumps of a Go dependency in a password manager deserve a longer
+      # soak; patch releases are usually the fix for something and can land.
+      semver-major-days: 30
+      semver-minor-days: 7
+      semver-patch-days: 3
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+    groups:
+      # These move in lockstep and pull each other in transitively, so one at a
+      # time produces a pile of mutually conflicting pull requests.
+      golang-x:
+        patterns:
+          - "golang.org/x/*"
+      # Terminal/TTY handling: all small, all exercised by the same manual
+      # smoke test (colour on a TTY, no colour through a pipe).
+      terminal:
+        patterns:
+          - "github.com/mattn/*"
+          - "github.com/fatih/color"
