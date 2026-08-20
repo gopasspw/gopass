@@ -1,13 +1,13 @@
 package agent
 
 import (
-	"bufio"
 	"fmt"
 	"io"
 	"strings"
 
 	"filippo.io/age"
 	"filippo.io/age/plugin"
+	"github.com/gopasspw/gopass/internal/backend/crypto/age/identityfile"
 )
 
 // parseIdentity parses a single identity string, supporting AGE-PLUGIN-* prefixed plugin
@@ -40,34 +40,8 @@ func parseIdentity(s string) (age.Identity, error) {
 	}
 }
 
-// parseIdentities parses multiple age identities from a reader, supporting plugin identities
-// in addition to native age keys. It replaces age.ParseIdentities() which only handles
-// native keys and rejects AGE-PLUGIN-* identities (causing "malformed secret key: mixed
-// case" errors with e.g. age-plugin-yubikey).
-func parseIdentities(f io.Reader) ([]age.Identity, error) {
-	const privateKeySizeLimit = 1 << 24 // 16 MiB
-	var ids []age.Identity
-	scanner := bufio.NewScanner(io.LimitReader(f, privateKeySizeLimit))
-	var n int
-	for scanner.Scan() {
-		n++
-		line := scanner.Text()
-		if strings.HasPrefix(line, "#") || line == "" {
-			continue
-		}
-
-		i, err := parseIdentity(line)
-		if err != nil {
-			return nil, fmt.Errorf("error at line %d: %w", n, err)
-		}
-		ids = append(ids, i)
-	}
-	if err := scanner.Err(); err != nil {
-		return nil, fmt.Errorf("failed to read secret keys file: %w", err)
-	}
-	if len(ids) == 0 {
-		return nil, fmt.Errorf("no secret keys found")
-	}
-
-	return ids, nil
+// parseIdentities parses native and plugin identities using the shared bounded
+// identity-file scanner and the agent-specific single-line parser.
+func parseIdentities(reader io.Reader) ([]age.Identity, error) {
+	return identityfile.Parse(reader, parseIdentity)
 }

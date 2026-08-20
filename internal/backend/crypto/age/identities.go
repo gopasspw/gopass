@@ -1,12 +1,10 @@
 package age
 
 import (
-	"bufio"
 	"bytes"
 	"context"
 	"errors"
 	"fmt"
-	"io"
 	"maps"
 	"os"
 	"path/filepath"
@@ -17,6 +15,7 @@ import (
 	"filippo.io/age"
 	"filippo.io/age/agessh"
 	"filippo.io/age/plugin"
+	"github.com/gopasspw/gopass/internal/backend/crypto/age/identityfile"
 	"github.com/gopasspw/gopass/pkg/appdir"
 	"github.com/gopasspw/gopass/pkg/debug"
 )
@@ -86,7 +85,7 @@ func (a *Age) Identities(ctx context.Context) ([]age.Identity, error) {
 		return nil, nil
 	}
 
-	ids, err := parseIdentities(bytes.NewReader(buf))
+	ids, err := identityfile.Parse(bytes.NewReader(buf), parseIdentity)
 	if err != nil {
 		return nil, err
 	}
@@ -138,36 +137,6 @@ func parseIdentity(s string) (age.Identity, error) {
 	default:
 		return nil, fmt.Errorf("unknown identity type")
 	}
-}
-
-// parseIdentities is like age.ParseIdentities, but supports plugin identities,
-// it is a copy of https://github.com/FiloSottile/age/blob/2214a556f60400ad19f2ca43d3cbbb4a5a0fe5ab/cmd/age/parse.go#L123-L126
-func parseIdentities(f io.Reader) ([]age.Identity, error) {
-	const privateKeySizeLimit = 1 << 24 // 16 MiB
-	var ids []age.Identity
-	scanner := bufio.NewScanner(io.LimitReader(f, privateKeySizeLimit))
-	var n int
-	for scanner.Scan() {
-		n++
-		line := scanner.Text()
-		if strings.HasPrefix(line, "#") || line == "" {
-			continue
-		}
-
-		i, err := parseIdentity(line)
-		if err != nil {
-			return nil, fmt.Errorf("error at line %d: %w", n, err)
-		}
-		ids = append(ids, i)
-	}
-	if err := scanner.Err(); err != nil {
-		return nil, fmt.Errorf("failed to read secret keys file: %w", err)
-	}
-	if len(ids) == 0 {
-		return nil, fmt.Errorf("no secret keys found")
-	}
-
-	return ids, nil
 }
 
 // IdentityRecipients returns a slice of recipients derived from our identities.
