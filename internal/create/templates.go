@@ -93,7 +93,7 @@ func (w *Wizard) writeTemplates(ctx context.Context, s storageSetter) error {
 		debug.Log("wrote default template to %s", path)
 	}
 
-	if err := s.TryCommit(ctx, "Added default wizard templates"); err != nil {
+	if err := s.TryCommit(ctx, "Add default wizard templates"); err != nil {
 		return fmt.Errorf("failed to commit changes: %w", err)
 	}
 

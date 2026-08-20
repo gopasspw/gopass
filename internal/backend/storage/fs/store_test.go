@@ -256,3 +256,30 @@ func TestDelete(t *testing.T) {
 		})
 	}
 }
+
+func TestPruneAndIsDirRejectPathTraversal(t *testing.T) {
+	ctx := config.NewContextInMemory()
+
+	base := t.TempDir()
+	storeRoot := filepath.Join(base, "store")
+	outside := filepath.Join(base, "outside")
+	require.NoError(t, os.MkdirAll(storeRoot, 0o700))
+	require.NoError(t, os.MkdirAll(outside, 0o700))
+
+	canary := filepath.Join(outside, "canary.txt")
+	require.NoError(t, os.WriteFile(canary, []byte("do not delete me"), 0o600))
+
+	s := &Store{path: storeRoot}
+
+	t.Run("Prune", func(t *testing.T) {
+		err := s.Prune(ctx, "../outside")
+		require.Error(t, err, "Prune should reject a prefix that escapes the store root")
+
+		_, statErr := os.Stat(canary)
+		require.NoError(t, statErr, "canary file outside the store root must survive")
+	})
+
+	t.Run("IsDir", func(t *testing.T) {
+		assert.False(t, s.IsDir(ctx, "../outside"), "IsDir should not resolve a name that escapes the store root")
+	})
+}

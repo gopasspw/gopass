@@ -204,6 +204,29 @@ func (a *Age) IdentityRecipients(ctx context.Context) ([]age.Recipient, error) {
 	return r, nil
 }
 
+// identityToString returns the portable string encoding of a natively
+// serializable age identity. It returns ok=false for types that cannot be
+// round-tripped through a string — notably SSH identities from
+// filippo.io/age/agessh, whose private-key types implement no String() method
+// and therefore format as an unparseable Go struct (e.g. "&{[185 .. 233]}").
+func identityToString(id age.Identity) (string, bool) {
+	switch id := id.(type) {
+	case *age.X25519Identity:
+		return id.String(), true
+	case *age.HybridIdentity:
+		return id.String(), true
+	case *wrappedIdentity:
+		return id.String(), true
+	case *plugin.Identity:
+		// Raw plugin identities are normally wrapped in wrappedIdentity at parse
+		// time, but handle them explicitly so this switch stays aligned with
+		// IdentityToRecipient and an unwrapped one is never silently dropped.
+		return id.String(), true
+	default:
+		return "", false
+	}
+}
+
 func IdentityToRecipient(id age.Identity) age.Recipient {
 	switch id := id.(type) {
 	case *age.X25519Identity:

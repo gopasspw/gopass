@@ -33,3 +33,11 @@ Flag | Aliases | Description
 `--xkcd-lang` | `--lang`, `--xkcdlang` | Language to generate password from. Currently only supports english (en, default).
 `--xkcd-capitalize` | `--xkcdcapitalize` | Capitalize the first letter of each word in the generated xkcd password.
 `--xkcd-numbers` | `--xkcdnumbers` | Add a random number to the end of the generated xkcd password.
+`--memorable` | `-m` | Use the memorable (word-based) password generator. The length is a minimum (output may be longer). Incompatible with `--no-numerals`.
+`--memorable-capitalize` | `--memorablecapitalize` | Capitalize (some) words in the generated memorable password. Implies `--memorable`.
+
+## Notes
+
+* With `--memorable`, the requested length is a **minimum** — the generated password is usually longer because whole words are concatenated.
+* `--memorable` always includes digits (one per word), so it is incompatible with `--no-numerals`; the command errors out instead of silently ignoring it.
+* `--memorable` ignores `--ambiguous`. `--memorable` and `--xkcd` are mutually exclusive (combining them is an error).

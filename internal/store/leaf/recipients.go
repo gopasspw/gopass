@@ -476,7 +476,7 @@ func (s *Store) AddRecipient(ctx context.Context, id string) error {
 	} else {
 		rs.Add(canonID)
 
-		if err := s.saveRecipients(ctx, rs, "Added Recipient "+canonID); err != nil {
+		if err := s.saveRecipients(ctx, rs, "Add Recipient "+canonID); err != nil {
 			return fmt.Errorf("failed to save recipients: %w", err)
 		}
 	}
@@ -485,9 +485,9 @@ func (s *Store) AddRecipient(ctx context.Context, id string) error {
 
 	commitMsg := "Recipient " + canonID
 	if idAlreadyInStore {
-		commitMsg = "Re-encrypted Store for " + commitMsg
+		commitMsg = "Re-encrypt Store for " + commitMsg
 	} else {
-		commitMsg = "Added " + commitMsg
+		commitMsg = "Add " + commitMsg
 	}
 
 	return s.reencrypt(ctxutil.WithCommitMessage(ctx, commitMsg))
@@ -578,7 +578,7 @@ RECIPIENTS:
 		return fmt.Errorf("recipient not in store")
 	}
 
-	if err := s.saveRecipients(ctx, rs, "Removed Recipient "+key); err != nil {
+	if err := s.saveRecipients(ctx, rs, "Remove Recipient "+key); err != nil {
 		return fmt.Errorf("failed to save recipients: %w", err)
 	}
 
@@ -607,7 +607,7 @@ RECIPIENTS:
 		}
 	}
 
-	return s.reencrypt(ctxutil.WithCommitMessage(ctx, "Removed Recipient "+key))
+	return s.reencrypt(ctxutil.WithCommitMessage(ctx, "Remove Recipient "+key))
 }
 
 func (s *Store) ensureOurKeyID(ctx context.Context, recp []string) []string {
@@ -702,7 +702,7 @@ func (s *Store) UpdateExportedPublicKeys(ctx context.Context) (bool, error) {
 	// removal in RemoveRecipient (Stage 3).
 
 	if exported && ctxutil.IsGitCommit(ctx) {
-		if err := s.storage.TryCommit(ctx, "Updated exported Public Keys"); err != nil {
+		if err := s.storage.TryCommit(ctx, "Update exported Public Keys"); err != nil {
 			failed = true
 
 			out.Errorf(ctx, "Failed to git commit: %s", err)
@@ -779,7 +779,7 @@ func (s *Store) UpdateRecipientKeys(ctx context.Context, ids []string) error {
 	}
 
 	if len(exported) > 0 && ctxutil.IsGitCommit(ctx) {
-		if err := s.storage.TryCommit(ctx, "Updated recipient public keys"); err != nil {
+		if err := s.storage.TryCommit(ctx, "Update recipient public keys"); err != nil {
 			out.Errorf(ctx, "Failed to git commit: %s", err)
 			failed = true
 		}
@@ -955,7 +955,7 @@ func (s *Store) CanonicalizeRecipients(ctx context.Context) error {
 		return nil
 	}
 
-	return s.saveRecipients(ctx, newRS, "Canonicalized recipient IDs")
+	return s.saveRecipients(ctx, newRS, "Canonicalize recipient IDs")
 }
 
 // renamePublicKeyFile moves the key file from dir/<oldID> to dir/<newID> and

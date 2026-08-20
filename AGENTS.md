@@ -37,10 +37,23 @@ The project is specifically targeting users on all major platform, i.e. Linux, U
 - `/pkg/debug`: Contains a debug package with different verbosity levels. Use it to output debug information to a debug log.
 - `/pkg/fsutil`: Contains various helpers for interacting with the filesystem, e.g. checking for presence of files or directories. Prefer those over implementing these checks from scratch.
 - `/pkg/gopass`: Contains the public gopass API to interact with existing password stores. The `api` sub package contains the actual API and the `secrets` sub package the different secret types we support.
+- `/pkg/otp`: Contains functions to handle OTP secrets. It parses OTP secrets from various formats and generates QR codes for them.
+- `/pkg/passkey`: Implements support for WebAuthn credentials for authentication.
+- `/pkg/pinentry/cli`: Contains a pinentry client that uses the terminal for input and output. It is a drop-in replacement for the `pinentry` program, used to ask for a passphrase or PIN. Note that `/pkg/pinentry` itself holds no Go files; `cli` is the only package under it.
+- `/pkg/protect`: Provides an interface to the `pledge` syscall, used to limit the system calls the process can make. `pledge` exists only on OpenBSD; this package is a no-op everywhere else.
 - `/pkg/pwgen`: Contains a pure-Go implementation of the `pwgen` utility.
+- `/pkg/qrcon`: Implements a QR code ANSI printer for displaying QR codes on the console.
 - `/pkg/set`: Contains a generic set type.
 - `/pkg/tempfile`: Contains utility functions for creating and dealing with temp files. It attempts to be more secure than the normal temp file functions from the stdlib. Prefer those over the stdlib.
 - `/pkg/termio`: Contains functions for interacting with the user of the terminal.
+
+## Conventions
+
+Commit messages, versioning, branch and tag names, and file naming are specified in [docs/conventions.md](docs/conventions.md). Observe these three rules in particular:
+
+- Use only the listed commit types: `feat fix security perf refactor revert deps docs test build ci chore`. The list is closed. `otp`, `age`, `fscopy`, `bug` and `openbsd` appear as types in the history; they are scopes and must be written as such.
+- Use `!` and a `BREAKING CHANGE:` footer only for a break in the CLI. Mark a break confined to the `pkg/gopass` Go module with a `PKG-BREAK:` footer and no `!`. The first forces a major release; the second does not.
+- Write the pull request title as a valid Conventional Commit. Pull requests are squash-merged, so the pull request title is the string that reaches `CHANGELOG.md`, not the individual commit subjects.
 
 ## Libraries and Frameworks
 

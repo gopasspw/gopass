@@ -48,17 +48,28 @@ Semantic versioning applies to the **gopass CLI binary** only. The Go module
 (`github.com/gopasspw/gopass`) does not carry independent semver guarantees:
 a breaking change to `pkg/` interfaces may ship without a major-version bump.
 
-`pkg/gopass/doc.go` carries an explicit instability warning for this reason.
-Until that warning is removed, consumers of `pkg/gopass` should:
+`pkg/gopass` is instead **best-effort stable**, as decided in
+[ADR A-12](docs/adr/A-12-pkg-api-stability.md) and restated in
+`pkg/gopass/doc.go`:
 
-- Pin to a specific commit or tag rather than a `@latest` reference.
-- Review the `CHANGELOG.md` `pkg/` entries before upgrading.
-- Treat any `pkg/` type or function change as potentially breaking.
+- Additive changes (new exported symbols, new functional-option parameters)
+  may appear in any release.
+- Breaking changes (removing or changing the signature of an exported symbol,
+  changing an interface method set or error semantics) require a
+  `[PKG-BREAK]` entry in `CHANGELOG.md` and a deprecation window of two minor
+  releases or three months, whichever is longer.
 
-The intention is to formalise this contract (via a `v2` module path or a
-published compatibility window) once the active contributor base grows
-sufficiently to maintain that commitment. See issue #3414 for the open
-decision on the API stability ADR.
+Consumers of `pkg/gopass` should review the `[PKG-BREAK]` entries in
+`CHANGELOG.md` before upgrading.
+
+A break confined to `pkg/gopass` does **not** trigger a major release of the
+CLI. See [docs/conventions.md](docs/conventions.md) section 2 for how the two
+compatibility surfaces are versioned, and section 1.4 for the commit-message
+markers that distinguish them.
+
+Formalising the contract further (via a `v2` module path or a published
+compatibility window) is deferred until the active contributor base grows
+sufficiently to maintain that commitment.
 
 ### `docs/backends`
 

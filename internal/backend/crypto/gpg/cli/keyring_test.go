@@ -1,9 +1,12 @@
 package cli
 
 import (
+	"bytes"
+	"io"
 	"runtime"
 	"testing"
 
+	"github.com/ProtonMail/go-crypto/openpgp/armor"
 	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/stretchr/testify/assert"
@@ -65,6 +68,19 @@ oLGNPe8bErLNfny6AWU0Enam6a13BxwbBrtr
 -----END PGP PUBLIC KEY BLOCK-----
 `
 
+const pubkeyV5 = `-----BEGIN PGP PUBLIC KEY BLOCK-----
+
+mEkFamRhtRYAAAA/AytlcQHGJY4S2Za1gwFCd82T22Ul4EmqBVrYixcVWjEgpEB1
+e8M2dG7ED5VcKt85elLa2gqU/gzMx1CORDgAtBtUZXN0IEVkNDQ4IDx0ZXN0QGVk
+NDQ4Lm9yZz6I6QUTFgoAaSIhBWvLYkhPMeI0e+KOsnvpdbiIgIXCuhCjdJqDej4n
+0cGeBQJqZGG1GxSAAAAAAAQADm1hbnUyLDIuNSsxLjEyLDIsMgIbAQUJBaOagAUL
+CQgHAgIiAgYVCgkICwIEFgIDAQIeBwIXgAAAWfUByOC5k0FSpuzsOzFyF//3glgr
+Jx49bL7wEYvsUKaDr7JIk8nTBpoNbonTbySWKNQUchPgNBYm9tDtAAHHekxQXTFI
+KCmDZWKk9AszRJ8HME6UpUgRL+7StRu3auYkcQ54B+iId7BXFg117fiELKScOm/j
+JA0A
+=sVFJ
+-----END PGP PUBLIC KEY BLOCK-----`
+
 func TestReadNamesFromKey(t *testing.T) {
 	t.Parallel()
 
@@ -106,4 +122,76 @@ func TestImport(t *testing.T) {
 
 	g.binary = ""
 	require.Error(t, g.ImportPublicKey(ctx, []byte("foobar")))
+}
+
+func TestReadNamesFromKeyBinary(t *testing.T) {
+	t.Parallel()
+
+	ctx := config.NewContextInMemory()
+	ctx = ctxutil.WithAlwaysYes(ctx, true)
+
+	g, err := New(ctx, Config{})
+	require.NoError(t, err)
+	assert.NotEmpty(t, g.Binary())
+
+	block, err := armor.Decode(bytes.NewReader([]byte(pubkey)))
+	require.NoError(t, err)
+
+	binKey, err := io.ReadAll(block.Body)
+	require.NoError(t, err)
+
+	names, err := g.ReadNamesFromKey(ctx, binKey)
+	require.NoError(t, err)
+	assert.Equal(t, []string{"Gopass Archive Signing Key <gopass@justwatch.com>"}, names)
+}
+
+func TestGetFingerprint(t *testing.T) {
+	t.Parallel()
+
+	ctx := config.NewContextInMemory()
+	ctx = ctxutil.WithAlwaysYes(ctx, true)
+
+	g, err := New(ctx, Config{})
+	require.NoError(t, err)
+	assert.NotEmpty(t, g.Binary())
+
+	fpr, err := g.GetFingerprint(ctx, []byte(pubkey))
+	require.NoError(t, err)
+	assert.Equal(t, "7379880F3D29A3B03F44B73D0C92225A97F6B666", fpr)
+}
+
+func TestGetFingerprintBinary(t *testing.T) {
+	t.Parallel()
+
+	ctx := config.NewContextInMemory()
+	ctx = ctxutil.WithAlwaysYes(ctx, true)
+
+	g, err := New(ctx, Config{})
+	require.NoError(t, err)
+	assert.NotEmpty(t, g.Binary())
+
+	block, err := armor.Decode(bytes.NewReader([]byte(pubkey)))
+	require.NoError(t, err)
+
+	binKey, err := io.ReadAll(block.Body)
+	require.NoError(t, err)
+
+	fpr, err := g.GetFingerprint(ctx, binKey)
+	require.NoError(t, err)
+	assert.Equal(t, "7379880F3D29A3B03F44B73D0C92225A97F6B666", fpr)
+}
+
+func TestGetFingerprintV5(t *testing.T) {
+	t.Parallel()
+
+	ctx := config.NewContextInMemory()
+	ctx = ctxutil.WithAlwaysYes(ctx, true)
+
+	g, err := New(ctx, Config{})
+	require.NoError(t, err)
+	assert.NotEmpty(t, g.Binary())
+
+	fpr, err := g.GetFingerprint(ctx, []byte(pubkeyV5))
+	require.NoError(t, err)
+	assert.Equal(t, "6BCB62484F31E2347BE28EB27BE975B8888085C2BA10A3749A837A3E27D1C19E", fpr)
 }

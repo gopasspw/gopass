@@ -58,7 +58,7 @@ func (s *secretHandler) edit(ctx context.Context, cmd *cli.Command, name string)
 	}
 
 	// Check for custom commit message
-	commitMsg := fmt.Sprintf("Edited with %s", ed)
+	commitMsg := fmt.Sprintf("Edit with %s", ed)
 	if cmd.IsSet("commit-message") {
 		commitMsg = cmd.String("commit-message")
 	}

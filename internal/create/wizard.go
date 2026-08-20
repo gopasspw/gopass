@@ -331,7 +331,7 @@ func mkActFunc(tpl Template, s *root.Store, cb ActionCallback) func(context.Cont
 			}
 		}
 
-		if err := s.Set(ctxutil.WithCommitMessage(ctx, "Created new entry"), name, sec); err != nil {
+		if err := s.Set(ctxutil.WithCommitMessage(ctx, "Create new entry"), name, sec); err != nil {
 			return fmt.Errorf("failed to set %q: %w", name, err)
 		}
 		out.OKf(ctx, "Credentials saved to %q", name)

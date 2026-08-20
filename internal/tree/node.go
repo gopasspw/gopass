@@ -10,6 +10,7 @@ import (
 type Node struct {
 	Name     string
 	Leaf     bool
+	Link     bool
 	Template bool
 	Mount    bool
 	Path     string
@@ -46,6 +47,10 @@ func (n Node) Equals(other Node) bool {
 		return false
 	}
 
+	if n.Link != other.Link {
+		return false
+	}
+
 	if n.Subtree != nil {
 		if other.Subtree == nil {
 			return false
@@ -70,6 +75,7 @@ func (n Node) Merge(other Node) *Node {
 	r := Node{
 		Name:     n.Name,
 		Leaf:     n.Leaf,
+		Link:     n.Link,
 		Template: n.Template,
 		Mount:    n.Mount,
 		Path:     n.Path,
@@ -87,6 +93,11 @@ func (n Node) Merge(other Node) *Node {
 	// If either node has a template the merged has a template, too.
 	if other.Template {
 		r.Template = true
+	}
+
+	if other.Link {
+		r.Link = true
+		r.Path = other.Path
 	}
 
 	// Handling of mounts is a bit more tricky. See the comment above.
@@ -143,6 +154,12 @@ func (n *Node) format(prefix string, last bool, maxDepth, curDepth int) string {
 	switch {
 	case n.Mount:
 		_, _ = out.WriteString(colMount(n.Name + " (" + n.Path + ")"))
+	case n.Link:
+		label := n.Name + " (link)"
+		if n.Path != "" {
+			label = n.Name + " -> " + n.Path
+		}
+		_, _ = out.WriteString(colLink(label))
 	case n.Subtree != nil:
 		_, _ = out.WriteString(colDir(n.Name + sep))
 	default:
