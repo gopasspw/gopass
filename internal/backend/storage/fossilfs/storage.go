@@ -52,6 +52,11 @@ func (f *Fossil) Path() string {
 	return f.fs.Path()
 }
 
+// LinkTarget returns the relative target of a symlinked secret.
+func (f *Fossil) LinkTarget(ctx context.Context, name string) (string, bool, error) {
+	return f.fs.LinkTarget(ctx, name)
+}
+
 // Fsck checks the storage integrity.
 func (f *Fossil) Fsck(ctx context.Context) error {
 	// ensure sane fossil config.

@@ -3,6 +3,7 @@ package tree
 import (
 	"testing"
 
+	"github.com/fatih/color"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -28,12 +29,30 @@ func TestNodeMerge(t *testing.T) {
 	assert.Equal(t, "/mnt", merged.Path)
 }
 
+func TestNodeMergeLink(t *testing.T) {
+	n1 := Node{Name: "node1", Leaf: true}
+	n2 := Node{Name: "node1", Leaf: true, Link: true, Path: "other/node1"}
+
+	merged := n1.Merge(n2)
+
+	assert.True(t, merged.Leaf)
+	assert.True(t, merged.Link)
+	assert.Equal(t, "other/node1", merged.Path)
+}
+
 func TestNodeFormat(t *testing.T) {
 	n := Node{Name: "node1", Leaf: true}
 	expected := "└── node1\n"
 	result := n.format("", true, INF, 0)
 
 	assert.Equal(t, expected, result)
+}
+
+func TestNodeFormatLink(t *testing.T) {
+	color.NoColor = true
+
+	n := Node{Name: "node1", Leaf: true, Link: true, Path: "other/node1"}
+	assert.Equal(t, "└── node1 -> other/node1\n", n.format("", true, INF, 0))
 }
 
 func TestNodeLen(t *testing.T) {

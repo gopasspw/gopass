@@ -17,15 +17,17 @@ func TestRoot(t *testing.T) {
 	require.NoError(t, r.AddTemplate("foo"))
 	require.NoError(t, r.AddFile("foo/bar/baz", ""))
 	require.NoError(t, r.AddFile("foo/bar/zab", ""))
+	require.NoError(t, r.AddLink("foo/link", "foo/bar/baz"))
 	require.NoError(t, r.AddMount("mnt/m1", "/tmp/m1"))
 	require.NoError(t, r.AddFile("mnt/m1/foo", ""))
 	require.NoError(t, r.AddFile("mnt/m1/foo/bar", ""))
 	t.Logf("%+#v", r)
 	assert.Equal(t, `gopass
 ├── foo/ (template) (shadowed)
-│   └── bar/
-│       ├── baz
-│       └── zab
+│   ├── bar/
+│   │   ├── baz
+│   │   └── zab
+│   └── link -> foo/bar/baz
 └── mnt/
     └── m1 (/tmp/m1)
         └── foo/ (shadowed)
@@ -36,6 +38,7 @@ func TestRoot(t *testing.T) {
 		"foo",
 		"foo/bar/baz",
 		"foo/bar/zab",
+		"foo/link",
 		"mnt/m1/foo",
 		"mnt/m1/foo/bar",
 	}, r.List(INF))
@@ -110,6 +113,22 @@ func TestAddMount(t *testing.T) {
 	// empty mounts don't show up in the list, so we need to add a file
 	require.NoError(t, r.AddFile("mnt/m1/baz", ""))
 	assert.Equal(t, []string{"mnt/m1/baz"}, r.List(INF))
+}
+
+func TestAddLink(t *testing.T) {
+	t.Parallel()
+
+	color.NoColor = true
+
+	r := New("gopass")
+	require.NoError(t, r.AddFile("foo/bar", ""))
+	require.NoError(t, r.AddLink("foo/baz", "foo/bar"))
+	assert.Equal(t, `gopass
+└── foo/
+    ├── bar
+    └── baz -> foo/bar
+`, r.Format(INF))
+	assert.Equal(t, []string{"foo/bar", "foo/baz"}, r.List(INF))
 }
 
 func TestFindFolderNotFound(t *testing.T) {
