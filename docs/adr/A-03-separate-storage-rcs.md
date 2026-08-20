@@ -1,4 +1,4 @@
-# A-3: Separate `Storage` and `RCS` interfaces
+# A-03: Separate `Storage` and `RCS` interfaces
 
 **Status:** deferred — current implementation intentionally keeps them merged  
 **Source:** CODE_QUALITY_REPORT.md § A-3

@@ -38,8 +38,7 @@ is available.
 
 The relase signing key is set to expire every other year, so we need to follow a certain key rotation protocol to allow for a seamless key rotation.
 
-* At T-6 Month we should notice that `TestGPGVerifyIn6Months` starts to fail.
-  * There is likely a loss obstrusive way to achieve that, but I'll leave it at that for now.
+* At T-6 Month we should notice that `TestGPGVerifyIn6Months` (run in its own GitHub Action workflow with `-tags canary`) starts to fail.
 * We should then create an issue to track the key rollover (this should never happen in secret). The entire security posture isn't perfect but that's the best I can do with my resources. Help always appreciated.
 * For the actual rollout we first need to generate a new key. That needs to be done by exactly one core maintainer with write access to the repo and the GHA secrets since only they can inject the new key, fingerprint and passphrase.
 * To generate the key run: `gpg --expert --full-generate-key` and select `RSA and RSA`, `3072` (bits) and a validity of `2y`. Use `Gopass Release Signing Key YYYY` as the name, `GitHub Actions only` as the comment and `release@gopass.pw` as the email.

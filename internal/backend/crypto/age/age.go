@@ -3,6 +3,7 @@ package age
 import (
 	"context"
 	"fmt"
+	"os"
 	"path/filepath"
 	"strings"
 	"time"
@@ -25,6 +26,13 @@ const (
 	Ext = "age"
 	// IDFile is the name for age recipients.
 	IDFile = ".age-recipients"
+	// SpawnGuardEnv is stamped on a spawned agent-starter process so its
+	// children cannot re-enter tryStartAgent. This is the defense against
+	// fork-bombing when gopass is embedded as a library in a host binary that
+	// does not own the `age agent start` subcommand (e.g. gopass-jsonapi): the
+	// host re-enters New -> tryStartAgent and would spawn another copy ad
+	// infinitum. See internal/ageagentlauncher for how the standalone CLI sets it.
+	SpawnGuardEnv = "GOPASS_AGE_AGENT_SPAWNING"
 )
 
 type githubSSHCacher interface {
@@ -118,7 +126,25 @@ func (a *Age) effectivePwPurgeCallback() func(string) {
 	return a.askPass.Remove
 }
 
+// isAgentSpawnProcess reports whether the current process was spawned as an
+// agent starter (SpawnGuardEnv is set). Used to short-circuit tryStartAgent so
+// a mis-targeted spawn cannot cascade into a fork bomb.
+func isAgentSpawnProcess() bool {
+	return os.Getenv(SpawnGuardEnv) != ""
+}
+
 func (a *Age) tryStartAgent(ctx context.Context) {
+	// If this process was itself spawned as an agent starter, do not spawn
+	// another. Without this guard, embedding gopass in a host that re-enters
+	// New -> tryStartAgent (e.g. gopass-jsonapi, which runs api.New before CLI
+	// dispatch) fork-bombs. The standalone CLI sets SpawnGuardEnv on the spawned
+	// process via internal/ageagentlauncher.
+	if isAgentSpawnProcess() {
+		debug.Log("age agent spawn already in progress, skipping autostart to avoid fork bomb")
+
+		return
+	}
+
 	if !config.Bool(ctx, "age.agent-enabled") {
 		debug.Log("age agent disabled")
 
@@ -132,8 +158,19 @@ func (a *Age) tryStartAgent(ctx context.Context) {
 		return
 	}
 
+	launcher := GetAgentLauncher(ctx)
+	if launcher == nil {
+		// No launcher registered: this is a library consumer (or a unit test)
+		// that does not own the `age agent start` subcommand. Skip autostart
+		// rather than re-executing os.Args[0], which would fork-bomb. The
+		// standalone CLI registers its launcher via internal/ageagentlauncher.
+		debug.Log("no age agent launcher registered, skipping autostart")
+
+		return
+	}
+
 	debug.Log("age agent not running, starting it...")
-	if err := startAgent(ctx); err != nil {
+	if err := launcher(ctx); err != nil {
 		debug.Log("failed to start age agent: %s", err)
 
 		return
@@ -152,20 +189,23 @@ func (a *Age) tryStartAgent(ctx context.Context) {
 	}
 
 	// send identities to agent
-	ids, err := a.getAllIdentities(ctx)
+	ids, err := a.getAllIds(ctx)
 	if err != nil {
 		debug.Log("failed to get identities: %s", err)
 
 		return
 	}
 
-	idStrs := make([]string, 0, len(ids))
-	for _, id := range ids {
-		idStrs = append(idStrs, fmt.Sprintf("%s", id))
-	}
+	sIds, err := a.identitiesToString(ids)
+	if err != nil {
+		debug.Log("failed to serialize identities: %s", err)
 
-	if err := client.SendIdentities(strings.Join(idStrs, "\n")); err != nil {
-		debug.Log("failed to send identities to agent: %s", err)
+		return
+	}
+	if sIds != "" {
+		if err := client.SendIdentities(sIds); err != nil {
+			debug.Log("failed to send identities to agent: %s", err)
+		}
 	}
 
 	// set timeout
@@ -226,13 +266,35 @@ func (a *Age) Lock() {
 	a.askPass.Lock()
 }
 
+// identitiesToString serializes the given identities into a single-line,
+// space-separated string for the age agent's line-oriented "identities"
+// command.
+//
+// The agent reads commands one line at a time and parses only the tokens on
+// that line (it re-joins them with newlines before parsing). Sending identities
+// newline-separated therefore turns every identity after the first into a
+// spurious "unknown command" that the agent discards. All identities must live
+// on a single line, i.e. space-separated.
+//
+// Only natively serializable identity types are included. SSH identities
+// (filippo.io/age/agessh) expose no String() form for the private key and
+// cannot be round-tripped through the wire format; they are skipped here, and
+// decryption for them falls back to the local code path exactly as before. All
+// of these encodings are bech32 and therefore whitespace-free, so separating
+// them with spaces is unambiguous to the agent's space-splitting parser.
 func (a *Age) identitiesToString(ids []age.Identity) (string, error) {
-	var sb strings.Builder
+	parts := make([]string, 0, len(ids))
 	for _, id := range ids {
-		fmt.Fprintln(&sb, id)
+		s, ok := identityToString(id)
+		if !ok {
+			debug.Log("skipping non-serializable identity %T for agent transfer", id)
+
+			continue
+		}
+		parts = append(parts, s)
 	}
 
-	return sb.String(), nil
+	return strings.Join(parts, " "), nil
 }
 
 // String implements fmt.Stringer.

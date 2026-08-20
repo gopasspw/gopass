@@ -454,7 +454,7 @@ gopass config mounts.path "~/Google Drive/Password-Store"
 
 Because gopass is fully backwards compatible with pass, you can use some existing graphical user interfaces / frontends:
 
-* Android - [PwdStore](https://github.com/zeapo/Android-Password-Store)
+* Android - [Password Store](https://github.com/agrahn/Android-Password-Store)
 * iOS - [Pass for iOS](https://github.com/davidjb/pass-ios#readme)
 * Windows / MacOS / Linux -  [QtPass](https://qtpass.org/)
 

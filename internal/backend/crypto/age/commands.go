@@ -122,9 +122,13 @@ func (l loader) Commands() []*cli.Command {
 
 								client := agent.NewClient()
 
-								// Send identities to agent (works even if agent is locked)
-								if err := client.SendIdentities(sIds); err != nil {
-									return exit.Error(exit.Unknown, err, "failed to send identities to agent: %s", err)
+								// Send identities to agent (works even if agent is locked). If no
+								// natively serializable identities exist (e.g. only SSH keys, which
+								// cannot be transferred over the wire), skip the send but still unlock.
+								if sIds != "" {
+									if err := client.SendIdentities(sIds); err != nil {
+										return exit.Error(exit.Unknown, err, "failed to send identities to agent: %s", err)
+									}
 								}
 
 								// Only unlock the agent AFTER identities have been sent

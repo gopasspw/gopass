@@ -34,6 +34,11 @@ func New(path string) (*JJFS, error) {
 		nil
 }
 
+// LinkTarget returns the relative target of a symlinked secret.
+func (j *JJFS) LinkTarget(ctx context.Context, name string) (string, bool, error) {
+	return j.fs.LinkTarget(ctx, name)
+}
+
 // Init initializes this store's jj repo.
 func Init(ctx context.Context, path, userName, userEmail string) (*JJFS, error) {
 	j := &JJFS{

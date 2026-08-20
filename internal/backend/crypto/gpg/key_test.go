@@ -74,6 +74,13 @@ func genTestKey(args ...string) Key {
 	}
 }
 
+func genTestKeyV5() Key {
+	k := genTestKey()
+	k.Fingerprint = "70B42A46DB33A9F24177F0BCA2CD28D5D0DB013CBDFDE8A66324CAAC83E67468"
+
+	return k
+}
+
 func TestKey(t *testing.T) {
 	t.Parallel()
 
@@ -87,6 +94,11 @@ func TestKey(t *testing.T) {
 	assert.Equal(t, "sec   2048D/0x62AF4031C82E0039 2018-01-01 [expires: 2218-01-01]\n      Key fingerprint = 25FF1614B8F87B52FFFF99B962AF4031C82E0039\nuid                            John Doe (johnny) <john.doe@example.org>", k.String())
 	assert.Equal(t, "0x62AF4031C82E0039 - John Doe (johnny) <john.doe@example.org>", k.OneLine())
 	assert.Equal(t, "0x62AF4031C82E0039", k.ID())
+
+	v5 := genTestKeyV5()
+	assert.Equal(t, "sec   2048D/0x70B42A46DB33A9F2 2018-01-01 [expires: 2218-01-01]\n      Key fingerprint = 70B42A46DB33A9F24177F0BCA2CD28D5D0DB013CBDFDE8A66324CAAC83E67468\nuid                            John Doe (johnny) <john.doe@example.org>", v5.String())
+	assert.Equal(t, "0x70B42A46DB33A9F2 - John Doe (johnny) <john.doe@example.org>", v5.OneLine())
+	assert.Equal(t, "0x70B42A46DB33A9F2", v5.ID())
 }
 
 func TestIdentitySort(t *testing.T) {

@@ -3,13 +3,11 @@ package cli
 import (
 	"bytes"
 	"context"
-	"encoding/hex"
 	"fmt"
 	"os/exec"
 	"strings"
 	"text/template"
 
-	"github.com/ProtonMail/go-crypto/openpgp"
 	"github.com/gopasspw/gopass/internal/backend/crypto/gpg"
 	"github.com/gopasspw/gopass/internal/backend/crypto/gpg/colons"
 	"github.com/gopasspw/gopass/internal/out"
@@ -104,18 +102,29 @@ func (g *GPG) FormatKey(ctx context.Context, id, tpl string) string {
 
 // ReadNamesFromKey unmarshals and returns the names associated with the given public key.
 func (g *GPG) ReadNamesFromKey(ctx context.Context, buf []byte) ([]string, error) {
-	el, err := openpgp.ReadArmoredKeyRing(bytes.NewReader(buf))
-	if err != nil {
-		return nil, fmt.Errorf("failed to read key ring: %w", err)
+	if len(buf) < 1 {
+		return nil, fmt.Errorf("empty input")
 	}
 
-	if len(el) != 1 {
+	args := append(g.args, "--with-colons", "--show-keys")
+	cmd := exec.CommandContext(ctx, g.binary, args...)
+	cmd.Stdin = bytes.NewReader(buf)
+	errBuf := &bytes.Buffer{}
+	cmd.Stderr = errBuf
+
+	cmdout, err := cmd.Output()
+	if err != nil {
+		return nil, fmt.Errorf("failed to run command '%s %+v': %w - %s", cmd.Path, cmd.Args, err, errBuf.String())
+	}
+
+	kl := colons.Parse(bytes.NewBuffer(cmdout))
+	if len(kl) != 1 {
 		return nil, fmt.Errorf("public Key must contain exactly one Entity")
 	}
 
-	names := make([]string, 0, len(el[0].Identities))
-	for _, v := range el[0].Identities {
-		names = append(names, v.Name)
+	names := make([]string, 0, len(kl[0].Identities))
+	for _, v := range kl[0].Identities {
+		names = append(names, v.ID())
 	}
 
 	return names, nil
@@ -155,20 +164,23 @@ func (g *GPG) GetFingerprint(ctx context.Context, buf []byte) (string, error) {
 		return "", fmt.Errorf("empty input")
 	}
 
-	el, err := openpgp.ReadArmoredKeyRing(bytes.NewReader(buf))
+	args := append(g.args, "--with-colons", "--show-keys")
+	cmd := exec.CommandContext(ctx, g.binary, args...)
+	cmd.Stdin = bytes.NewReader(buf)
+	errBuf := &bytes.Buffer{}
+	cmd.Stderr = errBuf
+
+	cmdout, err := cmd.Output()
 	if err != nil {
-		// maybe it's a non-armored key?
-		el, err = openpgp.ReadKeyRing(bytes.NewReader(buf))
-		if err != nil {
-			return "", fmt.Errorf("failed to read key ring: %w", err)
-		}
+		return "", fmt.Errorf("failed to run command '%s %+v': %w - %s", cmd.Path, cmd.Args, err, errBuf.String())
 	}
 
-	if len(el) != 1 {
+	kl := colons.Parse(bytes.NewBuffer(cmdout))
+	if len(kl) != 1 {
 		return "", fmt.Errorf("public Key must contain exactly one Entity")
 	}
 
-	return strings.ToUpper(hex.EncodeToString(el[0].PrimaryKey.Fingerprint[:])), nil
+	return strings.ToUpper(kl[0].Fingerprint), nil
 }
 
 // ExportPublicKey will export the named public key to the location given.

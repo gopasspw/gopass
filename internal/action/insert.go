@@ -43,7 +43,7 @@ func (s *secretHandler) insert(ctx context.Context, cmd *cli.Command, name, key 
 	var content []byte
 
 	// Check for custom commit message
-	commitMsg := "Inserted user supplied password"
+	commitMsg := "Insert user supplied password"
 	if cmd.IsSet("commit-message") {
 		commitMsg = cmd.String("commit-message")
 	}

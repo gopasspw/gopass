@@ -8,6 +8,8 @@ This document provides an overview on how to develop on gopass.
 
 This project uses [GitHub Flow](https://guides.github.com/introduction/flow/). In other words, create feature branches from master, open an PR against master, and rebase onto master if necessary.
 
+Branch names, tag names, commit message format and file naming are specified in [conventions.md](conventions.md).
+
 We aim for compatibility with the [latest stable Go Release](https://golang.org/dl/) only.
 
 While this project is maintained by volunteers in their free time we aim to triage issues weekly and release a new version at least every quarter.

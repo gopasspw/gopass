@@ -7,6 +7,7 @@ import (
 	"path"
 	"strings"
 
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store"
 	"github.com/gopasspw/gopass/internal/store/leaf"
@@ -58,16 +59,24 @@ func (r *Store) move(ctx context.Context, from, to string, del bool) error {
 		}
 	}
 
-	if err := subFrom.Storage().TryPush(ctx, "", ""); err != nil {
-		return fmt.Errorf("failed to push change to git remote: %w", err)
+	if config.AsBool(r.cfg.GetM(subFrom.Alias(), "core.autopush")) {
+		if err := subFrom.Storage().TryPush(ctx, "", ""); err != nil {
+			return fmt.Errorf("failed to push change to git remote: %w", err)
+		}
+	} else {
+		debug.Log("not pushing %q to git remote, core.autopush is false", subFrom.Alias())
 	}
 
 	if subFrom.Equals(subTo) {
 		return nil
 	}
 
-	if err := subTo.Storage().TryPush(ctx, "", ""); err != nil {
-		return fmt.Errorf("failed to push change to git remote: %w", err)
+	if config.AsBool(r.cfg.GetM(subTo.Alias(), "core.autopush")) {
+		if err := subTo.Storage().TryPush(ctx, "", ""); err != nil {
+			return fmt.Errorf("failed to push change to git remote: %w", err)
+		}
+	} else {
+		debug.Log("not pushing %q to git remote, core.autopush is false", subTo.Alias())
 	}
 
 	return nil

@@ -111,6 +111,18 @@ foo2/bar2
 	assert.Equal(t, want, buf.String())
 	buf.Reset()
 
+	require.NoError(t, act.Store.Link(ctx, "foo/bar", "foo/link"))
+	require.NoError(t, act.List(ctx, gptest.CliCtx(ctx, t, "foo")))
+	want = `foo/
+├── bar
+├── link -> foo/bar
+└── zen/ (shadowed)
+    └── bar
+
+`
+	assert.Equal(t, want, buf.String())
+	buf.Reset()
+
 	// list not-present
 	require.Error(t, act.List(ctx, gptest.CliCtx(ctx, t, "not-present")))
 	buf.Reset()

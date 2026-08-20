@@ -1,6 +1,7 @@
 package age
 
 import (
+	"context"
 	"testing"
 )
 
@@ -41,5 +42,31 @@ func TestIsOnlyNative(t *testing.T) {
 	ctx = WithOnlyNative(ctx, false)
 	if IsOnlyNative(ctx) {
 		t.Errorf("Expected value to be false, got true")
+	}
+}
+
+func TestAgentLauncherContext(t *testing.T) {
+	ctx := t.Context()
+	if l := GetAgentLauncher(ctx); l != nil {
+		t.Errorf("expected nil launcher by default, got a non-nil func")
+	}
+
+	called := false
+	fn := func(context.Context) error {
+		called = true
+
+		return nil
+	}
+	ctx = WithAgentLauncher(ctx, fn)
+
+	got := GetAgentLauncher(ctx)
+	if got == nil {
+		t.Fatalf("expected non-nil launcher after WithAgentLauncher")
+	}
+	if err := got(ctx); err != nil {
+		t.Fatalf("launcher returned error: %v", err)
+	}
+	if !called {
+		t.Errorf("expected launcher to be called")
 	}
 }
