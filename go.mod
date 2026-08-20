@@ -46,6 +46,7 @@ require (
 	golang.org/x/oauth2 v0.33.0
 	golang.org/x/sys v0.45.0
 	golang.org/x/term v0.43.0
+	golang.org/x/tools v0.44.0
 )
 
 require (
