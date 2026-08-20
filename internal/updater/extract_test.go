@@ -69,3 +69,32 @@ func TestExtractToTempFile(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, "test content", string(content))
 }
+
+func TestExtractToTempFileArchiveTooLarge(t *testing.T) {
+	tempDir := t.TempDir()
+	dest := filepath.Join(tempDir, "gopass")
+
+	oldMaxExtractSize := maxExtractSize
+	maxExtractSize = 8
+	t.Cleanup(func() {
+		maxExtractSize = oldMaxExtractSize
+	})
+
+	var buf bytes.Buffer
+	gz := gzip.NewWriter(&buf)
+	tw := tar.NewWriter(gz)
+	err := tw.WriteHeader(&tar.Header{
+		Name: "gopass",
+		Mode: 0o600,
+		Size: int64(len("test content")),
+	})
+	require.NoError(t, err)
+	_, err = tw.Write([]byte("test content"))
+	require.NoError(t, err)
+	require.NoError(t, tw.Close())
+	require.NoError(t, gz.Close())
+
+	_, err = extractToTempFile(buf.Bytes(), "gopass.gz", dest)
+	require.Error(t, err)
+	assert.ErrorIs(t, err, errArchiveMemberTooBig)
+}
