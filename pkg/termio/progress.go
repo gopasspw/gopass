@@ -192,7 +192,8 @@ func (p *ProgressBar) doPrint() {
 	ta := strings.Repeat(color.MagentaString("a"), boundedMin(1, fill-3))
 	ts := strings.Repeat(color.CyanString("s"), boundedMin(2, fill-1))
 	spc := strings.Repeat(" ", gteZero(size-fill))
-	fmt.Fprintf(Stderr, "[%s%s%s%s%s%s] %s ",
+	fmt.Fprintf(
+		Stderr, "[%s%s%s%s%s%s] %s ",
 		tg,
 		to,
 		tp,

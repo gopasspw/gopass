@@ -41,6 +41,7 @@ func iconURI(ctx context.Context) string {
 
 		if err = bindataWrite(assetLogoSmallPng(), fh); err != nil {
 			_ = os.Remove(iconFN)
+
 			return ""
 		}
 
