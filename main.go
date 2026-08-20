@@ -23,6 +23,7 @@ import (
 	ap "github.com/gopasspw/gopass/internal/action"
 	"github.com/gopasspw/gopass/internal/action/exit"
 	"github.com/gopasspw/gopass/internal/action/pwgen"
+	"github.com/gopasspw/gopass/internal/ageagentlauncher"
 	_ "github.com/gopasspw/gopass/internal/backend/crypto"
 	"github.com/gopasspw/gopass/internal/backend/crypto/gpg"
 	_ "github.com/gopasspw/gopass/internal/backend/storage"
@@ -85,14 +86,17 @@ func main() {
 	ctx = queue.WithQueue(ctx, q)
 	ctx, app := setupApp(ctx, sv)
 
-	if err := runApp(ctx, app); err != nil {
-		log.Fatal(err)
-	}
+	runErr := runApp(ctx, app)
 
-	// process all pending queue items
+	// process all pending queue items, even on failure: a command can have written a
+	// secret before erroring, and its commit/push is queued at this point.
 	_ = q.Close(ctx)
 
 	writeMemProfile()
+
+	if runErr != nil {
+		log.Fatal(runErr)
+	}
 
 	debug.Log("gopass %s shutting down ...\n\n", sv.String())
 }
@@ -388,6 +392,12 @@ func initContext(ctx context.Context, cfg *config.Config) context.Context {
 		debug.Log("using age passphrase from env variable GOPASS_AGE_PASSWORD")
 		ctx = ctxutil.WithAgePassphrase(ctx, pw)
 	}
+
+	// The standalone gopass binary owns the `age agent start` subcommand, so it
+	// can auto-start the age agent by re-executing itself. Library embedders do
+	// not register a launcher and get graceful degradation instead of a fork
+	// bomb. See internal/ageagentlauncher.
+	ctx = ageagentlauncher.Register(ctx)
 
 	return ctx
 }

@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"compress/gzip"
 	"context"
+	"errors"
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
@@ -12,6 +14,8 @@ import (
 	"github.com/gopasspw/gopass/pkg/appdir"
 	"github.com/gopasspw/gopass/pkg/fsutil"
 )
+
+const maxIconAssetSize int64 = 32 << 20
 
 func iconURI(ctx context.Context) string {
 	if config.Bool(ctx, "notify.disable-icon") {
@@ -36,6 +40,7 @@ func iconURI(ctx context.Context) string {
 		}()
 
 		if err = bindataWrite(assetLogoSmallPng(), fh); err != nil {
+			_ = os.Remove(iconFN)
 			return ""
 		}
 
@@ -60,9 +65,15 @@ func bindataWrite(in []byte, out io.Writer) error {
 		_ = gz.Close()
 	}()
 
-	_, err = io.Copy(out, gz)
+	n, err := io.CopyN(out, gz, maxIconAssetSize+1)
+	if err != nil && !errors.Is(err, io.EOF) {
+		return err
+	}
+	if n > maxIconAssetSize {
+		return fmt.Errorf("embedded icon too large: exceeds %d bytes", maxIconAssetSize)
+	}
 
-	return err
+	return nil
 }
 
 func assetLogoSmallPng() []byte {

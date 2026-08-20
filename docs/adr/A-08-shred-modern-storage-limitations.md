@@ -1,4 +1,4 @@
-# A-8: Shred Operation Is Ineffective on Modern Storage
+# A-08: Shred Operation Is Ineffective on Modern Storage
 
 **Status:** accepted — limitation documented; advisory notice to be added  
 **Source:** SECURITY_AUDIT_REPORT.md § M-6

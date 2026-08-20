@@ -8,6 +8,7 @@ import (
 
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store"
+	"github.com/gopasspw/gopass/internal/store/leaf"
 	"github.com/gopasspw/gopass/internal/tree"
 	"github.com/gopasspw/gopass/pkg/debug"
 )
@@ -25,7 +26,7 @@ func (r *Store) List(ctx context.Context, maxDepth int) ([]string, error) {
 // Tree returns the tree representation of the entries.
 func (r *Store) Tree(ctx context.Context) (*tree.Root, error) {
 	root := tree.New("gopass")
-	addFileFunc := func(in ...string) {
+	addFileFunc := func(sub *leaf.Store, in ...string) {
 		for _, f := range in {
 			var ct string
 
@@ -40,7 +41,19 @@ func (r *Store) Tree(ctx context.Context) (*tree.Root, error) {
 				ct = "text/plain"
 			}
 
-			if err := root.AddFile(f, ct); err != nil {
+			linkTarget, isLink, err := sub.LinkTarget(ctx, f)
+			if err != nil {
+				out.Errorf(ctx, "Failed to resolve link target for %s: %s", f, err)
+
+				continue
+			}
+
+			if isLink {
+				err = root.AddLink(f, linkTarget)
+			} else {
+				err = root.AddFile(f, ct)
+			}
+			if err != nil {
 				out.Errorf(ctx, "Failed to add file %s to tree: %s", f, err)
 
 				continue
@@ -63,7 +76,7 @@ func (r *Store) Tree(ctx context.Context) (*tree.Root, error) {
 	}
 
 	debug.V(1).Log("[root] adding files: %q", sf)
-	addFileFunc(sf...)
+	addFileFunc(r.store, sf...)
 	debug.V(1).Log("[root] Tree: %s", root.Format(-1))
 	addTplFunc(r.store.ListTemplates(ctx, "")...)
 
@@ -86,7 +99,7 @@ func (r *Store) Tree(ctx context.Context) (*tree.Root, error) {
 		}
 
 		debug.V(1).Log("[%s] adding files: %q", alias, sf)
-		addFileFunc(sf...)
+		addFileFunc(substore, sf...)
 		addTplFunc(substore.ListTemplates(ctx, alias)...)
 	}
 

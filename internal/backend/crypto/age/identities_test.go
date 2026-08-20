@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"filippo.io/age"
@@ -217,4 +218,44 @@ func TestLoadIdentityFileNotExist(t *testing.T) {
 	require.Error(t, err)
 	assert.ErrorIs(t, err, os.ErrNotExist,
 		"loadIdentityFile should surface an os.ErrNotExist-compatible error")
+}
+
+// nonSerializableIdentity is a stand-in for an agessh SSH identity: it satisfies
+// age.Identity but exposes no String() form for the private key, so it cannot
+// be transferred to the agent.
+type nonSerializableIdentity struct{}
+
+func (nonSerializableIdentity) Unwrap([]*age.Stanza) ([]byte, error) {
+	return nil, fmt.Errorf("not supported")
+}
+
+// TestIdentitiesToStringSpaceSeparated verifies that identitiesToString emits
+// all natively serializable identities on a single space-separated line
+// (sorted) and skips types that cannot be serialized (e.g. SSH identities).
+//
+// The age agent parses only the tokens on the "identities" command line, so a
+// newline-separated payload would silently drop every identity after the first
+// (the framing bug fixed here).
+func TestIdentitiesToStringSpaceSeparated(t *testing.T) {
+	a := newTestAge(t)
+
+	id1, err := age.GenerateX25519Identity()
+	require.NoError(t, err)
+	id2, err := age.GenerateX25519Identity()
+	require.NoError(t, err)
+
+	s, err := a.identitiesToString([]age.Identity{id1, nonSerializableIdentity{}, id2})
+	require.NoError(t, err)
+
+	assert.NotContains(t, s, "\n", "identities must be on a single line")
+	assert.Contains(t, s, id1.String())
+	assert.Contains(t, s, id2.String())
+
+	// both native identities present, order-independent
+	assert.ElementsMatch(t, []string{id1.String(), id2.String()}, strings.Fields(s))
+
+	// only non-serializable identities -> empty string, no error
+	s, err = a.identitiesToString([]age.Identity{nonSerializableIdentity{}})
+	require.NoError(t, err)
+	assert.Empty(t, s)
 }

@@ -237,10 +237,7 @@ func TestBinaryCopyNameAmbiguity(t *testing.T) {
 	// Operate from a directory that holds a file whose name collides with the
 	// destination secret name, reproducing the exact scenario from the issue.
 	workdir := t.TempDir()
-	old, err := os.Getwd()
-	require.NoError(t, err)
-	require.NoError(t, os.Chdir(workdir))
-	defer func() { require.NoError(t, os.Chdir(old)) }()
+	t.Chdir(workdir)
 
 	require.NoError(t, os.WriteFile(filepath.Join(workdir, "test"), []byte("0xDEADBEEF\n"), 0o644))
 

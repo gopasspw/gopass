@@ -1,8 +1,10 @@
 package root
 
 import (
+	"path/filepath"
 	"testing"
 
+	"github.com/gopasspw/gopass/internal/backend"
 	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/tree"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
@@ -571,6 +573,7 @@ func TestCrossStoreMoveDirectory(t *testing.T) {
 		"folder/b",
 		"folder/c",
 	}
+
 	require.NoError(t, u.InitStore(""))
 
 	ctx := t.Context()
@@ -601,4 +604,26 @@ func TestCrossStoreMoveDirectory(t *testing.T) {
 	require.Error(t, err)
 	_, err = rs.Get(ctx, "folder/c")
 	require.Error(t, err)
+}
+
+func TestMoveHonorsAutoPushConfig(t *testing.T) {
+	u := gptest.NewUnitTester(t)
+
+	ctx := config.NewContextInMemory()
+	ctx = ctxutil.WithAlwaysYes(ctx, true)
+	ctx = ctxutil.WithHidden(ctx, true)
+	ctx = backend.WithStorageBackend(ctx, backend.GitFS)
+
+	rs, err := createRootStore(ctx, u)
+	require.NoError(t, err)
+
+	require.NoError(t, rs.cfg.Set("", "core.autopush", "false"))
+	require.NoError(t, rs.cfg.Set("", "core.autosync", "false"))
+	ctx = rs.WithStoreConfig(ctx)
+
+	require.NoError(t, rs.RCSInit(ctx, "", "gopass-tests", "tests@gopass.pw"))
+	require.NoError(t, rs.RCSAddRemote(ctx, "", "origin", filepath.Join(u.Dir, "missing-remote.git")))
+
+	ctx = ctxutil.WithCommitMessage(ctx, "Move foo to bar")
+	require.NoError(t, rs.Move(ctx, "foo", "bar"))
 }
