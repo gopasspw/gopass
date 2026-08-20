@@ -124,6 +124,35 @@ func (c *Crypt) Path() string {
 	return c.path
 }
 
+// LinkTarget returns the target of a linked secret, if it can be determined.
+func (c *Crypt) LinkTarget(_ context.Context, name string) (string, bool, error) {
+	c.mux.RLock()
+	defer c.mux.RUnlock()
+
+	h, ok := c.mappings[name]
+	if !ok {
+		return "", false, nil
+	}
+
+	if h == c.hash(name) {
+		return "", false, nil
+	}
+
+	for candidate, candidateHash := range c.mappings {
+		if candidateHash == h && candidate != name && c.hash(candidate) == h {
+			return candidate, true, nil
+		}
+	}
+
+	for candidate, candidateHash := range c.mappings {
+		if candidateHash == h && candidate != name {
+			return candidate, true, nil
+		}
+	}
+
+	return "", true, nil
+}
+
 // Version returns the version of the backend.
 func (c *Crypt) Version(ctx context.Context) semver.Version {
 	return semver.Version{Major: 1}

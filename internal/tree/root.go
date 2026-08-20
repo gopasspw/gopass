@@ -21,6 +21,7 @@ var (
 	ErrNotFound = fmt.Errorf("not found")
 	colMount    = color.New(color.FgCyan, color.Bold).SprintfFunc()
 	colDir      = color.New(color.FgBlue, color.Bold).SprintfFunc()
+	colLink     = color.New(color.FgYellow, color.Bold).SprintfFunc()
 	colTpl      = color.New(color.FgGreen, color.Bold).SprintfFunc()
 	colShadow   = color.New(color.FgRed, color.Bold).SprintfFunc()
 	// sep is intentionally NOT platform-agnostic. This is used for the CLI output
@@ -45,23 +46,28 @@ func New(name string) *Root {
 
 // AddFile adds a new file to the tree.
 func (r *Root) AddFile(path string, _ string) error {
-	return r.insert(path, false, "")
+	return r.insert(path, false, false, "")
+}
+
+// AddLink adds a new symlink to the tree.
+func (r *Root) AddLink(path, dest string) error {
+	return r.insert(path, false, true, dest)
 }
 
 // AddMount adds a new mount point to the tree.
 func (r *Root) AddMount(path, dest string) error {
-	return r.insert(path, false, dest)
+	return r.insert(path, false, false, dest)
 }
 
 // AddTemplate adds a template to the tree.
 func (r *Root) AddTemplate(path string) error {
-	return r.insert(path, true, "")
+	return r.insert(path, true, false, "")
 }
 
-func (r *Root) insert(path string, template bool, mountPath string) error {
+func (r *Root) insert(path string, template, link bool, nodePath string) error {
 	t := r.Subtree
 
-	debug.V(4).Log("adding: %s [tpl: %t, mp: %q]", path, template, mountPath)
+	debug.V(4).Log("adding: %s [tpl: %t, link: %t, path: %q]", path, template, link, nodePath)
 
 	// split the path into its components, iterate over them and create
 	// the tree structure. Everything but the last element is a folder.
@@ -75,11 +81,16 @@ func (r *Root) insert(path string, template bool, mountPath string) error {
 		if i == len(p)-1 {
 			n.Leaf = true
 			n.Subtree = nil
+			n.Link = link
 			n.Template = template
 
-			if mountPath != "" {
+			if nodePath != "" {
 				n.Mount = true
-				n.Path = mountPath
+				n.Path = nodePath
+			}
+
+			if link {
+				n.Mount = false
 			}
 		}
 

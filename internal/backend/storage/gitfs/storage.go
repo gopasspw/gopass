@@ -54,6 +54,11 @@ func (g *Git) Path() string {
 	return g.fs.Path()
 }
 
+// LinkTarget returns the relative target of a symlinked secret.
+func (g *Git) LinkTarget(ctx context.Context, name string) (string, bool, error) {
+	return g.fs.LinkTarget(ctx, name)
+}
+
 // Fsck checks the storage integrity.
 func (g *Git) Fsck(ctx context.Context) error {
 	// ensure sane git config.
