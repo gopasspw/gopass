@@ -18,6 +18,9 @@ import (
 var ignoredEnvs = set.Map([]string{
 	// keep-sorted start
 	"APPDATA",
+	"DEBEMAIL",
+	"DEBFULLNAME",
+	"EMAIL",
 	"GIT_AUTHOR_EMAIL",
 	"GIT_AUTHOR_NAME",
 	"GNUPGHOME",
@@ -31,6 +34,7 @@ var ignoredEnvs = set.Map([]string{
 	"HOME",
 	"LOCALAPPDATA",
 	"PASSWORD_STORE_UMASK", // indirect usage
+	"USER",
 	"XDG_CACHE_HOME",
 	"XDG_CONFIG_HOME",
 	"XDG_DATA_HOME",
@@ -144,6 +148,10 @@ func usedOptsInFile(t *testing.T, fn string, opts map[string]bool, re *regexp.Re
 
 			break
 		}
+	}
+
+	if err := scanner.Err(); err != nil {
+		return err
 	}
 
 	return nil
@@ -270,6 +278,10 @@ func usedEnvsInFile(t *testing.T, fn string, opts map[string]bool, re *regexp.Re
 		opts[v] = true
 	}
 
+	if err := scanner.Err(); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -305,6 +317,10 @@ func documentedEnvs(t *testing.T) map[string]bool {
 		}
 
 		opts[v] = true
+	}
+
+	if err := scanner.Err(); err != nil {
+		t.Fatalf("failed to scan %s: %s", fn, err)
 	}
 
 	return opts
