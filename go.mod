@@ -4,7 +4,7 @@ go 1.25.0
 
 require (
 	filippo.io/age v1.3.1
-	github.com/ProtonMail/go-crypto v1.3.0
+	github.com/ProtonMail/go-crypto v1.4.1
 	github.com/blang/semver/v4 v4.0.0
 	github.com/caspr-io/yamlpath v0.0.0-20200722075116-502e8d113a9b
 	github.com/cenkalti/backoff/v4 v4.3.0
