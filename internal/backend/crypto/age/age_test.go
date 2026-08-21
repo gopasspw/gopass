@@ -43,7 +43,7 @@ func TestTryStartAgentGuardSkips(t *testing.T) {
 	t.Setenv(SpawnGuardEnv, "1")
 	ctx := WithAgentLauncher(ctxWithAgentEnabled(t), launcher)
 
-	a, err := New(ctx, "")
+	a, err := New(ctx, false, "")
 	require.NoError(t, err)
 	_ = a
 	require.False(t, called, "guard must short-circuit before the launcher is called")
@@ -65,7 +65,7 @@ func TestTryStartAgentNoLauncherSkips(t *testing.T) {
 
 	done := make(chan error, 1)
 	go func() {
-		_, err := New(ctx, "")
+		_, err := New(ctx, false, "")
 		done <- err
 	}()
 	select {
@@ -86,7 +86,7 @@ func TestTryStartAgentLauncherError(t *testing.T) {
 
 	done := make(chan error, 1)
 	go func() {
-		_, err := New(ctx, "")
+		_, err := New(ctx, false, "")
 		done <- err
 	}()
 	select {
