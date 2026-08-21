@@ -46,13 +46,14 @@ type Age struct {
 	ghCache         githubSSHCacher
 	askPass         *askPass
 	recpCache       *cache.OnDisk
-	sshKeyPath      string // custom SSH key or directory path
+	loadSSHKeys     bool   // load (or not) SSH keys from default SSH dir (~/.ssh), or dir in GOPASS_SSH_DIR env var
+	sshKeyPath      string // custom SSH key or directory path; if set then they are loaded no matter value in loadSSHKeys
 	pwCallback      func(string, bool) ([]byte, error)
 	pwPurgeCallback func(string)
 }
 
 // New creates a new Age backend.
-func New(ctx context.Context, sshKeyPath string) (*Age, error) {
+func New(ctx context.Context, loadSSHKeys bool, sshKeyPath string) (*Age, error) {
 	ghc, err := ghssh.New()
 	if err != nil {
 		return nil, err
@@ -67,11 +68,12 @@ func New(ctx context.Context, sshKeyPath string) (*Age, error) {
 	sshKeyPath = fsutil.ExpandHomedir(sshKeyPath)
 
 	a := &Age{
-		ghCache:    ghc,
-		recpCache:  rc,
-		identity:   filepath.Join(appdir.UserConfig(), "age", "identities"),
-		askPass:    newAskPass(ctx),
-		sshKeyPath: sshKeyPath,
+		ghCache:     ghc,
+		recpCache:   rc,
+		identity:    filepath.Join(appdir.UserConfig(), "age", "identities"),
+		askPass:     newAskPass(ctx),
+		loadSSHKeys: loadSSHKeys,
+		sshKeyPath:  sshKeyPath,
 	}
 
 	// Capture any pre-configured passphrase (e.g. from GOPASS_AGE_PASSWORD).
@@ -83,7 +85,7 @@ func New(ctx context.Context, sshKeyPath string) (*Age, error) {
 
 	a.tryStartAgent(ctx)
 
-	debug.Log("age initialized (ghc: %s, recipients: %s, identity: %s, sshKeyPath: %s)", a.ghCache.String(), a.recpCache.String(), a.identity, a.sshKeyPath)
+	debug.Log("age initialized (ghc: %s, recipients: %s, identity: %s, loadSSHKeys: %t, sshKeyPath: %s)", a.ghCache.String(), a.recpCache.String(), a.identity, a.loadSSHKeys, a.sshKeyPath)
 
 	return a, nil
 }
@@ -308,8 +310,9 @@ func (a *Age) String() string {
 	}
 	sb.WriteString("Identity: ")
 	sb.WriteString(a.identity)
+	fmt.Fprintf(&sb, ", loadSSHKeys: %t", a.loadSSHKeys)
 	if a.sshKeyPath != "" {
-		sb.WriteString(", SSHKeyPath: ")
+		sb.WriteString(", sshKeyPath: ")
 		sb.WriteString(a.sshKeyPath)
 	}
 	sb.WriteString(")")

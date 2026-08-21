@@ -14,7 +14,7 @@ import (
 
 func TestNew(t *testing.T) {
 	ctx := t.Context()
-	a, err := New(ctx, "")
+	a, err := New(ctx, false, "")
 	require.NoError(t, err)
 	assert.NotNil(t, a)
 }
@@ -102,29 +102,29 @@ func TestNewExpandsSshKeyPathTilde(t *testing.T) {
 	t.Setenv("GOPASS_HOMEDIR", td)
 
 	// A leading ~/ is expanded to the home dir (appdir.UserHome honors GOPASS_HOMEDIR).
-	a, err := New(t.Context(), "~/custom-ssh")
+	a, err := New(t.Context(), false, "~/custom-ssh")
 	require.NoError(t, err)
 	assert.Equal(t, filepath.Join(td, "custom-ssh"), a.sshKeyPath)
 
 	// Absolute paths are left untouched by fsutil.ExpandHomedir.
-	a2, err := New(t.Context(), "/opt/keys")
+	a2, err := New(t.Context(), false, "/opt/keys")
 	require.NoError(t, err)
 	assert.Equal(t, "/opt/keys", a2.sshKeyPath)
 
 	// ~user/ and a bare ~ are NOT expanded: ExpandHomedir only matches the ~/ prefix.
-	a3, err := New(t.Context(), "~alice/keys")
+	a3, err := New(t.Context(), false, "~alice/keys")
 	require.NoError(t, err)
 	assert.Equal(t, "~alice/keys", a3.sshKeyPath)
 
 	// Empty stays empty (the len>1 guard inside ExpandHomedir).
-	a4, err := New(t.Context(), "")
+	a4, err := New(t.Context(), false, "")
 	require.NoError(t, err)
 	assert.Empty(t, a4.sshKeyPath)
 }
 
 func TestInitialized(t *testing.T) {
 	ctx := t.Context()
-	a, err := New(ctx, "")
+	a, err := New(ctx, false, "")
 	require.NoError(t, err)
 	assert.NotNil(t, a)
 
@@ -134,7 +134,7 @@ func TestInitialized(t *testing.T) {
 
 func TestName(t *testing.T) {
 	ctx := t.Context()
-	a, err := New(ctx, "")
+	a, err := New(ctx, false, "")
 	require.NoError(t, err)
 	assert.NotNil(t, a)
 
@@ -144,7 +144,7 @@ func TestName(t *testing.T) {
 
 func TestVersion(t *testing.T) {
 	ctx := t.Context()
-	a, err := New(ctx, "")
+	a, err := New(ctx, false, "")
 	require.NoError(t, err)
 	assert.NotNil(t, a)
 
@@ -155,7 +155,7 @@ func TestVersion(t *testing.T) {
 
 func TestExt(t *testing.T) {
 	ctx := t.Context()
-	a, err := New(ctx, "")
+	a, err := New(ctx, false, "")
 	require.NoError(t, err)
 	assert.NotNil(t, a)
 
@@ -165,7 +165,7 @@ func TestExt(t *testing.T) {
 
 func TestIDFile(t *testing.T) {
 	ctx := t.Context()
-	a, err := New(ctx, "")
+	a, err := New(ctx, false, "")
 	require.NoError(t, err)
 	assert.NotNil(t, a)
 
@@ -175,7 +175,7 @@ func TestIDFile(t *testing.T) {
 
 func TestConcurrency(t *testing.T) {
 	ctx := t.Context()
-	a, err := New(ctx, "")
+	a, err := New(ctx, false, "")
 	require.NoError(t, err)
 	assert.NotNil(t, a)
 

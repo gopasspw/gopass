@@ -119,7 +119,7 @@ func newTestAge(t *testing.T) *Age {
 	td := t.TempDir()
 	t.Setenv("GOPASS_HOMEDIR", td)
 	ctx := t.Context()
-	a, err := New(ctx, "")
+	a, err := New(ctx, false, "")
 	require.NoError(t, err)
 	// Override the identity path to a known temp location.
 	a.identity = filepath.Join(td, "age", "identities")

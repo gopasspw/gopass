@@ -41,7 +41,7 @@ func TestGetSSHIdentitiesCustomSshKeyPathTilde(t *testing.T) {
 		sshCacheMu.Unlock()
 	})
 
-	a, err := New(t.Context(), "~/custom-ssh")
+	a, err := New(t.Context(), false, "~/custom-ssh")
 	require.NoError(t, err)
 
 	// Before the fix this returned ErrNoSSHDir (literal ~ is not a dir). After

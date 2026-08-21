@@ -66,7 +66,7 @@ func TestNew_KeychainEnabled_KeyringUnavailable_WarnsUser(t *testing.T) {
 	require.NoError(t, cfg.Set("", "age.usekeychain", "true"))
 	ctx := cfg.WithConfig(t.Context())
 
-	a, err := New(ctx, "")
+	a, err := New(ctx, false, "")
 	require.NoError(t, err)
 	require.NotNil(t, a)
 
