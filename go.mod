@@ -10,7 +10,7 @@ require (
 	github.com/cenkalti/backoff/v4 v4.3.0
 	github.com/dustin/go-humanize v1.0.1
 	github.com/ergochat/readline v0.1.3
-	github.com/fatih/color v1.18.0
+	github.com/fatih/color v1.19.0
 	github.com/godbus/dbus/v5 v5.2.2
 	github.com/gokyle/twofactor v1.0.1
 	github.com/google/go-cmp v0.7.0
@@ -24,9 +24,9 @@ require (
 	github.com/kbinani/screenshot v0.0.0-20250624051815-089614a94018
 	github.com/makiuchi-d/gozxing v0.1.1
 	github.com/martinhoefling/goxkcdpwgen v0.1.2-0.20231122080842-e51aa57005ca
-	github.com/mattn/go-colorable v0.1.14
-	github.com/mattn/go-isatty v0.0.20
-	github.com/mattn/go-tty v0.0.7
+	github.com/mattn/go-colorable v0.1.15
+	github.com/mattn/go-isatty v0.0.24
+	github.com/mattn/go-tty v0.0.8
 	github.com/mitchellh/go-ps v1.0.0
 	github.com/muesli/crunchy v0.4.0
 	github.com/noborus/ov v0.45.1
