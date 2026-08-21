@@ -24,54 +24,54 @@ var (
 	}
 )
 
-// DetectName tries to guess the name of the logged in user.
-// It checks the context, the command line flags, environment variables,
-// and the git config.
+// DetectName tries to get the name of the user by checking
+// (1) context, (2) command line flag, (3) GIT_AUTHOR_NAME,
+// (4) git config, (5) DEBFULLNAME, and (6) USER.
 func DetectName(ctx context.Context, cmd *cli.Command) string {
-	cand := make([]string, 0, 10)
-	cand = append(cand, ctxutil.GetUsername(ctx))
-
-	if cmd != nil {
-		cand = append(cand, cmd.String("name"))
+	if n := ctxutil.GetUsername(ctx); n != "" {
+		return n
+	}
+	if cmd != nil && cmd.String("name") != "" {
+		return cmd.String("name")
 	}
 
-	for _, k := range NameVars {
-		cand = append(cand, os.Getenv(k))
-	}
+	for _, envVar := range NameVars {
+		if n := os.Getenv(envVar); n != "" {
+			return n
+		}
 
-	cfg := gitconfig.New().LoadAll(GetWorkdir(ctx))
-	cand = append(cand, cfg.Get("user.name"))
-
-	for _, e := range cand {
-		if e != "" {
-			return e
+		// Check git config right after GIT_AUTHOR_NAME env var
+		if envVar == "GIT_AUTHOR_NAME" {
+			if n := gitconfig.New().LoadAll(GetWorkdir(ctx)).Get("user.name"); n != "" {
+				return n
+			}
 		}
 	}
 
 	return ""
 }
 
-// DetectEmail tries to guess the email of the logged in user.
-// It checks the context, the command line flags, environment variables,
-// and the git config.
+// DetectEmail tries to get the email of the user by checking
+// (1) context, (2) command line flag, (3) GIT_AUTHOR_EMAIL,
+// (4) git config, (5) DEBEMAIL, and (6) EMAIL.
 func DetectEmail(ctx context.Context, cmd *cli.Command) string {
-	cand := make([]string, 0, 10)
-	cand = append(cand, ctxutil.GetEmail(ctx))
-
-	if cmd != nil {
-		cand = append(cand, cmd.String("email"))
+	if e := ctxutil.GetEmail(ctx); e != "" {
+		return e
+	}
+	if cmd != nil && cmd.String("email") != "" {
+		return cmd.String("email")
 	}
 
-	for _, k := range EmailVars {
-		cand = append(cand, os.Getenv(k))
-	}
-
-	cfg := gitconfig.New().LoadAll(GetWorkdir(ctx))
-	cand = append(cand, cfg.Get("user.email"))
-
-	for _, e := range cand {
-		if e != "" {
+	for _, envVar := range EmailVars {
+		if e := os.Getenv(envVar); e != "" {
 			return e
+		}
+
+		// Check git config right after GIT_AUTHOR_EMAIL env var
+		if envVar == "GIT_AUTHOR_EMAIL" {
+			if e := gitconfig.New().LoadAll(GetWorkdir(ctx)).Get("user.email"); e != "" {
+				return e
+			}
 		}
 	}
 
