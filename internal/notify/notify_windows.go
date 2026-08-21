@@ -20,7 +20,8 @@ func Notify(ctx context.Context, subj, msg string) error {
 		return err
 	}
 
-	return exec.Command(winmsg,
+	return exec.Command(
+		winmsg,
 		"*",
 		"/TIME:3",
 		subj+"\n\n"+msg,

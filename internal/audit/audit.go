@@ -126,6 +126,12 @@ func (a *Auditor) Batch(ctx context.Context, secrets []string) (*Report, error) 
 	// Spawn workers that run the auditing of all secrets concurrently.
 	debug.Log("launching %d audit workers", maxJobs)
 
+	bar := termio.NewProgressBar(int64(len(secrets)))
+	bar.Hidden = ctxutil.IsHidden(ctx)
+	a.pcb = func() {
+		bar.Inc()
+	}
+
 	done := make(chan struct{}, maxJobs)
 	for range maxJobs {
 		go a.audit(ctx, pending, done)
@@ -137,12 +143,6 @@ func (a *Auditor) Batch(ctx context.Context, secrets []string) (*Report, error) 
 		}
 		close(pending)
 	}()
-
-	bar := termio.NewProgressBar(int64(len(secrets)))
-	bar.Hidden = ctxutil.IsHidden(ctx)
-	a.pcb = func() {
-		bar.Inc()
-	}
 
 	for range maxJobs {
 		<-done

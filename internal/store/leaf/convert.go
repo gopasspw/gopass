@@ -117,7 +117,8 @@ func (s *Store) Convert(ctx context.Context, cryptoBe backend.CryptoBackend, sto
 				continue
 			}
 
-			msg := fmt.Sprintf("%s\n%s\nCommitted as: %s\nDate: %s\nAuthor: %s <%s>",
+			msg := fmt.Sprintf(
+				"%s\n%s\nCommitted as: %s\nDate: %s\nAuthor: %s <%s>",
 				r.Subject,
 				r.Body,
 				r.Hash,

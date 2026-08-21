@@ -11,13 +11,13 @@ require (
 	github.com/dustin/go-humanize v1.0.1
 	github.com/ergochat/readline v0.1.3
 	github.com/fatih/color v1.18.0
-	github.com/godbus/dbus/v5 v5.1.0
+	github.com/godbus/dbus/v5 v5.2.2
 	github.com/gokyle/twofactor v1.0.1
 	github.com/google/go-cmp v0.7.0
 	github.com/google/go-github/v61 v61.0.0
 	github.com/gopasspw/clipboard v0.0.5-0.20260524141134-6b387ae5aa1a
 	github.com/gopasspw/gitconfig v0.0.4
-	github.com/gopasspw/gopass-hibp v1.15.18
+	github.com/gopasspw/gopass-hibp v1.16.1
 	github.com/hashicorp/golang-lru/v2 v2.0.7
 	github.com/jsimonetti/pwscheme v0.0.0-20220922140336-67a4d090f150
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51
@@ -33,20 +33,20 @@ require (
 	github.com/pquerna/otp v1.5.0
 	github.com/schollz/closestmatch v0.0.0-20190308193919-1fbe626be92e
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
-	github.com/stretchr/testify v1.11.1
-	github.com/twpayne/go-pinentry/v4 v4.0.0
-	github.com/urfave/cli/v3 v3.9.0
+	github.com/stretchr/testify v1.12.0
+	github.com/twpayne/go-pinentry/v4 v4.0.1
+	github.com/urfave/cli/v3 v3.10.1
 	github.com/xhit/go-str2duration/v2 v2.1.0
 	github.com/zalando/go-keyring v0.2.6
 	github.com/zeebo/blake3 v0.2.4
-	go.yaml.in/yaml/v3 v3.0.4
-	golang.org/x/crypto v0.52.0
-	golang.org/x/mod v0.35.0
-	golang.org/x/net v0.54.0
-	golang.org/x/oauth2 v0.33.0
-	golang.org/x/sys v0.45.0
-	golang.org/x/term v0.43.0
-	golang.org/x/tools v0.44.0
+	go.yaml.in/yaml/v3 v3.0.5
+	golang.org/x/crypto v0.55.0
+	golang.org/x/mod v0.38.0
+	golang.org/x/net v0.57.0
+	golang.org/x/oauth2 v0.36.0
+	golang.org/x/sys v0.47.0
+	golang.org/x/term v0.45.0
+  golang.org/x/tools v0.44.0
 )
 
 require (
@@ -62,7 +62,6 @@ require (
 	github.com/cloudflare/circl v1.6.3 // indirect
 	github.com/creack/pty v1.1.24 // indirect
 	github.com/danieljoos/wincred v1.2.3 // indirect
-	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
 	github.com/gdamore/encoding v1.0.1 // indirect
 	github.com/gdamore/tcell/v2 v2.9.0 // indirect
@@ -85,7 +84,6 @@ require (
 	github.com/pelletier/go-toml/v2 v2.2.4 // indirect
 	github.com/pierrec/lz4/v4 v4.1.22 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
-	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/sagikazarmark/locafero v0.12.0 // indirect
 	github.com/spf13/afero v1.15.0 // indirect
@@ -95,8 +93,8 @@ require (
 	github.com/subosito/gotenv v1.6.0 // indirect
 	github.com/ulikunitz/xz v0.5.15 // indirect
 	github.com/xrash/smetrics v0.0.0-20250705151800-55b8f293f342 // indirect
-	golang.org/x/sync v0.20.0 // indirect
-	golang.org/x/text v0.37.0 // indirect
+	golang.org/x/sync v0.22.0 // indirect
+	golang.org/x/text v0.41.0 // indirect
 	golang.org/x/xerrors v0.0.0-20240903120638-7835f813f4da // indirect
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
