@@ -14,7 +14,6 @@ import (
 	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
-	"github.com/gopasspw/gopass/pkg/termio"
 	"github.com/gopasspw/gopass/tests/gptest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -121,10 +120,9 @@ func TestCloneBackendIsStoredForMount(t *testing.T) {
 func TestCloneGetGitConfig(t *testing.T) {
 	u := gptest.NewUnitTester(t)
 
-	r1 := gptest.UnsetVars(termio.NameVars...)
-	defer r1()
-	r2 := gptest.UnsetVars(termio.EmailVars...)
-	defer r2()
+	for _, k := range []string{"GIT_AUTHOR_NAME", "GIT_AUTHOR_EMAIL", "DEBFULLNAME", "DEBEMAIL", "USER", "EMAIL"} {
+		t.Setenv(k, "")
+	}
 
 	ctx := config.NewContextInMemory()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)

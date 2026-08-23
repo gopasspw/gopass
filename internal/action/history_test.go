@@ -10,7 +10,6 @@ import (
 	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
-	"github.com/gopasspw/gopass/pkg/termio"
 	"github.com/gopasspw/gopass/tests/gptest"
 	"github.com/stretchr/testify/require"
 )
@@ -18,10 +17,11 @@ import (
 func TestHistory(t *testing.T) {
 	u := gptest.NewUnitTester(t)
 
-	r1 := gptest.UnsetVars(termio.NameVars...)
-	r2 := gptest.UnsetVars(termio.EmailVars...)
-	defer r1()
-	defer r2()
+	for _, k := range []string{"DEBFULLNAME", "DEBEMAIL", "USER", "EMAIL"} {
+		t.Setenv(k, "")
+	}
+	t.Setenv("GIT_AUTHOR_NAME", "foo bar")
+	t.Setenv("GIT_AUTHOR_EMAIL", "foo.bar@example.org")
 
 	ctx := config.NewContextInMemory()
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
