@@ -88,7 +88,7 @@ func TestEncryptNoLocalIdentity(t *testing.T) {
 
 	// encrypting for a recipient we do not have an identity for must fail ...
 	_, err = a.Encrypt(ctx, []byte("foobar"), []string{i2.Recipient().String()})
-	assert.ErrorIs(t, err, ErrNoLocalIdentity)
+	assert.ErrorIs(t, err, ErrNoLocalIdentity) //nolint:testifylint
 
 	// ... unless forced.
 	ctx = ctxutil.WithForce(ctx, true)
