@@ -1,6 +1,7 @@
 package age
 
 import (
+	"context"
 	"crypto/ed25519"
 	"fmt"
 	"sort"
@@ -8,6 +9,7 @@ import (
 
 	"filippo.io/age"
 	"filippo.io/age/agessh"
+	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/crypto/ssh"
@@ -50,4 +52,51 @@ func (r Recipients) Swap(i, j int) {
 
 func (r Recipients) Less(i, j int) bool {
 	return fmt.Sprintf("%s", r[i]) < fmt.Sprintf("%s", r[j])
+}
+
+func TestHasAnyRecipient(t *testing.T) {
+	t.Parallel()
+
+	i1, err := age.GenerateX25519Identity()
+	require.NoError(t, err)
+	i2, err := age.GenerateX25519Identity()
+	require.NoError(t, err)
+
+	// no local identities -> nothing to check, must not block.
+	assert.True(t, hasAnyRecipient(nil, nil))
+
+	// local identity is among the recipients.
+	assert.True(t, hasAnyRecipient([]age.Recipient{i1.Recipient()}, []age.Recipient{i1.Recipient()}))
+
+	// local identity is NOT among the recipients.
+	assert.False(t, hasAnyRecipient([]age.Recipient{i2.Recipient()}, []age.Recipient{i1.Recipient()}))
+
+	// no recipients at all, but local identities exist.
+	assert.False(t, hasAnyRecipient(nil, []age.Recipient{i1.Recipient()}))
+}
+
+func TestEncryptNoLocalIdentity(t *testing.T) {
+	ctx := context.Background()
+
+	i1, err := age.GenerateX25519Identity()
+	require.NoError(t, err)
+	i2, err := age.GenerateX25519Identity()
+	require.NoError(t, err)
+
+	a := newTestAge(t)
+	require.NoError(t, a.addIdentity(ctx, i1))
+
+	// encrypting for a recipient we do not have an identity for must fail ...
+	_, err = a.Encrypt(ctx, []byte("foobar"), []string{i2.Recipient().String()})
+	assert.ErrorIs(t, err, ErrNoLocalIdentity)
+
+	// ... unless forced.
+	ctx = ctxutil.WithForce(ctx, true)
+	_, err = a.Encrypt(ctx, []byte("foobar"), []string{i2.Recipient().String()})
+	require.NoError(t, err)
+
+	// encrypting for our own recipient must succeed without force.
+	ctx = context.Background()
+	_, err = a.Encrypt(ctx, []byte("foobar"), []string{i1.Recipient().String()})
+	require.NoError(t, err)
 }

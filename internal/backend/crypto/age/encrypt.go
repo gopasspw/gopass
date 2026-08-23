@@ -3,21 +3,24 @@ package age
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"slices"
 
 	"filippo.io/age"
+	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/debug"
 )
 
+// ErrNoLocalIdentity is returned when none of the local identities is among
+// the effective recipients of a store. Encrypting in that situation would
+// create a secret the local user cannot decrypt, so we refuse to do so
+// unless the force flag is set.
+var ErrNoLocalIdentity = errors.New("none of the local age identities is among the recipients of this store; you would not be able to decrypt this secret. Use --force to encrypt anyway")
+
 // Encrypt will encrypt the given payload.
 func (a *Age) Encrypt(ctx context.Context, plaintext []byte, recipients []string) ([]byte, error) {
-	// add our own public keys to the recipients to ensure we can decrypt it later.
-	idRecps, err := a.IdentityRecipients(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("failed to fetch identity recipients for encryption: %w", err)
-	}
 	// parse the most specific recipients file and add it to the final
 	// recipients, too.
 	recp, err := a.parseRecipients(ctx, recipients)
@@ -25,10 +28,48 @@ func (a *Age) Encrypt(ctx context.Context, plaintext []byte, recipients []string
 		return nil, fmt.Errorf("failed to parse recipients file for encryption: %w", err)
 	}
 
+	// fetch the recipients of our own identities. These are NOT added to the
+	// recipients (see https://github.com/gopasspw/gopass/issues/3392), we only
+	// use them to check that we will be able to decrypt the secret later.
+	idRecps, err := a.IdentityRecipients(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch identity recipients for encryption: %w", err)
+	}
+
+	if !ctxutil.IsForce(ctx) && !hasAnyRecipient(recp, idRecps) {
+		return nil, ErrNoLocalIdentity
+	}
+
 	// dedupe also order recipients so that native ones are first
-	recp = dedupe(append(recp, idRecps...))
+	recp = dedupe(recp)
 
 	return a.encrypt(plaintext, recp...)
+}
+
+// hasAnyRecipient returns true if any of the local identity recipients is
+// already among the effective recipients.
+func hasAnyRecipient(recp, idRecps []age.Recipient) bool {
+	if len(idRecps) < 1 {
+		// no local identities, nothing to check.
+		return true
+	}
+
+	effective := make(map[string]struct{}, len(recp))
+	for _, r := range recp {
+		if s, ok := r.(fmt.Stringer); ok {
+			effective[s.String()] = struct{}{}
+		}
+	}
+
+	for _, r := range idRecps {
+		if s, ok := r.(fmt.Stringer); ok {
+			if _, found := effective[s.String()]; found {
+				return true
+			}
+		}
+	}
+
+	return false
 }
 
 // dedupe the recipients, only works for native age recipients.
