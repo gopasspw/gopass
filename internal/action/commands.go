@@ -401,6 +401,10 @@ func (s *Action) GetCommands() []*cli.Command {
 					Usage:   "Use this editor binary",
 				},
 				&cli.BoolFlag{
+					Name:  "force",
+					Usage: "Force overwriting and encrypting even if none of your local keys is among the recipients",
+				},
+				&cli.BoolFlag{
 					Name:    "create",
 					Aliases: []string{"c"},
 					Usage:   "Create a new secret if none found",

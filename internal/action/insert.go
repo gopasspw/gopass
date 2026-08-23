@@ -27,6 +27,7 @@ func (s *secretHandler) Insert(ctx context.Context, cmd *cli.Command) error {
 	multiline := cmd.Bool("multiline")
 	force := cmd.Bool("force")
 	appending := cmd.Bool("append")
+	ctx = ctxutil.WithForce(ctx, force)
 
 	args, kvps := parseArgs(ctx, cmd)
 	name := args.Get(0)

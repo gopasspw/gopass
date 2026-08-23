@@ -25,6 +25,7 @@ import (
 func (s *secretHandler) Edit(ctx context.Context, cmd *cli.Command) error {
 	ctx = ctxutil.WithGlobalFlags(ctx, cmd)
 	ctx = ctxutil.WithFollowRef(ctx, false)
+	ctx = ctxutil.WithForce(ctx, cmd.Bool("force"))
 
 	name := cmd.Args().First()
 	if name == "" {
