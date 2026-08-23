@@ -19,11 +19,13 @@ var (
 			if cmd != nil {
 				return cmd.String("name")
 			}
+
 			return ""
 		},
 		func(ctx context.Context, cmd *cli.Command) string { return os.Getenv("GIT_AUTHOR_NAME") },
 		func(ctx context.Context, cmd *cli.Command) string {
 			cfg := gitconfig.New().LoadAll(GetWorkdir(ctx))
+
 			return cfg.Get("user.name")
 		},
 		func(ctx context.Context, cmd *cli.Command) string { return os.Getenv("DEBFULLNAME") },
@@ -35,11 +37,13 @@ var (
 			if cmd != nil {
 				return cmd.String("email")
 			}
+
 			return ""
 		},
 		func(ctx context.Context, cmd *cli.Command) string { return os.Getenv("GIT_AUTHOR_EMAIL") },
 		func(ctx context.Context, cmd *cli.Command) string {
 			cfg := gitconfig.New().LoadAll(GetWorkdir(ctx))
+
 			return cfg.Get("user.email")
 		},
 		func(ctx context.Context, cmd *cli.Command) string { return os.Getenv("DEBEMAIL") },

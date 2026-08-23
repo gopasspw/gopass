@@ -27,7 +27,7 @@ func TestDetectName(t *testing.T) {
 
 	cmd := &cli.Command{}
 	cmd.Flags = append(cmd.Flags, &cli.StringFlag{Name: "name"})
-	cmd.Set("name", "bar")
+	_ = cmd.Set("name", "bar")
 	assert.Equal(t, "bar", DetectName(ctx, cmd))
 
 	t.Setenv("GIT_AUTHOR_NAME", "Author Name")
@@ -51,7 +51,7 @@ func TestDetectEmail(t *testing.T) {
 
 	cmd := &cli.Command{}
 	cmd.Flags = append(cmd.Flags, &cli.StringFlag{Name: "email"})
-	cmd.Set("email", "bar@baz.de")
+	_ = cmd.Set("email", "bar@baz.de")
 	assert.Equal(t, "bar@baz.de", DetectEmail(ctx, cmd))
 
 	t.Setenv("GIT_AUTHOR_EMAIL", "bar@bar.bar")
