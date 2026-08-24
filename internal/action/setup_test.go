@@ -14,7 +14,71 @@ import (
 	"github.com/gopasspw/gopass/tests/gptest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/urfave/cli/v3"
 )
+
+// TestSetupTeamCreateFlagsRegistered verifies the renamed --team/--create-team
+// flags are registered on the setup command with their deprecated aliases
+// (--alias/--create), so existing scripts keep working. See GH-3497.
+func TestSetupTeamCreateFlagsRegistered(t *testing.T) {
+	u := gptest.NewUnitTester(t)
+
+	ctx := config.NewContextInMemory()
+	act, err := newMock(ctx, u.StoreDir(""))
+	require.NoError(t, err)
+	require.NotNil(t, act)
+
+	setupCmd := findCommand(act.GetCommands(), "setup")
+	require.NotNil(t, setupCmd)
+
+	var team *cli.StringFlag
+	var createTeam *cli.BoolFlag
+	for _, f := range setupCmd.Flags {
+		switch v := f.(type) {
+		case *cli.StringFlag:
+			if v.Name == "team" {
+				team = v
+			}
+		case *cli.BoolFlag:
+			if v.Name == "create-team" {
+				createTeam = v
+			}
+		}
+	}
+
+	require.NotNil(t, team)
+	assert.Contains(t, team.Aliases, "alias")
+
+	require.NotNil(t, createTeam)
+	assert.Contains(t, createTeam.Aliases, "create")
+}
+
+// TestSetupCreateTeamRequiresName verifies that requesting team creation
+// without a team name fails fast with an actionable error message when
+// running non-interactively (e.g. scripted setups), instead of the old,
+// confusing "can not create a team without a team name". See GH-3497.
+func TestSetupCreateTeamRequiresName(t *testing.T) {
+	u := gptest.NewUnitTester(t)
+
+	ctx := config.NewContextInMemory()
+	ctx = ctxutil.WithAlwaysYes(ctx, true)
+	ctx = ctxutil.WithInteractive(ctx, false)
+	ctx = backend.WithCryptoBackend(ctx, backend.Age)
+	ctx = backend.WithStorageBackend(ctx, backend.GitFS)
+	ctx = ctxutil.WithAgePassphrase(ctx, "foobar")
+
+	act, err := newMock(ctx, u.StoreDir(""))
+	require.ErrorContains(t, err, "not initialized")
+	require.NotNil(t, act)
+
+	require.NoError(t, os.RemoveAll(u.StoreDir("")))
+	require.NoError(t, os.Remove(u.GPConfig()))
+
+	c := gptest.CliCtxWithFlags(ctx, t, map[string]string{"storage": "gitfs", "crypto": "age", "create-team": "true"})
+	err = act.Setup(ctx, c)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "team name")
+}
 
 func TestSetupAgeGitFS(t *testing.T) {
 	u := gptest.NewUnitTester(t) //nolint:staticcheck

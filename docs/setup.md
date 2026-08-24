@@ -477,14 +477,17 @@ In order to simplify the setup of gopass for your team members it can be run in 
 
 ```bash
 # First initialize a new shared store and push it to an empty remote
-gopass --yes setup --remote github.com/example/pass.git --alias example --create --name "John Doe" --email "john.doe@example.com"
+gopass --yes setup --remote github.com/example/pass.git --team example --create-team --name "John Doe" --email "john.doe@example.com"
 
 # For every other team member initialize a new store and clone the existing remote
-gopass --yes setup --remote github.com/example/pass.git --alias example --name "Jane Doe" --email "jane.doe@example.com"
+gopass --yes setup --remote github.com/example/pass.git --team example --name "Jane Doe" --email "jane.doe@example.com"
 ```
 
-The first command will create a new mount named `example` and push it to an empty (`--create`) remote.
+The first command will create a new mount named `example` and push it to an empty (`--create-team`) remote.
 It will fail if the remote at `github.com/example/pass.git` is not empty.
 
-The second command will clone the existing (no `--create` flag) remote `github.com/example/pass.git`
+The second command will clone the existing (no `--create-team` flag) remote `github.com/example/pass.git`
 and mount it as the mount point `example`.
+
+N.B. `--team` and `--create-team` used to be named `--alias` and `--create`. The old
+names still work as aliases, but new scripts should prefer the clearer names.

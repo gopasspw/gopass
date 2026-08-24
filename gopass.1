@@ -562,11 +562,9 @@ This command is automatically invoked if gopass is started without any existing 
 
 .B Flags
 .TP
-\fB\-\-alias\fR,
-Local mount point for the given remote
-.TP
+\fB\-\-create-team\fR,
 \fB\-\-create\fR,
-Create a new team (default: false, i.e. join an existing team)
+Create a new team instead of joining an existing one (default: false, i.e. join an existing team)
 .TP
 \fB\-\-crypto\fR,
 Select crypto backend [age gpgcli plain]
@@ -582,6 +580,10 @@ URL to a git remote, will attempt to join this team
 .TP
 \fB\-\-storage\fR,
 Select storage backend [cryptfs fossilfs fs gitfs jjfs]
+.TP
+\fB\-\-team\fR,
+\fB\-\-alias\fR,
+Name of the team to create or join (may contain slashes). Also used as the local mount point.
 .SS show
 Display the content of a secret
 
