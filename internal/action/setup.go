@@ -27,8 +27,8 @@ import (
 func (s *setupHandler) Setup(ctx context.Context, cmd *cli.Command) error {
 	ctx = ctxutil.WithGlobalFlags(ctx, cmd)
 	remote := cmd.String("remote")
-	team := cmd.String("alias")
-	create := cmd.Bool("create")
+	team := cmd.String("team")
+	create := cmd.Bool("create-team")
 
 	ctx, err := initParseContext(ctx, cmd)
 	if err != nil {
@@ -90,38 +90,37 @@ func (s *setupHandler) Setup(ctx context.Context, cmd *cli.Command) error {
 		return fmt.Errorf("failed to check private keys: %w", err)
 	}
 
-	// if a git remote is given, clone it and exit
-	if remote != "" && team == "" {
+	switch {
+	case create:
+		// interactive runs fall through to initCreateTeam, which prompts for
+		// a missing team name; non-interactive/unattended runs must fail fast.
+		if team == "" && (!ctxutil.IsInteractive(ctx) || ctxutil.IsAlwaysYes(ctx)) {
+			return fmt.Errorf("can not create a team without a team name; use --team to provide one, or run interactively to be prompted")
+		}
+
+		return s.initCreateTeam(ctx, team, remote)
+	case remote != "" && team != "":
+		// a git remote and a team name are given, attempt unattended team join.
+		return s.initJoinTeam(ctx, team, remote)
+	case remote != "" && team == "":
+		// only a git remote is given, clone it and exit.
 		if err := s.clone(ctx, remote, "", ""); err != nil {
 			return fmt.Errorf("failed to clone remote %q: %w", remote, err)
 		}
 
 		return nil
-	}
+	default:
+		// assume local setup by default, remotes can be added easily later.
+		if err := s.initLocal(ctx, remote); err != nil {
+			debug.Log("Setup failed. initLocal error: %s", err)
 
-	// if a git remote and a team name are given attempt unattended team setup.
-	if remote != "" && team != "" {
-		if create {
-			return s.initCreateTeam(ctx, team, remote)
+			return err
 		}
 
-		return s.initJoinTeam(ctx, team, remote)
+		debug.Log("Setup finished. All systems go. 🚀")
+
+		return nil
 	}
-
-	if team == "" && create {
-		return fmt.Errorf("can not create a team without a team name")
-	}
-
-	// assume local setup by default, remotes can be added easily later.
-	if err := s.initLocal(ctx, remote); err != nil {
-		debug.Log("Setup failed. initLocal error: %s", err)
-
-		return err
-	}
-
-	debug.Log("Setup finished. All systems go. 🚀")
-
-	return nil
 }
 
 func (s *setupHandler) initCheckPrivateKeys(ctx context.Context, crypto backend.Crypto) error {

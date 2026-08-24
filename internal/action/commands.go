@@ -1192,12 +1192,14 @@ func (s *Action) GetCommands() []*cli.Command {
 					Usage: "URL to a git remote, will attempt to join this team",
 				},
 				&cli.StringFlag{
-					Name:  "alias",
-					Usage: "Local mount point for the given remote",
+					Name:    "team",
+					Aliases: []string{"alias"}, // deprecated, kept for backward compatibility
+					Usage:   "Name of the team to create or join (may contain slashes). Also used as the local mount point.",
 				},
 				&cli.BoolFlag{
-					Name:  "create",
-					Usage: "Create a new team (default: false, i.e. join an existing team)",
+					Name:    "create-team",
+					Aliases: []string{"create"}, // deprecated, kept for backward compatibility
+					Usage:   "Create a new team instead of joining an existing one (default: false, i.e. join an existing team)",
 				},
 				&cli.StringFlag{
 					Name:  "name",
