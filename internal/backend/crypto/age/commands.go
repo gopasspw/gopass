@@ -374,6 +374,72 @@ func (l loader) Commands() []*cli.Command {
 								return a.saveIdentities(ctx, newIds, false)
 							},
 						},
+						{
+							Name:  "sort",
+							Usage: "Configure the preferred order of age identities for decryption",
+							Description: "" +
+								"Interactively configure the order in which your age identities are tried for decryption.\n" +
+								"The order is persisted in the age.identities config option and used to deterministically\n" +
+								"sort your identities before handing them to age (see issue #3393).",
+							Action: func(ctx context.Context, cmd *cli.Command) error {
+								ctx = ctxutil.WithGlobalFlags(ctx, cmd)
+								loadSSHKeys := config.Bool(ctx, "age.sshkeys")
+								if bv := cmd.Bool("age-sshkeys"); bv {
+									loadSSHKeys = bv
+								}
+								sshKeyPath := config.String(ctx, "age.ssh-key-path")
+								if sv := cmd.String("age-ssh-key-path"); sv != "" {
+									sshKeyPath = sv
+								}
+								a, err := New(ctx, loadSSHKeys, sshKeyPath)
+								if err != nil {
+									return exit.Error(exit.Unknown, err, "failed to create age backend")
+								}
+
+								ids, err := a.getAllIdentities(ctx)
+								if err != nil {
+									return exit.Error(exit.Unknown, err, "failed to get age identities: %s", err)
+								}
+
+								if len(ids) < 1 {
+									out.Notice(ctx, "No identities found")
+
+									return nil
+								}
+
+								// present the identities in their current effective order.
+								// Only public recipient strings are shown and stored, never
+								// secret key material.
+								ordered := orderedIdentities(ctx, ids)
+								items := make([]string, 0, len(ordered))
+								for _, id := range ordered {
+									if r := recipientOf(id); r != "" {
+										items = append(items, r)
+									} else {
+										items = append(items, fmt.Sprintf("%T", id))
+									}
+								}
+
+								sorted, res, err := termio.SortList(ctx, "Preferred order of age identities (tried top to bottom for decryption):", items)
+								if err != nil {
+									return exit.Error(exit.Unknown, err, "failed to sort identities: %s", err)
+								}
+								if res != termio.SortListSaved {
+									out.Notice(ctx, "Aborted, no changes saved")
+
+									return nil
+								}
+
+								cfg, _ := config.FromContext(ctx)
+								if err := cfg.Set("", "age.identities", strings.Join(sorted, ",")); err != nil {
+									return exit.Error(exit.Unknown, err, "failed to save config: %s", err)
+								}
+
+								out.Notice(ctx, "Saved preferred identity order to age.identities (recipients only, no secret key material)")
+
+								return nil
+							},
+						},
 					},
 				},
 				{

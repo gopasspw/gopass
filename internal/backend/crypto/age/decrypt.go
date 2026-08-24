@@ -129,10 +129,9 @@ func (a *Age) getAllIds(ctx context.Context) ([]age.Identity, error) {
 	if err != nil {
 		return nil, err
 	}
-	idl := make([]age.Identity, 0, len(ids))
-	for _, id := range ids {
-		idl = append(idl, id)
-	}
 
-	return idl, nil
+	// Go map iteration is randomized, so we need to establish a stable
+	// and user-controllable order before handing the identities to age
+	// (see https://github.com/gopasspw/gopass/issues/3393).
+	return orderedIdentities(ctx, ids), nil
 }
