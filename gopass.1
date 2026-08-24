@@ -256,11 +256,11 @@ Limit fsck to this mount point
 .SS fscopy
 Copy files from or to the password store
 
-This command either reads a file from the filesystem and writes the encoded and encrypted version in the store or it decrypts and decodes a secret and writes the result to a file. Either source or destination must be a file and the other one a secret. If you want the source to be securely removed after copying, use 'gopass binary move'
+This command either reads a file from the filesystem and writes the encoded and encrypted version in the store or it decrypts and decodes a secret and writes the result to a file. Either source or destination must be a file and the other one a secret. If you want the source to be securely removed after copying, use 'gopass fsmove'
 .SS fsmove
 Move files from or to the password store
 
-This command either reads a file from the filesystem and writes the encoded and encrypted version in the store or it decrypts and decodes a secret and writes the result to a file. Either source or destination must be a file and the other one a secret. The source will be wiped from disk or from the store after it has been copied successfully and validated. If you don't want the source to be removed use 'gopass binary copy'
+This command either reads a file from the filesystem and writes the encoded and encrypted version in the store or it decrypts and decodes a secret and writes the result to a file. Either source or destination must be a file and the other one a secret. The source will be wiped from disk or from the store after it has been copied successfully and validated. If you don't want the source to be removed use 'gopass fscopy'
 .SS generate
 Generate a new password
 
