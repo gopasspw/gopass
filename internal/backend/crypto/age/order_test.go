@@ -42,13 +42,16 @@ func TestOrderedIdentities(t *testing.T) {
 	assert.Equal(t, id2, got[0], "preferred identity must be tried first")
 	assert.Equal(t, id1, got[1])
 
-	// secret key material must never be matched or required
+	// secret key material must never be matched: a config entry containing
+	// the secret identity encoding must not influence the ordering at all,
+	// i.e. the result must be identical to the no-preference baseline.
+	baseline := orderedIdentities(config.NewContextInMemory(), ids)
 	ctx = config.NewInMemory().WithConfig(context.Background())
 	cfg, _ = config.FromContext(ctx)
 	require.NoError(t, cfg.SetEnv("age.identities", id2.String()))
 	got = orderedIdentities(ctx, ids)
 	require.Len(t, got, 2)
-	assert.NotEqual(t, id2, got[0], "secret identity encodings must not be matched")
+	assert.Equal(t, baseline, got, "secret identity encodings must not be matched")
 
 	// unknown entries in the preference list are ignored
 	ctx = config.NewInMemory().WithConfig(context.Background())
