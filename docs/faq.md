@@ -18,7 +18,7 @@ If the key you're trying to add is already in your keyring you may need to trust
 
 ## How can gopass handle binary data?
 
-gopass is designed not to change the content of the secrets in any way except that it will add a final newline at the end of the secret if it does not have one already and the output is going to a terminal. This means that the output may mess up your terminal if it's not only text. In this case you should either encode the secret to text (e.g. base64) before inserting or use the special `gopass binary` sub-command that does that for you.
+gopass is designed not to change the content of the secrets in any way except that it will add a final newline at the end of the secret if it does not have one already and the output is going to a terminal. This means that the output may mess up your terminal if it's not only text. In this case you should either encode the secret to text (e.g. base64) before inserting or use `gopass cat`, which encodes binary data from stdin and decodes it to stdout. For copying or moving files directly, use `gopass fscopy` or `gopass fsmove`.
 
 ## Why does gopass delete my whole KDE klipper history?
 
