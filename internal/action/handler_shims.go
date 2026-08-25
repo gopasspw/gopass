@@ -81,6 +81,10 @@ func (s *Action) FindFuzzy(ctx context.Context, cmd *cli.Command) error {
 	return s.search.FindFuzzy(ctx, cmd)
 }
 
+func (s *Action) Export(ctx context.Context, cmd *cli.Command) error {
+	return s.search.Export(ctx, cmd)
+}
+
 func (s *Action) Grep(ctx context.Context, cmd *cli.Command) error { return s.search.Grep(ctx, cmd) }
 
 func (s *Action) List(ctx context.Context, cmd *cli.Command) error { return s.search.List(ctx, cmd) }

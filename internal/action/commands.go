@@ -454,6 +454,27 @@ func (s *Action) GetCommands() []*cli.Command {
 			},
 		},
 		{
+			Name:      "export",
+			Usage:     "Export secrets to a portable JSON format",
+			ArgsUsage: "[prefix]...",
+			Description: "" +
+				"This command exports secrets to a portable JSON document that can be " +
+				"transformed for import into another password manager. Provide one or " +
+				"more folder prefixes to export only those subfolders, otherwise the " +
+				"whole store is exported. The output contains unencrypted secrets, so " +
+				"handle it with care.",
+			Before:        s.IsInitialized,
+			Action:        s.Export,
+			ShellComplete: s.Complete,
+			Flags: []cli.Flag{
+				&cli.StringFlag{
+					Name:    "out",
+					Aliases: []string{"o"},
+					Usage:   "Write the export to this file instead of stdout",
+				},
+			},
+		},
+		{
 			Name:      "find",
 			Usage:     "Search for secrets",
 			ArgsUsage: "<pattern>",
