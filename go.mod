@@ -31,7 +31,7 @@ require (
 	github.com/muesli/crunchy v0.4.0
 	github.com/noborus/ov v0.54.0
 	github.com/pquerna/otp v1.5.0
-	github.com/schollz/closestmatch v0.0.0-20190308193919-1fbe626be92e
+	github.com/schollz/closestmatch v2.1.0+incompatible
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
 	github.com/stretchr/testify v1.12.1
 	github.com/twpayne/go-pinentry/v4 v4.0.1
