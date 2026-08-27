@@ -150,6 +150,7 @@ func parseColonIdentity(fields []string) gpg.Identity {
 
 	id := fields[9]
 	ni := gpg.Identity{
+		UID:            id,
 		Name:           id,
 		CreationDate:   parseTS(fields[5]),
 		ExpirationDate: parseTS(fields[6]),

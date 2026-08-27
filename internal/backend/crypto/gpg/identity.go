@@ -4,6 +4,7 @@ import "time"
 
 // Identity is a GPG identity, one key can have many IDs.
 type Identity struct {
+	UID            string
 	Name           string
 	Comment        string
 	Email          string
