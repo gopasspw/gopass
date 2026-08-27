@@ -11,6 +11,7 @@ For the full team workflow reference, see
 
 ```
 $ gopass recipients
+$ gopass recipients list [prefix]
 $ gopass recipients add [--store=<store>] <recipient-id>...
 $ gopass recipients remove [--store=<store>] <recipient-id>...
 $ gopass recipients update [--store=<store>] [<recipient-id>...]
@@ -20,9 +21,12 @@ $ gopass recipients ack [--store=<store>]
 
 ## Subcommands
 
-### `recipients list` (default — no subcommand)
+### `recipients list`
 
-Lists all existing recipients for every mounted store.
+Lists existing recipients. An optional prefix limits the output to that
+recipient subtree, for example `gopass recipients list path/to/subtree`.
+
+Running `gopass recipients` without a subcommand lists all recipients.
 
 ### `recipients add` (aliases: `authorize`)
 

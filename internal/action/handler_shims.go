@@ -131,6 +131,10 @@ func (s *Action) RecipientsPrint(ctx context.Context, cmd *cli.Command) error {
 	return s.recipients.RecipientsPrint(ctx, cmd)
 }
 
+func (s *Action) RecipientsList(ctx context.Context, cmd *cli.Command) error {
+	return s.recipients.RecipientsList(ctx, cmd)
+}
+
 func (s *Action) RecipientsComplete(ctx context.Context, cmd *cli.Command) {
 	s.recipients.RecipientsComplete(ctx, cmd)
 }
