@@ -151,7 +151,7 @@ type completionSpec int
 // nested command invocation. This prevents infinite loops as the nested
 // invocation would otherwise inherit the command currently being executed.
 type replContext struct {
-	context.Context
+	context.Context //nolint:containedctx
 }
 
 func (c replContext) Value(key any) any {
