@@ -86,7 +86,7 @@ READ:
 		default:
 		}
 
-		if err := cmd.Root().Run(ctx, append([]string{"gopass"}, args...)); err != nil {
+		if err := cmd.Root().Run(replContext{Context: ctx}, append([]string{"gopass"}, args...)); err != nil {
 			continue
 		}
 	}
@@ -146,6 +146,21 @@ func unescapeEntry(s string) string {
 
 // completionSpec describes what candidates a command should complete against.
 type completionSpec int
+
+// replContext filters out urfave/cli's private active-command value from a
+// nested command invocation. This prevents infinite loops as the nested
+// invocation would otherwise inherit the command currently being executed.
+type replContext struct {
+	context.Context
+}
+
+func (c replContext) Value(key any) any {
+	if fmt.Sprint(key) == "cli.context" {
+		return nil
+	}
+
+	return c.Context.Value(key)
+}
 
 const (
 	completeNone       completionSpec = iota
