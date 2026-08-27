@@ -10,6 +10,16 @@ func (a *Age) FormatKey(ctx context.Context, id, tpl string) string {
 	return id
 }
 
+// FormatKeys returns the IDs.
+func (a *Age) FormatKeys(ctx context.Context, ids []string) map[string]string {
+	formatted := make(map[string]string, len(ids))
+	for _, id := range ids {
+		formatted[id] = id
+	}
+
+	return formatted
+}
+
 // Fingerprint returns the id.
 func (a *Age) Fingerprint(ctx context.Context, id string) string {
 	return id

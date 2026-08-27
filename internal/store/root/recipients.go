@@ -69,6 +69,39 @@ func (r *Store) addRecipient(ctx context.Context, prefix string, root *tree.Root
 	return root.AddFile(prefix+key, "gopass/recipient")
 }
 
+func (r *Store) addRecipients(ctx context.Context, prefix string, root *tree.Root, recps []string, pretty bool) error {
+	if !pretty {
+		for _, recp := range recps {
+			if err := r.addRecipient(ctx, prefix, root, recp, false); err != nil {
+				return err
+			}
+		}
+
+		return nil
+	}
+
+	sub, _ := r.getStore(prefix)
+	formatted := sub.Crypto().FormatKeys(ctx, recps)
+	for _, recp := range recps {
+		key := formatted[recp]
+		if key == "" {
+			if err := r.addRecipient(ctx, prefix, root, recp, true); err != nil {
+				return err
+			}
+			continue
+		}
+		if !strings.HasPrefix(key, recp) {
+			key = recp + " => " + key
+		}
+		key = strings.ReplaceAll(key, "/", "")
+		if err := root.AddFile(prefix+key, "gopass/recipient"); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 // ImportMissingPublicKeys import missing public keys in any substore.
 func (r *Store) ImportMissingPublicKeys(ctx context.Context) error {
 	for alias, sub := range r.mounts {
@@ -103,10 +136,8 @@ func (r *Store) RecipientsTree(ctx context.Context, pretty bool) (*tree.Root, er
 
 		debug.Log("Store/Secret: %q -> Recipients: %v", name, recps)
 
-		for _, recp := range recps {
-			if err := r.addRecipient(ctx, name, root, recp, pretty); err != nil {
-				color.Yellow("Failed to add recipient to tree %s: %s", recp, err)
-			}
+		if err := r.addRecipients(ctx, name, root, recps, pretty); err != nil {
+			color.Yellow("Failed to add recipients to tree: %s", err)
 		}
 	}
 
@@ -130,10 +161,8 @@ func (r *Store) RecipientsTree(ctx context.Context, pretty bool) (*tree.Root, er
 				name += "/"
 			}
 
-			for _, recp := range recps {
-				if err := r.addRecipient(ctx, alias+"/"+name, root, recp, pretty); err != nil {
-					debug.Log("Failed to add recipient to tree %s: %s", recp, err)
-				}
+			if err := r.addRecipients(ctx, alias+"/"+name, root, recps, pretty); err != nil {
+				debug.Log("Failed to add recipients to tree: %s", err)
 			}
 		}
 	}

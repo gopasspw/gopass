@@ -276,8 +276,9 @@ func (s *recipientHandler) recipientsSelectForRemoval(ctx context.Context, store
 
 	ids := s.Store.ListRecipients(ctx, store)
 	choices := make([]string, 0, len(ids))
+	formatted := crypto.FormatKeys(ctx, ids)
 	for _, id := range ids {
-		choices = append(choices, crypto.FormatKey(ctx, id, ""))
+		choices = append(choices, formatted[id])
 	}
 
 	if len(choices) < 1 {
@@ -300,8 +301,9 @@ func (s *recipientHandler) recipientsSelectForAdd(ctx context.Context, store str
 
 	kl, _ := crypto.FindRecipients(ctx)
 	choices := make([]string, 0, len(kl))
+	formatted := crypto.FormatKeys(ctx, kl)
 	for _, key := range kl {
-		choices = append(choices, crypto.FormatKey(ctx, key, ""))
+		choices = append(choices, formatted[key])
 	}
 
 	if len(choices) < 1 {
