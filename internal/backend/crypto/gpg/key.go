@@ -96,7 +96,11 @@ func (k Key) Identity() Identity {
 	}
 
 	sort.Slice(ids, func(i, j int) bool {
-		return ids[i].CreationDate.After(ids[j].CreationDate)
+		if !ids[i].CreationDate.Equal(ids[j].CreationDate) {
+			return ids[i].CreationDate.After(ids[j].CreationDate)
+		}
+
+		return ids[i].UID < ids[j].UID
 	})
 
 	for _, i := range ids {

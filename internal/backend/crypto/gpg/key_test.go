@@ -109,6 +109,7 @@ func TestIdentitySort(t *testing.T) {
 
 	k := genTestKey()
 	k.Identities["Foo Bar"] = Identity{
+		UID:            "Foo Bar (foo) <foo.bar@example.com>",
 		Name:           "Foo Bar",
 		Comment:        "foo",
 		Email:          "foo.bar@example.com",
@@ -116,6 +117,18 @@ func TestIdentitySort(t *testing.T) {
 		ExpirationDate: expiration,
 	}
 	assert.Equal(t, "0x62AF4031C82E0039 - John Doe (johnny) <john.doe@example.org>", k.OneLine())
+}
+
+func TestIdentitySortUsesUIDAsTieBreaker(t *testing.T) {
+	t.Parallel()
+
+	creation := time.Date(2017, 1, 1, 1, 1, 1, 0, time.UTC)
+	k := Key{Identities: map[string]Identity{
+		"z": {UID: "z", Name: "Z", CreationDate: creation},
+		"a": {UID: "a", Name: "A", CreationDate: creation},
+	}}
+
+	assert.Equal(t, "A", k.Identity().Name)
 }
 
 func TestUseability(t *testing.T) {
