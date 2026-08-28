@@ -1057,6 +1057,27 @@ func (s *Action) GetCommands() []*cli.Command {
 			},
 			Commands: []*cli.Command{
 				{
+					Name:      "list",
+					Usage:     "List recipients in a subtree",
+					ArgsUsage: "[prefix]",
+					Description: "List recipients below an optional prefix. " +
+						"With no prefix, list all recipients.",
+					Before: s.IsInitialized,
+					Action: s.RecipientsList,
+					Flags: []cli.Flag{
+						&cli.BoolFlag{
+							Name:  "pretty",
+							Usage: "Pretty print recipients",
+							Value: true,
+						},
+						&cli.BoolFlag{
+							Name:    "json",
+							Aliases: []string{"j"},
+							Usage:   "Output recipients as JSON array",
+						},
+					},
+				},
+				{
 					Name:    "ack",
 					Aliases: []string{"acknowledge"},
 					Usage:   "Update recipients.hash",

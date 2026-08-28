@@ -48,6 +48,7 @@ func AskForPrivateKey(ctx context.Context, crypto backend.Crypto, prompt string)
 	}
 
 	fmtStr := "[%" + strconv.Itoa((len(kl)/10)+1) + "d] %s - %s\n"
+	formatted := crypto.FormatKeys(ctx, kl)
 	for range maxTries {
 		if !ctxutil.IsTerminal(ctx) || !ctxutil.IsInteractive(ctx) {
 			return kl[0], nil
@@ -61,7 +62,7 @@ func AskForPrivateKey(ctx context.Context, crypto backend.Crypto, prompt string)
 
 		fmt.Fprintln(Stdout, prompt)
 		for i, k := range kl {
-			fmt.Fprintf(Stdout, fmtStr, i, crypto.Name(), crypto.FormatKey(ctx, k, ""))
+			fmt.Fprintf(Stdout, fmtStr, i, crypto.Name(), formatted[k])
 		}
 
 		iv, err := termio.AskForInt(ctx, fmt.Sprintf("Please enter the number of a key (0-%d, [q]uit)", len(kl)-1), 0)

@@ -2,6 +2,7 @@ package action
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/gopasspw/gopass/internal/action/exit"
@@ -35,22 +36,50 @@ credentials.
 
 // RecipientsPrint prints all recipients per store.
 func (s *recipientHandler) RecipientsPrint(ctx context.Context, cmd *cli.Command) error {
+	if cmd.Args().Len() > 0 {
+		return exit.Error(exit.Usage, nil, "Usage: %s recipients [--pretty] [--json]", s.Name)
+	}
+
+	return s.recipientsPrint(ctx, cmd, "")
+}
+
+// RecipientsList prints recipients below an optional prefix.
+func (s *recipientHandler) RecipientsList(ctx context.Context, cmd *cli.Command) error {
+	return s.recipientsPrint(ctx, cmd, cmd.Args().First())
+}
+
+func (s *recipientHandler) recipientsPrint(ctx context.Context, cmd *cli.Command, prefix string) error {
 	ctx = ctxutil.WithGlobalFlags(ctx, cmd)
 
-	if cmd.Bool("json") {
-		t, err := s.Store.RecipientsTree(ctx, false)
-		if err != nil {
-			return exit.Error(exit.List, err, "failed to list recipients: %s", err)
+	var t *tree.Root
+	var err error
+	if prefix == "" {
+		t, err = s.Store.RecipientsTree(ctx, cmd.Bool("pretty"))
+	} else {
+		t, err = s.Store.RecipientsTreePrefix(ctx, cmd.Bool("pretty"), prefix)
+	}
+	if err != nil {
+		if errors.Is(err, tree.ErrNotFound) {
+			return exit.Error(exit.NotFound, nil, "Recipient subtree %q not found", prefix)
 		}
 
+		return exit.Error(exit.List, err, "failed to list recipients: %s", err)
+	}
+
+	if prefix != "" {
+		t, err = t.FindFolder(prefix)
+		if err != nil {
+			return exit.Error(exit.NotFound, nil, "Recipient subtree %q not found", prefix)
+		}
+		t.SetName(prefix)
+	}
+
+	if cmd.Bool("json") {
 		return jsonWrite(stdout, t.List(tree.INF))
 	}
 
-	out.Printf(ctx, "Hint: run 'gopass sync' to import any missing public keys")
-
-	t, err := s.Store.RecipientsTree(ctx, cmd.Bool("pretty"))
-	if err != nil {
-		return exit.Error(exit.List, err, "failed to list recipients: %s", err)
+	if prefix == "" {
+		out.Printf(ctx, "Hint: run 'gopass sync' to import any missing public keys")
 	}
 
 	fmt.Fprintln(stdout, t.Format(tree.INF))
@@ -276,8 +305,9 @@ func (s *recipientHandler) recipientsSelectForRemoval(ctx context.Context, store
 
 	ids := s.Store.ListRecipients(ctx, store)
 	choices := make([]string, 0, len(ids))
+	formatted := crypto.FormatKeys(ctx, ids)
 	for _, id := range ids {
-		choices = append(choices, crypto.FormatKey(ctx, id, ""))
+		choices = append(choices, formatted[id])
 	}
 
 	if len(choices) < 1 {
@@ -300,8 +330,9 @@ func (s *recipientHandler) recipientsSelectForAdd(ctx context.Context, store str
 
 	kl, _ := crypto.FindRecipients(ctx)
 	choices := make([]string, 0, len(kl))
+	formatted := crypto.FormatKeys(ctx, kl)
 	for _, key := range kl {
-		choices = append(choices, crypto.FormatKey(ctx, key, ""))
+		choices = append(choices, formatted[key])
 	}
 
 	if len(choices) < 1 {

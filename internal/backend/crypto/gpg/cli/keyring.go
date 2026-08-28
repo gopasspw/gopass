@@ -100,6 +100,30 @@ func (g *GPG) FormatKey(ctx context.Context, id, tpl string) string {
 	return buf.String()
 }
 
+// FormatKeys formats multiple key IDs using bulk keyring lookups.
+func (g *GPG) FormatKeys(ctx context.Context, ids []string) map[string]string {
+	formatted := make(map[string]string, len(ids))
+	if g.privKeys == nil {
+		g.privKeys, _ = g.listKeys(ctx, "secret")
+	}
+	if g.pubKeys == nil {
+		g.pubKeys, _ = g.listKeys(ctx, "public")
+	}
+
+	for _, id := range ids {
+		if k, err := g.privKeys.FindKey(id); err == nil {
+			formatted[id] = k.OneLine()
+
+			continue
+		}
+		if k, err := g.pubKeys.FindKey(id); err == nil {
+			formatted[id] = k.OneLine()
+		}
+	}
+
+	return formatted
+}
+
 // ReadNamesFromKey unmarshals and returns the names associated with the given public key.
 func (g *GPG) ReadNamesFromKey(ctx context.Context, buf []byte) ([]string, error) {
 	if len(buf) < 1 {

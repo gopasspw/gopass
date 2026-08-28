@@ -66,7 +66,47 @@ func (r *Store) addRecipient(ctx context.Context, prefix string, root *tree.Root
 
 	debug.Log("adding %q to the tree", key)
 
+	return r.addFormattedRecipient(root, prefix, recp, key)
+}
+
+func (r *Store) addFormattedRecipient(root *tree.Root, prefix, recp, key string) error {
+	key = strings.ReplaceAll(key, "/", "")
+	debug.Log("adding %q to the tree", key)
+
 	return root.AddFile(prefix+key, "gopass/recipient")
+}
+
+func (r *Store) addRecipients(ctx context.Context, prefix string, root *tree.Root, recps []string, pretty bool) error {
+	if !pretty {
+		for _, recp := range recps {
+			if err := r.addRecipient(ctx, prefix, root, recp, false); err != nil {
+				return err
+			}
+		}
+
+		return nil
+	}
+
+	sub, _ := r.getStore(prefix)
+	formatted := sub.Crypto().FormatKeys(ctx, recps)
+	for _, recp := range recps {
+		key := formatted[recp]
+		if key == "" {
+			if err := r.addRecipient(ctx, prefix, root, recp, true); err != nil {
+				return err
+			}
+
+			continue
+		}
+		if !strings.HasPrefix(key, recp) {
+			key = recp + " => " + key
+		}
+		if err := r.addFormattedRecipient(root, prefix, recp, key); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 // ImportMissingPublicKeys import missing public keys in any substore.
@@ -103,10 +143,8 @@ func (r *Store) RecipientsTree(ctx context.Context, pretty bool) (*tree.Root, er
 
 		debug.Log("Store/Secret: %q -> Recipients: %v", name, recps)
 
-		for _, recp := range recps {
-			if err := r.addRecipient(ctx, name, root, recp, pretty); err != nil {
-				color.Yellow("Failed to add recipient to tree %s: %s", recp, err)
-			}
+		if err := r.addRecipients(ctx, name, root, recps, pretty); err != nil {
+			color.Yellow("Failed to add recipients to tree: %s", err)
 		}
 	}
 
@@ -130,11 +168,56 @@ func (r *Store) RecipientsTree(ctx context.Context, pretty bool) (*tree.Root, er
 				name += "/"
 			}
 
-			for _, recp := range recps {
-				if err := r.addRecipient(ctx, alias+"/"+name, root, recp, pretty); err != nil {
-					debug.Log("Failed to add recipient to tree %s: %s", recp, err)
-				}
+			if err := r.addRecipients(ctx, alias+"/"+name, root, recps, pretty); err != nil {
+				debug.Log("Failed to add recipients to tree: %s", err)
 			}
+		}
+	}
+
+	return root, nil
+}
+
+// RecipientsTreePrefix returns a recipient tree limited to the store selected
+// by prefix. The prefix is still retained in the tree so callers can select a
+// further subtree from the result.
+func (r *Store) RecipientsTreePrefix(ctx context.Context, pretty bool, prefix string) (*tree.Root, error) {
+	sub, _ := r.getStore(prefix)
+	storePrefix := sub.Alias()
+	recipientTree := sub.RecipientsTree(ctx)
+
+	// Build an unformatted tree first. This lets callers reject a missing
+	// prefix without doing any GPG key lookups.
+	raw := tree.New("gopass")
+	for name, recps := range recipientTree {
+		path := storePrefix
+		if name != "" {
+			path += "/" + name
+		}
+		if path != "" {
+			path += "/"
+		}
+
+		if err := r.addRecipients(ctx, path, raw, recps, false); err != nil {
+			debug.Log("Failed to add recipients to tree: %s", err)
+		}
+	}
+	if _, err := raw.FindFolder(prefix); err != nil {
+		return nil, err
+	}
+
+	root := tree.New("gopass")
+
+	for name, recps := range recipientTree {
+		path := storePrefix
+		if name != "" {
+			path += "/" + name
+		}
+		if path != "" {
+			path += "/"
+		}
+
+		if err := r.addRecipients(ctx, path, root, recps, pretty); err != nil {
+			debug.Log("Failed to add recipients to tree: %s", err)
 		}
 	}
 

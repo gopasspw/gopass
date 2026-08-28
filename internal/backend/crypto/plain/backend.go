@@ -128,6 +128,16 @@ func (m *Mocker) FormatKey(ctx context.Context, id, tpl string) string {
 	return id
 }
 
+// FormatKeys returns the IDs.
+func (m *Mocker) FormatKeys(ctx context.Context, ids []string) map[string]string {
+	formatted := make(map[string]string, len(ids))
+	for _, id := range ids {
+		formatted[id] = id
+	}
+
+	return formatted
+}
+
 // Initialized returns nil.
 func (m *Mocker) Initialized(context.Context) error {
 	return nil
