@@ -123,7 +123,7 @@ func main() {
 	fmt.Scanln()
 
 	// - update deps and run tests
-	if err := updateDeps(); err != nil {
+	if err := releaseTests(); err != nil {
 		panic(err)
 	}
 
@@ -376,19 +376,7 @@ func printDryRun(prevVer, nextVer semver.Version, patchRelease bool) error {
 	return nil
 }
 
-func updateDeps() error {
-	if sv := os.Getenv("GOPASS_NOUPGRADE"); sv == "" {
-		fmt.Println("🕑 Updating dependencies ...")
-		cmd := exec.Command("make", "upgrade")
-		cmd.Stderr = os.Stderr
-
-		if err := cmd.Run(); err != nil {
-			return err
-		}
-
-		fmt.Println("✅ Updated dependencies")
-	}
-
+func releaseTests() error {
 	if sv := os.Getenv("GOPASS_NOTEST"); sv != "" {
 		fmt.Printf("⚠ GOPASS_NOTEST=%v, skipping 'make gha-linux'\n", sv)
 
