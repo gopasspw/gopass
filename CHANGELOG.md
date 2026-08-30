@@ -12,26 +12,41 @@ conventions this file is generated from.
 
 ## [Unreleased]
 
+## [1.17.0] - 2026-08-30
+
 ### Added
 
-- Add gopass doctor diagnostic command (I-4)
-- Add stable structured exit codes; --exit-codes flag lists all codes (I-2)
-- Add JSON output to audit, list, find, and recipients commands (I-3)
-- Add show.hidden-keys config option for customizable safecontent redaction (I-5)
-- Add show.fuzzysearch config and --nofuzzysearch flag to control automatic fuzzy lookup in show
+- Add --safe flag to set safecontent on demand (#3318)
 - Add --stdin, --file, and --exec modes to gopass env
+- Add JSON output to audit, list, find, and recipients commands (I-3)
+- Add gopass doctor diagnostic command (I-4)
+- Add show.fuzzysearch config and --nofuzzysearch flag to control automatic fuzzy lookup in show
+- Add show.hidden-keys config option for customizable safecontent redaction (I-5)
+- Add stable structured exit codes; --exit-codes flag lists all codes (I-2)
+- add configurable show.hidden-keys for safecontent redaction
+- changelog: migrate to Keep a Changelog 1.1.0 (#3506) (#3414)
+- env: add --stdin, --file, and --exec modes to gopass env
+- gpg: support v5/v6 PGP keys with 64-character fingerprints (#3496)
+- machine-readable JSON output (I-3)
+- pwgen: add memorable generator support (#3494)
+- show: add configurable fuzzy-search fallback toggle (#3449)
+- structured exit codes (I-2)
+- support -c=N to copy specific line to clipboard (#3386)
 
 ### Changed
 
-- Unified secret name validation rejects path traversal and consecutive slashes (I-1)
-- Split Action handler into focused handler types (A-1)
-- Replace context-key config system with typed structs (A-2)
-- Replace sort.Strings with slices.Sort throughout (S-3)
-- Protect autosyncLastRun with a mutex (S-6)
-- Standardize XKCD password generator flag names to --xkcd-sep, --xkcd-lang etc. (U-4)
+- Define pkg/gopass API stability contract: best-effort stable policy with [PKG-BREAK] changelog tag and minimum deprecation window (A-12)
 - Fix documentation vs. implementation mismatches in config.md, show.md, find.md, generate.md, secrets.md, and ARCHITECTURE.md
 - Fully document wizard template format, attribute types, and file naming convention (I-7)
-- Define pkg/gopass API stability contract: best-effort stable policy with [PKG-BREAK] changelog tag and minimum deprecation window (A-12)
+- Protect autosyncLastRun with a mutex (S-6)
+- Replace context-key config system with typed structs (A-2)
+- Replace sort.Strings with slices.Sort throughout (S-3)
+- Split Action handler into focused handler types (A-1)
+- Standardize XKCD password generator flag names to --xkcd-sep, --xkcd-lang etc. (U-4)
+- Unified secret name validation rejects path traversal and consecutive slashes (I-1)
+- action: split Action god object into focused handler types (A-1)
+- age: share identity file parsing (#3559)
+- ctxutil: replace context-key config system with typed structs (A-2)
 
 ### Deprecated
 
@@ -39,26 +54,78 @@ conventions this file is generated from.
 
 ### Removed
 
-- Remove misleading --force / -f aliases from --unsafe in show and find (U-1)
 - Remove cryptic -t alias from --force-regen in generate (U-6)
+- Remove misleading --force / -f aliases from --unsafe in show and find (U-1)
 
 ### Fixed
 
 - Add thread safety to SSH identity cache (M-3)
-- Fix grep match and error counters in audit summary (B-1)
-- Fix autoSync debounce timestamp to update on success instead of failure (B-2)
-- Fix create wizard maximum-length check (B-3)
-- Fix queue goroutine leak and Add() post-Close() panic (B-8)
-- Fix convert backend name in error messages (B-5, B-6)
+- Avoid NPE when attempting to edit a non-existing secret (#3489)
+- CI: moving to go 1.25 (#3322)
+- Configure .gitattributes based on the backend (#3427) (#3409)
+- Correctly honor show.safecontent overrides in substores (#3337)
 - Default audit output to summary when no format flag is given (B-7)
+- Disable grype, the builder seems to be broken (#3463)
+- Fix autoSync debounce timestamp to update on success instead of failure (B-2)
+- Fix convert backend name in error messages (B-5, B-6)
+- Fix create wizard maximum-length check (B-3)
+- Fix grep match and error counters in audit summary (B-1)
+- Fix queue goroutine leak and Add() post-Close() panic (B-8)
+- REPL tab-completion for entries with spaces (#3360)
+- Support HW Age identities (#3389) (#3387)
+- Support strict character class enforcement in create templates (#3352) (#3350)
+- Update fish completion to remove warning (#3339)
+- add case-insensitive secret name normalization (#3390) (#2837)
+- add hidden pull and push commands (#3532)
+- address A-5, S-1, S-2, S-3, S-4, S-6 and I-1 from code quality audit
+- address CLI/UX issues from code quality audit
+- address all confirmed bugs from code quality report
+- age-agent: handle AGE-PLUGIN-* identities to fix 'malformed secret key: mixed case' error (#3397)
+- age: deterministically order identities for decryption (#3566) (#3393)
+- age: expand ~/ in age.ssh-key-path (#3474)
+- age: only encrypt for recipients in .age-recipients (#3564) (#3392)
+- age: raise agent scanner buffer limit to handle large decrypt payloads (#3529) (#3508)
+- age: recover agent on missing identities, not only when locked (#3488)
+- age: send agent identities space-separated on a single line (#3509)
+- backend: add storage.backend config key to lock backend selection (#3332) (#3398)
+- clip flag (-c) for cli/v3 GenericFlag compatibility (#3448)
+- config: restore sub-store fallback for core.exportkeys (#3379)
+- copy: preserve directory structure when copying with trailing slash (#3396)
+- docs: removing reference to invalid 'gopass binary' command, and adding docs for 'fsmove' and 'fscopy' (#3321)
+- drain background queue before exiting on failure (#3528)
+- eliminate audit, queue, and test initialization races (#3540)
+- fix lint issues and update tests for removed show -f/--force alias
+- gpg: make identity selection deterministic (#3577)
+- highlight linked secrets in ls output (#3536)
+- honor core.autopush during root-store move operations (#3535)
+- pwgen: remove math/rand fallback (#3531)
+- queue: fix Idle() TOCTOU race and Add() post-Close() panic
+- recover from panic during shell completion with unknown flags (#3388)
+- require --age-sshkeys (or age.sshkeys config) to access ~/.ssh (#3525) (#3522)
+- restore clip flag through fuzzy search in show command (#3466)
+- secparse: replace panic in MustParse with testing.TB.Fatalf (#3420)
+- setup: rename --alias/--create to --team/--create-team (#3568) (#3497)
+- setup: suppress auto-commit in gitfs when setup remote is specified (#2901) (#3391)
+- store mount paths relative to home dir for cross-platform portability (#3439) (#2897)
+- tempfile: mount macOS ramdisk read-write (#3527)
+- todos: resolve all stale TODOs from S-5
+- update bash completion flag for urfave/cli/v3 compatibility (#3441) (#3440)
+- updater: cap archive/icon extraction writes and surface oversize errors (#3530)
+- use imperative mood in generated commit messages (#3492) (#1222)
+- warn when recipient key is expired or unusable during encryption (#3443) (#2885)
 
 ### Security
 
-- Fix path traversal vulnerability in fs storage layer (C-1)
 - Bound symlink traversal to store root (H-2)
+- Fix path traversal vulnerability in fs storage layer (C-1)
 - Restrict template engine secret access and fix error information leakage (H-1)
 - Validate editor binary path before invocation (H-3)
 - Warn on env command secret exposure via environment variables (C-2)
+- bound symlink walk to store root (H-2)
+- document and warn on env command secret exposure (C-2)
+- fix path traversal in fs storage layer (C-1)
+- restrict template engine secret access and fix error leakage (H-1)
+- validate editor binary exists before invocation (H-3)
 
 ## [1.16.1] - 2025-12-13
 
@@ -1207,7 +1274,8 @@ the runtime behaviour, but we could not test this on all platforms, yet.
 * [ENHANCEMENT] Simplified recipient management
 * [ENHANCEMENT] Interactive questions for missing parameters
 
-[Unreleased]: https://github.com/gopasspw/gopass/compare/v1.16.1...HEAD
+[Unreleased]: https://github.com/gopasspw/gopass/compare/v1.17.0...HEAD
+[1.17.0]: https://github.com/gopasspw/gopass/compare/v1.16.1...v1.17.0
 [1.16.1]: https://github.com/gopasspw/gopass/compare/v1.16.0...v1.16.1
 [1.16.0]: https://github.com/gopasspw/gopass/compare/v1.15.18...v1.16.0
 [1.15.18]: https://github.com/gopasspw/gopass/compare/v1.15.17...v1.15.18
