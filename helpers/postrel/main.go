@@ -352,12 +352,6 @@ func (u *inUpdater) doUpdate(ctx context.Context, dir string) error {
 	}
 	fmt.Printf("✅ [%s] synced with origin/master.\n", dir)
 
-	// make upgrade
-	if err := runCmd(path, "make", "upgrade"); err != nil {
-		return err
-	}
-	fmt.Printf("✅ [%s] make upgrade.\n", dir)
-
 	// go get github.com/gopasspw/gopass@tag
 	if err := runCmd(path, "go", "get", "github.com/gopasspw/gopass@"+tag); err != nil {
 		return err
@@ -370,15 +364,14 @@ func (u *inUpdater) doUpdate(ctx context.Context, dir string) error {
 	}
 	fmt.Printf("✅ [%s] synced .golangci.yml.\n", dir)
 
-	// update go.mod
-	if err := runCmd(path, "go", "mod", "edit", "-go="+u.goVer); err != nil {
-		return err
-	}
-	fmt.Printf("✅ [%s] updated Go version in go.mod to %s.\n", dir, u.goVer)
+	// go mod tidy, pin to the same Go version as in the gopass repo, to avoid "go: updates to go.mod needed" errors
+	if err := runCmd(path, "go", "mod", "tidy", "-v", "-x", "-go="+u.goVer); err != nil {
+		fmt.Printf(`❌ It looks like 'go mod tidy' failed.
+If it tries to update to a newer Go version, please investigate.
+We should always consider which Go versions are available in the
+stable releases of our main target platforms before updating it.`)
 
-	// go mod tidy
-	if err := runCmd(path, "go", "mod", "tidy"); err != nil {
-		return err
+		return fmt.Errorf("go mod tidy failed at %s: %w", path, err)
 	}
 	fmt.Printf("✅ [%s] go mod tidy.\n", dir)
 
@@ -387,6 +380,12 @@ func (u *inUpdater) doUpdate(ctx context.Context, dir string) error {
 		return err
 	}
 	fmt.Printf("✅ [%s] updated workflows.\n", dir)
+
+	// update depdendabot.yml
+	if err := fsutil.CopyFile(filepath.Join(cwd, ".github", "dependabot.yml"), filepath.Join(path, ".github", "dependabot.yml")); err != nil {
+		return err
+	}
+	fmt.Printf("✅ [%s] synced dependabot.yml.\n", dir)
 
 	// update VERSION
 	if err := os.WriteFile(filepath.Join(path, "VERSION"), []byte(u.v.String()+"\n"), 0o644); err != nil {
@@ -439,7 +438,7 @@ func (u *inUpdater) updateWorkflows(ctx context.Context, dir string) error {
 			return nil
 		}
 
-		return u.updateWorkflow(ctx, path)
+		return u.updateWorkflowGoVersion(ctx, path)
 	})
 
 	return nil
@@ -447,7 +446,7 @@ func (u *inUpdater) updateWorkflows(ctx context.Context, dir string) error {
 
 var goVersionRE = regexp.MustCompile(`go-version:\s+\d+\.\d+`)
 
-func (u *inUpdater) updateWorkflow(_ context.Context, path string) error {
+func (u *inUpdater) updateWorkflowGoVersion(_ context.Context, path string) error {
 	buf, err := os.ReadFile(path)
 	if err != nil {
 		return err
