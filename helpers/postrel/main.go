@@ -10,6 +10,7 @@ package main
 
 import (
 	"bufio"
+	"bytes"
 	"context"
 	"crypto/sha256"
 	"crypto/sha512"
@@ -197,13 +198,36 @@ func (g *ghClient) createMilestone(ctx context.Context, title string, offset int
 	return err
 }
 
+// runCmd runs the given command in dir. Output is captured and only
+// printed on error, with noisy lines (e.g. "go: downloading ...")
+// filtered out.
 func runCmd(dir string, args ...string) error {
 	cmd := exec.Command(args[0], args[1:]...)
 	cmd.Dir = dir
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
+	buf := &bytes.Buffer{}
+	cmd.Stdout = buf
+	cmd.Stderr = buf
 
-	return cmd.Run()
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("%s failed: %s: %w", strings.Join(args, " "), filterNoise(buf.String()), err)
+	}
+
+	return nil
+}
+
+// filterNoise removes uninteresting lines from command output, e.g.
+// the "go: downloading ..." lines emitted by the go tool.
+func filterNoise(out string) string {
+	var sb strings.Builder
+	for _, line := range strings.Split(out, "\n") {
+		if strings.HasPrefix(line, "go: downloading ") {
+			continue
+		}
+		sb.WriteString(line)
+		sb.WriteString("\n")
+	}
+
+	return strings.TrimSpace(sb.String())
 }
 
 func versionFile() (semver.Version, error) {
@@ -255,6 +279,13 @@ func newIntegrationsUpdater(client *github.Client, v semver.Version) (*inUpdater
 }
 
 func (u *inUpdater) update(ctx context.Context) {
+	type result struct {
+		name string
+		err  error
+	}
+
+	var results []result
+
 	for _, upd := range []string{
 		"git-credential-gopass",
 		"gopass-hibp",
@@ -266,13 +297,30 @@ func (u *inUpdater) update(ctx context.Context) {
 		fmt.Println()
 		fmt.Printf("🌟 Updating: %s ...\n", upd)
 		fmt.Println()
-		if err := u.doUpdate(ctx, upd); err != nil {
+		err := u.doUpdate(ctx, upd)
+		if err != nil {
 			fmt.Printf("❌ Updating %s failed: %s\n", upd, err)
+		} else {
+			fmt.Printf("✅ Integration %s is up to date.\n", upd)
+		}
+		results = append(results, result{name: upd, err: err})
+	}
+
+	// print a summary of all integrations
+	fmt.Println()
+	fmt.Println("------------------------------")
+	fmt.Println()
+	fmt.Println("📋 Integration update summary:")
+	fmt.Println()
+	for _, r := range results {
+		if r.err != nil {
+			fmt.Printf("❌ %-28s FAILED: %s\n", r.name, r.err)
 
 			continue
 		}
-		fmt.Printf("✅ Integration %s is up to date.\n", upd)
+		fmt.Printf("✅ %-28s OK\n", r.name)
 	}
+	fmt.Println()
 }
 
 func (u *inUpdater) doUpdate(ctx context.Context, dir string) error {
@@ -295,12 +343,14 @@ func (u *inUpdater) doUpdate(ctx context.Context, dir string) error {
 	if !gitutils.IsGitClean(path) {
 		return fmt.Errorf("git not clean at %s", path)
 	}
-	fmt.Printf("✅ [%s] Git is clean.", dir)
+	fmt.Printf("✅ [%s] Git is clean.\n", dir)
 
-	// git pull origin master
-	if err := gitutils.GitPom(path); err != nil {
-		return fmt.Errorf("failed to fetch changes at %s: %s", path, err)
+	// make sure we're on master and in sync with the remote,
+	// this avoids non-fast-forward push failures
+	if err := gitutils.GitSyncMaster(path); err != nil {
+		return fmt.Errorf("failed to sync with remote at %s: %w", path, err)
 	}
+	fmt.Printf("✅ [%s] synced with origin/master.\n", dir)
 
 	// make upgrade
 	if err := runCmd(path, "make", "upgrade"); err != nil {

@@ -3,6 +3,7 @@ package gitutils
 import (
 	"bytes"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -183,6 +184,37 @@ func GitPom(dir string) error {
 	return nil
 }
 
+// GitSyncMaster makes sure the repo at dir is on master and in sync with
+// origin/master. It fetches the remote and hard resets the local master
+// to origin/master. It refuses to run on a dirty worktree.
+func GitSyncMaster(dir string) error {
+	if !IsGitClean(dir) {
+		return fmt.Errorf("git worktree at %s is dirty, refusing to sync", dir)
+	}
+
+	steps := [][]string{
+		{"checkout", "master"},
+		{"fetch", "origin"},
+		{"reset", "--hard", "origin/master"},
+	}
+	for _, args := range steps {
+		cmd := exec.Command("git", args...)
+		cmd.Dir = dir
+		buf := &bytes.Buffer{}
+		cmd.Stdout = buf
+		cmd.Stderr = buf
+		if Verbose {
+			fmt.Printf("Running command: %s\n", cmd)
+		}
+
+		if err := cmd.Run(); err != nil {
+			return fmt.Errorf("git %s failed: %s: %w", strings.Join(args, " "), strings.TrimSpace(buf.String()), err)
+		}
+	}
+
+	return nil
+}
+
 func GitAdd(dir string, files ...string) error {
 	args := []string{"add"}
 	args = append(args, files...)
@@ -201,26 +233,28 @@ func GitAdd(dir string, files ...string) error {
 func GitCommitAndPush(dir, tag string) error {
 	cmd := exec.Command("git", "commit", "-a", "-s", "-m", "Update to "+tag)
 	cmd.Dir = dir
-	cmd.Stderr = os.Stderr
+	buf := &bytes.Buffer{}
+	cmd.Stdout = buf
+	cmd.Stderr = buf
 	if Verbose {
-		cmd.Stdout = os.Stdout
 		fmt.Printf("Running command: %s\n", cmd)
 	}
 
 	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("failed to commit changes: %w", err)
+		return fmt.Errorf("failed to commit changes: %s: %w", strings.TrimSpace(buf.String()), err)
 	}
 
 	cmd = exec.Command("git", "push", "origin", "master")
 	cmd.Dir = dir
-	cmd.Stderr = os.Stderr
+	buf = &bytes.Buffer{}
+	cmd.Stdout = buf
+	cmd.Stderr = buf
 	if Verbose {
-		cmd.Stdout = os.Stdout
 		fmt.Printf("Running command: %s\n", cmd)
 	}
 
 	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("failed to push changes: %w", err)
+		return fmt.Errorf("failed to push changes: %s: %w", strings.TrimSpace(buf.String()), err)
 	}
 
 	return nil
@@ -238,7 +272,9 @@ func GitCommit(dir, commitMsg string, files ...string) error {
 	}
 
 	cmd.Dir = dir
-	fmt.Printf("Running command: %s\n", cmd)
+	if Verbose {
+		fmt.Printf("Running command: %s\n", cmd)
+	}
 	if err := cmd.Run(); err != nil {
 		return err
 	}
@@ -250,7 +286,6 @@ func GitCommit(dir, commitMsg string, files ...string) error {
 		fmt.Printf("Running command: %s\n", cmd)
 	}
 	cmd.Dir = dir
-	fmt.Printf("Running command: %s\n", cmd)
 
 	return cmd.Run()
 }
@@ -264,36 +299,43 @@ func GitPush(remote, branch string) error {
 	}
 
 	cmd := exec.Command("git", "push", remote, branch)
-	cmd.Stderr = os.Stderr
+	buf := &bytes.Buffer{}
+	cmd.Stdout = buf
+	cmd.Stderr = buf
 	if Verbose {
-		cmd.Stdout = os.Stdout
 		fmt.Printf("Running command: %s\n", cmd)
 	}
 
-	return cmd.Run()
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("failed to push %s to %s: %s: %w", branch, remote, strings.TrimSpace(buf.String()), err)
+	}
+
+	return nil
 }
 
 func GitTagAndPush(dir string, tag string) error {
 	cmd := exec.Command("git", "tag", "-m", "'Tag "+tag+"'", tag)
 	cmd.Dir = dir
-	cmd.Stderr = os.Stderr
+	buf := &bytes.Buffer{}
+	cmd.Stdout = buf
+	cmd.Stderr = buf
 	if Verbose {
-		cmd.Stdout = os.Stdout
 		fmt.Printf("Running command: %s\n", cmd)
 	}
 	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("failed to commit changes: %w", err)
+		return fmt.Errorf("failed to tag: %s: %w", strings.TrimSpace(buf.String()), err)
 	}
 
 	cmd = exec.Command("git", "push", "origin", tag)
 	cmd.Dir = dir
-	cmd.Stderr = os.Stderr
+	buf = &bytes.Buffer{}
+	cmd.Stdout = buf
+	cmd.Stderr = buf
 	if Verbose {
-		cmd.Stdout = os.Stdout
 		fmt.Printf("Running command: %s\n", cmd)
 	}
 	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("failed to push changes: %w", err)
+		return fmt.Errorf("failed to push tag: %s: %w", strings.TrimSpace(buf.String()), err)
 	}
 
 	return nil
@@ -302,10 +344,10 @@ func GitTagAndPush(dir string, tag string) error {
 func GitHasTag(dir string, tag string) bool {
 	cmd := exec.Command("git", "rev-parse", tag)
 	cmd.Dir = dir
-	cmd.Stderr = os.Stderr
+	cmd.Stdout = io.Discard
+	cmd.Stderr = io.Discard
 
 	if Verbose {
-		cmd.Stdout = os.Stdout
 		fmt.Printf("Running command: %s\n", cmd)
 	}
 
