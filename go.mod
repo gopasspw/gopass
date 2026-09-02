@@ -3,7 +3,7 @@ module github.com/gopasspw/gopass
 go 1.25.0
 
 require (
-	filippo.io/age v1.3.1
+	filippo.io/age v1.3.2
 	github.com/ProtonMail/go-crypto v1.4.1
 	github.com/blang/semver/v4 v4.0.0
 	github.com/caspr-io/yamlpath v0.0.0-20200722075116-502e8d113a9b
@@ -51,7 +51,7 @@ require (
 
 require (
 	codeberg.org/tslocum/cbind v0.1.9 // indirect
-	filippo.io/edwards25519 v1.1.0 // indirect
+	filippo.io/edwards25519 v1.2.0 // indirect
 	filippo.io/hpke v0.4.0 // indirect
 	filippo.io/nistec v0.0.4 // indirect
 	github.com/boombuler/barcode v1.1.0 // indirect
