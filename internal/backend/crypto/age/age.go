@@ -82,6 +82,11 @@ func New(ctx context.Context, loadSSHKeys bool, sshKeyPath string) (*Age, error)
 		a.pwCallback = func(_ string, _ bool) ([]byte, error) { return []byte(ap), nil }
 		a.pwPurgeCallback = func(_ string) {} // no-op for static passwords
 	}
+	if ctxutil.HasPasswordCallback(ctx) {
+		debug.Log("age: using password callback from context")
+		a.pwCallback = ctxutil.GetPasswordCallback(ctx)
+		a.pwPurgeCallback = ctxutil.GetPasswordPurgeCallback(ctx)
+	}
 
 	a.tryStartAgent(ctx)
 

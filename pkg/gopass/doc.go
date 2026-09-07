@@ -10,6 +10,12 @@
 // old symbol is removed. See docs/adr/A-12-pkg-api-stability.md for the full
 // policy.
 //
+// Embedders that need to answer age identity passphrase prompts without using
+// the gopass CLI can install a callback on the context with
+// [github.com/gopasspw/gopass/pkg/ctxutil.WithPasswordCallback]. For
+// non-interactive use cases with a fixed passphrase, use
+// [github.com/gopasspw/gopass/pkg/ctxutil.WithAgePassphrase].
+//
 // Known consumers of this API:
 //   - https://github.com/gopasspw/gopass-hibp
 //   - https://github.com/gopasspw/gopass-jsonapi

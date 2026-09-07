@@ -208,3 +208,46 @@ func TestSetupRemote(t *testing.T) {
 	assert.True(t, HasSetupRemote(WithSetupRemote(ctx, "https://example.com/repo.git")))
 	assert.False(t, HasSetupRemote(WithSetupRemote(ctx, "")))
 }
+
+func TestPasswordCallback(t *testing.T) {
+	t.Parallel()
+
+	ctx := config.NewContextInMemory()
+
+	_, err := GetPasswordCallback(ctx)("prompt", false)
+	require.ErrorIs(t, err, ErrNoCallback)
+	assert.False(t, HasPasswordCallback(ctx))
+
+	ctx = WithPasswordCallback(ctx, func(prompt string, confirm bool) ([]byte, error) {
+		assert.Equal(t, "prompt", prompt)
+		assert.True(t, confirm)
+
+		return []byte("secret"), nil
+	})
+
+	pw, err := GetPasswordCallback(ctx)("prompt", true)
+	require.NoError(t, err)
+	assert.Equal(t, []byte("secret"), pw)
+	assert.True(t, HasPasswordCallback(ctx))
+}
+
+func TestPasswordPurgeCallback(t *testing.T) {
+	t.Parallel()
+
+	ctx := config.NewContextInMemory()
+
+	assert.False(t, HasPasswordPurgeCallback(ctx))
+	assert.NotPanics(t, func() {
+		GetPasswordPurgeCallback(ctx)("prompt")
+	})
+
+	var purged bool
+	ctx = WithPasswordPurgeCallback(ctx, func(prompt string) {
+		assert.Equal(t, "prompt", prompt)
+		purged = true
+	})
+
+	GetPasswordPurgeCallback(ctx)("prompt")
+	assert.True(t, purged)
+	assert.True(t, HasPasswordPurgeCallback(ctx))
+}
