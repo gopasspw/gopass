@@ -15,6 +15,8 @@ type contextKey int
 const (
 	// ctxKeyExecConfig holds the consolidated ExecConfig struct.
 	ctxKeyExecConfig contextKey = iota
+	ctxKeyPasswordCallback
+	ctxKeyPasswordPurgeCallback
 )
 
 // ExecConfig holds all boolean/string/struct configuration flags that are
@@ -59,12 +61,6 @@ type ExecConfig struct {
 	// to provide a password for the age encryption backend without interactive
 	// prompts (e.g. in CI/CD pipelines or tests).
 	AgePassphrase string
-	// PasswordCallback is an optional callback used by the age backend to
-	// obtain a passphrase interactively.
-	PasswordCallback PasswordCallback
-	// PasswordPurgeCallback is an optional callback used by the age backend to
-	// invalidate a previously cached passphrase.
-	PasswordPurgeCallback PasswordPurgeCallback
 	// SetupRemote is set to the remote URL when a git remote is specified during
 	// setup, signalling that the automatic initial commit should be suppressed.
 	SetupRemote string
@@ -439,22 +435,21 @@ func GetEmail(ctx context.Context) string {
 
 // WithPasswordCallback returns a context with the password callback set.
 func WithPasswordCallback(ctx context.Context, cb PasswordCallback) context.Context {
-	e := GetExecConfig(ctx)
-	e.PasswordCallback = cb
-
-	return WithExecConfig(ctx, e)
+	return context.WithValue(ctx, ctxKeyPasswordCallback, cb)
 }
 
 // HasPasswordCallback returns true if a password callback was set in the
 // context.
 func HasPasswordCallback(ctx context.Context) bool {
-	return GetExecConfig(ctx).PasswordCallback != nil
+	_, ok := ctx.Value(ctxKeyPasswordCallback).(PasswordCallback)
+
+	return ok
 }
 
 // GetPasswordCallback returns the password callback or a default callback that
 // fails with ErrNoCallback.
 func GetPasswordCallback(ctx context.Context) PasswordCallback {
-	if pwcb := GetExecConfig(ctx).PasswordCallback; pwcb != nil {
+	if pwcb, ok := ctx.Value(ctxKeyPasswordCallback).(PasswordCallback); ok && pwcb != nil {
 		return pwcb
 	}
 
@@ -466,22 +461,21 @@ func GetPasswordCallback(ctx context.Context) PasswordCallback {
 // WithPasswordPurgeCallback returns a context with the password purge callback
 // set.
 func WithPasswordPurgeCallback(ctx context.Context, cb PasswordPurgeCallback) context.Context {
-	e := GetExecConfig(ctx)
-	e.PasswordPurgeCallback = cb
-
-	return WithExecConfig(ctx, e)
+	return context.WithValue(ctx, ctxKeyPasswordPurgeCallback, cb)
 }
 
 // HasPasswordPurgeCallback returns true if a password purge callback was set in
 // the context.
 func HasPasswordPurgeCallback(ctx context.Context) bool {
-	return GetExecConfig(ctx).PasswordPurgeCallback != nil
+	_, ok := ctx.Value(ctxKeyPasswordPurgeCallback).(PasswordPurgeCallback)
+
+	return ok
 }
 
 // GetPasswordPurgeCallback returns the password purge callback or a default
 // no-op callback.
 func GetPasswordPurgeCallback(ctx context.Context) PasswordPurgeCallback {
-	if ppcb := GetExecConfig(ctx).PasswordPurgeCallback; ppcb != nil {
+	if ppcb, ok := ctx.Value(ctxKeyPasswordPurgeCallback).(PasswordPurgeCallback); ok && ppcb != nil {
 		return ppcb
 	}
 

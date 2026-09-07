@@ -130,7 +130,6 @@ func TestNew_UsesContextPasswordCallback(t *testing.T) {
 	var purged string
 
 	ctx := config.NewContextInMemory()
-	ctx = ctxutil.WithAgePassphrase(ctx, "from-env")
 	ctx = ctxutil.WithPasswordCallback(ctx, func(prompt string, confirm bool) ([]byte, error) {
 		called = true
 		assert.Equal(t, "prompt", prompt)
@@ -152,4 +151,21 @@ func TestNew_UsesContextPasswordCallback(t *testing.T) {
 
 	a.effectivePwPurgeCallback()("prompt")
 	assert.Equal(t, "prompt", purged)
+}
+
+func TestNew_ContextPasswordCallbackOverridesAgePassphrase(t *testing.T) {
+	keyring.MockInit()
+
+	ctx := config.NewContextInMemory()
+	ctx = ctxutil.WithAgePassphrase(ctx, "from-env")
+	ctx = ctxutil.WithPasswordCallback(ctx, func(string, bool) ([]byte, error) {
+		return []byte("from-callback"), nil
+	})
+
+	a, err := New(ctx, false, "")
+	require.NoError(t, err)
+
+	pw, err := a.effectivePwCallback(ctx, "ignored")("prompt", false)
+	require.NoError(t, err)
+	assert.Equal(t, []byte("from-callback"), pw)
 }
