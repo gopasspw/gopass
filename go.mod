@@ -17,7 +17,7 @@ require (
 	github.com/google/go-github/v61 v61.0.0
 	github.com/gopasspw/clipboard v0.0.5-0.20260524141134-6b387ae5aa1a
 	github.com/gopasspw/gitconfig v0.0.4
-	github.com/gopasspw/gopass-hibp v1.16.1
+	github.com/gopasspw/gopass-hibp v1.17.0
 	github.com/hashicorp/golang-lru/v2 v2.0.7
 	github.com/jsimonetti/pwscheme v0.0.0-20220922140336-67a4d090f150
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51
@@ -57,7 +57,7 @@ require (
 	github.com/boombuler/barcode v1.1.0 // indirect
 	github.com/clipperhouse/displaywidth v0.11.0 // indirect
 	github.com/clipperhouse/uax29/v2 v2.7.0 // indirect
-	github.com/cloudflare/circl v1.6.3 // indirect
+	github.com/cloudflare/circl v1.6.5 // indirect
 	github.com/creack/pty v1.1.24 // indirect
 	github.com/danieljoos/wincred v1.2.3 // indirect
 	github.com/ebitengine/purego v0.10.1 // indirect
@@ -66,7 +66,7 @@ require (
 	github.com/gdamore/tcell/v3 v3.4.0 // indirect
 	github.com/gen2brain/shm v0.1.1 // indirect
 	github.com/go-viper/mapstructure/v2 v2.5.0 // indirect
-	github.com/gobwas/glob v0.2.3 // indirect
+	github.com/gobwas/glob v1.0.0 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510 // indirect
 	github.com/jezek/xgb v1.1.1 // indirect
