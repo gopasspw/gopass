@@ -5,6 +5,4 @@ import (
 	"github.com/gopasspw/gopass/pkg/gopass/apimock"
 )
 
-var (
-	_ gopass.Store = apimock.New() //nolint:staticcheck
-)
+var _ gopass.Store = apimock.New() //nolint:staticcheck
