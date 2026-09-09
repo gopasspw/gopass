@@ -86,6 +86,7 @@ func (s *Store) reencrypt(ctx context.Context) error {
 			}
 
 			e = strings.TrimPrefix(e, s.alias)
+			e = strings.TrimPrefix(e, "/")
 			jobs <- e
 		}
 		// We close the channel, so the workers will terminate
