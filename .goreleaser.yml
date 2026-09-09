@@ -165,7 +165,6 @@ signs:
     env:
       - "ARTIFACT=${artifact}"
       - "SIGNATURE=${signature}"
-      - "GPG_FINGERPRINT={{ .Env.GPG_FINGERPRINT }}"
     args:
       - -ec
       - |
