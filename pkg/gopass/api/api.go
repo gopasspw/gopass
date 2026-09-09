@@ -16,6 +16,7 @@ import (
 	// load crypto backends.
 	_ "github.com/gopasspw/gopass/internal/backend/crypto"
 	// load storage backends.
+	"github.com/gopasspw/gopass/internal/audit"
 	_ "github.com/gopasspw/gopass/internal/backend/storage"
 	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/queue"
@@ -66,6 +67,14 @@ func New(ctx context.Context) (*Gopass, error) {
 // List returns a list of all secret names.
 func (g *Gopass) List(ctx context.Context) ([]string, error) {
 	return g.rs.List(ctx, tree.INF) //nolint:wrapcheck
+}
+
+// AuditList returns a list of all secret names, filtered against the optional
+// .gopass-audit-ignore file at the root of each mount point. Secrets matching
+// any of the exclude patterns (RE2 syntax) in the file of their mount point
+// are omitted from the result.
+func (g *Gopass) AuditList(ctx context.Context) ([]string, error) {
+	return audit.FilteredList(ctx, g.rs)
 }
 
 // Get returns a single, encrypted secret. It must be unwrapped before use.
