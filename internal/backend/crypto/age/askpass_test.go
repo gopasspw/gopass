@@ -8,6 +8,7 @@ import (
 
 	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/out"
+	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/zalando/go-keyring"
@@ -120,4 +121,51 @@ func TestOsKeyring_Get_Failure(t *testing.T) {
 
 	assert.False(t, found)
 	assert.Empty(t, val)
+}
+
+func TestNew_UsesContextPasswordCallback(t *testing.T) {
+	keyring.MockInit()
+
+	var called bool
+	var purged string
+
+	ctx := config.NewContextInMemory()
+	ctx = ctxutil.WithPasswordCallback(ctx, func(prompt string, confirm bool) ([]byte, error) {
+		called = true
+		assert.Equal(t, "prompt", prompt)
+		assert.True(t, confirm)
+
+		return []byte("from-callback"), nil
+	})
+	ctx = ctxutil.WithPasswordPurgeCallback(ctx, func(prompt string) {
+		purged = prompt
+	})
+
+	a, err := New(ctx, false, "")
+	require.NoError(t, err)
+
+	pw, err := a.effectivePwCallback(ctx, "ignored")("prompt", true)
+	require.NoError(t, err)
+	assert.Equal(t, []byte("from-callback"), pw)
+	assert.True(t, called)
+
+	a.effectivePwPurgeCallback()("prompt")
+	assert.Equal(t, "prompt", purged)
+}
+
+func TestNew_ContextPasswordCallbackOverridesAgePassphrase(t *testing.T) {
+	keyring.MockInit()
+
+	ctx := config.NewContextInMemory()
+	ctx = ctxutil.WithAgePassphrase(ctx, "from-env")
+	ctx = ctxutil.WithPasswordCallback(ctx, func(string, bool) ([]byte, error) {
+		return []byte("from-callback"), nil
+	})
+
+	a, err := New(ctx, false, "")
+	require.NoError(t, err)
+
+	pw, err := a.effectivePwCallback(ctx, "ignored")("prompt", false)
+	require.NoError(t, err)
+	assert.Equal(t, []byte("from-callback"), pw)
 }

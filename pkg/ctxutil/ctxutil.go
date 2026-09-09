@@ -4,6 +4,7 @@ package ctxutil
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/urfave/cli/v3"
@@ -14,6 +15,8 @@ type contextKey int
 const (
 	// ctxKeyExecConfig holds the consolidated ExecConfig struct.
 	ctxKeyExecConfig contextKey = iota
+	ctxKeyPasswordCallback
+	ctxKeyPasswordPurgeCallback
 )
 
 // ExecConfig holds all boolean/string/struct configuration flags that are
@@ -100,6 +103,18 @@ func WithGlobalFlags(ctx context.Context, cmd *cli.Command) context.Context {
 
 // ProgressCallback is a callback for updating progress.
 type ProgressCallback func()
+
+// PasswordCallback is a password prompt callback used by the age crypto
+// backend. The arguments are typically the filename and whether confirmation is
+// required.
+type PasswordCallback func(string, bool) ([]byte, error)
+
+// PasswordPurgeCallback invalidates a password previously cached by
+// PasswordCallback.
+type PasswordPurgeCallback func(string)
+
+// ErrNoCallback is returned by GetPasswordCallback when no callback was set.
+var ErrNoCallback = errors.New("no callback")
 
 // WithTerminal returns a context with an explicit value for whether or not we are
 // in a terminal.
@@ -416,6 +431,55 @@ func WithEmail(ctx context.Context, sv string) context.Context {
 // GetEmail returns the email from the context.
 func GetEmail(ctx context.Context) string {
 	return GetExecConfig(ctx).Email
+}
+
+// WithPasswordCallback returns a context with the password callback set.
+func WithPasswordCallback(ctx context.Context, cb PasswordCallback) context.Context {
+	return context.WithValue(ctx, ctxKeyPasswordCallback, cb)
+}
+
+// HasPasswordCallback returns true if a password callback was set in the
+// context.
+func HasPasswordCallback(ctx context.Context) bool {
+	_, ok := ctx.Value(ctxKeyPasswordCallback).(PasswordCallback)
+
+	return ok
+}
+
+// GetPasswordCallback returns the password callback or a default callback that
+// fails with ErrNoCallback.
+func GetPasswordCallback(ctx context.Context) PasswordCallback {
+	if pwcb, ok := ctx.Value(ctxKeyPasswordCallback).(PasswordCallback); ok && pwcb != nil {
+		return pwcb
+	}
+
+	return func(string, bool) ([]byte, error) {
+		return nil, ErrNoCallback
+	}
+}
+
+// WithPasswordPurgeCallback returns a context with the password purge callback
+// set.
+func WithPasswordPurgeCallback(ctx context.Context, cb PasswordPurgeCallback) context.Context {
+	return context.WithValue(ctx, ctxKeyPasswordPurgeCallback, cb)
+}
+
+// HasPasswordPurgeCallback returns true if a password purge callback was set in
+// the context.
+func HasPasswordPurgeCallback(ctx context.Context) bool {
+	_, ok := ctx.Value(ctxKeyPasswordPurgeCallback).(PasswordPurgeCallback)
+
+	return ok
+}
+
+// GetPasswordPurgeCallback returns the password purge callback or a default
+// no-op callback.
+func GetPasswordPurgeCallback(ctx context.Context) PasswordPurgeCallback {
+	if ppcb, ok := ctx.Value(ctxKeyPasswordPurgeCallback).(PasswordPurgeCallback); ok && ppcb != nil {
+		return ppcb
+	}
+
+	return func(string) {}
 }
 
 // WithAgePassphrase returns a context with the age passphrase set.
