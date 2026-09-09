@@ -12,6 +12,18 @@ conventions this file is generated from.
 
 ## [Unreleased]
 
+## [1.17.1] - 2026-09-09
+
+### Added
+
+- api: Add new AuditList method (#3594)
+- create: support passwordless / SSO login profiles (#3493)
+
+### Fixed
+
+- ctxutil: restore password callback hook for embedded age prompts (#3590)
+- store: Fix reencrypt when adding recipients (#3595) (#3473)
+
 ## [1.17.0] - 2026-08-30
 
 ### Added
@@ -1274,7 +1286,8 @@ the runtime behaviour, but we could not test this on all platforms, yet.
 * [ENHANCEMENT] Simplified recipient management
 * [ENHANCEMENT] Interactive questions for missing parameters
 
-[Unreleased]: https://github.com/gopasspw/gopass/compare/v1.17.0...HEAD
+[Unreleased]: https://github.com/gopasspw/gopass/compare/v1.17.1...HEAD
+[1.17.1]: https://github.com/gopasspw/gopass/compare/v1.17.0...v1.17.1
 [1.17.0]: https://github.com/gopasspw/gopass/compare/v1.16.1...v1.17.0
 [1.16.1]: https://github.com/gopasspw/gopass/compare/v1.16.0...v1.16.1
 [1.16.0]: https://github.com/gopasspw/gopass/compare/v1.15.18...v1.16.0
