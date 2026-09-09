@@ -46,6 +46,8 @@ type Store interface {
 
 	// List lists all secrets in the store.
 	List(context.Context) ([]string, error)
+	// AuditList lists all secrets in the store, filtered against the optional .gopass-audit-ignore file at the root of each mount point.
+	AuditList(ctx context.Context) ([]string, error)
 	// Get returns a decrypted secret from the store.
 	// The revision parameter defaults to "latest".
 	Get(ctx context.Context, name, revision string) (Secret, error)

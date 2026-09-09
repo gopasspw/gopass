@@ -6,6 +6,7 @@ import (
 
 	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
+	"github.com/gopasspw/gopass/pkg/gopass"
 	"github.com/gopasspw/gopass/pkg/gopass/api"
 	"github.com/gopasspw/gopass/pkg/gopass/secrets"
 	"github.com/stretchr/testify/assert"
@@ -63,7 +64,10 @@ func TestApi(t *testing.T) {
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithInteractive(ctx, false)
 
-	gp, err := api.New(ctx)
+	var gp gopass.Store
+	var err error
+
+	gp, err = api.New(ctx)
 	require.ErrorIs(t, err, api.ErrNotInitialized)
 	assert.Nil(t, gp)
 
