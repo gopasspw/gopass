@@ -1,9 +1,15 @@
 package audit
 
 import (
+	"context"
+	"fmt"
 	"regexp"
+	"sort"
 	"strings"
 
+	"github.com/gopasspw/gopass/internal/store"
+	"github.com/gopasspw/gopass/internal/store/root"
+	"github.com/gopasspw/gopass/internal/tree"
 	"github.com/gopasspw/gopass/pkg/debug"
 )
 
@@ -19,6 +25,63 @@ func (r res) Matches(s string) bool {
 	}
 
 	return false
+}
+
+// FilteredList returns a list of all secrets in the given store, filtered against the .gopass-audit-ignore file in each mount point.
+func FilteredList(ctx context.Context, rs *root.Store) ([]string, error) {
+	t, err := rs.Tree(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get store tree: %w", err)
+	}
+
+	list := t.List(tree.INF)
+	if len(list) < 1 {
+		return list, nil
+	}
+
+	// Collect the exclude patterns for every mount point (including the root store).
+	// The longer a mount point the more specific it is, so we sort them by descending
+	// length to make sure the most specific mount point wins for every secret.
+	mps := rs.MountPoints()
+	sort.Sort(sort.Reverse(store.ByPathLen(mps)))
+
+	excludes := make(map[string]string, len(mps)+1)
+	for _, mp := range mps {
+		excludes[mp] = loadExcludes(ctx, rs, mp)
+	}
+	// the root store is the fallback for secrets not in any mount
+	excludes[""] = loadExcludes(ctx, rs, "")
+
+	// Group the secrets by their mount point, so that each excludes file
+	// only needs to be parsed once.
+	byMount := make(map[string][]string, len(mps)+1)
+	for _, name := range list {
+		mp := rs.MountPoint(name)
+		byMount[mp] = append(byMount[mp], name)
+	}
+
+	out := make([]string, 0, len(list))
+	for mp, secrets := range byMount {
+		out = append(out, FilterExcludes(excludes[mp], secrets)...)
+	}
+	sort.Strings(out)
+
+	return out, nil
+}
+
+// loadExcludes returns the content of the .gopass-audit-ignore file at the
+// root of the given mount point, if any.
+func loadExcludes(ctx context.Context, rs *root.Store, mp string) string {
+	st := rs.Storage(ctx, mp)
+	if st == nil {
+		return ""
+	}
+	buf, err := st.Get(ctx, ".gopass-audit-ignore")
+	if err != nil || buf == nil {
+		return ""
+	}
+
+	return string(buf)
 }
 
 // FilterExcludes filters the given list of secrets against the given exclude patterns (RE2 syntax).

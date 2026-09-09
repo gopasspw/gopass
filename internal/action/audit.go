@@ -45,12 +45,24 @@ func (s *auditHandler) Audit(ctx context.Context, cmd *cli.Command) error {
 		return nil
 	}
 
-	var excludes string
-	st := s.Store.Storage(ctx, cmd.Args().First())
-	if buf, err := st.Get(ctx, ".gopass-audit-ignore"); err == nil && buf != nil {
-		excludes = string(buf)
+	nList, err := audit.FilteredList(ctx, s.Store)
+	if err != nil {
+		return exit.Error(exit.List, err, "failed to list secrets: %s", err)
 	}
-	nList := audit.FilterExcludes(excludes, list)
+	// if a filter was given, restrict the audit to the matching subtree
+	if filter := cmd.Args().First(); filter != "" {
+		allowed := make(map[string]struct{}, len(list))
+		for _, name := range list {
+			allowed[name] = struct{}{}
+		}
+		filtered := make([]string, 0, len(nList))
+		for _, name := range nList {
+			if _, ok := allowed[name]; ok {
+				filtered = append(filtered, name)
+			}
+		}
+		nList = filtered
+	}
 	if len(nList) < len(list) {
 		out.Warningf(ctx, "Excluding %d secrets based on .gopass-audit-ignore", len(list)-len(nList))
 	}
