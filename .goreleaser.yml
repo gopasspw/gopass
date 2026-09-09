@@ -182,7 +182,6 @@ signs:
     env:
       - "ARTIFACT=${artifact}"
       - "SIGNATURE=${signature}"
-      - "GITHUB_ACTIONS={{ .Env.GITHUB_ACTIONS }}"
     args:
       - -ec
       - |
