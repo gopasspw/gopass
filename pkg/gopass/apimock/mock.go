@@ -53,6 +53,12 @@ func (a *MockAPI) List(ctx context.Context) ([]string, error) {
 	return a.store.List(ctx, "") //nolint:wrapcheck
 }
 
+// AuditList returns a list of all secrets in the mock store.
+// Filtering is not implemented in the mock store, so this is equivalent to List.
+func (a *MockAPI) AuditList(ctx context.Context) ([]string, error) {
+	return a.store.List(ctx, "") //nolint:wrapcheck
+}
+
 // Get returns a secret from the mock store.
 func (a *MockAPI) Get(ctx context.Context, name, _ string) (gopass.Secret, error) {
 	return a.store.Get(ctx, name) //nolint:wrapcheck
