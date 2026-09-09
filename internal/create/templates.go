@@ -59,6 +59,37 @@ attributes:
   - name: "comment"
     type: "string"
 `,
+	`---
+priority: 2
+name: "SSO / passwordless login (e.g. Google)"
+prefix: "websites"
+name_from:
+  - "url"
+  - "username"
+welcome: "🧪 Creating SSO / passwordless login"
+attributes:
+  - name: "url"
+    type: "hostname"
+    prompt: "Website URL"
+    min: 1
+    max: 255
+  - name: "username"
+    type: "string"
+    prompt: "Account / email"
+    min: 1
+  - name: "login-method"
+    type: "choice"
+    prompt: "Login via"
+    options:
+      - "google"
+      - "apple"
+      - "github"
+      - "microsoft"
+      - "sso"
+      - "magic-link"
+  - name: "comment"
+    type: "string"
+`,
 }
 
 type storageSetter interface {
