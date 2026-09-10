@@ -16,7 +16,7 @@ import (
 
 // AddMount adds a new mount.
 func (r *Store) AddMount(ctx context.Context, alias, path string, keys ...string) error {
-	if err := r.addMount(ctx, alias, path, keys...); err != nil {
+	if err := r.addMount(ctx, alias, path, true, keys...); err != nil {
 		return fmt.Errorf("failed to add mount: %w", err)
 	}
 
@@ -24,7 +24,11 @@ func (r *Store) AddMount(ctx context.Context, alias, path string, keys ...string
 	return r.checkMounts()
 }
 
-func (r *Store) addMount(ctx context.Context, alias, path string, keys ...string) error {
+// addMount adds a mount to the root store. If persist is true the mount path is
+// written to the config. Existing mounts that are loaded on startup must not be
+// persisted, both to avoid needless writes and to keep gopass working with a
+// read-only config.
+func (r *Store) addMount(ctx context.Context, alias, path string, persist bool, keys ...string) error {
 	// disallow filepath separators in alias and always disallow regular slashes
 	// even on Windows, since these are used internally to separate folders.
 	if strings.HasSuffix(alias, "/") {
@@ -57,8 +61,10 @@ func (r *Store) addMount(ctx context.Context, alias, path string, keys ...string
 	}
 
 	r.mounts[alias] = s
-	if err := r.cfg.SetMountPath(alias, path); err != nil {
-		return fmt.Errorf("failed to set mount path: %w", err)
+	if persist {
+		if err := r.cfg.SetMountPath(alias, path); err != nil {
+			return fmt.Errorf("failed to set mount path: %w", err)
+		}
 	}
 
 	debug.Log("Added mount %s -> %s (%s)", alias, path, fullPath)
