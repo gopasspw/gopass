@@ -27,6 +27,7 @@ Update this index in the same commit that adds or supersedes a record.
 | [A-13](A-13-expired-gpg-key-handling.md) | Expired GPG key handling and recipient validity warnings | partially implemented | 2026-05-25 |
 | [A-14](A-14-team-workflows.md) | Effortless team workflows | implemented | 2026-06-06 |
 | [A-15](A-15-screenshot-build-tag.md) | `noscreenshot` build tag for OTP screen-capture feature | accepted | 2026-05-25 |
+| [A-16](A-16-break-gopass-hibp-cycle.md) | Break the `gopass` ↔ `gopass-hibp` module dependency cycle | proposed | 2026-09-10 |
 
 Status values are taken from each record's `**Status:**` line. Dates are the
 authoring commit dates reported by `git log --diff-filter=A --follow`.
