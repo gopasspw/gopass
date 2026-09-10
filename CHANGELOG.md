@@ -12,6 +12,14 @@ conventions this file is generated from.
 
 ## [Unreleased]
 
+## [1.17.2] - 2026-09-10
+
+### Fixed
+
+- Remove GPG_FINGERPRINT from goreleaser config
+- Revert to goreleaser 2.11.2 so we can keep on Go 1.25
+- ci: Fix broken script snippet in release workflow
+
 ## [1.17.1] - 2026-09-09
 
 ### Added
@@ -1286,7 +1294,8 @@ the runtime behaviour, but we could not test this on all platforms, yet.
 * [ENHANCEMENT] Simplified recipient management
 * [ENHANCEMENT] Interactive questions for missing parameters
 
-[Unreleased]: https://github.com/gopasspw/gopass/compare/v1.17.1...HEAD
+[Unreleased]: https://github.com/gopasspw/gopass/compare/v1.17.2...HEAD
+[1.17.2]: https://github.com/gopasspw/gopass/compare/v1.17.1...v1.17.2
 [1.17.1]: https://github.com/gopasspw/gopass/compare/v1.17.0...v1.17.1
 [1.17.0]: https://github.com/gopasspw/gopass/compare/v1.16.1...v1.17.0
 [1.16.1]: https://github.com/gopasspw/gopass/compare/v1.16.0...v1.16.1
