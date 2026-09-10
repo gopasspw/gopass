@@ -215,6 +215,22 @@ func GitSyncMaster(dir string) error {
 	return nil
 }
 
+func GitResetHard(dir string) error {
+	cmd := exec.Command("git", "reset", "--hard", "origin/master")
+	cmd.Dir = dir
+	buf := &bytes.Buffer{}
+	cmd.Stdout = buf
+	cmd.Stderr = buf
+	if Verbose {
+		fmt.Printf("Running command: %s\n", cmd)
+	}
+
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("git reset --hard failed: %s: %w", strings.TrimSpace(buf.String()), err)
+	}
+	return nil
+}
+
 func GitAdd(dir string, files ...string) error {
 	args := []string{"add"}
 	args = append(args, files...)

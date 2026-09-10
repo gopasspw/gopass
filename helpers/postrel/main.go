@@ -14,6 +14,7 @@ import (
 	"context"
 	"crypto/sha256"
 	"crypto/sha512"
+	"errors"
 	"fmt"
 	"html/template"
 	"io"
@@ -253,13 +254,13 @@ func goVersion(v string) string {
 		}
 	}
 
-	return fmt.Sprintf("%d.%d", sv.Major, sv.Minor)
+	return fmt.Sprintf("%d.%d.%d", sv.Major, sv.Minor, sv.Patch)
 }
 
 type inUpdater struct {
 	github *github.Client
 	v      semver.Version
-	goVer  string // go version as major.minor (for use in go.mod and GH workflows)
+	goVer  string // go version as major.minor.patch (for use in go.mod and GH workflows)
 }
 
 func newIntegrationsUpdater(client *github.Client, v semver.Version) (*inUpdater, error) {
@@ -323,7 +324,22 @@ func (u *inUpdater) update(ctx context.Context) {
 	fmt.Println()
 }
 
+var ErrDirtyGit = fmt.Errorf("git is dirty")
+
 func (u *inUpdater) doUpdate(ctx context.Context, dir string) error {
+	err := u.doUpdateInner(ctx, dir)
+	if err != nil {
+		// only reset if the error is not ErrDirtyGit, otherwise we would lose uncommitted changes
+		if !errors.Is(err, ErrDirtyGit) {
+			_ = gitutils.GitResetHard(dir)
+		}
+		return fmt.Errorf("failed to update %s: %w", dir, err)
+	}
+
+	return nil
+}
+
+func (u *inUpdater) doUpdateInner(ctx context.Context, dir string) error {
 	cwd, err := os.Getwd()
 	if err != nil {
 		return err
@@ -369,7 +385,8 @@ func (u *inUpdater) doUpdate(ctx context.Context, dir string) error {
 		fmt.Printf(`❌ It looks like 'go mod tidy' failed.
 If it tries to update to a newer Go version, please investigate.
 We should always consider which Go versions are available in the
-stable releases of our main target platforms before updating it.`)
+stable releases of our main target platforms before updating it.
+`)
 
 		return fmt.Errorf("go mod tidy failed at %s: %w", path, err)
 	}
