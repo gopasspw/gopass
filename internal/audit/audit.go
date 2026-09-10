@@ -12,8 +12,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/gopasspw/gopass-hibp/pkg/hibp/api"
-	"github.com/gopasspw/gopass-hibp/pkg/hibp/dump"
 	"github.com/gopasspw/gopass/internal/backend"
 	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/hashsum"
@@ -22,6 +20,8 @@ import (
 	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/gopasspw/gopass/pkg/fsutil"
 	"github.com/gopasspw/gopass/pkg/gopass"
+	"github.com/gopasspw/gopass/pkg/hibp/api"
+	"github.com/gopasspw/gopass/pkg/hibp/dump"
 	"github.com/gopasspw/gopass/pkg/termio"
 	"github.com/muesli/crunchy"
 )
