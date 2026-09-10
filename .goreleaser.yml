@@ -168,7 +168,7 @@ signs:
     args:
       - -ec
       - |
-        if [ -n "${GPG_FINGERPRINT:-}" ]; then
+        if [ -n "${GPG_FINGERPRINT}" ]; then
           exec gpg --batch -u "${GPG_FINGERPRINT}" --armor --output "${SIGNATURE}" --detach-sign "${ARTIFACT}"
         fi
 
@@ -188,7 +188,7 @@ signs:
           exec cosign sign-blob --bundle="${SIGNATURE}" "${ARTIFACT}" --yes
         fi
 
-        if [ -n "${COSIGN_KEY:-}" ]; then
+        if [ -n "${COSIGN_KEY}" ]; then
           exec cosign sign-blob --key "${COSIGN_KEY}" --bundle="${SIGNATURE}" "${ARTIFACT}" --yes
         fi
 

@@ -66,7 +66,8 @@ jobs:
           echo ${GITHUB_WORKSPACE}
           echo ${GOPATH}
           echo ${GOROOT}
-          env
+          echo "Shell env ------------------"
+          env | sort
       -
         name: Generate release-notes
         run: |
@@ -76,7 +77,7 @@ jobs:
         uses: goreleaser/goreleaser-action@f06c13b6b1a9625abc9e6e439d9c05a8f2190e94 # v7.2.3
         with:
           version: latest
-          args: release --release-notes=../RELEASE_NOTES
+          args: release --verbose --release-notes=../RELEASE_NOTES
         env:
           GITHUB_TOKEN: ${{ secrets.GH_PAT }}
           GPG_FINGERPRINT: ${{ steps.import_gpg.outputs.fingerprint }}
