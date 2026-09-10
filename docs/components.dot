@@ -33,6 +33,7 @@ digraph G {
   hibp -> api;
   hibp [label="gopass-hibp",shape=box];
   hibp -> pkghibp;
+  gopass -> pkghibp;
   pkghibp [label="pkg/hibp"];
   gitcreds -> api;
   gitcreds [label="git-credential-gopass",shape=box];

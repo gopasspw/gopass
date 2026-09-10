@@ -1,8 +1,13 @@
 # A-16: Break the `gopass` ↔ `gopass-hibp` module dependency cycle
 
-**Status:** proposed  
+**Status:** partially implemented  
 **Source:** Maintainer discussion — the `gopass` module depends on `gopass-hibp`, while the
 `gopass-hibp` module depends on `gopass`.
+
+The `gopass` side is done: `pkg/hibp/api` and `pkg/hibp/dump` now live in this repository,
+`internal/audit` imports them locally, and the `gopass-hibp` module requirement has been
+removed. The follow-up is to point the standalone `gopass-hibp` repository at
+`gopass/pkg/hibp/*` and delete its now-duplicated `pkg/` tree.
 
 ---
 
