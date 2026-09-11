@@ -1353,6 +1353,10 @@ func (s *Action) GetCommands() []*cli.Command {
 		},
 	}
 
+	// secret-service is Linux-only; non-Linux builds get a stub command that
+	// fails with a clear message.
+	cmds = append(cmds, s.secretServiceCommand())
+
 	// crypto and storage backends can add their own commands if they need to
 	for _, be := range backend.CryptoRegistry.Backends() {
 		bc, ok := be.(commander)
