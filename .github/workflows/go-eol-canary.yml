@@ -1,0 +1,48 @@
+name: Go EOL Canary
+
+on:
+  schedule:
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  canary:
+    name: Check Go Version EOL
+    runs-on: ubuntu-latest
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
+        with:
+          disable-sudo: true
+          egress-policy: block
+          allowed-endpoints: >
+            github.com:443
+            objects.githubusercontent.com:443
+            proxy.golang.org:443
+            raw.githubusercontent.com:443
+            release-assets.githubusercontent.com:443
+            storage.googleapis.com:443
+            sum.golang.org:443
+            golang.org:443
+            go.dev:443
+            endoflife.date:443
+            azure.archive.ubuntu.com:443
+            archive.ubuntu.com:443
+            security.ubuntu.com:443
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: 'go.mod'
+
+      - name: Run Go EOL Canary Test
+        run: go test -v -tags canary ./internal/goeol/...
