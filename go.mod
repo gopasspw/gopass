@@ -1,6 +1,6 @@
 module github.com/gopasspw/gopass
 
-go 1.25.0
+go 1.26.0
 
 require (
 	filippo.io/age v1.3.2
