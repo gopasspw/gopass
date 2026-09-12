@@ -1341,8 +1341,15 @@ func (s *Action) GetCommands() []*cli.Command {
 			Usage: "Check for updates",
 			Description: "" +
 				"This command checks for gopass updates at GitHub and automatically " +
-				"downloads and installs any missing update.",
+				"downloads and installs any missing update. With --pre release " +
+				"candidates and other pre-releases are considered as well.",
 			Action: s.Update,
+			Flags: []cli.Flag{
+				&cli.BoolFlag{
+					Name:  "pre",
+					Usage: "Include pre-releases (e.g. release candidates)",
+				},
+			},
 		},
 		{
 			Name:  "version",

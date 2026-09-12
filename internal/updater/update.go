@@ -19,10 +19,11 @@ import (
 // UpdateMoveAfterQuit is exported for testing.
 var UpdateMoveAfterQuit = true
 
-// Update will start the interactive update assistant.
+// Update will start the interactive update assistant. If pre is true it will
+// consider pre-releases such as release candidates.
 //
 //nolint:goerr113
-func Update(ctx context.Context, currentVersion semver.Version) error {
+func Update(ctx context.Context, currentVersion semver.Version, pre bool) error {
 	if err := IsUpdateable(ctx); err != nil {
 		out.Errorf(ctx, "Your gopass binary is externally managed. Cannot update: %q", err)
 
@@ -35,6 +36,10 @@ func Update(ctx context.Context, currentVersion semver.Version) error {
 	}
 
 	rel, err := FetchLatestRelease(ctx)
+	if pre {
+		rel, err = FetchLatestPrerelease(ctx)
+	}
+
 	if err != nil {
 		return err
 	}

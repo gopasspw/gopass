@@ -1,7 +1,10 @@
 # `sync` command
 
-The `sync` command is the preferred way to manually synchronize changes between
-your local stores and any configured remotes.
+The `sync` command manually synchronizes changes between your local stores and
+any configured remotes.
+
+gopass also syncs automatically on a configurable interval when `core.autosync`
+is enabled (the default). Use `gopass sync` to force a sync at any time.
 
 You can also `cd` into a git-based store and manually perform git operations,
 or use the `gopass git` command to automatically run a command in the correct

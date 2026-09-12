@@ -3,7 +3,7 @@
 The `otp` command generates TOTP tokens from an OTP URL (`otpauth://`).
 The command tries to parse the password and the totp fields as an OTP URI.
 
-Note: HTOP is supported, but requires a `counter` field to keep track of it.
+Note: HOTP is supported, but requires a `counter` field to keep track of it.
 
 Note: If `show.safecontent` is enabled, OTP URIs are hidden from the `show` command,
 see the [docs for show](show.md#parsing-and-secrets) to learn more about it.

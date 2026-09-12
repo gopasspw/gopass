@@ -3,12 +3,15 @@ package updater
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"strings"
 	"time"
 
 	"github.com/blang/semver/v4"
+	"github.com/gopasspw/gopass/pkg/debug"
 	"golang.org/x/net/context/ctxhttp"
 )
 
@@ -17,7 +20,13 @@ var (
 	APITimeout = 30 * time.Second
 
 	// BaseURL is exported for tests.
-	BaseURL    = "https://api.github.com/repos/%s/%s/releases/latest"
+	BaseURL = "https://api.github.com/repos/%s/%s/releases/latest"
+
+	// PreReleaseBaseURL is exported for tests. It lists all releases,
+	// including pre-releases, so that the highest semantic version can
+	// be selected.
+	PreReleaseBaseURL = "https://api.github.com/repos/%s/%s/releases?per_page=100"
+
 	gitHubOrg  = "gopasspw"
 	gitHubRepo = "gopass"
 )
@@ -70,8 +79,21 @@ func downloadAsset(ctx context.Context, assets []Asset, suffix string) (string, 
 }
 
 // FetchLatestRelease fetches meta-data about the latest Gopass release
-// from GitHub.
+// from GitHub. Pre-releases are ignored.
 func FetchLatestRelease(ctx context.Context) (Release, error) {
+	return fetchRelease(ctx, false)
+}
+
+// FetchLatestPrerelease fetches meta-data about the latest Gopass release
+// from GitHub, including pre-releases such as release candidates.
+func FetchLatestPrerelease(ctx context.Context) (Release, error) {
+	return fetchRelease(ctx, true)
+}
+
+// fetchRelease fetches meta-data about the latest Gopass release from GitHub.
+// If pre is true pre-releases are considered as well and the release with the
+// highest semantic version wins.
+func fetchRelease(ctx context.Context, pre bool) (Release, error) {
 	owner := gitHubOrg
 	repo := gitHubRepo
 
@@ -79,33 +101,67 @@ func FetchLatestRelease(ctx context.Context) (Release, error) {
 	defer cancel()
 
 	url := fmt.Sprintf(BaseURL, owner, repo)
-
-	req, err := http.NewRequest(http.MethodGet, url, nil)
-	if err != nil {
-		return Release{}, nil
+	if pre {
+		url = fmt.Sprintf(PreReleaseBaseURL, owner, repo)
 	}
 
-	// pin to API version 3 to avoid breaking our structs
-	req.Header.Set("Accept", "application/vnd.github.v3+json")
-
-	resp, err := ctxhttp.Do(ctx, httpClient, req)
+	body, err := get(ctx, url)
 	if err != nil {
-		return Release{}, fmt.Errorf("HTTP request failed: %w", err)
+		return Release{}, err
 	}
 
-	defer func() {
-		_ = resp.Body.Close()
-	}()
+	if pre {
+		var rels []Release
+		if err := json.Unmarshal(body, &rels); err != nil {
+			return Release{}, fmt.Errorf("failed to decode response: %w", err)
+		}
 
-	if resp.StatusCode != http.StatusOK {
-		return Release{}, fmt.Errorf("request faild with %v (%v)", resp.StatusCode, resp.Status)
+		return newestRelease(rels)
 	}
 
 	var rs Release
-	if err := json.NewDecoder(resp.Body).Decode(&rs); err != nil {
+	if err := json.Unmarshal(body, &rs); err != nil {
 		return rs, fmt.Errorf("failed to decode response: %w", err)
 	}
 
+	return parseRelease(rs)
+}
+
+// newestRelease parses the versions of all given releases and returns the one
+// with the highest semantic version, ignoring drafts and malformed tags.
+func newestRelease(rels []Release) (Release, error) {
+	var (
+		newest Release
+		found  bool
+	)
+
+	for _, rs := range rels {
+		if rs.Draft {
+			continue
+		}
+
+		rel, err := parseRelease(rs)
+		if err != nil {
+			debug.Log("skipping release: %s", err)
+
+			continue
+		}
+
+		if !found || rel.Version.GT(newest.Version) {
+			newest = rel
+			found = true
+		}
+	}
+
+	if !found {
+		return Release{}, errors.New("no releases found")
+	}
+
+	return newest, nil
+}
+
+// parseRelease validates the tag name and populates the parsed version.
+func parseRelease(rs Release) (Release, error) {
 	if !strings.HasPrefix(rs.TagName, "v") {
 		return rs, fmt.Errorf("tag name %q is invalid, must start with 'v'", rs.TagName)
 	}
@@ -118,4 +174,35 @@ func FetchLatestRelease(ctx context.Context) (Release, error) {
 	rs.Version = v
 
 	return rs, nil
+}
+
+// get performs a GitHub API request and returns the response body.
+func get(ctx context.Context, url string) ([]byte, error) {
+	req, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request: %w", err)
+	}
+
+	// pin to API version 3 to avoid breaking our structs
+	req.Header.Set("Accept", "application/vnd.github.v3+json")
+
+	resp, err := ctxhttp.Do(ctx, httpClient, req)
+	if err != nil {
+		return nil, fmt.Errorf("HTTP request failed: %w", err)
+	}
+
+	defer func() {
+		_ = resp.Body.Close()
+	}()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("request failed with %v (%v)", resp.StatusCode, resp.Status)
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read response: %w", err)
+	}
+
+	return body, nil
 }

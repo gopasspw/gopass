@@ -10,7 +10,7 @@ Yes, gopass is a drop-in replacement for pass. It has a similar command structur
 
 ## `gopass show secret` displays `Error: Failed to decrypt`
 
-This issue may happen if your GPG setup is broken. On MacOS try `brew link --overwrite gnupg`. You also may need to set `export GPG_TTY=$(tty)` in your `.bashrc` [#208](https://github.com/gopasspw/gopass/issues/208), [#209](https://github.com/gopasspw/gopass/issues/209)
+This issue may happen if your GPG setup is broken. On macOS try `brew link --overwrite gnupg`. You also may need to set `export GPG_TTY=$(tty)` in your `.bashrc` [#208](https://github.com/gopasspw/gopass/issues/208), [#209](https://github.com/gopasspw/gopass/issues/209)
 
 ## `gopass recipients add` fails with `Warning: No matching valid key found`
 
@@ -44,7 +44,7 @@ Yes, there is a gopass-based [Terraform provider](https://github.com/camptocamp/
 
 Set the `auto-expand-secmem` option in your gpg-agent.conf, if your version of GnuPG supports it.
 
-## I'm getting `Path too long for Unix domain socket` errors, usually on MacOS.
+## I'm getting `Path too long for Unix domain socket` errors, usually on macOS.
 
 This can be fixed by setting `export TMPDIR=/tmp` (or any other suiteable location with a path shorter than 80 characters).
 
@@ -69,6 +69,6 @@ Should specific Go packages within this project prove valuable for independent u
 
 ## Further Reading
 
-* [GPGTools](https://gpgtools.org/) for MacOS
+* [GPGTools](https://gpgtools.org/) for macOS
 * [GitHub Help on GPG](https://help.github.com/articles/signing-commits-with-gpg/)
 * [Git - the simple guide](http://rogerdudler.github.io/git-guide/)

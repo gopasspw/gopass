@@ -38,7 +38,7 @@ yum install gnupg2 git rng-tools
 pacman -S gnupg2 git rng-tools
 ```
 
-#### MacOS
+#### macOS
 
 If you haven't already, install [homebrew](http://brew.sh). And then:
 
@@ -128,7 +128,7 @@ Now, you have created a public and private key pair. If you don't know what that
 
 Depending on your operating system, you can either use a package manager, download a pre-built binary, or install from source. If you have a working Go development environment, we recommend building from source.
 
-### MacOS
+### macOS
 
 If you haven't already, install [homebrew](http://brew.sh). And then:
 
@@ -147,7 +147,7 @@ echo "pinentry-program ${PINENTRY}" >>~/.gnupg/gpg-agent.conf
 defaults write org.gpgtools.common UseKeychain NO
 ```
 
-The last step is important if you want to stop `pinentry-mac` from caching your passphrase in the MacOS Keychain by default (indefinitely).
+The last step is important if you want to stop `pinentry-mac` from caching your passphrase in the macOS Keychain by default (indefinitely).
 
 ### Ubuntu, Debian, Deepin, Devuan, Kali Linux, Pardus, Parrot, Raspbian
 
@@ -278,15 +278,15 @@ Here are a few useful example settings:
 ```vim
 " neovim on Linux
 autocmd BufNewFile,BufRead /dev/shm/gopass* setlocal noswapfile nobackup noundofile shada=""
-" neovim on MacOS
+" neovim on macOS
 autocmd BufNewFile,BufRead /private/**/gopass** setlocal noswapfile nobackup noundofile shada=""
 " vim on Linux
 autocmd BufNewFile,BufRead /dev/shm/gopass* setlocal noswapfile nobackup noundofile viminfo=""
-" vim on MacOS
+" vim on macOS
 autocmd BufNewFile,BufRead /private/**/gopass** setlocal noswapfile nobackup noundofile viminfo=""
 ```
 
-Note: gopass will attempt to detect the correct hardning flags to be used for the editor. It will pass them on
+Note: gopass will attempt to detect the correct hardening flags to be used for the editor. It will pass them on
 invocation.
 
 ### Migrating from pass to gopass
@@ -319,7 +319,7 @@ grep -q "source <(gopass completion bash)" ~/.bashrc || echo "source <(gopass co
 ```
 
 
-**MacOS**: The version of bash shipped with MacOS may [require a workaround](https://stackoverflow.com/questions/32596123/why-source-command-doesnt-work-with-process-substitution-in-bash-3-2) to enable auto completion. If the instructions above do not work try the following:
+**macOS**: The version of bash shipped with macOS may [require a workaround](https://stackoverflow.com/questions/32596123/why-source-command-doesnt-work-with-process-substitution-in-bash-3-2) to enable auto completion. If the instructions above do not work try the following:
 
 ```bash
 source /dev/stdin <<<"$(gopass completion bash)"
@@ -340,11 +340,9 @@ rm -i ${ZDOTDIR:-${HOME:?No ZDOTDIR or HOME}}/.zcompdump && compinit
 
 Then exit and re-run zsh if the last command failed.
 
-Notice that it is important to directly redirect Gopass' output to a file,
-using pipes or echo mess up the output.
-a completion file that is supposed to be handled by zsh and to be installed in the zsh
+Notice that it is important to directly redirect gopass' output to a file. Using pipes or `echo` messes up the output. This produces a completion file that is supposed to be handled by zsh and to be installed in the zsh
 completions directory, as defined by either the standard `/usr/share/zsh/site-functions/` path,
-or by a user-specified `fpath` folder. It is not meant to used with `source`.
+or by a user-specified `fpath` folder. It is not meant to be used with `source`.
 
 If zsh completion is still not working, you might want to add the following to your `.zshrc` file:
 
@@ -359,7 +357,7 @@ if you don't have it already.
 If you use the [fish](https://fishshell.com/) shell, you can enable experimental shell completion by the following command:
 
 ```fish
-mkdir -p ~/.config/fish/completions and; gopass completion fish > ~/.config/fish/completions/gopass.fish
+mkdir -p ~/.config/fish/completions; and gopass completion fish > ~/.config/fish/completions/gopass.fish
 ```
 
 and start a new shell afterwards.
@@ -438,7 +436,7 @@ gopass clone git@gitlab.example.org:john/passwords.git
 ### Storing and Syncing your Password Store with Google Drive / Dropbox / Syncthing / etc
 
 The recommended way to use Gopass is to sync your store with a git repository, preferably a private one, since the name and path of your secrets might reveal information that you'd prefer to keep private.
-However, shall you prefer to, you might also use the `noop` storage backend that is meant to store data on a cloud provider instead of a git server.
+However, shall you prefer to, you might also use the `fs` storage backend that is meant to store data on a cloud provider instead of a git server.
 
 Please be warned that using cloud-based storage may negatively impact the confidentiality of your store. However, if you wish to use one of these services, you can do so.
 
@@ -456,9 +454,9 @@ Because gopass is fully backwards compatible with pass, you can use some existin
 
 * Android - [Password Store](https://github.com/agrahn/Android-Password-Store)
 * iOS - [Pass for iOS](https://github.com/mssun/passforios)
-* Windows / MacOS / Linux -  [QtPass](https://qtpass.org/)
+* Windows / macOS / Linux -  [QtPass](https://qtpass.org/)
 
-There is also [Gopass UI](https://github.com/codecentric/gopass-ui) which was exclusively implemented for gopass and is available for MacOS, Linux and Windows.
+There is also [Gopass UI](https://github.com/codecentric/gopass-ui) which was exclusively implemented for gopass and is available for macOS, Linux and Windows.
 
 Others can be found at the "Compatible Clients" section of the [official pass website](https://www.passwordstore.org/).
 

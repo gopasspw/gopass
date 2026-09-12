@@ -10,7 +10,7 @@ Some configuration options are only available through setting environment variab
 | `GOPASS_AGE_PASSWORD`        | `string` | Set to any value (including the empty string) to use as a password for the age identity file containing your secret age identities.                               |
 | `GOPASS_AGE_STDIN_PASSPHRASE` | `bool`   | Set to any non-empty value to force reading the age identity passphrase from the terminal instead of pinentry. Intended for scripted or test environments.        |
 | `GOPASS_AUTOSYNC_INTERVAL`   | `int`    | Set this to the number of days between autosync runs.                                                                                                             |
-| `GOPASS_CHARACTER_SET`       | `bool`   | Set to any non-empty value to restrict the character set used in generated passwords.                                                                             |
+| `GOPASS_CHARACTER_SET`       | `string` | Set to the character set to use for generated passwords. See [Restricting the characters in generated passwords](features.md#restricting-the-characters-in-generated-passwords). |
 | `GOPASS_CLIPBOARD_CLEAR_CMD` | `string` | Use an external command to remove a password from the clipboard. See [GPaste](usecases/gpaste.md) for an example                                                  |
 | `GOPASS_CLIPBOARD_COPY_CMD`  | `string` | Use an external command to copy a password to the clipboard. See [GPaste](usecases/gpaste.md) for an example                                                      |
 | `GOPASS_CONFIG_NO_MIGRATE`   | `bool`   | Do not attempt to migrate old gopass configs and option names                                                                                                     |
@@ -62,7 +62,7 @@ All configuration options are also available for reading and writing through the
 - To display all values: `gopass config`
 - To display a single value: `gopass config generate.autoclip`
 - To update a single value: `gopass config generate.autoclip false`
-- As many other sub-commands this command accepts a `--store` flag to operate on a given sub-store, provided the sub-store is a remote one.
+- Like many other sub-commands this command accepts a `--store` flag to operate on a given sub-store. The sub-store must be initialized.
 
 ### Configuration format
 

@@ -16,4 +16,13 @@ $ gopass update --pre
 
 Flag | Description
 ---- | -----------
-`--pre` | Update to pre-releases / release candidates (default: `false`).
+`--pre` | Include pre-releases such as release candidates (default: `false`).
+
+## Exit codes
+
+| Code | Meaning                                              |
+|-----:|------------------------------------------------------|
+| 0    | gopass is up to date or the update applied successfully |
+| 1    | Update check or download failed                       |
+
+See [docs/exit-codes.md](../exit-codes.md) for the full table.

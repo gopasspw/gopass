@@ -22,8 +22,13 @@ func (s *miscHandler) Update(ctx context.Context, cmd *cli.Command) error {
 		return nil
 	}
 
-	out.Printf(ctx, "⚒ Checking for available updates ...")
-	if err := updater.Update(ctx, s.version); err != nil {
+	if cmd.Bool("pre") {
+		out.Printf(ctx, "⚒ Checking for available updates (including pre-releases) ...")
+	} else {
+		out.Printf(ctx, "⚒ Checking for available updates ...")
+	}
+
+	if err := updater.Update(ctx, s.version, cmd.Bool("pre")); err != nil {
 		return exit.Error(exit.Unknown, err, "Failed to update gopass: %s", err)
 	}
 

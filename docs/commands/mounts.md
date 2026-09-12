@@ -16,6 +16,7 @@ This feature is modeled after standard POSIX mount semantics.
 $ gopass mounts
 $ gopass mounts add mount/point /path/to/store
 $ gopass mounts remove mount/point
+$ gopass mounts versions
 ```
 
 ## Modes of operation
@@ -23,6 +24,15 @@ $ gopass mounts remove mount/point
 * Add a new mount
 * List existing mounts
 * Remove an existing mount
+* Display the versions of the external tools used by the mounts
+
+## Subcommands
+
+| Subcommand | Aliases                        | Description                                                            |
+|------------|--------------------------------|------------------------------------------------------------------------|
+| `add`      | `mount`                        | Mount an existing or new password store. Use `--create` to create one. |
+| `remove`   | `rm`, `unmount`, `umount`      | Unmount a store. This only updates the configuration, it does not delete the store. |
+| `versions` | `version`                      | Display version information of external commands used by the mounts.   |
 
 ## Creating new mounts
 

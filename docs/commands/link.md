@@ -16,7 +16,7 @@ $ gopass show foo/bar
 $ gopass show bar/baz
 ```
 
-## Modes of operations
+## Modes of operation
 
 * Create a symlink from an existing secret to a new name, the target must not exist, yet
 

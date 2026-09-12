@@ -19,7 +19,7 @@ Some examples are available in our [example password store](https://github.com/g
 | Desktop Notifications       | *stable*      | Display desktop notifications and completing long running operations |
 | REPL                        | *beta*        | Integrated Read-Eval-Print-Loop shell with autocompletion by running `gopass`. |
 | OTP support                 | *stable*      | Generate TOTP/(HOTP) tokens based on the stored secret            |
-| Extensions                  |               | [Extend](docs/hacking.md#extending-gopass) gopass with custom commands using our [API](https://pkg.go.dev/github.com/gopasspw/gopass/pkg/gopass/api)                  |
+| Extensions                  |               | [Extend](hacking.md#extending-gopass) gopass with custom commands using our [API](https://pkg.go.dev/github.com/gopasspw/gopass/pkg/gopass/api)                  |
 | Fully open source!          |               | No need to trust it, check our code and/or improve it!            |
 
 ## Integrations
@@ -152,8 +152,8 @@ Let's say you want to create an account.
 
 ```shell
 $ gopass insert golang.org/gopher
-Enter secret for golang.org/gopher:       # hidden on Linux / MacOS
-Retype secret for golang.org/gopher:      # hidden on Linux / MacOS
+Enter secret for golang.org/gopher:       # hidden on Linux / macOS
+Retype secret for golang.org/gopher:      # hidden on Linux / macOS
 gopass: Encrypting golang.org/gopher for these recipients:
  - 0xB5B44266A3683834 - Gopher <gopher@golang.org>
 
@@ -185,7 +185,7 @@ Eech4ahRoy2oowi0ohl
 
 The `generate` command will ask for any missing arguments, like the name of the secret or the length. By default the password is copied to clipboard. If you don't want the password to be copied, but displayed instead, use the `-p` flag to print it.
 
-By default the password is copied to clipboard, but you can disable this using the `AutoClip` option, which, when set to`false`, will neither display, nor print the password. This is overridden by the `-p` or `-c` flags.
+You can disable the automatic clipboard copy with `generate.autoclip`; when set to `false` the generated password is neither copied nor printed. This is overridden by the `-p` or `-c` flags.
 
 ### Edit a secret
 
@@ -291,7 +291,7 @@ gopass cp emails/example.com emails/user@example.com
 
 ### Auto-Pager
 
-Like other popular open-source projects, gopass automatically pipe the output to `$PAGER` if it's longer than one terminal page. You can disable this behavior by unsetting `$PAGER` or `gopass config nopager true`.
+Like other popular open-source projects, gopass automatically pipes the output to `$PAGER` if it's longer than one terminal page. You can disable this behavior by unsetting `$PAGER` or setting `core.nopager` to `true`.
 
 ### Sync
 
@@ -449,7 +449,7 @@ but as soon as you mutate the YAML content through gopass, i.e. `gopass insert s
 it will employ a YAML marshaler that may alter the order and escaping of your
 entries.
 
-See also [gopass show doc entry](/docs/commands/show.md#parsing-and-secrets) for more information about parsing and how to disable it.
+See also [gopass show doc entry](commands/show.md#parsing-and-secrets) for more information about parsing and how to disable it.
 
 ### Edit the Config
 
@@ -457,15 +457,15 @@ gopass allows editing the config from the command-line. This is similar to how g
 
 ```shell
 $ gopass config
-askformore: false
-autoclip: true
-autoimport: false
-cliptimeout: 10
-noconfirm: false
-path: /home/user/.password-store
+core.autopush = true
+core.autosync = true
+core.cliptimeout = 45
+generate.autoclip = true
+mounts.path = ~/.local/share/gopass/stores/root
 
-$ gopass config cliptimeout 60
-$ gopass config cliptimeout
+$ gopass config core.cliptimeout 60
+$ gopass config core.cliptimeout
+60
 ```
 
 ### Managing Recipients
@@ -593,11 +593,14 @@ Note: Until the gitconfig package support multi-values only one alias per domain
 ### Safecontent
 
 Gopass can limit display of certain *unsafe* fields in secrets.
-By default no fields are obstructed, but if the `safecontent`
+By default no fields are obstructed, but if the `show.safecontent`
 config option is set to `true` the `Password` field is obstructed.
-Also the special `unsafe-keys` key is evaluated. It expectes
-a comma separated list of keys that will be obstructed when
-printing the secret.
+The keys `password`, `totp`, `hotp` and `otpauth` are always obstructed
+when `safecontent` is enabled, and the `show.hidden-keys` config option
+can list additional keys to obstruct.
+
+Secrets may also declare their own `unsafe-keys` field: a comma separated
+list of keys in that secret that will be obstructed when printing it.
 
 ## Related Projects
 

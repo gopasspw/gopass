@@ -111,3 +111,75 @@ func TestUpdate(t *testing.T) {
 	require.Error(t, act.Update(ctx, gptest.CliCtx(ctx, t)))
 	buf.Reset()
 }
+
+func TestUpdatePre(t *testing.T) {
+	updater.UpdateMoveAfterQuit = false
+
+	u := gptest.NewUnitTester(t)
+
+	ctx := config.NewContextInMemory()
+	ctx = ctxutil.WithAlwaysYes(ctx, true)
+	ctx = ctxutil.WithHidden(ctx, true)
+	act, err := newMock(ctx, u.StoreDir(""))
+	require.NoError(t, err)
+
+	// github release download mock
+	ghdl := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		gzw := gzip.NewWriter(w)
+		defer func() {
+			_ = gzw.Close()
+		}()
+
+		tw := tar.NewWriter(gzw)
+		defer func() {
+			_ = tw.Close()
+		}()
+
+		body := "foobar"
+		hdr := &tar.Header{
+			Typeflag: tar.TypeReg,
+			Name:     "gopass",
+			Mode:     0o600,
+			Size:     int64(len(body)),
+		}
+		if err := tw.WriteHeader(hdr); err != nil {
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+
+			return
+		}
+		if _, err := tw.Write([]byte(body)); err != nil {
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+
+			return
+		}
+	}))
+	defer ghdl.Close()
+
+	// github api mock, returns a list of releases including a pre-release
+	ghapi := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		json := fmt.Sprintf(`[
+			{"id":1,"name":"v1.6.6","tag_name":"v1.6.6","draft":false,"prerelease":false,"published_at":"2017-12-20T14:38:21Z","assets":[]},
+			{"id":2,"name":"v1.7.0-rc.1","tag_name":"v1.7.0-rc.1","draft":false,"prerelease":true,"published_at":"2017-12-21T14:38:21Z","assets":[
+				{"browser_download_url":"%s/gopass.tar.gz","id":5676623,"name":"gopass-1.7.0-rc.1-%s-%s.tar.gz"},
+				{"browser_download_url":"%s/SHA256SUMS","id":5676624,"name":"gopass-1.7.0-rc.1_SHA256SUMS"},
+				{"browser_download_url":"%s/SHA256SUMS.sig","id":5676625,"name":"gopass-1.7.0-rc.1_SHA256SUMS.sig"}
+			]}
+		]`, ghdl.URL, runtime.GOOS, runtime.GOARCH, ghdl.URL, ghdl.URL)
+		fmt.Fprint(w, json)
+	}))
+	defer ghapi.Close()
+
+	updater.PreReleaseBaseURL = ghapi.URL + "/%s/%s"
+
+	buf := &bytes.Buffer{}
+	out.Stdout = buf
+	stdout = buf
+	defer func() {
+		out.Stdout = os.Stdout
+		stdout = os.Stdout
+	}()
+
+	// This should not fail, but then we need to provide valid signatures
+	require.Error(t, act.Update(ctx, gptest.CliCtxWithFlags(ctx, t, map[string]string{"pre": "true"})))
+	buf.Reset()
+}

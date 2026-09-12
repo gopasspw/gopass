@@ -465,7 +465,7 @@ _gopass () {
 	      "help:Shows a list of commands or help for one command"
 	      )
 	      _describe -t commands "gopass update" subcommands
-	      _arguments : "--help[show help]"
+	      _arguments : "--pre[Include pre-releases (e.g. release candidates)]" "--help[show help]"
 	      
 	      
 	      ;;
