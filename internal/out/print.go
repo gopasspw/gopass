@@ -56,6 +56,24 @@ func Printf(ctx context.Context, format string, args ...any) {
 	fmt.Fprintf(Stdout, Prefix(ctx)+format+newline(ctx), args...)
 }
 
+// PrintStderr prints the given string to stderr.
+func PrintStderr(ctx context.Context, arg any) {
+	if ctxutil.IsHidden(ctx) {
+		return
+	}
+	debug.LogN(1, "%s", arg)
+	fmt.Fprintf(Stderr, Prefix(ctx)+"%s"+newline(ctx), arg)
+}
+
+// PrintStderrf formats and prints the given string to stderr.
+func PrintStderrf(ctx context.Context, format string, args ...any) {
+	if ctxutil.IsHidden(ctx) {
+		return
+	}
+	debug.LogN(1, format, args...)
+	fmt.Fprintf(Stderr, Prefix(ctx)+format+newline(ctx), args...)
+}
+
 // Notice prints the string with an exclamation mark.
 func Notice(ctx context.Context, arg any) {
 	if ctxutil.IsHidden(ctx) {

@@ -599,6 +599,39 @@ func TestShowHandleError(t *testing.T) {
 	buf.Reset()
 }
 
+func TestShowFuzzySearchOutputStreams(t *testing.T) {
+	u := gptest.NewUnitTester(t)
+
+	ctx := config.NewContextInMemory()
+	ctx = ctxutil.WithAlwaysYes(ctx, true)
+	ctx = ctxutil.WithTerminal(ctx, true)
+	ctx = ctxutil.WithInteractive(ctx, false)
+
+	act, err := newMock(ctx, u.StoreDir(""))
+	require.NoError(t, err)
+	require.NotNil(t, act)
+	ctx = act.cfg.WithConfig(ctx)
+
+	color.NoColor = true
+	stdoutBuf := &bytes.Buffer{}
+	stderrBuf := &bytes.Buffer{}
+	out.Stdout = stdoutBuf
+	out.Stderr = stderrBuf
+	stdout = stdoutBuf
+	defer func() {
+		stdout = os.Stdout
+		out.Stdout = os.Stdout
+		out.Stderr = os.Stderr
+	}()
+
+	c := gptest.CliCtx(ctx, t, "fo")
+	require.NoError(t, act.Show(ctx, c))
+	assert.Equal(t, "secret\nsecond\nthird\n\n", stdoutBuf.String())
+	assert.Contains(t, stderrBuf.String(), `Entry "fo" not found. Starting search...`)
+	assert.Contains(t, stderrBuf.String(), `Found exact match in "foo"`)
+	assert.Contains(t, stderrBuf.String(), "Secret: foo")
+}
+
 func TestShowHandleErrorFuzzySearchToggle(t *testing.T) {
 	u := gptest.NewUnitTester(t)
 
