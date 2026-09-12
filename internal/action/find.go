@@ -85,7 +85,7 @@ func (s *searchHandler) find(ctx context.Context, cmd *cli.Command, needle strin
 
 			return nil
 		}
-		out.OKf(ctx, "Found exact match in %q", choices[0])
+		out.PrintStderrf(ctx, "✅ Found exact match in %q", choices[0])
 
 		return cb(ctx, cmd, choices[0], false)
 	}
