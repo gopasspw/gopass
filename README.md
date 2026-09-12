@@ -16,7 +16,7 @@
 
 Manage your credentials with ease. In a globally distributed team, on multiple devices or fully offline on an air-gapped machine.
 
-- **Works everywhere** - The same user experience on Linux, MacOS, *BSD or Windows
+- **Works everywhere** - The same user experience on Linux, macOS, *BSD or Windows
 - **Built for teams** - Built from our experience working in distributed development teams
 - **Full autonomy** - No network connectivity required, unless you want it
 
@@ -38,7 +38,7 @@ An external editor is required to use `gopass edit`.
 
 ## Installation through package managers
 
-### [Homebrew](https://brew.sh) (Linux/MacOS)
+### [Homebrew](https://brew.sh) (Linux/macOS)
 
 [![homebrew version](https://img.shields.io/homebrew/v/gopass)](https://github.com/Homebrew/homebrew-core/blob/master/Formula/gopass.rb)
 

@@ -27,7 +27,10 @@ test_folder/ignore_this
 | Code | Meaning |
 |-----:|---------|
 | 0 | No issues found |
+| 1 | Audit run itself failed |
+| 13 | Store contents could not be listed |
 | 14 | One or more weak passwords or issues detected |
+| 18 | Report file could not be written |
 
 See [docs/exit-codes.md](../exit-codes.md) for the full table.
 

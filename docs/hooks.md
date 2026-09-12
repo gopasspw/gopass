@@ -1,5 +1,14 @@
 # Gopass Hooks
 
+> **WARNING: hooks are currently disabled.** The hook invocation path returns
+> early before any hook is executed. Configuring hooks has **no effect** in
+> current releases. This is a deliberate, temporary mitigation for
+> [CVE-2023-24055](https://www.cvedetails.com/cve/CVE-2023-24055/) and is
+> tracked in [ADR A-07](adr/A-07-hook-system-dead-code.md). The remainder of
+> this document describes the intended behaviour for when hooks are
+> re-enabled; treat it as a specification, not as documentation of current
+> runtime behaviour.
+
 `gopass` exposes some hook-able events during it's invocation lifecycle. This allows users to inject additional functionality or perform addition logging.
 
 ## Hook API
@@ -9,7 +18,7 @@ All hooks are subject to the following constraints:
 * Hooks do not inherit `STDIN` or `STDOUT` from the parent process.
 * Hooks do inherit `STDERR` from the parent process and may use it to print anything they want.
 * Hooks always run from the `password-store` directory.
-* Hooks are run with the `GOPASS_HOOK=1` in their environment and with `GOPASS_CONFIG_DIR` set to the configuration directory with which the original `gopass` command was started.
+* Hooks are run with `GOPASS_HOOK=1` in their environment.
 * An exit from a hook (or execution failure) cases the entire `gopass` command to fail.
 * Hooks have at most one minute to complete.
 

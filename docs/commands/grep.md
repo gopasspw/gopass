@@ -9,13 +9,12 @@ and performs a substring or regexp match on the given pattern.
 $ gopass grep foobar
 ```
 
-## Modes of operations
+## Modes of operation
 
 * Search for the given pattern in all secrets
 
 ## Flags
 
-None.
-Flag | Aliases | Description
----- | ------- | -----------
-`--regexp` | | Parse the pattern as a RE2 regular expression.
+| Flag       | Aliases | Description                                    |
+|------------|---------|------------------------------------------------|
+| `--regexp` | `-r`    | Parse the pattern as a RE2 regular expression. |

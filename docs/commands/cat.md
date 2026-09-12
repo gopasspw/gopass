@@ -15,7 +15,7 @@ $ gopass cat test/new
 
 * Create a new entry with data-stream from STDIN
 * Change an existing entry to data-stream from STDIN
-* Retrive encoded data from password-store and echo it to STDOUT
+* Retrieve encoded data from the password store and echo it to STDOUT
 
 Cat is intended to work with binary data, so it accepts any kind of stream from
 STDIN. It reads the binary-stream from STDIN and encodes it Base64 and saves it

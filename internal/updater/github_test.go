@@ -90,6 +90,73 @@ func TestFetchLatestRelease(t *testing.T) {
 	}
 }
 
+func TestFetchLatestPrerelease(t *testing.T) {
+	tests := []struct {
+		name          string
+		responseBody  string
+		expectedError bool
+		expectedTag   string
+	}{
+		{
+			name: "picks highest, including prerelease",
+			responseBody: `[
+				{"id":1,"name":"v1.6.6","tag_name":"v1.6.6","draft":false,"prerelease":false,"published_at":"2021-01-01T00:00:00Z","assets":[]},
+				{"id":2,"name":"v1.7.0-rc.1","tag_name":"v1.7.0-rc.1","draft":false,"prerelease":true,"published_at":"2021-01-02T00:00:00Z","assets":[]}
+			]`,
+			expectedTag: "v1.7.0-rc.1",
+		},
+		{
+			name: "stable wins when higher",
+			responseBody: `[
+				{"id":1,"name":"v1.7.0","tag_name":"v1.7.0","draft":false,"prerelease":false,"published_at":"2021-01-03T00:00:00Z","assets":[]},
+				{"id":2,"name":"v1.7.0-rc.1","tag_name":"v1.7.0-rc.1","draft":false,"prerelease":true,"published_at":"2021-01-02T00:00:00Z","assets":[]}
+			]`,
+			expectedTag: "v1.7.0",
+		},
+		{
+			name: "ignores drafts and malformed tags",
+			responseBody: `[
+				{"id":1,"name":"v1.8.0","tag_name":"v1.8.0","draft":true,"prerelease":false,"published_at":"2021-01-04T00:00:00Z","assets":[]},
+				{"id":2,"name":"invalid","tag_name":"1.0.0","draft":false,"prerelease":false,"published_at":"2021-01-02T00:00:00Z","assets":[]},
+				{"id":3,"name":"v1.6.6","tag_name":"v1.6.6","draft":false,"prerelease":false,"published_at":"2021-01-01T00:00:00Z","assets":[]}
+			]`,
+			expectedTag: "v1.6.6",
+		},
+		{
+			name:          "no usable release",
+			responseBody:  `[]`,
+			expectedError: true,
+		},
+		{
+			name:          "invalid JSON",
+			responseBody:  `[`,
+			expectedError: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				w.WriteHeader(http.StatusOK)
+				_, _ = w.Write([]byte(tt.responseBody))
+			}))
+			defer server.Close()
+
+			PreReleaseBaseURL = server.URL + "/repos/%s/%s/releases"
+
+			ctx := t.Context()
+			release, err := FetchLatestPrerelease(ctx)
+
+			if tt.expectedError {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+				assert.Equal(t, tt.expectedTag, release.TagName)
+			}
+		})
+	}
+}
+
 func TestDownloadAsset(t *testing.T) {
 	tests := []struct {
 		name          string

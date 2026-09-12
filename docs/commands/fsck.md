@@ -26,6 +26,7 @@ Flag | Aliases | Description
 | Code | Meaning |
 |-----:|---------|
 | 0 | Store integrity OK |
+| 10 | Specified filter path not found |
 | 15 | One or more integrity errors found |
 
 See [docs/exit-codes.md](../exit-codes.md) for the full table.

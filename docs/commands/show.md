@@ -25,7 +25,7 @@ Flag | Aliases | Description
 `--alsoclip` | `-C` | Copy the password value into the clipboard and show the content.
 `--qr` | | Encode the password field as a QR code and print it. Note: When combining with `-c`/`-C` the unencoded password is copied. Not the QR code.
 `--qrbody` | | Encode the entire body (all lines after the first) as a QR code and print it.
-`--unsafe` | `-u` | Display unsafe content (e.g. the password) even when the `safecontent` option is set. No-op when `safecontent` is `false`.
+`--unsafe` | `-u`, `-f` | Display unsafe content (e.g. the password) even when the `safecontent` option is set. No-op when `safecontent` is `false`. `-f` is a deprecated alias kept for backward compatibility.
 `--safe` | `-s` | Hide unsafe content (e.g. the password) even when the `safecontent` option is `false`. Overrides the config value for this invocation.
 `--password` | `-o` | Display only the password. For use in scripts. Takes precedence over other flags.
 `--revision` | `-r` | Display a specific revision of the entry. Use an exact version identifier from `gopass history` or the special `-<N>` syntax. Does not work with native (e.g. git) refs.
@@ -60,7 +60,9 @@ Note: The parser ensures every parsed secret contains a terminating newline, eve
 | Code | Meaning |
 |-----:|---------|
 | 0 | Secret displayed successfully |
-| 10 | Secret not found |
+| 1 | Revision list could not be retrieved; or QR encoding failed |
+| 2 | No name provided |
+| 10 | Secret not found; or requested YAML key, line, or password field not found |
 | 11 | Secret could not be decrypted |
 
 See [docs/exit-codes.md](../exit-codes.md) for the full table.
@@ -123,9 +125,9 @@ The secrets are split into 3 categories:
    username, it should be enclosed in string delimiters: `username: "0123"` will always be parsed as the string `0123`
    and not as octal.
 
-By default, `safecontent` will remove the first line (the password), every line starting with `otpauth://` in the body, and every YAML values where the key is one of the following: `hotp`, `otpauth`, `password`, `totp`.
+By default, `safecontent` will remove the first line (the password), every line starting with `otpauth://` in the body, and every YAML value whose key is one of the following: `hotp`, `otpauth`, `password`, `totp`. The `show.hidden-keys` configuration option can add further keys to this list.
 
-Both the key-value and the YAML format support so-called "unsafe-keys", which is a key-value that allows you to specify keys that should be hidden when using `gopass show` with `gopass config safecontent` set to true.
+Both the key-value and the YAML format support so-called "unsafe-keys", which is a key-value that allows you to specify keys that should be hidden when using `gopass show` with `gopass config show.safecontent` set to true.
 E.g:
 ```
 supersecret
@@ -145,6 +147,8 @@ unsafe-keys: age,secret
 ```
 unless it is called with `gopass show -n` that would disable parsing of the body, but still hide the password, or `gopass show -f` that would show everything that was hidden, including the password.
 
-You can read more about secrets formats in its [documentation](docs/secrets.md).
+You can read more about secrets formats in its [documentation](../secrets.md).
 
-Notice that if the option `parsing` is disabled in the config, then all secrets are handled as plain secrets.
+Notice that `--noparsing` disables parsing for a single invocation, effectively
+handling the secret as a plain (unparsed) secret. There is no configuration
+option to disable parsing globally.

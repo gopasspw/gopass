@@ -12,7 +12,7 @@ Windows users.
 ## Usage
 
 ```bash
-gopass pwgen [optional length]
+gopass pwgen [optional length] [optional count]
 ```
 
 ## Synopsis
@@ -20,6 +20,7 @@ gopass pwgen [optional length]
 ```bash
 gopass pwgen
 gopass pwgen 24
+gopass pwgen 24 5
 ```
 
 ## Flags
@@ -27,14 +28,17 @@ gopass pwgen 24
 Flag | Aliases | Description
 ---- | ------- | -----------
 `--no-numerals` | `-0` | Do not include numerals in the generated passwords.
+`--no-capitalize` | `-A` | Do not include capital letters in the generated passwords.
+`--ambiguous` | `-B` | Do not include characters that could be easily confused with each other, like `1` and `l` or `0` and `O`.
+`--symbols` | `-y` | Include at least one symbol in the password.
 `--one-per-line` | `-1` | Print one password per line.
 `--xkcd` | `-x` | Use multiple random english words combined to a password.
-`--xkcd-sep` | `--sep`, `--xkcdsep` | Word separator for multi-word passwords.
-`--xkcd-lang` | `--lang`, `--xkcdlang` | Language to generate password from. Currently only supports english (en, default).
-`--xkcd-capitalize` | `--xkcdcapitalize` | Capitalize the first letter of each word in the generated xkcd password.
-`--xkcd-numbers` | `--xkcdnumbers` | Add a random number to the end of the generated xkcd password.
+`--xkcd-sep` | `--sep`, `--xkcdsep`, `--xs` | Word separator for multi-word passwords. Implies `--xkcd`.
+`--xkcd-lang` | `--lang`, `--xkcdlang`, `--xl` | Language to generate passwords from. Currently `en` (english, default) and `de` are supported.
+`--xkcd-capitalize` | `--xkcdcapitalize`, `--xc` | Capitalize the first letter of each word in the generated xkcd password. Implies `--xkcd`.
+`--xkcd-numbers` | `--xkcdnumbers`, `--xn` | Add a random number to the end of the generated xkcd password. Implies `--xkcd`.
 `--memorable` | `-m` | Use the memorable (word-based) password generator. The length is a minimum (output may be longer). Incompatible with `--no-numerals`.
-`--memorable-capitalize` | `--memorablecapitalize` | Capitalize (some) words in the generated memorable password. Implies `--memorable`.
+`--memorable-capitalize` | `--memorablecapitalize`, `--mc` | Capitalize (some) words in the generated memorable password. Implies `--memorable`.
 
 ## Notes
 
