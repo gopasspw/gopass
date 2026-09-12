@@ -100,6 +100,19 @@ var commandsWithError = set.Map([]string{
 	".audit",
 })
 
+// commandsSkipped lists commands whose Action must not be invoked during
+// command discovery. Only commands that are long-running or would modify the
+// host belong here.
+//
+//   - secret-service.serve starts a daemon that acquires the well-known
+//     org.freedesktop.secrets bus name and blocks until interrupted, so it must
+//     never be run from a unit test. Its siblings (status, install, uninstall)
+//     are safe: install/uninstall write below GOPASS_HOMEDIR, which the unit
+//     tester points at a temporary directory.
+var commandsSkipped = set.Map([]string{
+	".secret-service.serve",
+})
+
 func TestGetCommands(t *testing.T) {
 	u := gptest.NewUnitTester(t)
 
@@ -135,7 +148,7 @@ func TestGetCommands(t *testing.T) {
 	}
 
 	commands := getCommands(act, app)
-	assert.Len(t, commands, 45)
+	assert.Len(t, commands, 46)
 
 	prefix := ""
 	testCommands(t, ctx, app, commands, prefix)
@@ -145,7 +158,12 @@ func testCommands(t *testing.T, ctx context.Context, app *cli.Command, commands 
 	t.Helper()
 
 	for _, cmd := range commands {
+		fullName := prefix + "." + cmd.Name
+
 		if cmd.Name == "update" || cmd.Name == "agent" || cmd.Name == "doctor" {
+			continue
+		}
+		if _, skip := commandsSkipped[fullName]; skip {
 			continue
 		}
 
@@ -164,7 +182,6 @@ func testCommands(t *testing.T, ctx context.Context, app *cli.Command, commands 
 		}
 
 		if cmd.Action != nil {
-			fullName := prefix + "." + cmd.Name
 			if _, found := commandsWithError[fullName]; found {
 				require.Error(t, runCmdAction(ctx, cmd), "Command %s should fail", fullName)
 
