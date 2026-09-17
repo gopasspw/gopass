@@ -39,6 +39,6 @@ var pluginTerminalUI = &plugin.ClientUI{
 	},
 
 	WaitTimer: func(name string) {
-		out.Printf(context.Background(), "waiting on %s plugin...", name)
+		out.Warningf(context.Background(), "waiting on %s plugin...", name)
 	},
 }
