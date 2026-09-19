@@ -35,11 +35,14 @@ func TestFind(t *testing.T) {
 	require.NoError(t, act.cfg.Set("", "generate.autoclip", "false"))
 
 	buf := &bytes.Buffer{}
+	stderrBuf := &bytes.Buffer{}
 	out.Stdout = buf
+	out.Stderr = stderrBuf
 	stdout = buf
 	defer func() {
 		stdout = os.Stdout
 		out.Stdout = os.Stdout
+		out.Stderr = os.Stderr
 	}()
 	color.NoColor = true
 
@@ -57,33 +60,38 @@ func TestFind(t *testing.T) {
 	// find fo (with fuzzy search)
 	c = gptest.CliCtxWithFlags(ctx, t, nil, "fo")
 	require.NoError(t, act.FindFuzzy(ctx, c))
-	assert.Contains(t, strings.TrimSpace(buf.String()), "Found exact match in \"foo\"\nsecret")
+	assert.Contains(t, strings.TrimSpace(buf.String()), "secret\nsecond\nthird")
+	assert.Contains(t, stderrBuf.String(), `Found exact match in "foo"`)
 	buf.Reset()
+	stderrBuf.Reset()
 
 	// find fo (no fuzzy search)
 	c = gptest.CliCtxWithFlags(ctx, t, nil, "fo")
 	require.NoError(t, act.Find(ctx, c))
 	assert.Equal(t, "foo", strings.TrimSpace(buf.String()))
 	buf.Reset()
+	stderrBuf.Reset()
 
 	// testing the safecontent case
 	require.NoError(t, act.cfg.Set("", "show.safecontent", "true"))
 	require.NoError(t, act.FindFuzzy(ctx, c))
 	buf.Reset()
+	stderrBuf.Reset()
 
 	// testing with the clip flag set
 	c = gptest.CliCtxWithFlags(ctx, t, map[string]string{"clip": "true"}, "fo")
 	require.NoError(t, act.FindFuzzy(ctx, c))
-	out := strings.TrimSpace(buf.String())
-	assert.Contains(t, out, "Found exact match in \"foo\"")
+	assert.Contains(t, stderrBuf.String(), `Found exact match in "foo"`)
 	buf.Reset()
+	stderrBuf.Reset()
 
 	// safecontent case with force flag set
 	c = gptest.CliCtxWithFlags(ctx, t, map[string]string{"unsafe": "true"}, "fo")
 	require.NoError(t, act.FindFuzzy(ctx, c))
-	out = strings.TrimSpace(buf.String())
-	assert.Contains(t, out, "Found exact match in \"foo\"\nsecret")
+	assert.Contains(t, strings.TrimSpace(buf.String()), "secret\nsecond\nthird")
+	assert.Contains(t, stderrBuf.String(), `Found exact match in "foo"`)
 	buf.Reset()
+	stderrBuf.Reset()
 
 	// stopping with the safecontent tests
 	require.NoError(t, act.cfg.Set("", "show.safecontent", "false"))
