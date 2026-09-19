@@ -22,7 +22,7 @@ Update this index in the same commit that adds or supersedes a record.
 | [A-08](A-08-shred-modern-storage-limitations.md) | Shred operation is ineffective on modern storage | accepted | 2026-04-06 |
 | [A-09](A-09-low-severity-informational-findings.md) | Low severity and informational findings | accepted | 2026-04-06 |
 | [A-10](A-10-code-quality-findings.md) | Code quality findings | open | 2026-04-06 |
-| [A-11](A-11-secret-service.md) | Integrate `org.freedesktop.secrets` D-Bus service | proposed | 2026-05-24 |
+| [A-11](A-11-secret-service.md) | Integrate `org.freedesktop.secrets` D-Bus service | implemented | 2026-05-24 |
 | [A-12](A-12-pkg-api-stability.md) | `pkg/gopass` API stability contract | accepted | 2026-05-24 |
 | [A-13](A-13-expired-gpg-key-handling.md) | Expired GPG key handling and recipient validity warnings | partially implemented | 2026-05-25 |
 | [A-14](A-14-team-workflows.md) | Effortless team workflows | implemented | 2026-06-06 |

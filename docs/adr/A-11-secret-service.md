@@ -1,6 +1,6 @@
 # A-11: Integrate `org.freedesktop.secrets` D-Bus Service
 
-**Status:** proposed  
+**Status:** implemented
 **Source:** [GitHub Issue #3434](https://github.com/gopasspw/gopass/issues/3434)
 
 ---
@@ -25,12 +25,17 @@ Two reference implementations inform the design:
 
 | Project | Language | License | Notes |
 |---------|----------|---------|-------|
-| [nikicat/gopass-secret-service](https://github.com/nikicat/gopass-secret-service) | Go (90 %) | MIT | Standalone daemon that invokes `gopass` CLI. **Most relevant.** |
+| [nikicat/gopass-secret-service](https://github.com/nikicat/gopass-secret-service) | Go (91 %) | MIT | Standalone daemon built on the gopass Go API. **Most relevant.** |
 | [grimsteel/pass-secret-service](https://github.com/grimsteel/pass-secret-service) | Rust | GPL-3.0 | Standalone daemon for `pass`. Pure-Rust D-Bus. |
 
-`nikicat/gopass-secret-service` implements the full spec in Go and re-uses `gopass` via its CLI.
-The key difference for this ADR is that the integrated version will use the **gopass Go API**
-(`github.com/gopasspw/gopass/pkg/gopass/api`) directly rather than shelling out.
+`nikicat/gopass-secret-service` implements the full spec in Go and consumes the **gopass Go API**
+(`github.com/gopasspw/gopass/pkg/gopass/api`) directly — it does **not** shell out to the `gopass`
+CLI. It additionally routes the spec's volatile `session` collection to an in-kernel keyring and
+caches item metadata so that `SearchItems` does not decrypt the whole store on every lookup. Both
+lessons are folded into the design below. Since the integrated version re-uses the same API, the
+practical difference is **packaging** — a subcommand of the existing `gopass` binary versus a
+separate daemon binary — not the storage access path. Users who prefer the standalone daemon remain
+free to run it.
 
 ---
 
@@ -41,23 +46,100 @@ Implement `gopass secret-service` as:
 1. A new **Linux-only** subcommand of the main `gopass` binary.
 2. A long-running **daemon** that acquires `org.freedesktop.secrets` on the D-Bus session bus and
    serves the full Secret Service interface.
-3. Uses `github.com/godbus/dbus/v5` (already in `go.mod` at v5.1.0, pure Go, BSD-2 licensed).
-4. All crypto uses stdlib `crypto/...` packages — no CGo, no new external dependencies.
+3. Uses `github.com/godbus/dbus/v5` (already a direct dependency in `go.mod` at v5.2.2, pure Go,
+   BSD-2 licensed).
+4. Crypto uses the standard library (`crypto/aes`, `crypto/cipher`, `crypto/rand`, `crypto/sha256`,
+   `math/big`) plus `golang.org/x/crypto/hkdf` (already a direct dependency at v0.55.0) for the DH
+   key schedule — no CGo, no new external dependencies.
 5. Secrets are stored under a configurable gopass path prefix (default: `secret-service`).
+6. The spec's volatile `session` collection is served from memory (backed by the Linux kernel
+   keyring) and is never written to the store.
+7. Item metadata is cached in memory and invalidated on every local write, so `SearchItems` does
+   not trigger one GPG decryption per item per lookup.
 
 ---
 
 ## Feasibility Summary
 
-* **Pure-Go, zero-CGo**: `godbus/dbus/v5` is already a direct dependency; all required crypto
-  (`crypto/aes`, `crypto/sha256`, `math/big` for DH) is in the stdlib.
-* **No new external dependencies**: Only stdlib + existing `godbus` dependency needed.
-* **License-compatible**: `godbus/dbus/v5` is BSD-2 (≡ MIT compatible per `.license-lint.yml`).
+* **Pure-Go, zero-CGo**: `godbus/dbus/v5` (v5.2.2) is already a direct dependency. Crypto uses
+  `crypto/aes`, `crypto/cipher`, `crypto/rand`, `crypto/sha256` and `math/big` from the standard
+  library, plus `golang.org/x/crypto/hkdf` (v0.55.0, already a direct dependency) for the DH key
+  schedule.
+* **No new external dependencies**: only the standard library plus the existing `godbus/dbus/v5`,
+  `golang.org/x/crypto` and `golang.org/x/sys` dependencies are needed. (`golang.org/x/sys` serves
+  the kernel-keyring backing store for the `session` collection.) Item IDs are generated with
+  `crypto/rand`, so no UUID dependency is pulled in.
+* **License-compatible**: `godbus/dbus/v5` is BSD-2, `golang.org/x/*` is BSD-3 — both MIT
+  compatible per `.license-lint.yml`.
 * **Linux-only build tag**: The entire feature is gated with `//go:build linux` (same pattern as
   `internal/notify/notify_dbus.go` and `pkg/clipboard/unclip_linux.go`).
 * **Architectural risk**: gopass is a short-lived CLI tool; this feature requires a persistent
   daemon process. This is handled by a blocking `gopass secret-service serve` subcommand (the user
   manages the lifecycle via systemd or similar).
+
+---
+
+## Implementation Status
+
+The feature is implemented in `internal/secretservice` (all files carry a
+`//go:build linux` constraint):
+
+| Area | Status |
+|------|--------|
+| Pure-Go crypto sessions (`plain`, `dh-ietf1024-…`) | implemented, unit-tested (`internal/secretservice/crypto`) |
+| D-Bus service, collections, items, sessions, aliases, search | implemented |
+| Item metadata cache for `SearchItems` | implemented |
+| CLI `gopass secret-service serve` / `status` / `install` / `uninstall` + non-Linux stub | implemented |
+| Volatile `session` collection (kernel keyring) | implemented |
+| Alias object paths (`/org/freedesktop/secrets/aliases/*`) | implemented |
+| `CreateItem(replace=true)` | implemented |
+| Item `Locked` property and signal coverage | implemented |
+| Prompt objects | not needed — every operation completes immediately with `"/"` |
+| systemd user unit / D-Bus activation `install` | implemented (`contrib/secret-service/`) |
+| Integration tests against a real bus / libsecret client | implemented (`tests/secret_service_test.go`, `tests/secret_service_dh_test.go`, `tests/secret_service_libsecret_test.go`) |
+
+Verification: `TestSecretServiceSecretTool` drives the daemon with `secret-tool`
+(a real libsecret client, which selects the DH transport) and round-trips a
+secret in both directions; `TestSecretServiceRoundTrip` and
+`TestSecretServiceDHRoundTrip` cover both transport algorithms against a private
+`dbus-daemon`; `TestSecretServiceSessionCollection` asserts that session secrets
+never reach the store.
+
+### Alias object paths
+
+libsecret does **not** call `ReadAlias` to resolve a collection alias. It derives
+`/org/freedesktop/secrets/aliases/<alias>` locally and then calls `CreateItem`
+and friends on that path directly. The service therefore exports a `Collection`
+object at every alias path in addition to the canonical
+`/org/freedesktop/secrets/collection/<name>` path, and emits
+`ItemCreated`/`ItemChanged`/`ItemDeleted` from all of them. Without this,
+`secret-tool store` fails with `UnknownInterface: Object does not implement the
+interface 'org.freedesktop.Secret.Collection'`.
+
+### Item IDs and D-Bus object paths
+
+A D-Bus object path element must match `[A-Za-z0-9_]`. Items generated by the
+service (`i` + lowercase hex) are safe, but an item may also be created out of
+band by the gopass CLI (e.g. `gopass insert secret-service/default/cli-inserted`),
+producing a name with hyphens that cannot be used as a path element. Such names
+are hex-encoded with an `x` prefix (`ItemDBusID`), and the mapping is reversed
+exactly by `ItemNameFromDBusID`. Names that are already safe and do not start
+with `x` are used verbatim, so generated IDs keep their historic layout and the
+two encodings can never collide. Collection names that are not path-safe are
+skipped when listing (`isPathSafe`).
+
+Item properties, sessions, aliases and the volatile `session` collection are all
+implemented. The remaining known limitations are:
+
+1. **Prompt objects.** Every operation completes immediately, so all methods
+   return the null prompt path (`"/"`). No `Prompt` objects are exported.
+2. **Lock state is in-memory only.** Locking does not evict the passphrase
+   cached by `gpg-agent`.
+3. **Metadata cache invalidation is local.** Changes made by another gopass
+   process require a daemon restart to be reflected in item metadata.
+4. **No `install --gnome-keyring` automation.** The `install` subcommand writes
+   the unit and activation files but does not disable GNOME Keyring; the user
+   must do that manually (see the command documentation).
 
 ---
 
@@ -85,11 +167,22 @@ Secrets are stored under a configurable prefix (`secret-service` by default):
     ├── _aliases.age          # Map of alias → collection name (JSON)
     ├── default/
     │   ├── _meta.age         # Collection metadata (label, created, modified)
-    │   └── i<uuid>.age       # Secret items
+    │   └── i<hex>.age        # Secret items
     └── work/
         ├── _meta.age
-        └── i<uuid>.age
+        └── i<hex>.age
 ```
+
+Item IDs are random values rendered as `i` followed by lowercase hex (`fmt.Sprintf("i%x", …)`),
+**not** hyphenated UUIDs. A D-Bus object path element must match `[A-Za-z0-9_]` and may not contain
+hyphens, and the item ID becomes the last element of the item's object path
+(`/org/freedesktop/secrets/collection/{name}/{id}`). The reference implementation made the same
+choice.
+
+Items with names created out of band by the CLI (for example
+`gopass insert secret-service/default/cli-inserted`) contain characters that are
+not valid in an object path element. Those names are hex-encoded with an `x`
+prefix; see [Item IDs and D-Bus object paths](#item-ids-and-d-bus-object-paths).
 
 Each item secret file uses the standard gopass multi-line format:
 
@@ -110,6 +203,35 @@ other key/value pairs are user-visible item attributes (used for lookup by
 
 ---
 
+## The `session` collection
+
+The spec reserves a well-known collection alias, `session`
+(`SECRET_COLLECTION_SESSION`), for secrets that must live only for the duration of the login
+session and never be persisted. Clients use it for transient credentials.
+
+With a gopass backend this matters more than usual: if transient secrets fell through to the
+persistent store, every one of them would become a GPG-encrypted file **and a git commit** — the
+opposite of what the client asked for. The `session` collection is therefore **not** mapped to a
+gopass subpath. It is served from a volatile, in-process store backed by the Linux kernel keyring
+(the daemon's process keyring), so payloads stay in kernel memory and vanish when the daemon exits.
+
+> **Status:** implemented in `internal/secretservice/volatile.go`. If the
+> `keyctl` syscalls are unavailable (for example in a sandbox that blocks them),
+> the daemon logs a debug message and falls back to an in-memory store.
+
+Consequences for the implementation:
+
+* `ReadAlias("session")` returns the well-known session collection path. The session collection is
+  always present and does not appear in `Service.Collections`.
+* No `CollectionCreated` / `CollectionDeleted` signals are emitted for it, and it cannot be deleted.
+* The kernel-keyring backing store must run on a single dedicated, `runtime.LockOSThread`-pinned OS
+  thread: Linux stores the process/session/thread keyring references in the per-task `struct cred`,
+  so keyring syscalls must not migrate between threads. The syscalls come from
+  `golang.org/x/sys/unix` (already a dependency) — still no CGo.
+* On non-Linux platforms the whole feature is compiled out; there is no fallback keyring.
+
+---
+
 ## Crypto Sessions
 
 The spec defines two `OpenSession` algorithms:
@@ -117,20 +239,25 @@ The spec defines two `OpenSession` algorithms:
 | Algorithm | Description | Implementation |
 |-----------|-------------|----------------|
 | `plain` | No transport encryption | Return empty bytes; secret value passed as-is |
-| `dh-ietf1024-sha256-aes128-cbc-pkcs7` | DH key exchange + AES-128-CBC | stdlib `crypto/aes`, `crypto/sha256`, `math/big` |
+| `dh-ietf1024-sha256-aes128-cbc-pkcs7` | DH key exchange + AES-128-CBC | stdlib `crypto/aes`, `crypto/sha256`, `math/big` + `golang.org/x/crypto/hkdf` |
 
 The `plain` algorithm is secure because D-Bus session bus traffic is carried over a local UNIX
 socket with kernel-enforced access control. Implementing `dh-ietf1024-sha256-aes128-cbc-pkcs7` is
 required for compatibility with `libsecret`-based applications.
 
-DH parameters: [RFC 3526](https://www.rfc-editor.org/rfc/rfc3526) 1024-bit MODP group 2.
+DH parameters: [RFC 3526](https://www.rfc-editor.org/rfc/rfc3526) 1024-bit MODP group 2
+(the reference implementation uses the RFC 2409 group 2 prime; the two are identical).
 The server:
 1. Generates a DH ephemeral key pair on the MODP-1024 group.
 2. Receives the client's public key in `OpenSession`.
 3. Computes `shared = clientPub^serverPriv mod p`.
 4. Left-pads `shared` to 128 bytes (a known pitfall — see grimsteel commit c781717).
-5. Derives AES key: `aes_key = SHA256(shared)[0:16]`.
-6. Each secret returned has its own random 16-byte IV prepended to the ciphertext.
+5. Derives the AES key with **HKDF-SHA256** over the padded shared secret, using a NULL salt and
+   empty info, and takes the first 16 bytes: `hkdf.New(sha256.New, padded, nil, nil)`. This is
+   *not* a bare `SHA256(shared)[0:16]`; libsecret clients derive the same key the same way and
+   would reject a non-HKDF key.
+6. Returns the server's public key, itself left-padded to 128 bytes.
+7. Each secret returned has its own random 16-byte IV prepended to the ciphertext.
 
 ---
 
@@ -141,27 +268,29 @@ via a new `secretservice_linux.go` action handler shim.
 
 ```
 internal/secretservice/
-├── doc.go                    # Package doc
+├── doc.go                    # Package doc + interface names, Secret struct
 ├── service.go                # org.freedesktop.Secret.Service implementation
 ├── collection.go             # org.freedesktop.Secret.Collection implementation
 ├── item.go                   # org.freedesktop.Secret.Item implementation
 ├── session.go                # Session lifecycle + crypto dispatch
-├── prompt.go                 # Prompt objects (required by spec for async ops)
+├── store.go                  # Adapter between Secret Service and gopass API
+├── volatile.go               # Volatile `session` collection (kernel keyring)
+├── units.go                  # systemd unit / D-Bus activation install helpers
+├── paths.go                  # Object path <-> store path mapping, ID encoding
+├── introspection.go          # Static introspection XML
+├── errors.go                 # D-Bus error definitions (org.freedesktop.Secret.Error.*)
 ├── crypto/
 │   ├── crypto.go             # Session interface + factory
 │   ├── plain.go              # "plain" algorithm
 │   └── dh.go                 # "dh-ietf1024-sha256-aes128-cbc-pkcs7"
-├── store.go                  # Adapter between Secret Service and gopass API
-├── errors.go                 # D-Bus error definitions (org.freedesktop.DBus.Error.*)
-├── types.go                  # D-Bus type aliases (Secret struct, path constants)
-└── service_test.go           # Unit tests (mock D-Bus + mock gopass API)
+└── *_test.go                 # Unit tests (in-memory gopass.Store, no GPG needed)
 ```
 
 CLI integration:
 
 ```
 internal/action/
-├── secretservice_linux.go    # SecretService() handler, registers via GetCommands()
+├── secretservice_linux.go    # secret-service command tree (serve/status/install/uninstall)
 └── secretservice_other.go    # Stub for non-Linux platforms that prints "linux only"
 ```
 
@@ -169,7 +298,7 @@ Systemd / D-Bus activation files (installed by `gopass secret-service install`):
 
 ```
 contrib/secret-service/
-├── org.freedesktop.secrets.service   # D-Bus session activation (ExecStart=gopass secret-service serve)
+├── org.freedesktop.secrets.service   # D-Bus session activation (Exec=gopass secret-service serve)
 └── gopass-secret-service.service     # systemd user unit
 ```
 
@@ -177,9 +306,9 @@ contrib/secret-service/
 
 ## Implementation Phases
 
-This feature is too large for a single prompt. Each phase below is self-contained and can be
-implemented and tested independently. Phases must be implemented in order because each phase
-depends on the previous.
+The phases below were the implementation plan; all of them are now implemented
+(see [Implementation Status](#implementation-status)). They are retained as a
+description of how each part of the spec maps onto the code.
 
 ---
 
@@ -293,6 +422,8 @@ import (
     "crypto/rand"
     "crypto/sha256"
     "math/big"
+
+    "golang.org/x/crypto/hkdf"
 )
 
 // RFC 3526 MODP 1024-bit group 2
@@ -311,7 +442,8 @@ func NewDHSession(clientPubBytes []byte) (*dhSession, []byte, error) {
     // 2. Compute serverPub = g^serverPriv mod p
     // 3. Compute shared = clientPub^serverPriv mod p
     // 4. Left-pad shared to 128 bytes (IMPORTANT: see grimsteel/pass-secret-service#24)
-    // 5. aesKey = SHA256(paddedShared)[0:16]
+    // 5. aesKey = HKDF-SHA256(paddedShared, salt=nil, info=nil)[0:16]
+    // 6. Return serverPub left-padded to 128 bytes
     ...
 }
 
@@ -531,9 +663,21 @@ Rules:
 **Store item search**:
 ```go
 // SearchItems(attrs map[string]string) ([]dbus.ObjectPath, error)
-// Lists all items in a collection, loads each item's attributes, filters by attrs.
-// This is O(n) — acceptable given typical collection sizes.
+// Lists all items in a collection and filters them by attrs.
 ```
+
+A naive implementation loads (and therefore **decrypts**) every item's attributes for each search.
+With a GPG backend that is one decryption per item per lookup, and libsecret clients issue
+`SearchItems` for nearly every operation; with a cold `gpg-agent` cache a single lookup can even
+trigger pinentry. The design therefore keeps an **in-memory metadata cache** keyed by gopass path:
+
+* The cache holds only decrypted *metadata* (label, timestamps, content type and user attributes) —
+  never the secret payload (`Password()` / `Body()`).
+* It is populated lazily on the first read of an item and refreshed opportunistically whenever an
+  item is decrypted for another reason.
+* It is invalidated on every local mutation (create/update/delete, and prefix-wide when a whole
+  collection is removed). There is no TTL; out-of-process changes require a daemon restart.
+* The secret value itself is still re-decrypted on demand in `GetSecret` and never cached.
 
 **Locking**: In this implementation lock state is **in-memory only**.
 When a collection is "locked", `GetSecret` returns `ErrIsLocked`.
@@ -754,7 +898,7 @@ The `install` subcommand should offer to do this automatically.
 // Starts the service on a private D-Bus connection (dbus.SessionBusPrivate).
 // Uses secret-tool (if available) or direct godbus calls to store/retrieve secrets.
 // Verifies:
-// - secret created via D-Bus appears in gopass (gopass show secret-service/default/i<uuid>)
+// - secret created via D-Bus appears in gopass (gopass show secret-service/default/i<hex>)
 // - secret created via gopass insert is visible via D-Bus GetSecret
 // - attributes are searched correctly by SearchItems
 ```
@@ -776,10 +920,12 @@ The `install` subcommand should offer to do this automatically.
 
 The following are common pitfalls to avoid:
 
-1. **DH shared-secret left-padding**: `shared = clientPub^serverPriv mod p` may produce a
-   `big.Int` whose byte representation is shorter than 128 bytes. It must be left-padded with
-   zero bytes to exactly 128 bytes before SHA256. Failing to do this breaks compatibility with
-   libsecret clients. See commit c781717 in grimsteel/pass-secret-service.
+1. **DH shared-secret left-padding and HKDF**: `shared = clientPub^serverPriv mod p` may produce a
+   `big.Int` whose byte representation is shorter than 128 bytes. It must be left-padded with zero
+   bytes to exactly 128 bytes before key derivation. The AES key is then
+   `HKDF-SHA256(padded, salt=nil, info=nil)[0:16]`, not a bare `SHA256(padded)[0:16]`. The server's
+   public key must likewise be left-padded to 128 bytes. Failing to do either breaks compatibility
+   with libsecret clients. See commit c781717 in grimsteel/pass-secret-service.
 
 2. **godbus export pattern**: To export a Go struct as a D-Bus object, use
    `conn.Export(obj, path, iface)`. The exported methods must have the exact signature
@@ -823,6 +969,9 @@ The following are common pitfalls to avoid:
 - [nikicat/gopass-secret-service](https://github.com/nikicat/gopass-secret-service) — Go reference impl (MIT)
 - [grimsteel/pass-secret-service](https://github.com/grimsteel/pass-secret-service) — Rust reference impl (GPL-3.0, for reference only, not to be copied)
 - [RFC 3526 — MODP DH groups](https://www.rfc-editor.org/rfc/rfc3526) — 1024-bit group 2
+- [RFC 5869 — HKDF](https://www.rfc-editor.org/rfc/rfc5869) — key derivation for `dh-ietf1024-…`
+- [golang.org/x/crypto/hkdf](https://pkg.go.dev/golang.org/x/crypto/hkdf) — HKDF implementation
+- [keyctl(2)](https://man7.org/linux/man-pages/man2/keyctl.2.html) — kernel keyring for the `session` collection
 - [pkg/gopass/api/api.go](../../pkg/gopass/api/api.go) — gopass public API
 - [internal/notify/notify_dbus.go](../../internal/notify/notify_dbus.go) — existing godbus usage pattern
 - [pkg/clipboard/unclip_linux.go](../../pkg/clipboard/unclip_linux.go) — existing Linux-only D-Bus pattern
