@@ -76,6 +76,8 @@ github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510 h1:El6M4kTTCOh6aBiKaU
 github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510/go.mod h1:pupxD2MaaD3pAXIBCelhxNneeOaAeabZDe5s4K6zSpQ=
 github.com/gopasspw/clipboard v0.0.5-0.20260524141134-6b387ae5aa1a h1:L7qDnmetJ62Fr59V/8Rrhb5l1+TdrmxORyHJ/WNlwdg=
 github.com/gopasspw/clipboard v0.0.5-0.20260524141134-6b387ae5aa1a/go.mod h1:i0cShr7JEbOXZ/iKM5RyfBLbu1FPzouO8BTCJy0uHy8=
+github.com/gopasspw/clipboard v0.0.5 h1:vwp7PlntZuvgc1CZDz2GxRnaStNhwmBN5PALdRkHGQY=
+github.com/gopasspw/clipboard v0.0.5/go.mod h1:i0cShr7JEbOXZ/iKM5RyfBLbu1FPzouO8BTCJy0uHy8=
 github.com/gopasspw/gitconfig v0.0.4 h1:7JE0iTm92OdXCtkS33CnbqcAEqQXYWTUriYFf3sRTBk=
 github.com/gopasspw/gitconfig v0.0.4/go.mod h1:W5AHsZgCbBRsc8TnElO82GYflOz/l2dIndncymoCv+A=
 github.com/hashicorp/golang-lru/v2 v2.0.7 h1:a+bsQ5rvGLjzHuww6tVxozPZFVghXaHOwFs4luLUK2k=
