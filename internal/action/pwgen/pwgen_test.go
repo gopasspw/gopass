@@ -183,3 +183,24 @@ func boolFlag(t *testing.T, flags []cli.Flag, name string) *cli.BoolFlag {
 func hasUppercase(s string) bool {
 	return strings.ContainsAny(s, "ABCDEFGHIJKLMNOPQRSTUVWXYZ")
 }
+
+func TestNumPerLine(t *testing.T) {
+	for _, tc := range []struct {
+		name   string
+		cols   int
+		pwLen  int
+		expect int
+	}{
+		{"zero cols", 0, 8, 1},
+		{"narrow cols", 10, 8, 1},
+		{"wide cols", 80, 8, 8},
+		{"very long password", 80, 256, 1},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			getTermSize = func() (int, int, error) {
+				return tc.cols, 0, nil
+			}
+			assert.Equal(t, tc.expect, numPerLine(tc.pwLen))
+		})
+	}
+}
