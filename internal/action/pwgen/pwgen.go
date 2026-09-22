@@ -156,11 +156,16 @@ func pwGen(ctx context.Context, cmd *cli.Command, pwLen, pwNum int) error {
 	return nil
 }
 
+var getTermSize = func() (int, int, error) {
+	return term.GetSize(0)
+}
+
 func numPerLine(pwLen int) int {
-	cols, _, err := term.GetSize(0)
+	cols, _, err := getTermSize()
 	if err != nil {
 		return 1
 	}
 
-	return cols / (pwLen + 1)
+	// We want to print at least one password per line, even if the terminal is too narrow.
+	return max(cols/(pwLen+1), 1)
 }
