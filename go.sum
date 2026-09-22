@@ -74,8 +74,6 @@ github.com/google/go-querystring v1.1.0 h1:AnCroh3fv4ZBgVIf1Iwtovgjaw/GiKJo8M8yD
 github.com/google/go-querystring v1.1.0/go.mod h1:Kcdr2DB4koayq7X8pmAG4sNG59So17icRSOU623lUBU=
 github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510 h1:El6M4kTTCOh6aBiKaUGG7oYTSPP8MxqL4YI3kZKwcP4=
 github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510/go.mod h1:pupxD2MaaD3pAXIBCelhxNneeOaAeabZDe5s4K6zSpQ=
-github.com/gopasspw/clipboard v0.0.5-0.20260524141134-6b387ae5aa1a h1:L7qDnmetJ62Fr59V/8Rrhb5l1+TdrmxORyHJ/WNlwdg=
-github.com/gopasspw/clipboard v0.0.5-0.20260524141134-6b387ae5aa1a/go.mod h1:i0cShr7JEbOXZ/iKM5RyfBLbu1FPzouO8BTCJy0uHy8=
 github.com/gopasspw/clipboard v0.0.5 h1:vwp7PlntZuvgc1CZDz2GxRnaStNhwmBN5PALdRkHGQY=
 github.com/gopasspw/clipboard v0.0.5/go.mod h1:i0cShr7JEbOXZ/iKM5RyfBLbu1FPzouO8BTCJy0uHy8=
 github.com/gopasspw/gitconfig v0.0.4 h1:7JE0iTm92OdXCtkS33CnbqcAEqQXYWTUriYFf3sRTBk=
@@ -172,8 +170,8 @@ github.com/twpayne/go-pinentry/v4 v4.0.1 h1:2mIMlMRzNwzQtTe96NnjY46xFiqsR+EasvXt
 github.com/twpayne/go-pinentry/v4 v4.0.1/go.mod h1:z5f+OFtNOUILmMdKBGVbZTcO7sDjg7HHvcrnGxr/cq0=
 github.com/ulikunitz/xz v0.5.15 h1:9DNdB5s+SgV3bQ2ApL10xRc35ck0DuIX/isZvIk+ubY=
 github.com/ulikunitz/xz v0.5.15/go.mod h1:nbz6k7qbPmH4IRqmfOplQw/tblSgqTqBwxkY0oWt/14=
-github.com/urfave/cli/v3 v3.11.0 h1:P/euJp99kb9p0tlVY+iYTLYYTAQlfl0hR2gUO1Img1Q=
-github.com/urfave/cli/v3 v3.11.0/go.mod h1:ysVLtOEmg2tOy6PknnYVhDoouyC/6N42TMeoMzskhso=
+github.com/urfave/cli/v3 v3.12.0 h1:p2iMu5yeXB+ORzD1AAqwP2kHV9Q6QObnwyQXFFdnXYQ=
+github.com/urfave/cli/v3 v3.12.0/go.mod h1:vXn6HxPNccJSzQr2QvwVncOKrgYGIHU0HY5h8B2nQj4=
 github.com/xhit/go-str2duration/v2 v2.1.0 h1:lxklc02Drh6ynqX+DdPyp5pCKLUQpRT8bp8Ydu2Bstc=
 github.com/xhit/go-str2duration/v2 v2.1.0/go.mod h1:ohY8p+0f07DiV6Em5LKB0s2YpLtXVyJfNt1+BlmyAsU=
 github.com/xrash/smetrics v0.0.0-20170218160415-a3153f7040e9/go.mod h1:N3UwUGtsrSj3ccvlPHLoLsHnpR27oXr4ZE984MbSER8=
