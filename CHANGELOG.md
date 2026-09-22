@@ -12,6 +12,18 @@ conventions this file is generated from.
 
 ## [Unreleased]
 
+## [1.17.3] - 2026-09-22
+
+### Changed
+
+- deps: move HIBP client into pkg/hibp to break the module cycle (#3603)
+
+### Fixed
+
+- age: send waiting on plugin message to stderr (#3613)
+- config: Avoid overwriting the config when there is no need (#3602) (#3593)
+- tempfile: avoid hdiutil deprecation warning on macOS 27 (#3610)
+
 ## [1.17.2] - 2026-09-10
 
 ### Fixed
@@ -1294,7 +1306,8 @@ the runtime behaviour, but we could not test this on all platforms, yet.
 * [ENHANCEMENT] Simplified recipient management
 * [ENHANCEMENT] Interactive questions for missing parameters
 
-[Unreleased]: https://github.com/gopasspw/gopass/compare/v1.17.2...HEAD
+[Unreleased]: https://github.com/gopasspw/gopass/compare/v1.17.3...HEAD
+[1.17.3]: https://github.com/gopasspw/gopass/compare/v1.17.2...v1.17.3
 [1.17.2]: https://github.com/gopasspw/gopass/compare/v1.17.1...v1.17.2
 [1.17.1]: https://github.com/gopasspw/gopass/compare/v1.17.0...v1.17.1
 [1.17.0]: https://github.com/gopasspw/gopass/compare/v1.16.1...v1.17.0
