@@ -4,10 +4,12 @@ package tempfile
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
 	"strings"
+	"sync/atomic"
 	"time"
 
 	"github.com/cenkalti/backoff/v4"
@@ -20,27 +22,115 @@ func tempdirBase() string {
 	return ""
 }
 
-func (t *File) mount(ctx context.Context) error {
-	// create 32MB ramdisk
-	cmd := exec.CommandContext(ctx, "hdid", "-drivekey", "system-image=yes", "-nomount", "ram://32768")
+// ramdiskSpec is the size of the ramdisk we create, in 512 byte sectors.
+// 32768 sectors * 512 byte = 16 MiB.
+const ramdiskSpec = "ram://32768"
+
+// hasNoDiskutilImage records that `diskutil image attach` is unavailable on
+// this host, so we only pay for the failed exec once per process.
+var hasNoDiskutilImage atomic.Bool
+
+// attach creates a ramdisk and returns its device node.
+//
+// Recent macOS releases (confirmed on 27.0) deprecated the hdiutil disk image
+// interface, which hdid(8) is a thin wrapper around. It still works, but prints
+//
+//	hdiutil: WARNING: 'hdiutil attach -nomount ...' is deprecated.
+//	Please use 'diskutil image attach --noMount ...' instead.
+//
+// to stderr on every invocation, which leaks into the output of every gopass
+// command that needs a secure tempdir, e.g. `gopass edit`. Prefer the
+// replacement and fall back to hdid on releases that do not have it.
+func attach(ctx context.Context) (string, error) {
+	if hasNoDiskutilImage.Load() {
+		return attachHdid(ctx)
+	}
+
+	dev, err := attachDiskutil(ctx)
+	if err == nil {
+		return dev, nil
+	}
+
+	debug.Log("diskutil image attach failed, falling back to hdid: %s", err)
+
+	dev, err = attachHdid(ctx)
+	if err != nil {
+		return "", err
+	}
+
+	// hdid succeeded where diskutil did not, so this release predates the
+	// `image` verb. Skip the probe for the rest of the process. A genuine
+	// attach failure fails hdid too, and is not remembered.
+	hasNoDiskutilImage.Store(true)
+
+	return dev, nil
+}
+
+// attachDiskutil uses the `diskutil image attach` interface that supersedes
+// hdiutil. It returns an error on releases that predate the `image` verb, which
+// is why attach keeps the hdid path around.
+//
+// Stderr is captured rather than passed through: we may still fall back to
+// hdid, and the user should not see the diagnostics of an attempt that did not
+// end up mattering.
+func attachDiskutil(ctx context.Context) (string, error) {
+	cmd := exec.CommandContext(ctx, "diskutil", "image", "attach", "--noMount", "--nobrowse", ramdiskSpec)
+
+	debug.Log("CMD: %s %+v", cmd.Path, cmd.Args)
+
+	cmdout, err := cmd.Output()
+	if err != nil {
+		var ee *exec.ExitError
+		if errors.As(err, &ee) && len(ee.Stderr) > 0 {
+			debug.Log("diskutil stderr: %s", ee.Stderr)
+		}
+
+		return "", fmt.Errorf("failed to create disk with diskutil: %w", err)
+	}
+
+	return parseDev(string(cmdout))
+}
+
+// attachHdid uses hdid(8), the only interface available on older releases.
+func attachHdid(ctx context.Context) (string, error) {
+	cmd := exec.CommandContext(ctx, "hdid", "-drivekey", "system-image=yes", "-nomount", ramdiskSpec)
 	cmd.Stderr = os.Stderr
 
 	debug.Log("CMD: %s %+v", cmd.Path, cmd.Args)
+
 	cmdout, err := cmd.Output()
 	if err != nil {
-		return fmt.Errorf("failed to create disk with hdid: %w", err)
+		return "", fmt.Errorf("failed to create disk with hdid: %w", err)
 	}
 
-	debug.Log("Output: %s\n", cmdout)
+	return parseDev(string(cmdout))
+}
 
-	p := strings.Split(string(cmdout), " ")
-	if len(p) < 1 {
-		return fmt.Errorf("unhandeled hdid output: %s", string(cmdout))
+// parseDev extracts the device node from the output of an attach command.
+// hdid pads its output with spaces and tabs, diskutil does not, so we can not
+// simply cut at the first space.
+func parseDev(out string) (string, error) {
+	debug.Log("Output: %s", out)
+
+	fields := strings.Fields(out)
+	if len(fields) < 1 {
+		return "", fmt.Errorf("no device node in attach output: %q", out)
 	}
-	t.dev = p[0]
+
+	return fields[0], nil
+}
+
+func (t *File) mount(ctx context.Context) error {
+	// create 16MB ramdisk
+	dev, err := attach(ctx)
+	if err != nil {
+		return err
+	}
+
+	t.dev = dev
 
 	// create filesystem on ramdisk
-	cmd = exec.CommandContext(ctx, "newfs_hfs", "-M", "700", t.dev)
+	cmd := exec.CommandContext(ctx, "newfs_hfs", "-M", "700", t.dev)
 	cmd.Stderr = os.Stderr
 
 	if debug.IsEnabled() {
