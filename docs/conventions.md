@@ -76,7 +76,7 @@ The scope is optional. Prefer to supply one. Do not invent scopes; omit the
 scope when none fits. Omit the scope for a change spanning several areas rather
 than listing more than one.
 
-**Commands** — the 41 top-level subcommands: 39 registered by
+**Commands** — the 42 top-level subcommands: 40 registered by
 `(*Action).GetCommands` in `internal/action/commands.go`, plus `pwgen` from
 `internal/action/pwgen` and `completion`, both added by `getCommands` in
 `main.go`:
@@ -84,8 +84,8 @@ than listing more than one.
 ```
 alias audit cat clone completion config convert copy create delete doctor edit
 env find fsck fscopy fsmove generate grep history init insert link list merge
-mounts move otp process pwgen rcs recipients reorg setup show sum sync
-templates unclip update version
+mounts move otp process pwgen rcs recipients reorg secret-service setup show sum
+sync templates unclip update version
 ```
 
 **Backends:** `age`, `gpg`, `plain`, `cryptfs`, `fossilfs`, `fs`, `gitfs`, `jjfs`
