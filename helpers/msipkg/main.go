@@ -32,6 +32,7 @@ var (
         <Directory Id="INSTALLDIR" Name="gopass">
           <Component Id="gopass.exe" Guid="*">
             <File Id="gopass.exe" Source="{{ .Binary }}" Name="gopass.exe"/>
+            <Environment Id="GopassPath" Name="PATH" Value="[INSTALLDIR]" Action="set" Part="last" Permanent="no" System="no"/>
             <Shortcut Id="StartMenuShortcut" Advertise="no" Icon="icon.ico" Name="gopass" Directory="ProgramMenuFolder" WorkingDirectory="INSTALLDIR" Description=""/>
             <Shortcut Id="DesktopShortcut" Advertise="no" Icon="icon.ico" Name="gopass" Directory="DesktopFolder" WorkingDirectory="INSTALLDIR" Description=""/>
           </Component>
