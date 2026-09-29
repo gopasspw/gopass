@@ -274,3 +274,38 @@ func TestAgentLargePayload(t *testing.T) {
 
 	require.NoError(t, c.Quit())
 }
+
+// TestAgentMisframedLine simulates the framing bug documented at
+// identitiesToString in the age package: a client sending identities
+// newline-separated turns every identity after the first into a bare
+// AGE-SECRET-KEY-1... line, which must be rejected as an unknown command
+// (and, per the redaction in handleConnection, never logged verbatim).
+func TestAgentMisframedLine(t *testing.T) {
+	ctx := t.Context()
+	ctx = termio.WithPassPromptFunc(ctx, func(ctx context.Context, prompt string) (string, error) {
+		return "test", nil
+	})
+
+	// start agent
+	a, err := New()
+	require.NoError(t, err)
+
+	go func() {
+		_ = a.Run(ctx)
+	}()
+	defer a.Shutdown(ctx)
+
+	// wait for it to be ready
+	time.Sleep(time.Second)
+
+	// create client
+	c := NewClient()
+	require.NoError(t, c.Ping())
+
+	_, err = c.send("AGE-SECRET-KEY-1ZZMISFRAMEZZEXAMPLEKEY")
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "unknown command")
+
+	// cleanup
+	require.NoError(t, c.Quit())
+}

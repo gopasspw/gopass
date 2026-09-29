@@ -123,7 +123,6 @@ func (a *Agent) handleConnection(ctx context.Context, conn net.Conn) {
 	scanner.Buffer(nil, 1<<24) // 16 MiB max line size
 	for scanner.Scan() {
 		line := scanner.Text()
-		debug.Log("received: %s", line)
 
 		parts := strings.Fields(line)
 		if len(parts) == 0 {
@@ -135,8 +134,12 @@ func (a *Agent) handleConnection(ctx context.Context, conn net.Conn) {
 
 		switch cmd {
 		case "ping":
+			debug.Log("received: ping")
+
 			fmt.Fprintln(conn, "OK")
 		case "status":
+			debug.Log("received: status")
+
 			a.mux.Lock()
 			locked := a.locked
 			a.mux.Unlock()
@@ -146,6 +149,9 @@ func (a *Agent) handleConnection(ctx context.Context, conn net.Conn) {
 				fmt.Fprintln(conn, "OK")
 			}
 		case "identities":
+			// the arguments are private key material: log only their count
+			debug.Log("received: identities [%d ids]", len(args))
+
 			if len(args) < 1 {
 				fmt.Fprintln(conn, "ERR missing identities")
 
@@ -163,6 +169,15 @@ func (a *Agent) handleConnection(ctx context.Context, conn net.Conn) {
 			debug.Log("loaded %d identities", len(ids))
 			fmt.Fprintln(conn, "OK")
 		case "decrypt":
+			// the argument is base64 ciphertext: log only its encoded size,
+			// the relevant diagnostic for the scanner line-size limit
+			// (see issue #3508)
+			if len(args) == 1 {
+				debug.Log("received: decrypt (%d bytes)", len(args[0]))
+			} else {
+				debug.Log("received: decrypt")
+			}
+
 			if len(args) != 1 {
 				fmt.Fprintln(conn, "ERR missing ciphertext")
 
@@ -186,6 +201,8 @@ func (a *Agent) handleConnection(ctx context.Context, conn net.Conn) {
 			}
 			fmt.Fprintln(conn, "OK "+base64.StdEncoding.EncodeToString(plaintext))
 		case "lock":
+			debug.Log("received: lock")
+
 			// clear all identities from memory
 			a.mux.Lock()
 			a.identities = nil
@@ -195,6 +212,8 @@ func (a *Agent) handleConnection(ctx context.Context, conn net.Conn) {
 			debug.Log("cleared identities from memory and locked agent")
 			fmt.Fprintln(conn, "OK")
 		case "unlock":
+			debug.Log("received: unlock")
+
 			a.mux.Lock()
 			a.locked = false
 			a.mux.Unlock()
@@ -202,6 +221,13 @@ func (a *Agent) handleConnection(ctx context.Context, conn net.Conn) {
 			debug.Log("unlocked agent")
 			fmt.Fprintln(conn, "OK")
 		case "set-timeout":
+			// the timeout value is not sensitive
+			if len(args) > 0 {
+				debug.Log("received: set-timeout %s", args[0])
+			} else {
+				debug.Log("received: set-timeout")
+			}
+
 			if len(args) != 1 {
 				fmt.Fprintln(conn, "ERR missing timeout")
 
@@ -216,11 +242,21 @@ func (a *Agent) handleConnection(ctx context.Context, conn net.Conn) {
 			a.setTimeout(time.Duration(timeout) * time.Second)
 			fmt.Fprintln(conn, "OK")
 		case "quit":
+			debug.Log("received: quit")
+
 			fmt.Fprintln(conn, "OK")
 			go a.Shutdown(ctx)
 
 			return
 		default:
+			// The first token of an unknown command may itself be a
+			// mis-framed payload, e.g. a bare AGE-SECRET-KEY-1... line from
+			// a newline-separated identities send (see identitiesToString in
+			// the age package). Never log it verbatim: the 12-char prefix
+			// (mirroring wrappedIdentity.SafeStr) reveals at most the
+			// constant key-type prefix, never key material.
+			debug.Log("received: unknown command %.12s... (%d bytes)", cmd, len(line))
+
 			fmt.Fprintln(conn, "ERR unknown command")
 		}
 	}
