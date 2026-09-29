@@ -27,7 +27,7 @@ Flag | Aliases | Description
 `--qrbody` | | Encode the entire body (all lines after the first) as a QR code and print it.
 `--unsafe` | `-u`, `-f` | Display unsafe content (e.g. the password) even when the `safecontent` option is set. No-op when `safecontent` is `false`. `-f` is a deprecated alias kept for backward compatibility.
 `--safe` | `-s` | Hide unsafe content (e.g. the password) even when the `safecontent` option is `false`. Overrides the config value for this invocation.
-`--password` | `-o` | Display only the password. For use in scripts. Takes precedence over other flags.
+`--password` | `-o` | Display only the password. For use in scripts. Takes precedence over other flags. Use `-o=false` to override the `show.password` config option for this invocation.
 `--revision` | `-r` | Display a specific revision of the entry. Use an exact version identifier from `gopass history` or the special `-<N>` syntax. Does not work with native (e.g. git) refs.
 `--noparsing` | `-n` | Do not parse the content, disable YAML and Key-Value functions.
 `--nofuzzysearch` | | Do not start fuzzy search if the requested entry is not found.
@@ -47,6 +47,7 @@ Note: The parser ensures every parsed secret contains a terminating newline, eve
 * When no flag is set the `show` command will display the full content of the secret and will parse it to support key-value lookup and YAML entries.
   If the `safecontent` option is set to `true` any secret fields (current default is only `password`) are replaced with a random number of '*' characters (length: 5-10).
   Using the `--unsafe` flag will reveal these fields even if `safecontent` is enabled. `--password` takes precedence of `safecontent=true` as well and displays only the password.
+* The `show.password` config option (`false` by default) makes password-only output the default, as if `--password` was given — for both `gopass show SECRET` and the implicit `gopass SECRET` form. The explicit output flags `--clip`, `--alsoclip`, `--qr` and `--qrbody` take precedence over it, as does any explicit `--password`/`-o` value: use `-o=false` (or `--password=false`) to display the full secret for a single invocation. Note that `-u`/`--unsafe` does *not* cancel it (it only affects the `safecontent` behaviour), that it wins over `safecontent=true` (the password is printed), that combined with `show.autoclip` the password is copied *and* printed (like `-C -o`), and that entries without a password line (e.g. YAML-only secrets) fail with an error, just like `-o` — use `-o=false` to display them.
 * The `--noparsing` flag will disable all parsing of the output, this can help debugging YAML secrets for example, where `key: 0123` actually parses into octal for 83.
 * The `--clip` flag will copy the value of the `Password` field to the clipboard and doesn't display any part of the secret.
 * The `--alsoclip` option will copy the value of the `Password` field but also display the secret content depending on the `safecontent` setting, i.e. obstructing the `Password` field if `safecontent` is `true` or just displaying it if not.

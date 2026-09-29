@@ -48,6 +48,12 @@ func isTrailingFlag(arg string) bool {
 		arg == "-C" || arg == "--alsoclip"
 }
 
+// hasConflictingOutputFlag returns true if any output flag that takes
+// precedence over the show.password config default was set explicitly.
+func hasConflictingOutputFlag(cmd *cli.Command) bool {
+	return cmd.IsSet("clip") || cmd.IsSet("alsoclip") || cmd.IsSet("qr") || cmd.IsSet("qrbody")
+}
+
 func isShowFuzzySearchEnabled(ctx context.Context, cmd *cli.Command) bool {
 	if cmd != nil && cmd.Bool("nofuzzysearch") {
 		return false
@@ -124,6 +130,10 @@ func showParseArgs(ctx context.Context, cmd *cli.Command) context.Context {
 
 	if cmd.IsSet("password") {
 		ctx = WithPasswordOnly(ctx, cmd.Bool("password"))
+	} else if !hasConflictingOutputFlag(cmd) {
+		// show.password sets the default output mode when no conflicting
+		// output flag is given; explicit flags override it (GH #3621).
+		ctx = WithPasswordOnly(ctx, config.Bool(ctx, "show.password"))
 	}
 
 	if cmd.IsSet("revision") {

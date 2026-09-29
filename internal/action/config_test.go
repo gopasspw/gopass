@@ -53,7 +53,8 @@ generate.autoclip = true
 `
 		want += "mounts.path = " + fsutil.ShrinkPath(u.StoreDir("")) + "\n" +
 			"pwgen.xkcd-lang = en\n" +
-			"show.fuzzysearch = true\n"
+			"show.fuzzysearch = true\n" +
+			"show.password = false\n"
 		assert.Equal(t, want, buf.String())
 	})
 
@@ -100,7 +101,8 @@ generate.autoclip = true
 `
 		want += "mounts.path = " + fsutil.ShrinkPath(u.StoreDir("")) + "\n" +
 			"pwgen.xkcd-lang = en\n" +
-			"show.fuzzysearch = true\n"
+			"show.fuzzysearch = true\n" +
+			"show.password = false\n"
 
 		assert.Equal(t, want, buf.String(), "action.printConfigValues")
 	})
@@ -140,6 +142,7 @@ generate.autoclip
 mounts.path
 pwgen.xkcd-lang
 show.fuzzysearch
+show.password
 `
 		assert.Equal(t, want, buf.String())
 	})

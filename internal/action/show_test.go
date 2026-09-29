@@ -20,6 +20,149 @@ import (
 	"github.com/urfave/cli/v3"
 )
 
+func TestShowPasswordConfig(t *testing.T) {
+	u := gptest.NewUnitTester(t)
+
+	ctx := config.NewContextInMemory()
+	ctx = ctxutil.WithAlwaysYes(ctx, true)
+	ctx = ctxutil.WithTerminal(ctx, false)
+	ctx = ctxutil.WithInteractive(ctx, false)
+
+	act, err := newMock(ctx, u.StoreDir(""))
+	require.NoError(t, err)
+	require.NotNil(t, act)
+	ctx = act.cfg.WithConfig(ctx)
+
+	color.NoColor = true
+	buf := &bytes.Buffer{}
+	out.Stdout = buf
+	stdout = buf
+	defer func() {
+		stdout = os.Stdout
+		out.Stdout = os.Stdout
+	}()
+
+	// two-liner: password on the first line, a key-value pair below
+	sec := secrets.NewAKV()
+	sec.SetPassword("123")
+	require.NoError(t, sec.Set("bar", "zab"))
+	require.NoError(t, act.Store.Set(ctx, "bar/baz", sec))
+	buf.Reset()
+
+	t.Run("default is full output", func(t *testing.T) {
+		defer buf.Reset()
+
+		c := gptest.CliCtx(ctx, t, "bar/baz")
+		require.NoError(t, act.Show(ctx, c))
+		assert.Contains(t, buf.String(), "123")
+		assert.Contains(t, buf.String(), "bar: zab")
+	})
+
+	require.NoError(t, act.cfg.Set("", "show.password", "true"))
+	defer func() {
+		require.NoError(t, act.cfg.Set("", "show.password", "false"))
+	}()
+
+	t.Run("password-only by default", func(t *testing.T) {
+		defer buf.Reset()
+
+		c := gptest.CliCtx(ctx, t, "bar/baz")
+		require.NoError(t, act.Show(ctx, c))
+		assert.Equal(t, "123", buf.String())
+		assert.NotContains(t, buf.String(), "Secret:")
+	})
+
+	t.Run("explicit -o=false restores full output", func(t *testing.T) {
+		defer buf.Reset()
+
+		c := gptest.CliCtxWithFlags(ctx, t, map[string]string{"password": "false"}, "bar/baz")
+		require.NoError(t, act.Show(ctx, c))
+		assert.Contains(t, buf.String(), "123")
+		assert.Contains(t, buf.String(), "bar: zab")
+	})
+
+	t.Run("clip flag overrides the config default", func(t *testing.T) {
+		defer buf.Reset()
+
+		c := gptest.CliCtxWithFlags(ctx, t, map[string]string{"clip": "true"}, "bar/baz")
+		require.NoError(t, act.Show(ctx, c))
+		assert.NotContains(t, buf.String(), "123")
+		assert.NotContains(t, buf.String(), "bar: zab")
+	})
+
+	t.Run("alsoclip flag overrides the config default", func(t *testing.T) {
+		defer buf.Reset()
+
+		c := gptest.CliCtxWithFlags(ctx, t, map[string]string{"alsoclip": "true"}, "bar/baz")
+		require.NoError(t, act.Show(ctx, c))
+		assert.Contains(t, buf.String(), "123")
+		assert.Contains(t, buf.String(), "bar: zab")
+	})
+
+	t.Run("qr flag overrides the config default", func(t *testing.T) {
+		defer buf.Reset()
+
+		c := gptest.CliCtxWithFlags(ctx, t, map[string]string{"qr": "true"}, "bar/baz")
+		require.NoError(t, act.Show(ctx, c))
+		assert.NotContains(t, buf.String(), "123")
+		assert.NotContains(t, buf.String(), "bar: zab")
+	})
+
+	t.Run("qrbody flag overrides the config default", func(t *testing.T) {
+		defer buf.Reset()
+
+		c := gptest.CliCtxWithFlags(ctx, t, map[string]string{"qrbody": "true"}, "bar/baz")
+		require.NoError(t, act.Show(ctx, c))
+		assert.Contains(t, buf.String(), "bar: zab")
+	})
+
+	t.Run("key lookup still works", func(t *testing.T) {
+		defer buf.Reset()
+
+		c := gptest.CliCtx(ctx, t, "bar/baz", "bar")
+		require.NoError(t, act.Show(ctx, c))
+		assert.Equal(t, "zab", buf.String())
+	})
+
+	t.Run("password-only wins over safecontent", func(t *testing.T) {
+		defer buf.Reset()
+
+		require.NoError(t, act.cfg.Set("", "show.safecontent", "true"))
+		defer func() {
+			require.NoError(t, act.cfg.Set("", "show.safecontent", "false"))
+		}()
+
+		c := gptest.CliCtx(ctx, t, "bar/baz")
+		require.NoError(t, act.Show(ctx, c))
+		assert.Contains(t, buf.String(), "123")
+		assert.NotContains(t, buf.String(), "bar: zab")
+	})
+
+	t.Run("passwordless entry errors like -o", func(t *testing.T) {
+		defer buf.Reset()
+
+		require.NoError(t, act.insertStdin(ctx, "nopw", []byte("---\nkey: val"), false))
+
+		c := gptest.CliCtx(ctx, t, "nopw")
+		require.Error(t, act.Show(ctx, c))
+		assert.NotContains(t, buf.String(), "key: val")
+	})
+
+	t.Run("autoclip copies and prints password only", func(t *testing.T) {
+		defer buf.Reset()
+
+		require.NoError(t, act.cfg.Set("", "show.autoclip", "true"))
+		defer func() {
+			require.NoError(t, act.cfg.Set("", "show.autoclip", "false"))
+		}()
+
+		c := gptest.CliCtx(ctx, t, "bar/baz")
+		require.NoError(t, act.Show(ctx, c))
+		assert.Contains(t, buf.String(), "123")
+		assert.NotContains(t, buf.String(), "bar: zab")
+	})
+}
+
 func TestShowMulti(t *testing.T) {
 	u := gptest.NewUnitTester(t)
 
