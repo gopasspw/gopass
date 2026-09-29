@@ -12,6 +12,10 @@ conventions this file is generated from.
 
 ## [Unreleased]
 
+### Added
+
+- show: Add `show.password` config option to display only the password by default (#3621)
+
 ## [1.17.3] - 2026-09-22
 
 ### Changed
