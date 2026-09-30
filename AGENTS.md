@@ -49,11 +49,12 @@ The project is specifically targeting users on all major platform, i.e. Linux, U
 
 ## Conventions
 
-Commit messages, versioning, branch and tag names, and file naming are specified in [docs/conventions.md](docs/conventions.md). Observe these three rules in particular:
+Commit messages, versioning, branch and tag names, and file naming are specified in [docs/conventions.md](docs/conventions.md). Observe these rules in particular:
 
 - Use only the listed commit types: `feat fix security perf refactor revert deps docs test build ci chore`. The list is closed. `otp`, `age`, `fscopy`, `bug` and `openbsd` appear as types in the history; they are scopes and must be written as such.
 - Use `!` and a `BREAKING CHANGE:` footer only for a break in the CLI. Mark a break confined to the `pkg/gopass` Go module with a `PKG-BREAK:` footer and no `!`. The first forces a major release; the second does not.
 - Write the pull request title as a valid Conventional Commit. Pull requests are squash-merged, so the pull request title is the string that reaches `CHANGELOG.md`, not the individual commit subjects.
+- Every commit must include a `Signed-off-by: Your Name <your@email.com>` trailer required by the [Developer Certificate of Origin](https://developercertificate.org/); use `git commit --signoff` to add it.
 
 ## Libraries and Frameworks
 
