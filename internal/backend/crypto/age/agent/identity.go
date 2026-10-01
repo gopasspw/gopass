@@ -21,7 +21,9 @@ func parseIdentity(s string) (age.Identity, error) {
 	switch {
 	case strings.HasPrefix(s, "AGE-PLUGIN-"):
 		sp := strings.Split(s, "|")
-		id, err := plugin.NewIdentity(sp[0], nil)
+		// The agent has no terminal UI. Empty callbacks report failed
+		// interactions to the plugin without leaving ClientUI itself nil.
+		id, err := plugin.NewIdentity(sp[0], &plugin.ClientUI{})
 		if err != nil {
 			return nil, fmt.Errorf("unable to parse plugin identity: %w", err)
 		}
