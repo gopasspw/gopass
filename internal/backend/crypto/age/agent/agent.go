@@ -19,6 +19,7 @@ import (
 	"time"
 
 	"filippo.io/age"
+	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/appdir"
 	"github.com/gopasspw/gopass/pkg/debug"
 )
@@ -149,8 +150,12 @@ func (a *Agent) handleConnection(ctx context.Context, conn net.Conn) {
 				fmt.Fprintln(conn, "OK")
 			}
 		case "identities":
-			// the arguments are private key material: log only their count
+			// The arguments contain private key material. Each identity is
+			// logged and hidden unless GOPASS_DEBUG_LOG_SECRETS is set
 			debug.Log("received: identities [%d ids]", len(args))
+			for _, id := range args {
+				debug.Log("received: identity: %s", out.Secret(id))
+			}
 
 			if len(args) < 1 {
 				fmt.Fprintln(conn, "ERR missing identities")
