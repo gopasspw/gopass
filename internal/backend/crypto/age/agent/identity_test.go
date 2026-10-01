@@ -1,10 +1,16 @@
 package agent
 
 import (
+	"bytes"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 
 	"filippo.io/age"
+	"filippo.io/age/plugin"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -121,4 +127,60 @@ func TestParseIdentities(t *testing.T) {
 		_, err := parseIdentities(strings.NewReader(""))
 		require.Error(t, err)
 	})
+}
+
+// TestPluginIdentityDecrypt exercises the actual identity-v1 subprocess protocol,
+// including callbacks that the background agent cannot service.
+func TestPluginIdentityDecrypt(t *testing.T) {
+	dir := t.TempDir()
+	binary := "age-plugin-gopasstest"
+	if runtime.GOOS == "windows" {
+		binary += ".exe"
+	}
+	cmd := exec.CommandContext(t.Context(), "go", "build", "-o", filepath.Join(dir, binary), "./testdata/plugin")
+	output, err := cmd.CombinedOutput()
+	require.NoError(t, err, "%s", output)
+	t.Setenv("PATH", dir+string(os.PathListSeparator)+os.Getenv("PATH"))
+
+	key, err := age.GenerateX25519Identity()
+	require.NoError(t, err)
+	var ciphertext bytes.Buffer
+	writer, err := age.Encrypt(&ciphertext, key.Recipient())
+	require.NoError(t, err)
+	_, err = writer.Write([]byte("agent plugin plaintext"))
+	require.NoError(t, err)
+	require.NoError(t, writer.Close())
+
+	tests := []struct {
+		mode      string
+		wantError string
+	}{
+		{mode: "decrypt"},
+		{mode: "msg", wantError: "client failed to display message"},
+		{mode: "request-secret", wantError: "client failed to request value"},
+		{mode: "request-public", wantError: "client failed to request value"},
+		{mode: "confirm", wantError: "client failed to request confirmation"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.mode, func(t *testing.T) {
+			encoding := plugin.EncodeIdentity("gopasstest", []byte(tt.mode+"|"+key.String()))
+			ids, err := parseIdentities(strings.NewReader(encoding + "|" + key.Recipient().String()))
+			require.NoError(t, err)
+			a := &Agent{identities: ids}
+			plaintext, err := a.decrypt(ciphertext.Bytes())
+			if tt.wantError != "" {
+				require.ErrorContains(t, err, tt.wantError)
+				require.Nil(t, plaintext)
+
+				// A failed interaction must leave the agent usable for another decryption.
+				encoding = plugin.EncodeIdentity("gopasstest", []byte("decrypt|"+key.String()))
+				id, parseErr := parseIdentity(encoding)
+				require.NoError(t, parseErr)
+				a.identities = []age.Identity{id}
+				plaintext, err = a.decrypt(ciphertext.Bytes())
+			}
+			require.NoError(t, err)
+			assert.Equal(t, "agent plugin plaintext", string(plaintext))
+		})
+	}
 }
