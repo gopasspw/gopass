@@ -161,6 +161,7 @@ func (a *Age) tryStartAgent(ctx context.Context) {
 	client := agent.NewClient()
 	if err := client.Ping(); err == nil {
 		debug.Log("age agent already running")
+		logAgentCapabilities(client)
 
 		return
 	}
@@ -194,6 +195,7 @@ func (a *Age) tryStartAgent(ctx context.Context) {
 
 		return
 	}
+	logAgentCapabilities(client)
 
 	// send identities to agent
 	ids, err := a.getAllIds(ctx)
@@ -221,6 +223,25 @@ func (a *Age) tryStartAgent(ctx context.Context) {
 			debug.Log("failed to set agent timeout: %s", err)
 		}
 	}
+}
+
+// logAgentCapabilities performs a best-effort hello handshake with the
+// running agent and logs the result. It never changes control flow: hello
+// is stateless and optional, and pre-hello (legacy) agents simply answer
+// ERR. Gated on debug being enabled because this is diagnostic-only: the
+// already-running path in tryStartAgent executes on every gopass
+// invocation, and an unlogged probe would be a pure round-trip cost there.
+func logAgentCapabilities(client *agent.Client) {
+	if !debug.IsEnabled() {
+		return
+	}
+	caps, err := client.Capabilities()
+	if err != nil {
+		debug.Log("age agent is legacy (no capability negotiation): %s", err)
+
+		return
+	}
+	debug.Log("age agent capabilities: %s", caps.Raw())
 }
 
 // Initialized returns nil.

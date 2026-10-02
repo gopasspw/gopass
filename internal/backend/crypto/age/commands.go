@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"unicode"
 
 	"filippo.io/age"
 	"github.com/gopasspw/gopass/internal/action/exit"
@@ -81,22 +82,7 @@ func (l loader) Commands() []*cli.Command {
 							Name:        "status",
 							Usage:       "Check if the age agent is running, this will return 0 if the agent is running and 1 otherwise",
 							Description: "Check if the age agent is running, this will return 0 if the agent is running and 1 otherwise",
-							Action: func(ctx context.Context, cmd *cli.Command) error {
-								ctx = ctxutil.WithGlobalFlags(ctx, cmd)
-								client := agent.NewClient()
-								status, err := client.Status()
-								if err != nil {
-									out.Printf(ctx, "Age agent is not running")
-
-									return exit.Error(exit.Unknown, err, "agent not running")
-								}
-								out.Printf(ctx, "Age agent is running")
-								if status == "locked" {
-									out.Printf(ctx, " (locked)")
-								}
-
-								return nil
-							},
+							Action:      l.agentStatus,
 						},
 						{
 							Name:        "unlock",
@@ -452,6 +438,62 @@ func (l loader) Commands() []*cli.Command {
 			},
 		},
 	}
+}
+
+// agentStatus reports whether the age agent is running and, best effort,
+// its capabilities via the hello negotiation, both fetched over a single
+// connection. The hello exchange must not change the output semantics
+// above nor the return value: any hello failure (including a legacy
+// agent's ERR) just means negotiation is unavailable.
+func (l loader) agentStatus(ctx context.Context, cmd *cli.Command) error {
+	ctx = ctxutil.WithGlobalFlags(ctx, cmd)
+	client := agent.NewClient()
+	info, err := client.Info()
+	if err != nil {
+		out.Printf(ctx, "Age agent is not running")
+
+		return exit.Error(exit.Unknown, err, "agent not running")
+	}
+	out.Printf(ctx, "Age agent is running")
+	if info.Status == "locked" {
+		out.Printf(ctx, " (locked)")
+	}
+
+	caps := info.Capabilities
+	if caps == nil {
+		out.Printf(ctx, " (legacy agent, no capability negotiation)")
+
+		return nil
+	}
+	if v, ok := caps.Value("version"); ok {
+		out.Printf(ctx, " (agent version %s)", safeDisplay(v, 64))
+	}
+	out.Printf(ctx, "Capabilities: %s", safeDisplay(caps.Raw(), 256))
+
+	return nil
+}
+
+// safeDisplay strips terminal control characters and bounds the length of
+// an agent-supplied string before echoing it to the terminal. The hello
+// payload comes from whatever process owns the agent socket - third-party
+// agents are explicitly welcome (see docs/backends/age.md) - and fmt's
+// verbs are format-string-safe but not control-character-safe: raw ESC/OSC
+// sequences would reach the terminal verbatim.
+func safeDisplay(s string, limit int) string {
+	var b strings.Builder
+	for _, r := range s {
+		if unicode.IsControl(r) {
+			continue
+		}
+		if b.Len() >= limit {
+			b.WriteString("...")
+
+			break
+		}
+		b.WriteRune(r)
+	}
+
+	return b.String()
 }
 
 func (l loader) agent(ctx context.Context, cmd *cli.Command) error {
