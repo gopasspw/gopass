@@ -69,6 +69,18 @@ You can interact with the agent using the following commands:
 - `gopass age agent`: starts the agent in the foreground.
 - `gopass age lock`: locks the agent, clearing all cached passphrases.
 
+### Agent protocol
+
+The agent speaks a line-oriented, strictly request-response protocol over
+its unix socket: one command per line, answered by exactly one `OK`,
+`OK <payload>` or `ERR <message>` line. Unrecognized commands yield a
+single-line ERR, change no state and never close the connection.
+
+The full specification — command syntax, responses and errors, the lock
+state model, socket location rules, error-handling contract and the
+`hello` capability negotiation — lives in
+[age-agent-protocol.md](age-agent-protocol.md).
+
 ## Usage with a yubikey
 
 To use with a Yubikey, `age` requires the usage of the [age-plugin-yubikey plugin](https://github.com/str4d/age-plugin-yubikey/).
