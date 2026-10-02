@@ -27,6 +27,7 @@ import (
 	_ "github.com/gopasspw/gopass/internal/backend/crypto"
 	"github.com/gopasspw/gopass/internal/backend/crypto/gpg"
 	_ "github.com/gopasspw/gopass/internal/backend/storage"
+	"github.com/gopasspw/gopass/internal/buildinfo"
 	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/hook"
 	"github.com/gopasspw/gopass/internal/out"
@@ -78,6 +79,10 @@ func main() {
 	}(ctx)
 
 	sv := getVersion()
+
+	// stash the version for internal packages (the ldflags variable lives
+	// in package main and cannot be imported).
+	buildinfo.Version = sv.String()
 
 	debug.Log("gopass %s starting. Args: %v", sv.String(), os.Args)
 
