@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
 	"filippo.io/age"
 	"filippo.io/age/plugin"
@@ -18,6 +19,35 @@ type identity struct {
 }
 
 func (i *identity) Unwrap(stanzas []*age.Stanza) ([]byte, error) {
+	if path := os.Getenv("GOPASS_TEST_PLUGIN_COUNT"); path != "" {
+		f, err := os.OpenFile(path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o600)
+		if err != nil {
+			return nil, err
+		}
+		_, err = f.WriteString("unwrap\n")
+		_ = f.Close()
+		if err != nil {
+			return nil, err
+		}
+	}
+	if ready := os.Getenv("GOPASS_TEST_PLUGIN_READY"); ready != "" {
+		if err := os.WriteFile(ready, []byte("ready"), 0o600); err != nil {
+			return nil, err
+		}
+		deadline := time.Now().Add(10 * time.Second)
+		for {
+			if _, err := os.Stat(os.Getenv("GOPASS_TEST_PLUGIN_RELEASE")); err == nil {
+				break
+			}
+			if time.Now().After(deadline) {
+				return nil, fmt.Errorf("test hardware authentication timed out")
+			}
+			time.Sleep(10 * time.Millisecond)
+		}
+	}
+	if i.mode == "cancel" {
+		return nil, fmt.Errorf("test authentication canceled")
+	}
 	var err error
 	switch i.mode {
 	case "msg":

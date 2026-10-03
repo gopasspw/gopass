@@ -19,6 +19,15 @@ import (
 // Decrypt will attempt to decrypt the given payload.
 func (a *Age) Decrypt(ctx context.Context, ciphertext []byte) ([]byte, error) {
 	if config.Bool(ctx, "age.agent-enabled") {
+		session, err := a.usesKeyringSession(ctx)
+		if err != nil {
+			_ = agent.NewClient().Lock()
+
+			return nil, err
+		}
+		if session {
+			return a.decryptWithSession(ctx, ciphertext)
+		}
 		plaintext, err := a.decryptWithAgent(ctx, ciphertext)
 		if err == nil {
 			return plaintext, nil
@@ -135,15 +144,28 @@ func (a *Age) decrypt(ciphertext []byte, ids ...age.Identity) ([]byte, error) {
 	return out.Bytes(), nil
 }
 
-// decryptFile is used to decrypt a scrypt encrypted age keyring/identity file.
+// decryptFile decrypts a passphrase- or recipient-encrypted age keyring.
 // pwcb is called to obtain the passphrase; ppcb is invoked on a decrypt failure
 // so cached passwords can be invalidated.
-func (a *Age) decryptFile(_ context.Context, filename string, pwcb func(string, bool) ([]byte, error), ppcb func(string)) ([]byte, error) {
+func (a *Age) decryptFile(ctx context.Context, filename string, pwcb func(string, bool) ([]byte, error), ppcb func(string)) ([]byte, error) {
 	ciphertext, err := os.ReadFile(filename)
 	if err != nil {
 		return nil, err
 	}
 	debug.V(1).Log("read %d bytes from %s", len(ciphertext), filename)
+
+	passphrase, err := keyringUsesPassphrase(ciphertext)
+	if err != nil {
+		return nil, err
+	}
+	if !passphrase {
+		ids, err := a.keyringUnlockIdentities(ctx)
+		if err != nil {
+			return nil, err
+		}
+
+		return a.decrypt(ciphertext, ids...)
+	}
 
 	pw, err := pwcb(filename, false)
 	if err != nil {

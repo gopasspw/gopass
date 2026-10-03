@@ -117,6 +117,22 @@ func (l loader) Commands() []*cli.Command {
 									return exit.Error(exit.Unknown, err, "failed to create age backend")
 								}
 
+								client := agent.NewClient()
+								if err := client.Lock(); err != nil {
+									return exit.Error(exit.Unknown, err, "failed to lock age agent before reload")
+								}
+								session, err := a.usesKeyringSession(ctx)
+								if err != nil {
+									return exit.Error(exit.Unknown, err, "failed to inspect identity keyring")
+								}
+								if session {
+									if _, err := a.unlockSession(ctx, client); err != nil {
+										return exit.Error(exit.Unknown, err, "failed to unlock age keyring session")
+									}
+									out.Printf(ctx, "Age agent unlocked and identities reloaded")
+
+									return nil
+								}
 								// Load identities first (will prompt for PIN if needed)
 								ids, err := a.getAllIds(ctx)
 								if err != nil {
@@ -127,8 +143,6 @@ func (l loader) Commands() []*cli.Command {
 								if err != nil {
 									return exit.Error(exit.Unknown, err, "failed to serialize identities: %s", err)
 								}
-
-								client := agent.NewClient()
 
 								// Send identities to agent (works even if agent is locked). If no
 								// natively serializable identities exist (e.g. only SSH keys, which
@@ -240,6 +254,9 @@ func (l loader) Commands() []*cli.Command {
 									}
 								}
 
+								if err := lockKeyringAgent(); err != nil {
+									return exit.Error(exit.Unknown, err, "failed to lock age agent before changing identities")
+								}
 								id, err := parseIdentity(idS + "|" + recEncm)
 								if err != nil {
 									return exit.Error(exit.Unknown, err, "failed to parse age identity")
@@ -283,8 +300,11 @@ func (l loader) Commands() []*cli.Command {
 									return exit.Error(exit.Unknown, err, "failed to create age backend")
 								}
 
+								if err := lockKeyringAgent(); err != nil {
+									return exit.Error(exit.Unknown, err, "failed to lock age agent before changing identities")
+								}
 								pw := cmd.String("password")
-								if pw == "" {
+								if pw == "" && config.String(ctx, "age.keyring-recipients") == "" {
 									pw, err = termio.AskForPassword(ctx, "Enter password for new key", true)
 									if err != nil {
 										return err
@@ -301,6 +321,12 @@ func (l loader) Commands() []*cli.Command {
 
 								return nil
 							},
+						},
+						{
+							Name:        "reencrypt",
+							Usage:       "Re-encrypt the age identity keyring",
+							Description: "Re-encrypt the existing identity keyring using age.keyring-recipients; store entries and recipients are unchanged",
+							Action:      l.reencryptKeyring,
 						},
 						{
 							Name:    "remove",
@@ -327,7 +353,13 @@ func (l loader) Commands() []*cli.Command {
 									return exit.Error(exit.Usage, err, "missing argument to remove")
 								}
 
-								ids, _ := a.Identities(ctx)
+								if err := lockKeyringAgent(); err != nil {
+									return exit.Error(exit.Unknown, err, "failed to lock age agent before changing identities")
+								}
+								ids, err := a.Identities(ctx)
+								if err != nil {
+									return exit.Error(exit.Unknown, err, "failed to read identities")
+								}
 								newIds := make([]string, 0, len(ids))
 
 								debug.Log("ranging over %d age identities", len(ids))
@@ -352,7 +384,7 @@ func (l loader) Commands() []*cli.Command {
 											}
 										}
 										if skip {
-											debug.Log("will remove Plugin Identity %s", x)
+											debug.Log("will remove Plugin Identity %s", x.SafeStr())
 
 											continue
 										}
@@ -470,6 +502,33 @@ func (l loader) lock(ctx context.Context, cmd *cli.Command) error {
 	if err := client.Lock(); err != nil {
 		return exit.Error(exit.Unknown, err, "failed to lock agent: %s", err)
 	}
+
+	return nil
+}
+
+// lockKeyringAgent invalidates cached credentials before an explicit mutation.
+func lockKeyringAgent() error {
+	client := agent.NewClient()
+	if err := client.Ping(); err != nil {
+		return nil
+	}
+
+	return client.Lock()
+}
+
+func (l loader) reencryptKeyring(ctx context.Context, cmd *cli.Command) error {
+	ctx = ctxutil.WithGlobalFlags(ctx, cmd)
+	a, err := New(ctx, false, "")
+	if err != nil {
+		return exit.Error(exit.Unknown, err, "failed to create age backend")
+	}
+	if err := lockKeyringAgent(); err != nil {
+		return exit.Error(exit.Unknown, err, "failed to lock age agent before changing identities")
+	}
+	if err := a.reencryptIdentities(ctx); err != nil {
+		return exit.Error(exit.Unknown, err, "failed to re-encrypt identity keyring")
+	}
+	out.Notice(ctx, "Age identity keyring re-encrypted; agent credentials cleared")
 
 	return nil
 }

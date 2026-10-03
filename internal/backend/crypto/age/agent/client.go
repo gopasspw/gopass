@@ -139,3 +139,36 @@ func (c *Client) Quit() error {
 
 	return err
 }
+
+// LoadIdentities atomically installs identities and unlocks a source-bound session.
+// The source is an opaque fingerprint of the encrypted keyring and its configuration.
+func (c *Client) LoadIdentities(ids, source string, timeout int) error {
+	_, err := c.send("session load " + source + " " + strconv.Itoa(timeout) + " " + base64.StdEncoding.EncodeToString([]byte(ids)))
+
+	return err
+}
+
+// DecryptSession decrypts only while the cached identities match the source.
+// A changed source locks the agent before attempting any decryption.
+func (c *Client) DecryptSession(ciphertext []byte, source string) ([]byte, error) {
+	resp, err := c.send("session decrypt " + source + " " + base64.StdEncoding.EncodeToString(ciphertext))
+	if err != nil {
+		return nil, err
+	}
+
+	return base64.StdEncoding.DecodeString(resp)
+}
+
+// BeginSession locks the agent and returns an opaque token for this unlock attempt.
+// Any subsequent lock or reload invalidates the token.
+func (c *Client) BeginSession() (string, error) {
+	return c.send("session begin")
+}
+
+// LoadIdentitiesWithGeneration installs credentials only if the unlock attempt
+// started by BeginSession has not been invalidated while authenticating.
+func (c *Client) LoadIdentitiesWithGeneration(ids, source string, timeout int, generation string) error {
+	_, err := c.send("session load-generation " + source + " " + strconv.Itoa(timeout) + " " + generation + " " + base64.StdEncoding.EncodeToString([]byte(ids)))
+
+	return err
+}

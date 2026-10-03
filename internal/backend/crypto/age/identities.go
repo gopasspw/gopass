@@ -78,13 +78,14 @@ func (a *Age) Identities(ctx context.Context) ([]age.Identity, error) {
 	buf, err := a.decryptFile(ctx, a.identity, pwcb, ppcb)
 	if err != nil {
 		debug.Log("failed to decrypt existing identities from %s: %s", a.identity, err)
-		if !errors.Is(err, os.ErrNotExist) {
+		if !missingIdentityFile(a.identity, err) {
 			return nil, fmt.Errorf("failed to decrypt %s: %w", a.identity, err)
 		}
 
 		return nil, nil
 	}
 
+	defer clear(buf)
 	ids, err := identityfile.Parse(bytes.NewReader(buf), parseIdentity)
 	if err != nil {
 		return nil, err
@@ -151,7 +152,7 @@ func (a *Age) IdentityRecipients(ctx context.Context) ([]age.Recipient, error) {
 
 	ids, err := a.Identities(ctx)
 	if err != nil {
-		if errors.Is(err, os.ErrNotExist) {
+		if missingIdentityFile(a.identity, err) {
 			return nil, nil
 		}
 
@@ -342,7 +343,7 @@ func (a *Age) addIdentity(ctx context.Context, id age.Identity) error {
 	existing, err := a.loadIdentityFile(ctx)
 	newFile := false
 	if err != nil {
-		if !errors.Is(err, os.ErrNotExist) {
+		if !missingIdentityFile(a.identity, err) {
 			return fmt.Errorf("failed to read identity file: %w", err)
 		}
 		newFile = true
@@ -372,6 +373,8 @@ func (a *Age) loadIdentityFile(ctx context.Context) (string, error) {
 		return "", err
 	}
 
+	defer clear(buf)
+
 	return string(buf), nil
 }
 
@@ -385,7 +388,9 @@ func (a *Age) saveIdentities(ctx context.Context, ids []string, newFile bool) er
 		return fmt.Errorf("failed to create directory for %s: %w", a.identity, err)
 	}
 
-	if err := a.encryptFile(ctx, a.identity, []byte(strings.Join(ids, "\n")), newFile, pwcb); err != nil {
+	plaintext := []byte(strings.Join(ids, "\n"))
+	defer clear(plaintext)
+	if err := a.encryptFile(ctx, a.identity, plaintext, newFile, pwcb); err != nil {
 		return fmt.Errorf("failed to write encrypted identity to %s: %w", a.identity, err)
 	}
 

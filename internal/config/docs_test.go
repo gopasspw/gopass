@@ -225,7 +225,7 @@ func usedEnvs(t *testing.T) map[string]bool {
 		if info.IsDir() && strings.HasPrefix(info.Name(), ".") && path != dir {
 			return filepath.SkipDir
 		}
-		if info.IsDir() && (info.Name() == "helpers" || info.Name() == "tests") {
+		if info.IsDir() && (info.Name() == "helpers" || info.Name() == "tests" || info.Name() == "testdata") {
 			return filepath.SkipDir
 		}
 		if info.IsDir() {

@@ -195,6 +195,19 @@ func (a *Age) tryStartAgent(ctx context.Context) {
 		return
 	}
 
+	// Protected keyrings must be authenticated only when a session is requested,
+	// and loaded with their source binding rather than through the legacy path.
+	session, err := a.usesKeyringSession(ctx)
+	if err != nil {
+		_ = client.Lock()
+		debug.Log("failed to inspect age keyring protection: %s", err)
+
+		return
+	}
+	if session {
+		return
+	}
+
 	// send identities to agent
 	ids, err := a.getAllIds(ctx)
 	if err != nil {
@@ -268,9 +281,12 @@ func (a *Age) GetFingerprint(ctx context.Context, key []byte) (string, error) {
 	return string(key), nil
 }
 
-// Lock flushes the password cache.
+// Lock flushes the password cache and locks any running age agent.
 func (a *Age) Lock() {
 	a.askPass.Lock()
+	if err := agent.NewClient().Lock(); err != nil {
+		debug.Log("failed to lock age agent: %s", err)
+	}
 }
 
 // identitiesToString serializes the given identities into a single-line,
