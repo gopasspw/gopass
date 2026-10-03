@@ -19,6 +19,7 @@ import (
 	"time"
 
 	"filippo.io/age"
+	"filippo.io/age/agessh"
 	"github.com/gopasspw/gopass/internal/backend/crypto/age/identityorder"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/appdir"
@@ -174,6 +175,8 @@ func (a *Agent) handleConnection(ctx context.Context, conn net.Conn) {
 			a.mux.Unlock()
 			debug.Log("loaded %d identities", len(ids))
 			fmt.Fprintln(conn, "OK")
+		case "ssh-identity":
+			fmt.Fprintln(conn, a.addSSHIdentityResponse(args))
 		case "decrypt":
 			// the argument is base64 ciphertext: log only its encoded size,
 			// the relevant diagnostic for the scanner line-size limit
@@ -227,26 +230,7 @@ func (a *Agent) handleConnection(ctx context.Context, conn net.Conn) {
 			debug.Log("unlocked agent")
 			fmt.Fprintln(conn, "OK")
 		case "set-timeout":
-			// the timeout value is not sensitive
-			if len(args) > 0 {
-				debug.Log("received: set-timeout %s", args[0])
-			} else {
-				debug.Log("received: set-timeout")
-			}
-
-			if len(args) != 1 {
-				fmt.Fprintln(conn, "ERR missing timeout")
-
-				continue
-			}
-			timeout, err := strconv.Atoi(args[0])
-			if err != nil {
-				fmt.Fprintln(conn, "ERR failed to parse timeout: "+err.Error())
-
-				continue
-			}
-			a.setTimeout(time.Duration(timeout) * time.Second)
-			fmt.Fprintln(conn, "OK")
+			fmt.Fprintln(conn, a.setTimeoutResponse(args))
 		case "quit":
 			debug.Log("received: quit")
 
@@ -269,6 +253,62 @@ func (a *Agent) handleConnection(ctx context.Context, conn net.Conn) {
 	if err := scanner.Err(); err != nil {
 		debug.Log("agent connection scan error: %s", err)
 	}
+}
+
+func (a *Agent) addSSHIdentityResponse(args []string) string {
+	if err := a.addSSHIdentity(args); err != nil {
+		return "ERR " + err.Error()
+	}
+
+	return "OK"
+}
+
+func (a *Agent) addSSHIdentity(args []string) error {
+	// The argument is an unencrypted OpenSSH private key. Log only its encoded
+	// size and never the payload itself.
+	if len(args) != 1 {
+		debug.Log("received: ssh-identity")
+
+		return fmt.Errorf("missing SSH identity")
+	}
+	debug.Log("received: ssh-identity (%d bytes)", len(args[0]))
+
+	privateKey, err := base64.StdEncoding.DecodeString(args[0])
+	if err != nil {
+		return fmt.Errorf("failed to decode SSH identity: %w", err)
+	}
+	id, err := agessh.ParseIdentity(privateKey)
+	clear(privateKey)
+	if err != nil {
+		return fmt.Errorf("failed to parse SSH identity: %w", err)
+	}
+
+	a.mux.Lock()
+	a.identities = append(a.identities, id)
+	a.mux.Unlock()
+	debug.Log("loaded SSH identity")
+
+	return nil
+}
+
+func (a *Agent) setTimeoutResponse(args []string) string {
+	// The timeout value is not sensitive.
+	if len(args) > 0 {
+		debug.Log("received: set-timeout %s", args[0])
+	} else {
+		debug.Log("received: set-timeout")
+	}
+
+	if len(args) != 1 {
+		return "ERR missing timeout"
+	}
+	timeout, err := strconv.Atoi(args[0])
+	if err != nil {
+		return "ERR failed to parse timeout: " + err.Error()
+	}
+	a.setTimeout(time.Duration(timeout) * time.Second)
+
+	return "OK"
 }
 
 func (a *Agent) setTimeout(timeout time.Duration) {

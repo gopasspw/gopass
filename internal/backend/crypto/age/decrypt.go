@@ -32,7 +32,45 @@ func (a *Age) Decrypt(ctx context.Context, ciphertext []byte) ([]byte, error) {
 		return nil, err
 	}
 
-	return a.decrypt(ciphertext, ids...)
+	plaintext, err := a.decrypt(ciphertext, ids...)
+	if err != nil {
+		return nil, err
+	}
+
+	if config.Bool(ctx, "age.agent-enabled") {
+		a.sendUnlockedSSHIdentities(ids)
+	}
+
+	return plaintext, nil
+}
+
+// sendUnlockedSSHIdentities transfers only encrypted SSH identities that were
+// actually used by the successful local decrypt. This avoids prompting for or
+// exposing unrelated SSH keys. Failure is deliberately non-fatal: an older
+// agent will reject the new command, while the local decrypt remains valid.
+func (a *Age) sendUnlockedSSHIdentities(ids []age.Identity) {
+	client := agent.NewClient()
+	for _, id := range ids {
+		sshID, ok := id.(*agentSSHIdentity)
+		if !ok {
+			continue
+		}
+
+		privateKey, err := sshID.takePrivateKey()
+		if err != nil {
+			debug.Log("failed to serialize unlocked SSH identity for agent transfer: %s", err)
+
+			continue
+		}
+		if len(privateKey) == 0 {
+			continue
+		}
+		err = client.SendSSHIdentity(privateKey)
+		clear(privateKey)
+		if err != nil {
+			debug.Log("failed to send unlocked SSH identity to agent: %s", err)
+		}
+	}
 }
 
 func (a *Age) decryptWithAgent(ctx context.Context, ciphertext []byte) ([]byte, error) {

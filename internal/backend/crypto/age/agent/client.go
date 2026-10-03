@@ -86,6 +86,15 @@ func (c *Client) SendIdentities(ids string) error {
 	return err
 }
 
+// SendSSHIdentity appends an unlocked OpenSSH private key to the identities
+// held by the agent. The key is base64-encoded so the command remains a single
+// line and is never included in debug output.
+func (c *Client) SendSSHIdentity(privateKey []byte) error {
+	_, err := c.send("ssh-identity " + base64.StdEncoding.EncodeToString(privateKey))
+
+	return err
+}
+
 // Decrypt decrypts the given ciphertext.
 func (c *Client) Decrypt(ciphertext []byte) ([]byte, error) {
 	resp, err := c.send("decrypt " + base64.StdEncoding.EncodeToString(ciphertext))
