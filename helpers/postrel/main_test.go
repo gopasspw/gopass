@@ -5,9 +5,9 @@ package main
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
-	"github.com/gopasspw/gopass/helpers/gitutils"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -37,7 +37,11 @@ func TestVersionFile(t *testing.T) {
 	err := os.WriteFile(filepath.Join(dir, "VERSION"), []byte("1.2.3"), 0o644)
 	assert.NoError(t, err)
 
-	os.Chdir(dir)
+	cwd, err := os.Getwd()
+	assert.NoError(t, err)
+	assert.NoError(t, os.Chdir(dir))
+	t.Cleanup(func() { _ = os.Chdir(cwd) })
+
 	version, err := versionFile()
 	assert.NoError(t, err)
 	assert.Equal(t, "1.2.3", version.String())
@@ -51,25 +55,36 @@ func TestGoVersion(t *testing.T) {
 	}
 }
 
-// Test updateWorkflows function
-func TestUpdateWorkflows(t *testing.T) {
-	dir := t.TempDir()
-	gitutils.InitGitDir(t, dir)
+// Test syncWorkflows function
+func TestSyncWorkflows(t *testing.T) {
+	// set up a fake gopass repository holding the source workflows
+	src := t.TempDir()
+	srcWorkflows := filepath.Join(src, ".github", "workflows")
+	assert.NoError(t, os.MkdirAll(srcWorkflows, 0o755))
 
-	err := os.MkdirAll(filepath.Join(dir, ".github", "workflows"), 0o755)
-	assert.NoError(t, err)
-
-	err = os.WriteFile(filepath.Join(dir, ".github", "workflows", "test.yml"), []byte("go-version: 1.15"), 0o644)
-	assert.NoError(t, err)
-
-	updater := &inUpdater{
-		goVer: "1.16",
+	for _, wf := range sharedWorkflows {
+		content := "name: " + wf.tmpl + "\non:\n  push:\n"
+		assert.NoError(t, os.WriteFile(filepath.Join(srcWorkflows, wf.name), []byte(content), 0o644))
 	}
 
-	err = updater.updateWorkflows(t.Context(), dir)
-	assert.NoError(t, err)
+	// set up a fake integration repository
+	dst := filepath.Join(t.TempDir(), "gopass-hibp")
+	assert.NoError(t, os.MkdirAll(dst, 0o755))
 
-	content, err := os.ReadFile(filepath.Join(dir, ".github", "workflows", "test.yml"))
+	// syncWorkflows resolves the source relative to the current working directory
+	cwd, err := os.Getwd()
 	assert.NoError(t, err)
-	assert.Contains(t, string(content), "go-version: 1.16")
+	assert.NoError(t, os.Chdir(src))
+	t.Cleanup(func() { _ = os.Chdir(cwd) })
+
+	updater := &inUpdater{}
+	assert.NoError(t, updater.syncWorkflows(t.Context(), dst))
+
+	for _, wf := range sharedWorkflows {
+		content, err := os.ReadFile(filepath.Join(dst, ".github", "workflows", wf.name))
+		assert.NoError(t, err)
+
+		want := "name: " + strings.ReplaceAll(wf.tmpl, "%s", "gopass-hibp")
+		assert.Contains(t, string(content), want)
+	}
 }

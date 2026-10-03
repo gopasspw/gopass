@@ -260,7 +260,7 @@ func goVersion(v string) string {
 type inUpdater struct {
 	github *github.Client
 	v      semver.Version
-	goVer  string // go version as major.minor.patch (for use in go.mod and GH workflows)
+	goVer  string // go version as major.minor.patch, used to pin go.mod via 'go mod tidy -go='
 }
 
 func newIntegrationsUpdater(client *github.Client, v semver.Version) (*inUpdater, error) {
@@ -392,11 +392,11 @@ stable releases of our main target platforms before updating it.
 	}
 	fmt.Printf("✅ [%s] go mod tidy.\n", dir)
 
-	// update workflows
-	if err := u.updateWorkflows(ctx, path); err != nil {
+	// sync workflows
+	if err := u.syncWorkflows(ctx, path); err != nil {
 		return err
 	}
-	fmt.Printf("✅ [%s] updated workflows.\n", dir)
+	fmt.Printf("✅ [%s] synced workflows.\n", dir)
 
 	// update depdendabot.yml
 	if err := fsutil.CopyFile(filepath.Join(cwd, ".github", "dependabot.yml"), filepath.Join(path, ".github", "dependabot.yml")); err != nil {
@@ -437,48 +437,53 @@ stable releases of our main target platforms before updating it.
 	return nil
 }
 
-func (u *inUpdater) updateWorkflows(ctx context.Context, dir string) error {
-	filepath.Walk(filepath.Join(dir, ".github", "workflows"), func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			fmt.Printf("Failed to walk %s: %s\n", path, err)
-
-			return nil
-		}
-		if info.IsDir() {
-			// fmt.Printf("Skipping dir %s\n", path)
-
-			return nil
-		}
-		if !strings.HasSuffix(path, ".yml") {
-			// fmt.Printf("Skipping file %s\n", path)
-
-			return nil
-		}
-
-		return u.updateWorkflowGoVersion(ctx, path)
-	})
-
-	return nil
+// sharedWorkflows are the workflow files that are kept in sync between the
+// gopass repository and its integrations. The template is used to rewrite the
+// top-level workflow name, where %s is replaced with the integration repo name.
+var sharedWorkflows = []struct {
+	name string
+	tmpl string
+}{
+	{"build.yml", "Build %s"},
+	{"codeql-analysis.yml", `"CodeQL"`},
+	{"golangci-lint.yml", "golangci-lint"},
 }
 
-var goVersionRE = regexp.MustCompile(`go-version:\s+\d+\.\d+`)
+var workflowNameRE = regexp.MustCompile(`(?m)^name:.*$`)
 
-func (u *inUpdater) updateWorkflowGoVersion(_ context.Context, path string) error {
-	buf, err := os.ReadFile(path)
+// syncWorkflows copies the shared workflow files from the gopass repository
+// into the integration repository, so they don't drift apart. The workflow
+// name is adjusted to match the integration repository.
+func (u *inUpdater) syncWorkflows(_ context.Context, dir string) error {
+	cwd, err := os.Getwd()
 	if err != nil {
 		return err
 	}
-	str := goVersionRE.ReplaceAllString(string(buf), "go-version: "+u.goVer)
-	// no change, no write
-	if str == string(buf) {
-		// fmt.Printf("No changes in %s\n", path)
 
-		return nil
+	repo := filepath.Base(dir)
+	srcDir := filepath.Join(cwd, ".github", "workflows")
+	dstDir := filepath.Join(dir, ".github", "workflows")
+
+	if err := os.MkdirAll(dstDir, 0o755); err != nil {
+		return err
 	}
 
-	fmt.Printf("Wrote %s\n", path)
+	for _, wf := range sharedWorkflows {
+		buf, err := os.ReadFile(filepath.Join(srcDir, wf.name))
+		if err != nil {
+			return err
+		}
 
-	return os.WriteFile(path, []byte(str), 0o644)
+		name := "name: " + strings.ReplaceAll(wf.tmpl, "%s", repo)
+		buf = workflowNameRE.ReplaceAll(buf, []byte(name))
+
+		if err := os.WriteFile(filepath.Join(dstDir, wf.name), buf, 0o644); err != nil {
+			return err
+		}
+		fmt.Printf("✅ [%s] synced %s.\n", repo, wf.name)
+	}
+
+	return nil
 }
 
 type tplPayload struct {
