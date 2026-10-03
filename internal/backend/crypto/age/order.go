@@ -67,6 +67,16 @@ func orderedIdentities(ctx context.Context, ids map[string]age.Identity) []age.I
 		rest = append(rest, k)
 	}
 	slices.SortFunc(rest, func(a, b string) int {
+		// Match age's native-first default before comparing encodings. Hybrid
+		// native recipients can be longer than plugin or SSH recipients.
+		if na, nb := isNativeIdentity(ids[a]), isNativeIdentity(ids[b]); na != nb {
+			if na {
+				return -1
+			}
+
+			return 1
+		}
+
 		// order by the public recipient where available, falling back
 		// to the map key for identities without a recipient.
 		ra, rb := recpOf[a], recpOf[b]
@@ -89,6 +99,18 @@ func orderedIdentities(ctx context.Context, ids map[string]age.Identity) []age.I
 	return out
 }
 
+// isNativeIdentity matches the concrete types age prioritizes by default.
+// Wrapped plugin identities remain non-native even if their implementation
+// delegates to a native identity.
+func isNativeIdentity(id age.Identity) bool {
+	switch id.(type) {
+	case *age.X25519Identity, *age.HybridIdentity, *age.ScryptIdentity:
+		return true
+	default:
+		return false
+	}
+}
+
 // recipientOf returns the public recipient string of the given identity,
 // or an empty string if it cannot be determined. It never returns secret
 // key material.
@@ -102,11 +124,10 @@ func recipientOf(id age.Identity) string {
 	return ""
 }
 
-// identitySortFunc orders recipient strings deterministically: native age
-// recipients (age1...) first, then everything else alphabetically. This
-// mirrors the ordering applied to recipients in encrypt.go so that the
-// local, most likely passwordless identity is tried before hardware tokens
-// that may require a PIN or touch.
+// identitySortFunc orders recipient strings deterministically by length, then
+// alphabetically, mirroring recipient ordering in encrypt.go. Native identity
+// priority is applied separately because encoding length is not a reliable
+// indicator of identity type.
 func identitySortFunc(a, b string) int {
 	if la, lb := len(a), len(b); la != lb {
 		// yubikey and other plugin identities are typically longer

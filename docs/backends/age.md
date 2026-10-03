@@ -56,6 +56,22 @@ $  GOPASS_SSH_DIR=/Downloads/new_ssh_dir gopass init --crypto age <age1...>
 * Support for age plugins
 * Caching of passphrases via an agent
 
+## Identity preference
+
+Run `gopass age identities sort` to configure the order in which identities are
+tried for decryption. Save the selection to persist the public recipient order
+in `age.identities`. An explicitly preferred plugin identity is tried before a
+native age identity, even when both can decrypt the entry.
+
+An identity that does not match the entry allows the next identity to be tried.
+An authentication failure or cancellation reported as an error stops that
+decryption attempt; preference ordering does not require every available
+identity to authenticate.
+
+The agent retains the identity order loaded when it was unlocked. After changing
+the preference, run `gopass age agent lock` to clear the cached identities; the
+next decryption loads the updated order.
+
 ## Agent
 
 The age backend comes with an agent that can cache the passphrases for your age identities.

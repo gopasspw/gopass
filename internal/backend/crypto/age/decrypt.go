@@ -10,6 +10,7 @@ import (
 
 	"filippo.io/age"
 	"github.com/gopasspw/gopass/internal/backend/crypto/age/agent"
+	"github.com/gopasspw/gopass/internal/backend/crypto/age/identityorder"
 
 	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/pkg/debug"
@@ -83,7 +84,7 @@ func (a *Age) decrypt(ciphertext []byte, ids ...age.Identity) ([]byte, error) {
 
 	out := &bytes.Buffer{}
 	f := bytes.NewReader(ciphertext)
-	r, err := age.Decrypt(f, ids...)
+	r, err := age.Decrypt(f, identityorder.Preserve(ids)...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to decrypt: %w", err)
 	}
