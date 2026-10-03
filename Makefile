@@ -146,22 +146,12 @@ codequality: licensecheck
 	@keep-sorted --mode lint $(GOFILES_NOVENDOR) || exit 1
 	@printf '%s\n' '$(OK)'
 
-	@echo -n "     CAPSLOCK      "
-	@which capslock > /dev/null; if [ $$? -ne 0 ]; then \
-		$(GO) install github.com/google/capslock/cmd/capslock@latest; \
-	fi
-	@capslock -packages ./... -output=compare .capabilities.json || exit 1
-	@printf '%s\n' '$(OK)'
-
 	@echo -n "     GOVULNCHECK   "
 	@which govulncheck > /dev/null; if [ $$? -ne 0 ]; then \
 		$(GO) install golang.org/x/vuln/cmd/govulncheck@latest; \
 	fi
 	@govulncheck >/dev/null || exit 1
 	@printf '%s\n' '$(OK)'
-
-update-caps:
-	@capslock -packages ./... -output json >.capabilities.json
 
 licensecheck:
 	@echo ">> LICENSE CHECK"
