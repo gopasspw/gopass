@@ -131,9 +131,11 @@ func openSession(t *testing.T, conn *dbus.Conn) dbus.ObjectPath {
 	)
 
 	svc := conn.Object(secretservice.ServiceName, secretservice.ServicePath)
-	err := svc.Call(secretservice.ServiceIface+".OpenSession", 0, secretservice.AlgorithmPlain, dbus.MakeVariant([]byte{})).Store(&output, &session)
+	// The spec mandates an empty string variant for the plain algorithm.
+	err := svc.Call(secretservice.ServiceIface+".OpenSession", 0, secretservice.AlgorithmPlain, dbus.MakeVariant("")).Store(&output, &session)
 	require.NoError(t, err, "OpenSession failed")
 	require.NotEqual(t, secretservice.NullPath, session)
+	require.Empty(t, output.Value(), "plain session output must be an empty string")
 
 	t.Cleanup(func() {
 		_ = conn.Object(secretservice.ServiceName, session).Call(secretservice.SessionIface+".Close", 0).Err

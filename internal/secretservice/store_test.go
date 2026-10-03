@@ -6,6 +6,7 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -253,5 +254,122 @@ func TestStoreMetadataTimestamps(t *testing.T) {
 	}
 	if got.ContentType != "text/plain" {
 		t.Fatalf("content type = %q, want text/plain", got.ContentType)
+	}
+}
+
+func TestStoreBinarySafeSecret(t *testing.T) {
+	ctx := context.Background()
+	s := newTestStore()
+
+	// Arbitrary bytes, including newlines and a line that looks like a gopass
+	// key/value pair, must survive the round-trip unchanged.
+	payload := []byte("line1\nline2: looks-like-attribute\n\x00\xffbinary")
+
+	id, err := s.CreateItem(ctx, "default", &ItemData{
+		Secret: payload,
+		Label:  "Binary",
+	})
+	if err != nil {
+		t.Fatalf("CreateItem: %v", err)
+	}
+
+	got, err := s.GetItem(ctx, "default", id)
+	if err != nil {
+		t.Fatalf("GetItem: %v", err)
+	}
+	if string(got.Secret) != string(payload) {
+		t.Fatalf("secret = %q, want %q", got.Secret, payload)
+	}
+	if len(got.Attributes) != 0 {
+		t.Fatalf("attributes = %v, want none", got.Attributes)
+	}
+}
+
+func TestStoreSimpleSecretStaysCLIReadable(t *testing.T) {
+	ctx := context.Background()
+	s := newTestStore()
+
+	id, err := s.CreateItem(ctx, "default", &ItemData{
+		Secret: []byte("s3cr3t-value"),
+		Label:  "Simple",
+	})
+	if err != nil {
+		t.Fatalf("CreateItem: %v", err)
+	}
+
+	// A simple single-line secret must live in the password field so that
+	// `gopass show` displays it directly, not as a base64 blob.
+	backend, ok := s.store.(*fakeStore)
+	if !ok {
+		t.Fatalf("unexpected backend type %T", s.store)
+	}
+	sec, err := backend.Get(ctx, s.mapper.ItemPath("default", id), "latest")
+	if err != nil {
+		t.Fatalf("backend Get: %v", err)
+	}
+	if sec.Password() != "s3cr3t-value" {
+		t.Fatalf("password field = %q, want %q", sec.Password(), "s3cr3t-value")
+	}
+	if _, ok := sec.Get(secretKey); ok {
+		t.Fatal("simple secret was base64 encoded unnecessarily")
+	}
+}
+
+func TestStoreReservedAttributeEscaping(t *testing.T) {
+	ctx := context.Background()
+	s := newTestStore()
+
+	id, err := s.CreateItem(ctx, "default", &ItemData{
+		Secret: []byte("pw"),
+		Label:  "Real Label",
+		Attributes: map[string]string{
+			"_ss_label": "attacker",
+			"service":   "example.com",
+		},
+	})
+	if err != nil {
+		t.Fatalf("CreateItem: %v", err)
+	}
+
+	got, err := s.GetItem(ctx, "default", id)
+	if err != nil {
+		t.Fatalf("GetItem: %v", err)
+	}
+	if got.Label != "Real Label" {
+		t.Fatalf("label = %q, want %q (reserved attribute overwrote it)", got.Label, "Real Label")
+	}
+	if got.Attributes["_ss_label"] != "attacker" {
+		t.Fatalf("_ss_label attribute = %q, want %q", got.Attributes["_ss_label"], "attacker")
+	}
+	if got.Attributes["service"] != "example.com" {
+		t.Fatalf("service attribute = %q, want %q", got.Attributes["service"], "example.com")
+	}
+}
+
+func TestStoreAliasConcurrentUpdates(t *testing.T) {
+	ctx := context.Background()
+	s := newTestStore()
+
+	const n = 20
+
+	var wg sync.WaitGroup
+	for i := range n {
+		wg.Add(1)
+		go func(i int) {
+			defer wg.Done()
+			_ = s.SetAlias(ctx, fmt.Sprintf("alias%d", i), "default")
+		}(i)
+	}
+	wg.Wait()
+
+	aliases, err := s.Aliases(ctx)
+	if err != nil {
+		t.Fatalf("Aliases: %v", err)
+	}
+	for i := range n {
+		key := fmt.Sprintf("alias%d", i)
+		if aliases[key] != "default" {
+			t.Fatalf("alias %q = %q, want default (lost update)", key, aliases[key])
+		}
 	}
 }

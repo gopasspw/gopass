@@ -120,3 +120,62 @@ func TestKeyringStoreImmutability(t *testing.T) {
 		t.Fatal("GetCollection(other) succeeded, want error")
 	}
 }
+
+func TestKeyringStoreLockRejected(t *testing.T) {
+	ctx := context.Background()
+	s := newKeyringStore()
+	defer func() { _ = s.Close(ctx) }()
+
+	// The session collection is always unlocked, so locking it must fail
+	// rather than report a lock that does not take effect.
+	if err := s.LockCollection(ctx, SessionCollectionName); err == nil {
+		t.Fatal("LockCollection(session) succeeded, want error")
+	}
+	if data, err := s.GetCollection(ctx, SessionCollectionName); err != nil || data.Locked {
+		t.Fatalf("session collection locked = %v, %v; want false, nil", data, err)
+	}
+}
+
+func TestMemVaultOverwriteZeroesOldPayload(t *testing.T) {
+	v := newMemVault()
+
+	if err := v.put("i1", []byte("old-secret")); err != nil {
+		t.Fatalf("put: %v", err)
+	}
+
+	// Capture the internal slice so we can observe whether it is wiped.
+	old := v.m["i1"]
+
+	if err := v.put("i1", []byte("new")); err != nil {
+		t.Fatalf("put(overwrite): %v", err)
+	}
+
+	for i, b := range old {
+		if b != 0 {
+			t.Fatalf("old payload byte %d = %d, want 0 (not zeroed)", i, b)
+		}
+	}
+}
+
+func TestKeyringStoreCloseRemovesItems(t *testing.T) {
+	ctx := context.Background()
+	s := newKeyringStore()
+
+	id, err := s.CreateItem(ctx, SessionCollectionName, &ItemData{
+		Secret: []byte("transient"),
+		Label:  "Temp",
+	})
+	if err != nil {
+		t.Fatalf("CreateItem: %v", err)
+	}
+
+	if err := s.Close(ctx); err != nil {
+		t.Fatalf("Close: %v", err)
+	}
+
+	// The payload must be gone from the vault, not merely unreachable through
+	// the store's metadata map.
+	if _, err := s.vault.get(id); err == nil {
+		t.Fatal("vault still holds the payload after Close")
+	}
+}

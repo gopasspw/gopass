@@ -140,3 +140,27 @@ func TestDHRejectsBadIV(t *testing.T) {
 		t.Fatal("Decrypt accepted a short IV, want error")
 	}
 }
+
+func TestDHRejectsInvalidPublicValue(t *testing.T) {
+	// A public value that is not exactly 128 bytes, or that is outside the
+	// group (0, 1, p-1), would yield a publicly known shared secret and must
+	// be rejected.
+	valid := leftPad(big.NewInt(2).Bytes(), dhKeyLen)
+
+	cases := map[string][]byte{
+		"empty":    {},
+		"short":    {0x02},
+		"too long": append(append([]byte{}, valid...), 0x00),
+		"zero":     make([]byte, dhKeyLen),
+		"one":      leftPad(big.NewInt(1).Bytes(), dhKeyLen),
+		"p-1":      leftPad(dhPrimeMinusOne.Bytes(), dhKeyLen),
+		"p":        leftPad(dhPrime.Bytes(), dhKeyLen),
+		"all 0xff": bytes.Repeat([]byte{0xff}, dhKeyLen),
+	}
+
+	for name, pub := range cases {
+		if _, _, err := New(AlgorithmDHAES, pub); err == nil {
+			t.Errorf("New(dh) accepted invalid public value %q, want error", name)
+		}
+	}
+}

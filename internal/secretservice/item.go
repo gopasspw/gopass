@@ -5,10 +5,22 @@ package secretservice
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/godbus/dbus/v5"
 	"github.com/godbus/dbus/v5/prop"
 )
+
+// unixOrZero returns t as a Unix timestamp, or 0 for the zero time. The Secret
+// Service uses 0 to mean "unknown"; converting time.Time{}.Unix() directly
+// would wrap to a huge uint64.
+func unixOrZero(t time.Time) uint64 {
+	if t.IsZero() {
+		return 0
+	}
+
+	return uint64(t.Unix())
+}
 
 // Item implements org.freedesktop.Secret.Item.
 type Item struct {
@@ -87,8 +99,8 @@ func (i *Item) exportProps(ctx context.Context, data *ItemData) error {
 			"Locked":     {Value: i.locked(ctx), Writable: false, Emit: prop.EmitTrue},
 			"Attributes": {Value: attrs, Writable: true, Emit: prop.EmitTrue, Callback: i.setAttributes},
 			"Label":      {Value: data.Label, Writable: true, Emit: prop.EmitTrue, Callback: i.setLabel},
-			"Created":    {Value: uint64(data.Created.Unix()), Writable: false, Emit: prop.EmitConst},
-			"Modified":   {Value: uint64(data.Modified.Unix()), Writable: false, Emit: prop.EmitConst},
+			"Created":    {Value: unixOrZero(data.Created), Writable: false, Emit: prop.EmitConst},
+			"Modified":   {Value: unixOrZero(data.Modified), Writable: false, Emit: prop.EmitTrue},
 		},
 	})
 	if err != nil {
@@ -134,8 +146,16 @@ func (i *Item) refreshProps(ctx context.Context) {
 	}
 	i.props.SetMust(ItemIface, "Attributes", attrs)
 	i.props.SetMust(ItemIface, "Label", data.Label)
-	i.props.SetMust(ItemIface, "Modified", uint64(data.Modified.Unix()))
+	i.props.SetMust(ItemIface, "Modified", unixOrZero(data.Modified))
 	i.props.SetMust(ItemIface, "Locked", i.locked(ctx))
+}
+
+// refreshPropsAsync republishes the item's mutable properties after a mutation
+// performed inside a prop.Set callback. The callback runs while the prop
+// package holds its lock, so the refresh must run on another goroutine to
+// avoid a self-deadlock.
+func (i *Item) refreshPropsAsync() {
+	go i.refreshProps(context.Background())
 }
 
 // load returns the item's current data from the store.
@@ -162,6 +182,7 @@ func (i *Item) setAttributes(ch *prop.Change) *dbus.Error {
 		return errUnsupported(err)
 	}
 
+	i.refreshPropsAsync()
 	i.svc.emitItemChanged(i.collection, i.path)
 
 	return nil
@@ -182,13 +203,14 @@ func (i *Item) setLabel(ch *prop.Change) *dbus.Error {
 		return errUnsupported(err)
 	}
 
+	i.refreshPropsAsync()
 	i.svc.emitItemChanged(i.collection, i.path)
 
 	return nil
 }
 
 // GetSecret implements org.freedesktop.Secret.Item.GetSecret.
-func (i *Item) GetSecret(sessionPath dbus.ObjectPath) (Secret, *dbus.Error) {
+func (i *Item) GetSecret(sessionPath dbus.ObjectPath, sender dbus.Sender) (Secret, *dbus.Error) {
 	ctx := context.Background()
 
 	coll, err := i.store.GetCollection(ctx, i.collection)
@@ -199,7 +221,7 @@ func (i *Item) GetSecret(sessionPath dbus.ObjectPath) (Secret, *dbus.Error) {
 		return Secret{}, dbusError(errIsLocked, fmt.Errorf("collection is locked: %s", i.collection))
 	}
 
-	sess, err := i.svc.sessions.get(sessionPath)
+	sess, err := i.svc.sessions.get(sessionPath, string(sender))
 	if err != nil {
 		return Secret{}, dbusError(errNoSession, err)
 	}
@@ -225,7 +247,7 @@ func (i *Item) GetSecret(sessionPath dbus.ObjectPath) (Secret, *dbus.Error) {
 }
 
 // SetSecret implements org.freedesktop.Secret.Item.SetSecret.
-func (i *Item) SetSecret(secret Secret) *dbus.Error {
+func (i *Item) SetSecret(secret Secret, sender dbus.Sender) *dbus.Error {
 	ctx := context.Background()
 
 	coll, err := i.store.GetCollection(ctx, i.collection)
@@ -236,7 +258,7 @@ func (i *Item) SetSecret(secret Secret) *dbus.Error {
 		return dbusError(errIsLocked, fmt.Errorf("collection is locked: %s", i.collection))
 	}
 
-	value, err := i.svc.decryptSecret(secret)
+	value, err := i.svc.decryptSecret(secret, sender)
 	if err != nil {
 		return errUnsupported(err)
 	}
@@ -254,6 +276,7 @@ func (i *Item) SetSecret(secret Secret) *dbus.Error {
 		return errUnsupported(err)
 	}
 
+	i.refreshProps(ctx)
 	i.svc.emitItemChanged(i.collection, i.path)
 
 	return nil
@@ -285,9 +308,10 @@ func (i *Item) Delete() (dbus.ObjectPath, *dbus.Error) {
 	return NullPath, nil
 }
 
-// decryptSecret decrypts a D-Bus Secret using the session it references.
-func (s *Service) decryptSecret(secret Secret) ([]byte, error) {
-	sess, err := s.sessions.get(secret.Session)
+// decryptSecret decrypts a D-Bus Secret using the session it references. The
+// session must belong to the calling client.
+func (s *Service) decryptSecret(secret Secret, sender dbus.Sender) ([]byte, error) {
+	sess, err := s.sessions.get(secret.Session, string(sender))
 	if err != nil {
 		return nil, err
 	}

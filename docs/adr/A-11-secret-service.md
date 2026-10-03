@@ -201,6 +201,18 @@ The first line is the secret value; `_ss_*` keys are internal metadata; all
 other key/value pairs are user-visible item attributes (used for lookup by
 `SearchItems`).
 
+Two details keep the format lossless:
+
+- Secret Service values are arbitrary byte arrays, but the gopass password field
+  is a single line. A value that is valid UTF-8, contains no line break or NUL
+  byte, and does not start with `gopass://` is stored verbatim in the password
+  field so `gopass show` displays it directly. Any other value is base64 encoded
+  under `_ss_secret` and the password field holds a placeholder.
+- Client attribute names may not collide with the reserved `_ss_` namespace. An
+  attribute whose name starts with `_ss_` is stored under `_ss_attr_<name>` and
+  decoded back on read, so a client cannot overwrite internal metadata such as
+  `_ss_label`.
+
 ---
 
 ## The `session` collection
@@ -213,7 +225,9 @@ With a gopass backend this matters more than usual: if transient secrets fell th
 persistent store, every one of them would become a GPG-encrypted file **and a git commit** — the
 opposite of what the client asked for. The `session` collection is therefore **not** mapped to a
 gopass subpath. It is served from a volatile, in-process store backed by the Linux kernel keyring
-(the daemon's process keyring), so payloads stay in kernel memory and vanish when the daemon exits.
+(the daemon's process keyring), so payloads are not retained in a long-lived Go map and vanish when
+the daemon exits. (They still pass through Go byte slices while being decoded from D-Bus, decrypted
+and handed to the `AddKey` syscall, so this is not a guarantee that they never reach the heap.)
 
 > **Status:** implemented in `internal/secretservice/volatile.go`. If the
 > `keyctl` syscalls are unavailable (for example in a sandbox that blocks them),
@@ -651,6 +665,10 @@ Rules:
 - Keys prefixed with `_ss_` are reserved for internal use.
 - All other key/value pairs are item attributes (arbitrary strings, per spec).
 - The secret value is the **first line** of the gopass secret (the standard gopass password field).
+- A value that cannot be represented on a single line is base64 encoded under
+  `_ss_secret` instead; see [Storage Layout in gopass](#storage-layout-in-gopass).
+- A client attribute whose name starts with `_ss_` is escaped to `_ss_attr_<name>`
+  so it cannot overwrite internal metadata.
 
 **`item.go`** key methods:
 ```go

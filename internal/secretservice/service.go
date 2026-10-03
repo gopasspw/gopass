@@ -12,6 +12,7 @@ import (
 	"github.com/godbus/dbus/v5"
 	"github.com/godbus/dbus/v5/prop"
 	"github.com/gopasspw/gopass/internal/notify"
+	"github.com/gopasspw/gopass/internal/secretservice/crypto"
 	"github.com/gopasspw/gopass/pkg/debug"
 )
 
@@ -329,15 +330,48 @@ func (s *Service) Stop() error {
 }
 
 // OpenSession implements org.freedesktop.Secret.Service.OpenSession.
-func (s *Service) OpenSession(algorithm string, input dbus.Variant) (dbus.Variant, dbus.ObjectPath, *dbus.Error) {
+//
+// The "plain" algorithm uses an empty string variant for both input and output,
+// as required by the specification; the DH algorithm uses a byte array. The
+// input variant is validated against the negotiated algorithm so a mismatched
+// client is rejected instead of silently ignored. The session is bound to the
+// caller's unique bus name so it is torn down when the caller disconnects.
+func (s *Service) OpenSession(algorithm string, input dbus.Variant, sender dbus.Sender) (dbus.Variant, dbus.ObjectPath, *dbus.Error) {
 	var inputBytes []byte
-	if v, ok := input.Value().([]byte); ok {
+
+	switch algorithm {
+	case crypto.AlgorithmPlain:
+		// Accept the spec-mandated empty string as well as an empty byte
+		// array for compatibility with clients that send the latter.
+		switch v := input.Value().(type) {
+		case string:
+			if v != "" {
+				return dbus.MakeVariant(""), NullPath, errUnsupported(fmt.Errorf("plain session input must be empty"))
+			}
+		case []byte:
+			if len(v) != 0 {
+				return dbus.MakeVariant(""), NullPath, errUnsupported(fmt.Errorf("plain session input must be empty"))
+			}
+		default:
+			return dbus.MakeVariant(""), NullPath, errUnsupported(fmt.Errorf("plain session input must be a string"))
+		}
+	case crypto.AlgorithmDHAES:
+		v, ok := input.Value().([]byte)
+		if !ok {
+			return dbus.MakeVariant([]byte{}), NullPath, errUnsupported(fmt.Errorf("DH session input must be a byte array"))
+		}
 		inputBytes = v
+	default:
+		return dbus.MakeVariant([]byte{}), NullPath, errUnsupported(fmt.Errorf("unsupported algorithm: %q", algorithm))
 	}
 
-	sess, output, err := s.sessions.open(algorithm, inputBytes)
+	sess, output, err := s.sessions.open(algorithm, inputBytes, string(sender))
 	if err != nil {
 		return dbus.MakeVariant([]byte{}), NullPath, errUnsupported(err)
+	}
+
+	if algorithm == crypto.AlgorithmPlain {
+		return dbus.MakeVariant(""), sess.path, nil
 	}
 
 	return dbus.MakeVariant(output), sess.path, nil
@@ -445,6 +479,7 @@ func (s *Service) Unlock(objects []dbus.ObjectPath) ([]dbus.ObjectPath, dbus.Obj
 			continue
 		}
 		s.refreshLockState(ctx, name)
+		s.serviceChanged(name)
 		unlocked = append(unlocked, p)
 	}
 
@@ -465,6 +500,7 @@ func (s *Service) Lock(objects []dbus.ObjectPath) ([]dbus.ObjectPath, dbus.Objec
 			continue
 		}
 		s.refreshLockState(ctx, name)
+		s.serviceChanged(name)
 		locked = append(locked, p)
 	}
 
@@ -493,8 +529,8 @@ func (s *Service) refreshLockState(ctx context.Context, name string) {
 }
 
 // GetSecrets implements org.freedesktop.Secret.Service.GetSecrets.
-func (s *Service) GetSecrets(items []dbus.ObjectPath, sessionPath dbus.ObjectPath) (map[dbus.ObjectPath]Secret, *dbus.Error) {
-	sess, err := s.sessions.get(sessionPath)
+func (s *Service) GetSecrets(items []dbus.ObjectPath, sessionPath dbus.ObjectPath, sender dbus.Sender) (map[dbus.ObjectPath]Secret, *dbus.Error) {
+	sess, err := s.sessions.get(sessionPath, string(sender))
 	if err != nil {
 		return nil, dbusError(errNoSession, err)
 	}
@@ -505,6 +541,13 @@ func (s *Service) GetSecrets(items []dbus.ObjectPath, sessionPath dbus.ObjectPat
 	for _, p := range items {
 		collection, id, err := parseItemPath(p)
 		if err != nil {
+			continue
+		}
+
+		// Reject crafted paths (e.g. an encoded "../../private") that would
+		// otherwise escape the configured prefix, and skip items in locked
+		// collections.
+		if !s.serviceableItem(ctx, collection, id) {
 			continue
 		}
 
@@ -529,6 +572,30 @@ func (s *Service) GetSecrets(items []dbus.ObjectPath, sessionPath dbus.ObjectPat
 	}
 
 	return out, nil
+}
+
+// serviceableItem reports whether the given collection/item pair may be
+// exposed. It is the authoritative check for item paths received from clients,
+// which must not be trusted to stay within the configured prefix: the decoded
+// item name must be a single, non-reserved path segment, and the collection
+// must exist and be unlocked. Whether the item itself exists is left to the
+// subsequent GetItem call.
+func (s *Service) serviceableItem(ctx context.Context, collection, dbusID string) bool {
+	if !isPathSafe(collection) {
+		return false
+	}
+
+	name := ItemNameFromDBusID(dbusID)
+	if name == "" || strings.Contains(name, "/") || strings.HasPrefix(name, "_") {
+		return false
+	}
+
+	coll, err := s.storeFor(collection).GetCollection(ctx, collection)
+	if err != nil || coll.Locked {
+		return false
+	}
+
+	return true
 }
 
 // ReadAlias implements org.freedesktop.Secret.Service.ReadAlias.

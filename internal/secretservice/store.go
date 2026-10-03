@@ -3,12 +3,15 @@
 package secretservice
 
 import (
+	"bytes"
 	"context"
+	"encoding/base64"
 	"fmt"
 	"sort"
 	"strings"
 	"sync"
 	"time"
+	"unicode/utf8"
 
 	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/gopasspw/gopass/pkg/gopass"
@@ -20,10 +23,15 @@ import (
 // other key on an item is a user-visible search attribute.
 const (
 	metaPrefix     = "_ss_"
+	secretKey      = "_ss_secret"
 	labelKey       = "_ss_label"
 	createdKey     = "_ss_created"
 	modifiedKey    = "_ss_modified"
 	contentTypeKey = "_ss_content_type"
+
+	// attrPrefix escapes client attribute names that would otherwise collide
+	// with the reserved metaPrefix namespace.
+	attrPrefix = "_ss_attr_"
 
 	collLabelKey    = "_ss_coll_label"
 	collCreatedKey  = "_ss_coll_created"
@@ -86,6 +94,10 @@ type gopassStore struct {
 	mu     sync.RWMutex
 	locked map[string]bool
 
+	// aliasMu serializes the read-modify-write cycle of SetAlias so that two
+	// concurrent alias updates cannot lose one another.
+	aliasMu sync.Mutex
+
 	// metaCache memoizes the decrypted *metadata* of an item, keyed by store
 	// path. It never holds the secret payload: SearchItems only needs
 	// attributes to match, and decryption dominates its latency, so caching
@@ -93,8 +105,13 @@ type gopassStore struct {
 	// single decryption per entry. Entries are invalidated on every local
 	// mutation; there is no TTL, so out-of-process changes require a daemon
 	// restart.
+	//
+	// gen is bumped on every invalidation. A cache fill only commits if gen is
+	// unchanged since the read started, so a concurrent mutation cannot be
+	// overwritten by a stale in-flight read.
 	cacheMu   sync.RWMutex
 	metaCache map[string]map[string]string
+	gen       uint64
 }
 
 // NewGopassStore creates a gopass-backed store under the given path prefix.
@@ -119,10 +136,14 @@ func newGopassStoreWithBackend(backend gopass.Store, prefix string) *gopassStore
 
 // metaFromSecret extracts an item's searchable metadata. It copies only
 // gopass Keys(), never Password() or Body(), so the result is safe to cache.
+// The secret payload key is excluded so it never enters the metadata cache.
 func metaFromSecret(sec gopass.Secret) map[string]string {
 	keys := sec.Keys()
 	m := make(map[string]string, len(keys))
 	for _, k := range keys {
+		if k == secretKey {
+			continue
+		}
 		if v, ok := sec.Get(k); ok {
 			m[k] = v
 		}
@@ -136,6 +157,7 @@ func metaFromSecret(sec gopass.Secret) map[string]string {
 func (s *gopassStore) metaFor(ctx context.Context, p string) (map[string]string, error) {
 	s.cacheMu.RLock()
 	m, ok := s.metaCache[p]
+	gen := s.gen
 	s.cacheMu.RUnlock()
 	if ok {
 		return m, nil
@@ -148,7 +170,12 @@ func (s *gopassStore) metaFor(ctx context.Context, p string) (map[string]string,
 	m = metaFromSecret(sec)
 
 	s.cacheMu.Lock()
-	s.metaCache[p] = m
+	// Only commit the fill if no mutation invalidated the cache while we were
+	// decrypting; otherwise a concurrent write would be overwritten by this
+	// stale read.
+	if s.gen == gen {
+		s.metaCache[p] = m
+	}
 	s.cacheMu.Unlock()
 
 	return m, nil
@@ -157,6 +184,7 @@ func (s *gopassStore) metaFor(ctx context.Context, p string) (map[string]string,
 func (s *gopassStore) invalidateMeta(p string) {
 	s.cacheMu.Lock()
 	delete(s.metaCache, p)
+	s.gen++
 	s.cacheMu.Unlock()
 }
 
@@ -167,6 +195,7 @@ func (s *gopassStore) invalidateMetaPrefix(prefix string) {
 			delete(s.metaCache, k)
 		}
 	}
+	s.gen++
 	s.cacheMu.Unlock()
 }
 
@@ -175,6 +204,8 @@ func (s *gopassStore) invalidateMetaPrefix(prefix string) {
 func applyItemMeta(item *ItemData, meta map[string]string) {
 	for key, val := range meta {
 		switch key {
+		case secretKey:
+			// The payload is decoded separately by decodeSecret.
 		case labelKey:
 			item.Label = val
 		case createdKey:
@@ -188,11 +219,55 @@ func applyItemMeta(item *ItemData, meta map[string]string) {
 		case contentTypeKey:
 			item.ContentType = val
 		default:
-			if !strings.HasPrefix(key, metaPrefix) {
+			switch {
+			case strings.HasPrefix(key, attrPrefix):
+				item.Attributes[strings.TrimPrefix(key, attrPrefix)] = val
+			case !strings.HasPrefix(key, metaPrefix):
 				item.Attributes[key] = val
 			}
 		}
 	}
+}
+
+// attributeKey maps a client attribute name to its storage key. Client
+// attributes may not collide with the reserved metaPrefix namespace, so names
+// that use it are escaped with an extra prefix. The mapping is reversible.
+func attributeKey(name string) string {
+	if strings.HasPrefix(name, metaPrefix) {
+		return attrPrefix + name
+	}
+
+	return name
+}
+
+// isSimpleSecret reports whether a payload can be stored verbatim in gopass's
+// password field. That field is a single line, so anything containing a line
+// break, a NUL byte, invalid UTF-8, or a gopass reference prefix must instead
+// be base64 encoded to survive the round-trip.
+func isSimpleSecret(secret []byte) bool {
+	if !utf8.Valid(secret) {
+		return false
+	}
+	if bytes.ContainsAny(secret, "\n\r\x00") {
+		return false
+	}
+
+	return !bytes.HasPrefix(secret, []byte("gopass://"))
+}
+
+// decodeSecret recovers the raw secret payload. Payloads that cannot be stored
+// verbatim are base64 encoded under secretKey; simple single-line payloads are
+// kept in the password field so that `gopass show` displays them directly.
+// Items written by older versions or out of band fall back to the password
+// field.
+func decodeSecret(sec gopass.Secret) []byte {
+	if enc, ok := sec.Get(secretKey); ok {
+		if raw, err := base64.StdEncoding.DecodeString(enc); err == nil {
+			return raw
+		}
+	}
+
+	return []byte(sec.Password())
 }
 
 // Collections returns all collection names under the store prefix.
@@ -360,6 +435,13 @@ func (s *gopassStore) Items(ctx context.Context, collection string) ([]string, e
 func (s *gopassStore) GetItem(ctx context.Context, collection, id string) (*ItemData, error) {
 	itemPath := s.mapper.ItemPath(collection, id)
 
+	// Capture the generation before reading so a concurrent mutation that
+	// invalidates the cache while we decrypt cannot be overwritten by this
+	// stale read.
+	s.cacheMu.RLock()
+	gen := s.gen
+	s.cacheMu.RUnlock()
+
 	sec, err := s.store.Get(ctx, itemPath, "latest")
 	if err != nil {
 		return nil, fmt.Errorf("item not found: %s/%s", collection, id)
@@ -367,12 +449,14 @@ func (s *gopassStore) GetItem(ctx context.Context, collection, id string) (*Item
 
 	meta := metaFromSecret(sec)
 	s.cacheMu.Lock()
-	s.metaCache[itemPath] = meta
+	if s.gen == gen {
+		s.metaCache[itemPath] = meta
+	}
 	s.cacheMu.Unlock()
 
 	item := &ItemData{
 		ID:          id,
-		Secret:      []byte(sec.Password()),
+		Secret:      decodeSecret(sec),
 		ContentType: "text/plain",
 		Attributes:  make(map[string]string),
 	}
@@ -433,10 +517,22 @@ func (s *gopassStore) UpdateItem(ctx context.Context, collection, id string, ite
 	return s.writeItem(ctx, collection, item)
 }
 
-// writeItem serializes an ItemData into a gopass secret.
+// writeItem serializes an ItemData into a gopass secret. Simple single-line
+// payloads are stored in the password field so the CLI can display them;
+// anything else is base64 encoded under secretKey so arbitrary bytes survive
+// the line-oriented format. Client attributes that use the reserved _ss_
+// namespace are escaped.
 func (s *gopassStore) writeItem(ctx context.Context, collection string, item *ItemData) error {
 	sec := secrets.New()
-	sec.SetPassword(string(item.Secret))
+	if isSimpleSecret(item.Secret) {
+		sec.SetPassword(string(item.Secret))
+	} else {
+		sec.SetPassword("secret-service")
+		if err := sec.Set(secretKey, base64.StdEncoding.EncodeToString(item.Secret)); err != nil {
+			return fmt.Errorf("set %s: %w", secretKey, err)
+		}
+	}
+
 	for _, kv := range []struct{ k, v string }{
 		{labelKey, item.Label},
 		{createdKey, item.Created.Format(time.RFC3339)},
@@ -454,7 +550,7 @@ func (s *gopassStore) writeItem(ctx context.Context, collection string, item *It
 	}
 	sort.Strings(keys)
 	for _, k := range keys {
-		if err := sec.Set(k, item.Attributes[k]); err != nil {
+		if err := sec.Set(attributeKey(k), item.Attributes[k]); err != nil {
 			return fmt.Errorf("set attribute %s: %w", k, err)
 		}
 	}
@@ -573,8 +669,13 @@ func (s *gopassStore) GetAlias(ctx context.Context, alias string) (string, error
 	return "", fmt.Errorf("alias not found: %s", alias)
 }
 
-// SetAlias sets or removes (empty collection) a collection alias.
+// SetAlias sets or removes (empty collection) a collection alias. The whole
+// read-modify-write cycle is serialized so concurrent updates cannot lose one
+// another.
 func (s *gopassStore) SetAlias(ctx context.Context, alias, collection string) error {
+	s.aliasMu.Lock()
+	defer s.aliasMu.Unlock()
+
 	aliases, err := s.Aliases(ctx)
 	if err != nil {
 		aliases = make(map[string]string)
@@ -626,6 +727,23 @@ func (s *gopassStore) Close(ctx context.Context) error {
 func matchesAttributes(item *ItemData, attrs map[string]string) bool {
 	for k, v := range attrs {
 		if item.Attributes[k] != v {
+			return false
+		}
+	}
+
+	return true
+}
+
+// attributesEqual reports whether two attribute maps are identical, i.e. they
+// have the same keys and values. It is stricter than matchesAttributes, which
+// only checks that the requested subset is present.
+func attributesEqual(a, b map[string]string) bool {
+	if len(a) != len(b) {
+		return false
+	}
+
+	for k, v := range a {
+		if bv, ok := b[k]; !ok || bv != v {
 			return false
 		}
 	}

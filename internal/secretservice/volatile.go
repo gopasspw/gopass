@@ -20,9 +20,12 @@ import (
 const SessionCollectionName = "session"
 
 // vault stores secret payloads for the volatile session collection. The
-// kernel-keyring implementation keeps payloads outside the Go heap so they
-// never end up in a core dump or a heap profile; memVault is a fallback for
-// environments where the keyctl syscalls are unavailable (e.g. some sandboxes).
+// kernel-keyring implementation keeps payloads out of a long-lived Go map so
+// they are not retained on the heap for the daemon's lifetime; memVault is a
+// fallback for environments where the keyctl syscalls are unavailable (e.g.
+// some sandboxes). Note that the payload still passes through Go byte slices
+// while it is decoded from D-Bus, decrypted and handed to the AddKey syscall,
+// so this is not a guarantee that it never reaches the heap.
 type vault interface {
 	put(id string, payload []byte) error
 	get(id string) ([]byte, error)
@@ -187,6 +190,14 @@ func (v *memVault) put(id string, payload []byte) error {
 	v.mu.Lock()
 	defer v.mu.Unlock()
 
+	// Zero the previous payload before replacing it so the old secret does not
+	// linger on the heap.
+	if old, ok := v.m[id]; ok {
+		for i := range old {
+			old[i] = 0
+		}
+	}
+
 	cp := make([]byte, len(payload))
 	copy(cp, payload)
 	v.m[id] = cp
@@ -298,9 +309,13 @@ func (s *keyringStore) GetCollection(_ context.Context, name string) (*Collectio
 		return nil, err
 	}
 
+	s.mu.RLock()
+	label := s.label
+	s.mu.RUnlock()
+
 	return &CollectionData{
 		Name:     SessionCollectionName,
-		Label:    s.label,
+		Label:    label,
 		Created:  s.created,
 		Modified: time.Now(),
 		Locked:   false,
@@ -322,7 +337,10 @@ func (s *keyringStore) SetCollectionLabel(ctx context.Context, name, label strin
 	if err := sessionOnly(name); err != nil {
 		return err
 	}
+
+	s.mu.Lock()
 	s.label = label
+	s.mu.Unlock()
 
 	return nil
 }
@@ -505,9 +523,11 @@ func (s *keyringStore) SearchAllItems(ctx context.Context, attrs map[string]stri
 	return map[string][]*ItemData{SessionCollectionName: items}, nil
 }
 
-// LockCollection is a no-op: the session collection is always unlocked while
-// the session exists.
-func (s *keyringStore) LockCollection(context.Context, string) error { return nil }
+// LockCollection is not supported: the session collection is always unlocked
+// while the session exists, so reporting it as locked would be misleading.
+func (s *keyringStore) LockCollection(context.Context, string) error {
+	return fmt.Errorf("the session collection cannot be locked")
+}
 
 // UnlockCollection is a no-op.
 func (s *keyringStore) UnlockCollection(context.Context, string) error { return nil }
@@ -531,8 +551,22 @@ func (s *keyringStore) Aliases(context.Context) (map[string]string, error) {
 	return map[string]string{SessionCollectionName: SessionCollectionName}, nil
 }
 
-// Close wipes the vault.
+// Close wipes the vault. Every tracked payload is removed from the keyring
+// before the worker stops, so an embedded service that is stopped without
+// process exit does not leave secrets behind.
 func (s *keyringStore) Close(context.Context) error {
+	s.mu.Lock()
+	ids := make([]string, 0, len(s.items))
+	for id := range s.items {
+		ids = append(ids, id)
+	}
+	s.items = make(map[string]*volatileItem)
+	s.mu.Unlock()
+
+	for _, id := range ids {
+		s.vault.remove(id)
+	}
+
 	s.vault.close()
 
 	return nil

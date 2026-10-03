@@ -92,8 +92,8 @@ func (c *Collection) exportProps(ctx context.Context) error {
 			"Items":    {Value: items, Writable: false, Emit: prop.EmitTrue},
 			"Label":    {Value: data.Label, Writable: true, Emit: prop.EmitTrue, Callback: c.setLabel},
 			"Locked":   {Value: data.Locked, Writable: false, Emit: prop.EmitTrue},
-			"Created":  {Value: uint64(data.Created.Unix()), Writable: false, Emit: prop.EmitConst},
-			"Modified": {Value: uint64(data.Modified.Unix()), Writable: false, Emit: prop.EmitConst},
+			"Created":  {Value: unixOrZero(data.Created), Writable: false, Emit: prop.EmitConst},
+			"Modified": {Value: unixOrZero(data.Modified), Writable: false, Emit: prop.EmitConst},
 		},
 	})
 	if err != nil {
@@ -167,6 +167,10 @@ func (c *Collection) setLabel(ch *prop.Change) *dbus.Error {
 		}
 		o.props.SetMust(CollectionIface, "Label", label)
 	}
+
+	// Announce the change at the service level as well, so clients listening
+	// for Service.CollectionChanged observe label updates.
+	c.svc.serviceChanged(c.name)
 
 	return nil
 }
@@ -247,7 +251,7 @@ func (c *Collection) SearchItems(attributes map[string]string) ([]dbus.ObjectPat
 // When replace is true and an existing item has exactly the same attributes as
 // the new one, that item is overwritten instead of creating a duplicate. This
 // matches libsecret's ReplaceItems behaviour.
-func (c *Collection) CreateItem(properties map[string]dbus.Variant, secret Secret, replace bool) (dbus.ObjectPath, dbus.ObjectPath, *dbus.Error) {
+func (c *Collection) CreateItem(properties map[string]dbus.Variant, secret Secret, replace bool, sender dbus.Sender) (dbus.ObjectPath, dbus.ObjectPath, *dbus.Error) {
 	ctx := context.Background()
 
 	data, err := c.store.GetCollection(ctx, c.name)
@@ -258,7 +262,7 @@ func (c *Collection) CreateItem(properties map[string]dbus.Variant, secret Secre
 		return NullPath, NullPath, dbusError(errIsLocked, fmt.Errorf("collection is locked: %s", c.name))
 	}
 
-	value, err := c.svc.decryptSecret(secret)
+	value, err := c.svc.decryptSecret(secret, sender)
 	if err != nil {
 		return NullPath, NullPath, errUnsupported(err)
 	}
@@ -273,10 +277,16 @@ func (c *Collection) CreateItem(properties map[string]dbus.Variant, secret Secre
 		item.ContentType = "text/plain"
 	}
 
-	// Replacement: update an item with an identical attribute set.
-	if replace && len(item.Attributes) > 0 {
-		if matched, err := c.store.SearchItems(ctx, c.name, item.Attributes); err == nil && len(matched) == 1 {
-			return c.replaceItem(ctx, matched[0].ID, item)
+	// Replacement: update an item with an identical attribute set. An empty
+	// attribute set is a valid exact match too, so this must not be gated on
+	// len(item.Attributes) > 0.
+	if replace {
+		if matched, err := c.store.SearchItems(ctx, c.name, item.Attributes); err == nil {
+			for _, m := range matched {
+				if attributesEqual(m.Attributes, item.Attributes) {
+					return c.replaceItem(ctx, m.ID, item)
+				}
+			}
 		}
 	}
 

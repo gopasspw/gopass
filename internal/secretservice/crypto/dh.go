@@ -30,6 +30,12 @@ var dhPrime = func() *big.Int {
 // dhGenerator is the generator of the MODP group.
 var dhGenerator = big.NewInt(2)
 
+// dhOne is the lower exclusive bound for a valid public value.
+var dhOne = big.NewInt(1)
+
+// dhPrimeMinusOne is p-1, the upper exclusive bound for a valid public value.
+var dhPrimeMinusOne = new(big.Int).Sub(dhPrime, big.NewInt(1))
+
 // dhKeyLen is the length of the padded DH values in bytes (1024 bits).
 const dhKeyLen = 128
 
@@ -41,6 +47,22 @@ type dhSession struct {
 // newDHSession performs the server side of the DH key exchange and returns the
 // session plus the server's public key.
 func newDHSession(clientPublic []byte) (*dhSession, []byte, error) {
+	// The client's public value must be exactly the 128-byte encoding of a
+	// group element. Rejecting other lengths also rejects the empty input that
+	// a client would otherwise send.
+	if len(clientPublic) != dhKeyLen {
+		return nil, nil, fmt.Errorf("invalid DH public value length: %d", len(clientPublic))
+	}
+
+	clientPub := new(big.Int).SetBytes(clientPublic)
+
+	// Reject degenerate public values. Y = 0 or Y = 1 yields a shared secret
+	// that is publicly known (0 or 1), and Y >= p-1 is outside the group, so
+	// each would produce a predictable AES key instead of a secret one.
+	if clientPub.Cmp(dhOne) <= 0 || clientPub.Cmp(dhPrimeMinusOne) >= 0 {
+		return nil, nil, fmt.Errorf("DH public value out of range")
+	}
+
 	// Generate the server's ephemeral private key.
 	privateKey, err := rand.Int(rand.Reader, dhPrime)
 	if err != nil {
@@ -51,7 +73,6 @@ func newDHSession(clientPublic []byte) (*dhSession, []byte, error) {
 	publicKey := new(big.Int).Exp(dhGenerator, privateKey, dhPrime)
 
 	// shared = clientPub^private mod p
-	clientPub := new(big.Int).SetBytes(clientPublic)
 	sharedSecret := new(big.Int).Exp(clientPub, privateKey, dhPrime)
 
 	// The shared secret must be left-padded to exactly 128 bytes before key
