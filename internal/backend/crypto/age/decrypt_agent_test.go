@@ -3,6 +3,9 @@ package age
 import (
 	"bytes"
 	"context"
+	"crypto/ed25519"
+	"crypto/rand"
+	"encoding/pem"
 	"os"
 	"path/filepath"
 	"strings"
@@ -10,9 +13,11 @@ import (
 	"time"
 
 	"filippo.io/age"
+	"filippo.io/age/agessh"
 	"github.com/gopasspw/gopass/internal/backend/crypto/age/agent"
 	"github.com/gopasspw/gopass/internal/config"
 	"github.com/stretchr/testify/require"
+	"golang.org/x/crypto/ssh"
 )
 
 // useShortTempDir relocates TMPDIR to a short, writable directory before any
@@ -188,4 +193,83 @@ func TestDecryptMultipleIdentitiesViaAgent(t *testing.T) {
 	pt2, err := raw.Decrypt(ciphertext)
 	require.NoError(t, err, "agent must hold id2 after self-heal, not just the first identity")
 	require.Equal(t, plaintext, pt2)
+}
+
+func TestDecryptCachesEncryptedSSHIdentityInAgent(t *testing.T) {
+	useShortTempDir(t)
+	sshCacheMu.Lock()
+	sshCache = nil
+	sshCacheMu.Unlock()
+	t.Cleanup(func() {
+		sshCacheMu.Lock()
+		sshCache = nil
+		sshCacheMu.Unlock()
+	})
+
+	home := t.TempDir()
+	t.Setenv("GOPASS_HOMEDIR", home)
+	sshDir := filepath.Join(home, ".ssh")
+	require.NoError(t, os.MkdirAll(sshDir, 0o700))
+
+	publicKey, privateKey, err := ed25519.GenerateKey(rand.Reader)
+	require.NoError(t, err)
+	passphrase := []byte("correct horse battery staple")
+	block, err := ssh.MarshalPrivateKeyWithPassphrase(privateKey, "test", passphrase)
+	require.NoError(t, err)
+	require.NoError(t, os.WriteFile(filepath.Join(sshDir, "id_ed25519"), pem.EncodeToMemory(block), 0o600))
+	sshPublicKey, err := ssh.NewPublicKey(publicKey)
+	require.NoError(t, err)
+	require.NoError(t, os.WriteFile(filepath.Join(sshDir, "id_ed25519.pub"), ssh.MarshalAuthorizedKey(sshPublicKey), 0o600))
+	recipient, err := agessh.NewEd25519Recipient(sshPublicKey)
+	require.NoError(t, err)
+
+	ctx := ctxWithAgentEnabled(t)
+	a, err := New(ctx, true, "")
+	require.NoError(t, err)
+	prompts := 0
+	a.SetPasswordCallback(func(_ string, _ bool) ([]byte, error) {
+		prompts++
+
+		return passphrase, nil
+	})
+
+	ag := startFreshAgent(t)
+	defer ag.Shutdown(ctx)
+
+	plaintext := []byte("ssh identity survives the client process")
+	ciphertext := encryptToRecipient(t, recipient, plaintext)
+
+	// The empty agent cannot decrypt yet, so the backend falls back locally,
+	// prompts once, then transfers only the successfully used SSH identity.
+	decrypted, err := a.Decrypt(ctx, ciphertext)
+	require.NoError(t, err)
+	require.Equal(t, plaintext, decrypted)
+	require.Equal(t, 1, prompts)
+
+	// A raw agent client has no local fallback. Success proves the unlocked SSH
+	// identity was transferred and is independently usable by a new process.
+	client := agent.NewClient()
+	decrypted, err = client.Decrypt(ciphertext)
+	require.NoError(t, err)
+	require.Equal(t, plaintext, decrypted)
+
+	// Locking must clear the SSH identity. Reset the process-global discovery
+	// cache to model a fresh gopass process, then confirm a second prompt is
+	// needed before the identity is loaded again.
+	require.NoError(t, client.Lock())
+	sshCacheMu.Lock()
+	sshCache = nil
+	sshCacheMu.Unlock()
+
+	afterLock, err := New(ctx, true, "")
+	require.NoError(t, err)
+	afterLock.SetPasswordCallback(func(_ string, _ bool) ([]byte, error) {
+		prompts++
+
+		return passphrase, nil
+	})
+	decrypted, err = afterLock.Decrypt(ctx, ciphertext)
+	require.NoError(t, err)
+	require.Equal(t, plaintext, decrypted)
+	require.Equal(t, 2, prompts)
 }

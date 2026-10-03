@@ -2,6 +2,8 @@ package age
 
 import (
 	"context"
+	"crypto"
+	"encoding/pem"
 	"errors"
 	"fmt"
 	"os"
@@ -24,6 +26,68 @@ var (
 	// are usually expected to ignore this.
 	ErrNoSSHDir = errors.New("no ssh directory")
 )
+
+// agentSSHIdentity wraps an encrypted SSH identity and retains a temporary,
+// unencrypted OpenSSH encoding only after that identity successfully unwraps a
+// file key. This lets the caller transfer the unlocked identity to the age
+// agent without prompting for unrelated SSH keys.
+type agentSSHIdentity struct {
+	inner *agessh.EncryptedSSHIdentity
+
+	mux        sync.Mutex
+	privateKey crypto.PrivateKey
+	used       bool
+}
+
+func (i *agentSSHIdentity) Recipient() age.Recipient {
+	return i.inner.Recipient()
+}
+
+func (i *agentSSHIdentity) Unwrap(stanzas []*age.Stanza) ([]byte, error) {
+	fileKey, err := i.inner.Unwrap(stanzas)
+	if err != nil {
+		i.mux.Lock()
+		i.privateKey = nil
+		i.mux.Unlock()
+
+		return nil, err
+	}
+
+	i.mux.Lock()
+	i.used = true
+	i.mux.Unlock()
+
+	return fileKey, nil
+}
+
+// takePrivateKey returns the temporary OpenSSH encoding after this identity
+// was used successfully. Ownership of the returned slice passes to the caller;
+// the wrapper drops its reference so the transfer material can be cleared as
+// soon as the agent request completes.
+func (i *agentSSHIdentity) takePrivateKey() ([]byte, error) {
+	i.mux.Lock()
+	defer i.mux.Unlock()
+
+	if !i.used || i.privateKey == nil {
+		return nil, nil
+	}
+
+	privateKey := i.privateKey
+	i.privateKey = nil
+
+	block, err := ssh.MarshalPrivateKey(privateKey, "gopass age agent")
+	if err != nil {
+		return nil, fmt.Errorf("failed to serialize unlocked SSH identity: %w", err)
+	}
+
+	return pem.EncodeToMemory(block), nil
+}
+
+func (i *agentSSHIdentity) cachePrivateKey(privateKey crypto.PrivateKey) {
+	i.mux.Lock()
+	i.privateKey = privateKey
+	i.mux.Unlock()
+}
 
 // getSSHIdentities returns all SSH identities available for the current user.
 func (a *Age) getSSHIdentities(ctx context.Context) (map[string]age.Identity, error) {
@@ -148,19 +212,39 @@ func (a *Age) parseSSHIdentity(ctx context.Context, pubFn string) (string, age.I
 
 	recp := strings.TrimSuffix(string(ssh.MarshalAuthorizedKey(pubkey)), "\n")
 	id, err := agessh.ParseIdentity(privBuf)
-	if err != nil {
-		// handle encrypted SSH identities here.
-		var perr *ssh.PassphraseMissingError
-		if errors.As(err, &perr) {
-			id, err := agessh.NewEncryptedSSHIdentity(pubkey, privBuf, func() ([]byte, error) {
-				return a.effectivePwCallback(ctx, fmt.Sprintf("to unlock the SSH key %s", pubFn))(pubFn, false)
-			})
+	if err == nil {
+		return recp, id, nil
+	}
 
-			return recp, id, err
-		}
-
+	var perr *ssh.PassphraseMissingError
+	if !errors.As(err, &perr) {
 		return "", nil, err
 	}
 
-	return recp, id, nil
+	id, err = a.newAgentSSHIdentity(ctx, pubFn, pubkey, privBuf)
+
+	return recp, id, err
+}
+
+func (a *Age) newAgentSSHIdentity(ctx context.Context, pubFn string, pubkey ssh.PublicKey, privBuf []byte) (age.Identity, error) {
+	var wrapped *agentSSHIdentity
+	encrypted, err := agessh.NewEncryptedSSHIdentity(pubkey, privBuf, func() ([]byte, error) {
+		passphrase, err := a.effectivePwCallback(ctx, fmt.Sprintf("to unlock the SSH key %s", pubFn))(pubFn, false)
+		if err != nil {
+			return nil, err
+		}
+
+		privateKey, err := ssh.ParseRawPrivateKeyWithPassphrase(privBuf, passphrase)
+		if err == nil {
+			wrapped.cachePrivateKey(privateKey)
+		}
+
+		return passphrase, nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	wrapped = &agentSSHIdentity{inner: encrypted}
+
+	return wrapped, nil
 }

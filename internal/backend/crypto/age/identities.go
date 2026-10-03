@@ -226,6 +226,10 @@ func IdentityToRecipient(id age.Identity) age.Recipient {
 		debug.Log("parsed age identity as encrypted SSHIdentity")
 
 		return id.Recipient()
+	case *agentSSHIdentity:
+		debug.Log("parsed age identity as agent-capable encrypted SSHIdentity")
+
+		return id.Recipient()
 	default:
 		debug.Log("unexpected age identity type: %T", id)
 

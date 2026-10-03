@@ -74,11 +74,15 @@ next decryption loads the updated order.
 
 ## Agent
 
-The age backend comes with an agent that can cache the passphrases for your age identities.
+The age backend comes with an agent that can cache unlocked age identities.
 The agent is started automatically by gopass if it's not already running.
 You can disable the agent by setting `age.agent-enabled` to `false` in your gopass config.
 
-The agent performs the decryption and the passphrase never leaves the agent process.
+The agent performs secret decryption without writing unlocked identities to disk. Native age
+identities are loaded into the agent after their keyring is unlocked. For passphrase-protected
+SSH identities, gopass prompts only when a matching key is first used, then sends the unlocked
+identity—not its passphrase—to the agent over the protected local socket. Locking the agent or
+letting its timeout expire clears both native age and SSH identities from agent memory.
 The agent listens on a unix socket at `$XDG_RUNTIME_DIR/gopass/gopass-age-agent.sock`.
 
 You can interact with the agent using the following commands:
