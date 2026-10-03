@@ -93,7 +93,7 @@ func (c *Collection) exportProps(ctx context.Context) error {
 			"Label":    {Value: data.Label, Writable: true, Emit: prop.EmitTrue, Callback: c.setLabel},
 			"Locked":   {Value: data.Locked, Writable: false, Emit: prop.EmitTrue},
 			"Created":  {Value: unixOrZero(data.Created), Writable: false, Emit: prop.EmitConst},
-			"Modified": {Value: unixOrZero(data.Modified), Writable: false, Emit: prop.EmitConst},
+			"Modified": {Value: unixOrZero(data.Modified), Writable: false, Emit: prop.EmitTrue},
 		},
 	})
 	if err != nil {
@@ -151,6 +151,22 @@ func (c *Collection) refreshLocked(ctx context.Context) {
 	}
 }
 
+// refreshModified recomputes and publishes the Modified property on every
+// exported object of the collection.
+func (c *Collection) refreshModified(ctx context.Context) {
+	data, err := c.store.GetCollection(ctx, c.name)
+	if err != nil {
+		return
+	}
+
+	for _, o := range c.svc.collectionObjects(c.name) {
+		if o.props == nil {
+			continue
+		}
+		o.props.SetMust(CollectionIface, "Modified", unixOrZero(data.Modified))
+	}
+}
+
 // setLabel persists a label change made via the Properties interface. The prop
 // package updates its own value after this returns; it must not be called
 // re-entrantly.
@@ -167,6 +183,11 @@ func (c *Collection) setLabel(ch *prop.Change) *dbus.Error {
 		}
 		o.props.SetMust(CollectionIface, "Label", label)
 	}
+
+	// A label change updates the collection's Modified timestamp. The callback
+	// runs while the prop package holds c.props' lock, so the refresh must run
+	// on another goroutine to avoid a self-deadlock.
+	go c.refreshModified(context.Background())
 
 	// Announce the change at the service level as well, so clients listening
 	// for Service.CollectionChanged observe label updates.
@@ -264,7 +285,7 @@ func (c *Collection) CreateItem(properties map[string]dbus.Variant, secret Secre
 
 	value, err := c.svc.decryptSecret(secret, sender)
 	if err != nil {
-		return NullPath, NullPath, errUnsupported(err)
+		return NullPath, NullPath, secretError(err)
 	}
 
 	item := &ItemData{

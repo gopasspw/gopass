@@ -373,3 +373,81 @@ func TestStoreAliasConcurrentUpdates(t *testing.T) {
 		}
 	}
 }
+
+func TestStoreAttributeRoundTripLossless(t *testing.T) {
+	ctx := context.Background()
+	s := newTestStore()
+
+	// Attribute names and values are arbitrary D-Bus strings. Names containing
+	// the AKV separator and values containing newlines or the separator must
+	// survive the round-trip unchanged.
+	attrs := map[string]string{
+		"a: b":       "line1\nline2",
+		"service":    "example.com",
+		"multi: key": "value: with: colons",
+		"empty":      "",
+	}
+
+	id, err := s.CreateItem(ctx, "default", &ItemData{
+		Secret:     []byte("pw"),
+		Label:      "Lossless",
+		Attributes: attrs,
+	})
+	if err != nil {
+		t.Fatalf("CreateItem: %v", err)
+	}
+
+	got, err := s.GetItem(ctx, "default", id)
+	if err != nil {
+		t.Fatalf("GetItem: %v", err)
+	}
+	if len(got.Attributes) != len(attrs) {
+		t.Fatalf("attributes = %v, want %v", got.Attributes, attrs)
+	}
+	for k, v := range attrs {
+		if got.Attributes[k] != v {
+			t.Fatalf("attribute %q = %q, want %q", k, got.Attributes[k], v)
+		}
+	}
+
+	// Search must match on the decoded values.
+	hits, err := s.SearchItems(ctx, "default", map[string]string{"a: b": "line1\nline2"})
+	if err != nil {
+		t.Fatalf("SearchItems: %v", err)
+	}
+	if len(hits) != 1 {
+		t.Fatalf("search returned %d hits, want 1", len(hits))
+	}
+}
+
+func TestStoreCollectionModifiedUpdatesOnLabelChange(t *testing.T) {
+	ctx := context.Background()
+	s := newTestStore()
+
+	if err := s.CreateCollection(ctx, "default", "Default"); err != nil {
+		t.Fatalf("CreateCollection: %v", err)
+	}
+
+	before, err := s.GetCollection(ctx, "default")
+	if err != nil {
+		t.Fatalf("GetCollection: %v", err)
+	}
+
+	// Timestamps are stored with RFC3339 second precision, so wait long
+	// enough for the label change to land in a later second.
+	time.Sleep(1100 * time.Millisecond)
+	if err := s.SetCollectionLabel(ctx, "default", "Renamed"); err != nil {
+		t.Fatalf("SetCollectionLabel: %v", err)
+	}
+
+	after, err := s.GetCollection(ctx, "default")
+	if err != nil {
+		t.Fatalf("GetCollection: %v", err)
+	}
+	if after.Label != "Renamed" {
+		t.Fatalf("label = %q, want Renamed", after.Label)
+	}
+	if !after.Modified.After(before.Modified) {
+		t.Fatalf("modified = %v, want after %v", after.Modified, before.Modified)
+	}
+}

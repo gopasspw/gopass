@@ -130,6 +130,19 @@ func (s *Service) collectionPaths(name string) []dbus.ObjectPath {
 	return out
 }
 
+// unexportCollection removes a collection object from the registry and
+// unexports its D-Bus interfaces. It is used when an alias is retargeted so the
+// object can be recreated bound to the new collection.
+func (s *Service) unexportCollection(c *Collection) {
+	s.mu.Lock()
+	delete(s.collections, string(c.path))
+	s.mu.Unlock()
+
+	_ = s.conn.Export(nil, c.path, CollectionIface)
+	_ = s.conn.Export(nil, c.path, PropertiesIface)
+	_ = s.conn.Export(nil, c.path, IntrospectableIface)
+}
+
 // emitCollectionSignal emits sig from every object path a collection is
 // exported at, so clients that resolved the collection via an alias see the
 // signal too.
@@ -256,8 +269,13 @@ func (s *Service) syncAliases(ctx context.Context) error {
 		p := AliasDBusPath(alias)
 		wanted[string(p)] = true
 
-		if _, ok := s.collectionAt(p); ok {
-			continue
+		if existing, ok := s.collectionAt(p); ok {
+			if existing.name == name {
+				continue
+			}
+			// The alias was retargeted: unexport the stale object so it can be
+			// recreated bound to the new collection below.
+			s.unexportCollection(existing)
 		}
 
 		store := s.storeFor(name)
@@ -394,6 +412,13 @@ func (s *Service) CreateCollection(properties map[string]dbus.Variant, alias str
 
 	if name == SessionCollectionName {
 		return NullPath, NullPath, errExists(fmt.Errorf("collection name %q is reserved for the session collection", name))
+	}
+
+	// Names starting with "_" are reserved for internal storage (the alias map
+	// and collection metadata) and are filtered out of Collections, so a
+	// collection created under such a name would immediately disappear.
+	if strings.HasPrefix(name, "_") {
+		return NullPath, NullPath, errUnsupported(fmt.Errorf("collection name %q uses the reserved '_' prefix", name))
 	}
 
 	if _, err := s.store.GetCollection(ctx, name); err == nil {
@@ -638,6 +663,12 @@ func (s *Service) SetAlias(name string, collection dbus.ObjectPath) *dbus.Error 
 		return errNotFound(err)
 	}
 
+	// The target collection must exist, otherwise ReadAlias would return a
+	// non-existent object and syncAliases would silently skip exporting it.
+	if _, err := s.storeFor(collName).GetCollection(ctx, collName); err != nil {
+		return errNotFound(fmt.Errorf("alias target collection does not exist: %s", collName))
+	}
+
 	if err := s.store.SetAlias(ctx, name, collName); err != nil {
 		return errUnsupported(err)
 	}
@@ -704,6 +735,12 @@ func (s *Service) refreshCollectionsProperty(ctx context.Context) error {
 
 	paths := make([]dbus.ObjectPath, 0, len(names))
 	for _, name := range names {
+		// The volatile session collection is deliberately not part of the
+		// Collections property, even if a durable directory of the same name
+		// exists out of band.
+		if name == SessionCollectionName {
+			continue
+		}
 		if _, err := s.ensureCollection(ctx, name); err != nil {
 			continue
 		}

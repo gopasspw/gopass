@@ -2,7 +2,11 @@
 
 package secretservice
 
-import "github.com/godbus/dbus/v5"
+import (
+	"errors"
+
+	"github.com/godbus/dbus/v5"
+)
 
 // D-Bus error names defined by the Secret Service specification, §11.
 const (
@@ -12,6 +16,11 @@ const (
 	errAlreadyExists = "org.freedesktop.Secret.Error.AlreadyExists"
 	errNotSupported  = "org.freedesktop.Secret.Error.NotSupported"
 )
+
+// errSessionNotFound marks a session lookup failure (missing, closed or owned
+// by another client). Callers map it to the spec's NoSession error instead of
+// the generic NotSupported.
+var errSessionNotFound = errors.New("session not found")
 
 // dbusError builds a *dbus.Error with an optional human-readable message.
 func dbusError(name string, err error) *dbus.Error {
@@ -31,3 +40,6 @@ func errNotFound(err error) *dbus.Error { return dbusError(errNoSuchObject, err)
 
 // errExists wraps err as AlreadyExists.
 func errExists(err error) *dbus.Error { return dbusError(errAlreadyExists, err) }
+
+// errNoSessionError wraps err as NoSession.
+func errNoSessionError(err error) *dbus.Error { return dbusError(errNoSession, err) }

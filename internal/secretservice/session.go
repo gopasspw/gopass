@@ -125,21 +125,22 @@ func (m *sessionManager) open(algorithm string, input []byte, owner string) (*se
 
 // get returns a session by its object path. When owner is non-empty the
 // session must belong to that client, so one client cannot use another's
-// session.
+// session. Every failure is wrapped with errSessionNotFound so callers can map
+// it to the spec's NoSession error.
 func (m *sessionManager) get(p dbus.ObjectPath, owner string) (*session, error) {
 	id, err := parseSessionPath(p)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w: %w", errSessionNotFound, err)
 	}
 
 	m.mu.Lock()
 	s, ok := m.sessions[id]
 	m.mu.Unlock()
 	if !ok {
-		return nil, fmt.Errorf("session not found: %s", p)
+		return nil, fmt.Errorf("%w: %s", errSessionNotFound, p)
 	}
 	if s.owner != owner {
-		return nil, fmt.Errorf("session %s belongs to another client", p)
+		return nil, fmt.Errorf("%w: session %s belongs to another client", errSessionNotFound, p)
 	}
 
 	return s, nil

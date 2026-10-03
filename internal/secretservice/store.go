@@ -33,6 +33,13 @@ const (
 	// with the reserved metaPrefix namespace.
 	attrPrefix = "_ss_attr_"
 
+	// attrValueEncodedPrefix marks an attribute value that was base64 encoded
+	// because it could not be stored verbatim in the line-oriented AKV format.
+	attrValueEncodedPrefix = "_ss_b64_"
+
+	// kvSep is the key/value separator used by gopass's AKV secret format.
+	kvSep = ": "
+
 	collLabelKey    = "_ss_coll_label"
 	collCreatedKey  = "_ss_coll_created"
 	collModifiedKey = "_ss_coll_modified"
@@ -97,6 +104,12 @@ type gopassStore struct {
 	// aliasMu serializes the read-modify-write cycle of SetAlias so that two
 	// concurrent alias updates cannot lose one another.
 	aliasMu sync.Mutex
+
+	// opMu serializes persistence operations against the shared gopass store.
+	// godbus dispatches method calls concurrently, but the leaf store cannot
+	// perform concurrent git add/commit operations, so simultaneous Secret
+	// Service writes must not overlap.
+	opMu sync.Mutex
 
 	// metaCache memoizes the decrypted *metadata* of an item, keyed by store
 	// path. It never holds the secret payload: SearchItems only needs
@@ -219,12 +232,18 @@ func applyItemMeta(item *ItemData, meta map[string]string) {
 		case contentTypeKey:
 			item.ContentType = val
 		default:
-			switch {
-			case strings.HasPrefix(key, attrPrefix):
-				item.Attributes[strings.TrimPrefix(key, attrPrefix)] = val
-			case !strings.HasPrefix(key, metaPrefix):
-				item.Attributes[key] = val
+			// Escaped client attributes (attrPrefix) must be handled before
+			// the reserved-namespace check, since their storage key also
+			// starts with metaPrefix.
+			if strings.HasPrefix(key, attrPrefix) {
+				item.Attributes[attributeNameFromStorageKey(key)] = decodeAttrValue(val)
+
+				continue
 			}
+			if strings.HasPrefix(key, metaPrefix) {
+				continue
+			}
+			item.Attributes[key] = decodeAttrValue(val)
 		}
 	}
 }
@@ -238,6 +257,42 @@ func attributeKey(name string) string {
 	}
 
 	return name
+}
+
+// attributeNameFromStorageKey reverses attributeKey.
+func attributeNameFromStorageKey(key string) string {
+	if strings.HasPrefix(key, attrPrefix) {
+		return strings.TrimPrefix(key, attrPrefix)
+	}
+
+	return key
+}
+
+// encodeAttrValue makes an arbitrary attribute value safe to store as a gopass
+// AKV field. AKV is line-oriented and splits each line at the first ": ", so a
+// value containing a line break or the separator would not survive the
+// round-trip. Values that are already safe are stored verbatim; all others are
+// base64 encoded with a marker prefix. The encoding is reversible.
+func encodeAttrValue(value string) string {
+	if !strings.ContainsAny(value, "\n\r\x00") && !strings.Contains(value, kvSep) {
+		return value
+	}
+
+	return attrValueEncodedPrefix + base64.StdEncoding.EncodeToString([]byte(value))
+}
+
+// decodeAttrValue reverses encodeAttrValue.
+func decodeAttrValue(value string) string {
+	if !strings.HasPrefix(value, attrValueEncodedPrefix) {
+		return value
+	}
+
+	raw, err := base64.StdEncoding.DecodeString(strings.TrimPrefix(value, attrValueEncodedPrefix))
+	if err != nil {
+		return value
+	}
+
+	return string(raw)
 }
 
 // isSimpleSecret reports whether a payload can be stored verbatim in gopass's
@@ -343,6 +398,15 @@ func (s *gopassStore) GetCollection(ctx context.Context, name string) (*Collecti
 
 // CreateCollection writes a collection's metadata entry.
 func (s *gopassStore) CreateCollection(ctx context.Context, name, label string) error {
+	s.opMu.Lock()
+	defer s.opMu.Unlock()
+
+	return s.createCollectionLocked(ctx, name, label)
+}
+
+// createCollectionLocked writes a collection's metadata entry. The caller must
+// hold opMu.
+func (s *gopassStore) createCollectionLocked(ctx context.Context, name, label string) error {
 	name = SanitizeName(name)
 	now := time.Now().Format(time.RFC3339)
 
@@ -369,6 +433,9 @@ func (s *gopassStore) CreateCollection(ctx context.Context, name, label string) 
 
 // DeleteCollection removes a collection and all of its items.
 func (s *gopassStore) DeleteCollection(ctx context.Context, name string) error {
+	s.opMu.Lock()
+	defer s.opMu.Unlock()
+
 	collPath := s.mapper.CollectionPath(name)
 	if err := s.store.RemoveAll(ctx, collPath); err != nil {
 		return err
@@ -380,6 +447,9 @@ func (s *gopassStore) DeleteCollection(ctx context.Context, name string) error {
 
 // SetCollectionLabel updates a collection's label.
 func (s *gopassStore) SetCollectionLabel(ctx context.Context, name, label string) error {
+	s.opMu.Lock()
+	defer s.opMu.Unlock()
+
 	existing, err := s.GetCollection(ctx, name)
 	if err != nil {
 		return err
@@ -467,6 +537,9 @@ func (s *gopassStore) GetItem(ctx context.Context, collection, id string) (*Item
 
 // CreateItem writes a new item and returns its generated ID.
 func (s *gopassStore) CreateItem(ctx context.Context, collection string, item *ItemData) (string, error) {
+	s.opMu.Lock()
+	defer s.opMu.Unlock()
+
 	if item.ID == "" {
 		id, err := newID('i')
 		if err != nil {
@@ -476,7 +549,7 @@ func (s *gopassStore) CreateItem(ctx context.Context, collection string, item *I
 	}
 
 	if _, err := s.GetCollection(ctx, collection); err != nil {
-		if cerr := s.CreateCollection(ctx, collection, collection); cerr != nil {
+		if cerr := s.createCollectionLocked(ctx, collection, collection); cerr != nil {
 			return "", fmt.Errorf("create collection: %w", cerr)
 		}
 	}
@@ -499,6 +572,9 @@ func (s *gopassStore) CreateItem(ctx context.Context, collection string, item *I
 
 // UpdateItem overwrites an existing item, preserving its creation time.
 func (s *gopassStore) UpdateItem(ctx context.Context, collection, id string, item *ItemData) error {
+	s.opMu.Lock()
+	defer s.opMu.Unlock()
+
 	existing, err := s.GetItem(ctx, collection, id)
 	if err != nil {
 		return err
@@ -550,7 +626,7 @@ func (s *gopassStore) writeItem(ctx context.Context, collection string, item *It
 	}
 	sort.Strings(keys)
 	for _, k := range keys {
-		if err := sec.Set(attributeKey(k), item.Attributes[k]); err != nil {
+		if err := sec.Set(attributeKey(k), encodeAttrValue(item.Attributes[k])); err != nil {
 			return fmt.Errorf("set attribute %s: %w", k, err)
 		}
 	}
@@ -566,6 +642,9 @@ func (s *gopassStore) writeItem(ctx context.Context, collection string, item *It
 
 // DeleteItem removes an item.
 func (s *gopassStore) DeleteItem(ctx context.Context, collection, id string) error {
+	s.opMu.Lock()
+	defer s.opMu.Unlock()
+
 	itemPath := s.mapper.ItemPath(collection, id)
 	if err := s.store.Remove(ctx, itemPath); err != nil {
 		return err
@@ -675,6 +754,9 @@ func (s *gopassStore) GetAlias(ctx context.Context, alias string) (string, error
 func (s *gopassStore) SetAlias(ctx context.Context, alias, collection string) error {
 	s.aliasMu.Lock()
 	defer s.aliasMu.Unlock()
+
+	s.opMu.Lock()
+	defer s.opMu.Unlock()
 
 	aliases, err := s.Aliases(ctx)
 	if err != nil {

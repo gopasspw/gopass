@@ -49,7 +49,7 @@ Implement `gopass secret-service` as:
 3. Uses `github.com/godbus/dbus/v5` (already a direct dependency in `go.mod` at v5.2.2, pure Go,
    BSD-2 licensed).
 4. Crypto uses the standard library (`crypto/aes`, `crypto/cipher`, `crypto/rand`, `crypto/sha256`,
-   `math/big`) plus `golang.org/x/crypto/hkdf` (already a direct dependency at v0.55.0) for the DH
+   `math/big`) plus `golang.org/x/crypto/hkdf` (already a direct dependency at v0.57.0) for the DH
    key schedule — no CGo, no new external dependencies.
 5. Secrets are stored under a configurable gopass path prefix (default: `secret-service`).
 6. The spec's volatile `session` collection is served from memory (backed by the Linux kernel
@@ -63,7 +63,7 @@ Implement `gopass secret-service` as:
 
 * **Pure-Go, zero-CGo**: `godbus/dbus/v5` (v5.2.2) is already a direct dependency. Crypto uses
   `crypto/aes`, `crypto/cipher`, `crypto/rand`, `crypto/sha256` and `math/big` from the standard
-  library, plus `golang.org/x/crypto/hkdf` (v0.55.0, already a direct dependency) for the DH key
+  library, plus `golang.org/x/crypto/hkdf` (v0.57.0, already a direct dependency) for the DH key
   schedule.
 * **No new external dependencies**: only the standard library plus the existing `godbus/dbus/v5`,
   `golang.org/x/crypto` and `golang.org/x/sys` dependencies are needed. (`golang.org/x/sys` serves
@@ -71,8 +71,10 @@ Implement `gopass secret-service` as:
   `crypto/rand`, so no UUID dependency is pulled in.
 * **License-compatible**: `godbus/dbus/v5` is BSD-2, `golang.org/x/*` is BSD-3 — both MIT
   compatible per `.license-lint.yml`.
-* **Linux-only build tag**: The entire feature is gated with `//go:build linux` (same pattern as
-  `internal/notify/notify_dbus.go` and `pkg/clipboard/unclip_linux.go`).
+* **Linux-only build tag**: The D-Bus service package (`internal/secretservice`, excluding the
+  portable `crypto` subpackage) is gated with `//go:build linux` (same pattern as
+  `internal/notify/notify_dbus.go` and `pkg/clipboard/unclip_linux.go`). The `crypto` subpackage
+  deliberately has no build constraint so its tests run on every platform.
 * **Architectural risk**: gopass is a short-lived CLI tool; this feature requires a persistent
   daemon process. This is handled by a blocking `gopass secret-service serve` subcommand (the user
   manages the lifecycle via systemd or similar).
@@ -81,8 +83,8 @@ Implement `gopass secret-service` as:
 
 ## Implementation Status
 
-The feature is implemented in `internal/secretservice` (all files carry a
-`//go:build linux` constraint):
+The feature is implemented in `internal/secretservice` (the D-Bus service files carry a
+`//go:build linux` constraint; the portable `crypto` subpackage does not):
 
 | Area | Status |
 |------|--------|

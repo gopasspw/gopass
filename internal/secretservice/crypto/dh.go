@@ -33,8 +33,16 @@ var dhGenerator = big.NewInt(2)
 // dhOne is the lower exclusive bound for a valid public value.
 var dhOne = big.NewInt(1)
 
+// dhTwo is the lower inclusive bound for a valid private exponent.
+var dhTwo = big.NewInt(2)
+
 // dhPrimeMinusOne is p-1, the upper exclusive bound for a valid public value.
 var dhPrimeMinusOne = new(big.Int).Sub(dhPrime, big.NewInt(1))
+
+// dhPrivateRange is the size of the valid private-exponent range [2, p-2].
+// Sampling rand.Int in [0, dhPrivateRange) and adding 2 yields a uniform value
+// in [2, p-2], avoiding the degenerate exponents 0, 1 and p-1.
+var dhPrivateRange = new(big.Int).Sub(dhPrime, big.NewInt(3))
 
 // dhKeyLen is the length of the padded DH values in bytes (1024 bits).
 const dhKeyLen = 128
@@ -63,11 +71,15 @@ func newDHSession(clientPublic []byte) (*dhSession, []byte, error) {
 		return nil, nil, fmt.Errorf("DH public value out of range")
 	}
 
-	// Generate the server's ephemeral private key.
-	privateKey, err := rand.Int(rand.Reader, dhPrime)
+	// Generate the server's ephemeral private key uniformly from [2, p-2].
+	// rand.Int(rand.Reader, dhPrime) would also allow 0, 1 and p-1, which
+	// yield a publicly derivable shared secret (1 or the client's public
+	// value) despite the peer-side checks above.
+	privateKey, err := rand.Int(rand.Reader, dhPrivateRange)
 	if err != nil {
 		return nil, nil, fmt.Errorf("generate private key: %w", err)
 	}
+	privateKey.Add(privateKey, dhTwo)
 
 	// serverPub = g^private mod p
 	publicKey := new(big.Int).Exp(dhGenerator, privateKey, dhPrime)

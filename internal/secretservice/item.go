@@ -4,6 +4,7 @@ package secretservice
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -260,7 +261,7 @@ func (i *Item) SetSecret(secret Secret, sender dbus.Sender) *dbus.Error {
 
 	value, err := i.svc.decryptSecret(secret, sender)
 	if err != nil {
-		return errUnsupported(err)
+		return secretError(err)
 	}
 
 	data, err := i.load(ctx)
@@ -309,7 +310,9 @@ func (i *Item) Delete() (dbus.ObjectPath, *dbus.Error) {
 }
 
 // decryptSecret decrypts a D-Bus Secret using the session it references. The
-// session must belong to the calling client.
+// session must belong to the calling client. A session lookup failure is
+// wrapped with errSessionNotFound so callers can return NoSession rather than
+// NotSupported.
 func (s *Service) decryptSecret(secret Secret, sender dbus.Sender) ([]byte, error) {
 	sess, err := s.sessions.get(secret.Session, string(sender))
 	if err != nil {
@@ -317,6 +320,17 @@ func (s *Service) decryptSecret(secret Secret, sender dbus.Sender) ([]byte, erro
 	}
 
 	return sess.decrypt(secret.Parameters, secret.Value)
+}
+
+// secretError maps a decryptSecret failure to the appropriate D-Bus error:
+// NoSession for a missing/foreign/closed session, NotSupported for malformed
+// ciphertext or parameters.
+func secretError(err error) *dbus.Error {
+	if errors.Is(err, errSessionNotFound) {
+		return errNoSessionError(err)
+	}
+
+	return errUnsupported(err)
 }
 
 // emitItemChanged announces an item property change on its collection.
