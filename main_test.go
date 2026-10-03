@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"os"
+	"runtime"
 	"testing"
 
 	"github.com/blang/semver/v4"
@@ -100,6 +101,24 @@ var commandsWithError = set.Map([]string{
 	".audit",
 })
 
+// commandsSkipped lists commands whose Action must not be invoked during
+// command discovery. Only commands that are long-running, connect to the host
+// session bus, or would modify the host belong here.
+//
+//   - secret-service.serve starts a daemon that acquires the well-known
+//     org.freedesktop.secrets bus name and blocks until interrupted, so it must
+//     never be run from a unit test.
+//   - secret-service.status connects to the real session bus, which the unit
+//     tester does not provide; it is environment-dependent and could autostart
+//     host services.
+//
+// The remaining siblings (install, uninstall) are safe: they write below
+// GOPASS_HOMEDIR, which the unit tester points at a temporary directory.
+var commandsSkipped = set.Map([]string{
+	".secret-service.serve",
+	".secret-service.status",
+})
+
 func TestGetCommands(t *testing.T) {
 	u := gptest.NewUnitTester(t)
 
@@ -135,7 +154,7 @@ func TestGetCommands(t *testing.T) {
 	}
 
 	commands := getCommands(act, app)
-	assert.Len(t, commands, 45)
+	assert.Len(t, commands, 46)
 
 	prefix := ""
 	testCommands(t, ctx, app, commands, prefix)
@@ -145,7 +164,18 @@ func testCommands(t *testing.T, ctx context.Context, app *cli.Command, commands 
 	t.Helper()
 
 	for _, cmd := range commands {
+		fullName := prefix + "." + cmd.Name
+
 		if cmd.Name == "update" || cmd.Name == "agent" || cmd.Name == "doctor" {
+			continue
+		}
+		if _, skip := commandsSkipped[fullName]; skip {
+			continue
+		}
+		// The secret-service command is Linux-only. On other platforms it
+		// exists solely to fail with a clear message, so invoking its Action
+		// would (correctly) return an error.
+		if fullName == ".secret-service" && runtime.GOOS != "linux" {
 			continue
 		}
 
@@ -164,7 +194,6 @@ func testCommands(t *testing.T, ctx context.Context, app *cli.Command, commands 
 		}
 
 		if cmd.Action != nil {
-			fullName := prefix + "." + cmd.Name
 			if _, found := commandsWithError[fullName]; found {
 				require.Error(t, runCmdAction(ctx, cmd), "Command %s should fail", fullName)
 
