@@ -93,3 +93,45 @@ func TestRecipientOf(t *testing.T) {
 	assert.Equal(t, id.Recipient().String(), recipientOf(id))
 	assert.NotContains(t, recipientOf(id), "AGE-SECRET-KEY")
 }
+
+func TestOrderedIdentitiesNativeDefaultAndPluginPreference(t *testing.T) {
+	t.Parallel()
+
+	native, err := age.GenerateHybridIdentity()
+	require.NoError(t, err)
+	interactive := &interactiveIdentity{Identity: native}
+	// The short plugin encoding would sort before the long hybrid native
+	// encoding if default ordering depended only on recipient string length.
+	const pluginRecipient = "age1plugin"
+	plugin := &wrappedIdentity{
+		id:       interactive,
+		rec:      &wrappedRecipient{rec: native.Recipient(), encoding: pluginRecipient},
+		encoding: "AGE-PLUGIN-TEST",
+	}
+	ids := map[string]age.Identity{
+		native.Recipient().String(): native,
+		pluginRecipient:             plugin,
+	}
+	backend := &Age{}
+	plaintext := []byte("native default and plugin preference")
+	// Both identities unwrap the same real Hybrid ciphertext.
+	ciphertext, err := backend.encrypt(plaintext, native.Recipient())
+	require.NoError(t, err)
+
+	ctx := config.NewContextInMemory()
+	ordered := orderedIdentities(ctx, ids)
+	require.Equal(t, []age.Identity{native, plugin}, ordered)
+	got, err := backend.decrypt(ciphertext, ordered...)
+	require.NoError(t, err)
+	assert.Equal(t, plaintext, got)
+	assert.Zero(t, interactive.calls, "default must retain age's native-first behavior")
+
+	cfg := config.NewInMemory()
+	require.NoError(t, cfg.SetEnv("age.identities", pluginRecipient))
+	ordered = orderedIdentities(cfg.WithConfig(context.Background()), ids)
+	require.Equal(t, []age.Identity{plugin, native}, ordered)
+	got, err = backend.decrypt(ciphertext, ordered...)
+	require.NoError(t, err)
+	assert.Equal(t, plaintext, got)
+	assert.Equal(t, 1, interactive.calls, "an explicit plugin preference must override native-first sorting")
+}
