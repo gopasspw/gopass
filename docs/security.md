@@ -174,3 +174,29 @@ On OpenBSD, gopass calls `protect.Pledge("stdio rpath wpath cpath tty proc
 exec fattr")` to restrict the set of permitted syscalls to only those
 actually needed. This limits the blast radius of any exploitation attempt
 on that platform.
+
+### Age Keyring Protection
+
+`age.keyring-identities` and `age.keyring-recipients` are security-sensitive,
+machine-local configuration. The bootstrap identity file must be trusted and
+kept independent of the encrypted keyring. Plugin identities may invoke a
+corresponding age plugin executable; its installation and executable search
+path must also be trusted. Recipient review does not approve or validate plugin
+executables, bootstrap files or their contents.
+
+Adding an attacker-controlled keyring recipient does not unlock existing
+ciphertext. However, a subsequent identity update or re-encryption could encrypt
+the software identities to that recipient. Verifying that the replacement can
+be decrypted prevents accidental lockout, not unauthorized additional access.
+For this reason, recipient-protected writes require manual review of a new or
+changed recipient set. Approval is bound to the current ciphertext in a local
+record, so missing or stale records require review again.
+
+This confirmation offers defense in depth and protection against mistakes under
+the existing trusted-local-machine assumption. It does not defend against an
+attacker who can rewrite the approval record or replace gopass and its plugins.
+Same-user local processes can use an unlocked agent. Hardware authentication
+protects opening the keyring; the software identities are available to the agent
+in memory during the unlocked session. Locking releases the references and
+invalidates pending authentication, without guaranteeing immediate zeroization
+of all private-key copies managed by the Go runtime.

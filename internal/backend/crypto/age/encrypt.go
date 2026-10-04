@@ -132,21 +132,72 @@ func (a *Age) encrypt(plaintext []byte, recp ...age.Recipient) ([]byte, error) {
 	return out.Bytes(), nil
 }
 
-func (a *Age) encryptFile(_ context.Context, filename string, plaintext []byte, confirm bool, pwcb func(string, bool) ([]byte, error)) error {
-	pw, err := pwcb(filename, confirm)
+func (a *Age) encryptFile(ctx context.Context, filename string, plaintext []byte, confirm bool, pwcb func(string, bool) ([]byte, error)) error {
+	recipients, err := a.keyringRecipients(ctx)
+	if err != nil {
+		return err
+	}
+	recipientProtected := len(recipients) > 0
+	var reviewedRecipients []string
+	if recipientProtected {
+		reviewedRecipients = normalizedKeyringRecipients(ctx)
+		if err := reviewKeyringRecipients(ctx, filename, reviewedRecipients); err != nil {
+			return err
+		}
+	}
+	if !recipientProtected {
+		if err := requirePassphraseKeyring(filename); err != nil {
+			return err
+		}
+		pw, err := pwcb(filename, confirm)
+		if err != nil {
+			return err
+		}
+		recipient, err := age.NewScryptRecipient(string(pw))
+		if err != nil {
+			return err
+		}
+		recipients = []age.Recipient{recipient}
+	}
+
+	buf, err := a.encrypt(plaintext, recipients...)
 	if err != nil {
 		return err
 	}
 
-	id, err := age.NewScryptRecipient(string(pw))
+	if recipientProtected {
+		if err := a.verifyKeyringProtection(ctx, buf, plaintext); err != nil {
+			return err
+		}
+	}
+
+	if err := writeEncryptedKeyring(filename, buf); err != nil {
+		return err
+	}
+	if recipientProtected {
+		return saveKeyringReview(filename, reviewedRecipients, buf)
+	}
+
+	return nil
+}
+
+// requirePassphraseKeyring prevents an omitted setting from silently replacing
+// hardware protection with a passphrase during an identity mutation.
+func requirePassphraseKeyring(filename string) error {
+	ciphertext, err := os.ReadFile(filename)
+	if errors.Is(err, os.ErrNotExist) {
+		return nil
+	}
 	if err != nil {
 		return err
 	}
-
-	buf, err := a.encrypt(plaintext, id)
+	passphrase, err := keyringUsesPassphrase(ciphertext)
 	if err != nil {
 		return err
 	}
+	if !passphrase {
+		return fmt.Errorf("age.keyring-recipients is required to save an existing recipient-encrypted keyring")
+	}
 
-	return os.WriteFile(filename, buf, 0o600)
+	return nil
 }

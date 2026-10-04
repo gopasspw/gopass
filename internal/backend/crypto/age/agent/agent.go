@@ -35,11 +35,15 @@ type Agent struct {
 	socketPath string
 	listener   net.Listener
 
-	mux        sync.Mutex
-	identities []age.Identity
-	locked     bool
-	timer      *time.Timer
-	timeout    time.Duration
+	mux         sync.Mutex
+	identities  []age.Identity
+	source      string
+	unlockToken string
+	locked      bool
+	stopped     bool
+	timer       *time.Timer
+	timeout     time.Duration
+	generation  uint64
 }
 
 // New creates a new agent.
@@ -66,6 +70,8 @@ func (a *Agent) Run(ctx context.Context) error {
 		return fmt.Errorf("failed to listen on socket: %w", err)
 	}
 	if err := os.Chmod(a.socketPath, 0o600); err != nil {
+		_ = l.Close()
+
 		return fmt.Errorf("failed to set socket permissions: %w", err)
 	}
 	a.listener = l
@@ -101,6 +107,10 @@ func (a *Agent) Run(ctx context.Context) error {
 
 // Shutdown stops the agent.
 func (a *Agent) Shutdown(ctx context.Context) {
+	a.mux.Lock()
+	a.stopped = true
+	a.clearLocked()
+	a.mux.Unlock()
 	if a.listener != nil {
 		_ = a.listener.Close()
 	}
@@ -134,6 +144,11 @@ func (a *Agent) handleConnection(ctx context.Context, conn net.Conn) {
 
 		cmd := parts[0]
 		args := parts[1:]
+		if cmd == "session" {
+			a.handleSession(conn, args)
+
+			continue
+		}
 
 		switch cmd {
 		case "ping":
@@ -152,29 +167,7 @@ func (a *Agent) handleConnection(ctx context.Context, conn net.Conn) {
 				fmt.Fprintln(conn, "OK")
 			}
 		case "identities":
-			// The arguments contain private key material. Each identity is
-			// logged and hidden unless GOPASS_DEBUG_LOG_SECRETS is set
-			debug.Log("received: identities [%d ids]", len(args))
-			for _, id := range args {
-				debug.Log("received: identity: %s", out.Secret(id))
-			}
-
-			if len(args) < 1 {
-				fmt.Fprintln(conn, "ERR missing identities")
-
-				continue
-			}
-			ids, err := parseIdentities(strings.NewReader(strings.Join(args, "\n")))
-			if err != nil {
-				fmt.Fprintln(conn, "ERR failed to parse identities: "+err.Error())
-
-				continue
-			}
-			a.mux.Lock()
-			a.identities = ids
-			a.mux.Unlock()
-			debug.Log("loaded %d identities", len(ids))
-			fmt.Fprintln(conn, "OK")
+			a.loadLegacyIdentities(conn, args)
 		case "ssh-identity":
 			fmt.Fprintln(conn, a.addSSHIdentityResponse(args))
 		case "decrypt":
@@ -212,20 +205,16 @@ func (a *Agent) handleConnection(ctx context.Context, conn net.Conn) {
 		case "lock":
 			debug.Log("received: lock")
 
-			// clear all identities from memory
-			a.mux.Lock()
-			a.identities = nil
-			a.locked = true
-			a.mux.Unlock()
-
-			debug.Log("cleared identities from memory and locked agent")
+			a.lock()
 			fmt.Fprintln(conn, "OK")
 		case "unlock":
 			debug.Log("received: unlock")
 
-			a.mux.Lock()
-			a.locked = false
-			a.mux.Unlock()
+			if err := a.unlock(); err != nil {
+				fmt.Fprintln(conn, "ERR "+err.Error())
+
+				continue
+			}
 
 			debug.Log("unlocked agent")
 			fmt.Fprintln(conn, "OK")
@@ -284,6 +273,16 @@ func (a *Agent) addSSHIdentity(args []string) error {
 	}
 
 	a.mux.Lock()
+	if a.stopped {
+		a.mux.Unlock()
+
+		return fmt.Errorf("agent is stopped")
+	}
+	if a.source != "" || a.unlockToken != "" {
+		a.mux.Unlock()
+
+		return fmt.Errorf("cannot add external SSH identities to a keyring session")
+	}
 	a.identities = append(a.identities, id)
 	a.mux.Unlock()
 	debug.Log("loaded SSH identity")
@@ -315,37 +314,41 @@ func (a *Agent) setTimeout(timeout time.Duration) {
 	a.mux.Lock()
 	defer a.mux.Unlock()
 
+	if a.stopped {
+		return
+	}
 	a.timeout = timeout
-	if a.timer != nil {
-		a.timer.Stop()
-	}
-	if a.timeout > 0 {
-		a.timer = time.AfterFunc(a.timeout, func() {
-			a.lock()
-		})
-	}
+	a.startTimerLocked()
 }
 
 func (a *Agent) lock() {
 	a.mux.Lock()
 	defer a.mux.Unlock()
 
-	a.identities = nil
-	a.locked = true
-	if a.timer != nil {
-		a.timer.Stop()
-	}
+	a.clearLocked()
 	debug.Log("cleared identities from memory and locked agent")
 }
 
 func (a *Agent) decrypt(ciphertext []byte) ([]byte, error) {
 	a.mux.Lock()
 	defer a.mux.Unlock()
+	if a.source != "" {
+		return nil, fmt.Errorf("session decryption requires source")
+	}
+
+	return a.decryptLocked(ciphertext)
+}
+
+// decryptLocked requires a.mux to be held.
+func (a *Agent) decryptLocked(ciphertext []byte) ([]byte, error) {
+	if a.stopped {
+		return nil, fmt.Errorf("agent is stopped")
+	}
 	if a.locked {
 		return nil, fmt.Errorf("agent is locked")
 	}
-	if a.timer != nil {
-		a.timer.Reset(a.timeout)
+	if a.timeout > 0 {
+		a.startTimerLocked()
 	}
 	out := &bytes.Buffer{}
 	f := bytes.NewReader(ciphertext)
@@ -359,4 +362,50 @@ func (a *Agent) decrypt(ciphertext []byte) ([]byte, error) {
 	}
 
 	return out.Bytes(), nil
+}
+
+func (a *Agent) loadLegacyIdentities(conn io.Writer, args []string) {
+	// The arguments contain private key material. Each identity is
+	// logged and hidden unless GOPASS_DEBUG_LOG_SECRETS is set
+	debug.Log("received: identities [%d ids]", len(args))
+	for _, id := range args {
+		debug.Log("received: identity: %s", out.Secret(id))
+	}
+
+	if len(args) < 1 {
+		fmt.Fprintln(conn, "ERR missing identities")
+
+		return
+	}
+	ids, err := parseIdentities(strings.NewReader(strings.Join(args, "\n")))
+	if err != nil {
+		fmt.Fprintln(conn, "ERR failed to parse identities: "+err.Error())
+
+		return
+	}
+	a.mux.Lock()
+	if a.stopped {
+		a.mux.Unlock()
+		fmt.Fprintln(conn, "ERR agent is stopped")
+
+		return
+	}
+	a.identities = ids
+	a.source = ""
+	a.startTimerLocked()
+	a.mux.Unlock()
+	debug.Log("loaded %d identities", len(ids))
+	fmt.Fprintln(conn, "OK")
+}
+
+func (a *Agent) unlock() error {
+	a.mux.Lock()
+	defer a.mux.Unlock()
+	if a.stopped {
+		return fmt.Errorf("agent is stopped")
+	}
+	a.locked = false
+	a.startTimerLocked()
+
+	return nil
 }

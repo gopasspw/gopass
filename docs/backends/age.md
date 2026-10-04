@@ -1,7 +1,7 @@
 # age crypto backend
 
 The `age` backend is an experimental crypto backend based on [age](https://age-encryption.org). It adds an
-encrypted keyring on top (using age in scrypt password mode). It also has
+encrypted keyring on top (using age passphrase or recipient encryption). It also has
 (largely untested) support for specifying recipients as github users. This will
 use their ssh public keys for age encryption.
 It is well positioned to eventually replace `gpg` as the default crypto backend.
@@ -87,7 +87,111 @@ The agent listens on a unix socket at `$XDG_RUNTIME_DIR/gopass/gopass-age-agent.
 
 You can interact with the agent using the following commands:
 - `gopass age agent`: starts the agent in the foreground.
-- `gopass age lock`: locks the agent, clearing all cached passphrases.
+- `gopass age lock`: locks the agent, clearing all cached identities.
+
+## Hardware-backed keyring unlocking
+
+A hardware age plugin can protect the local identity keyring rather than every
+store entry. For example, `age-plugin-se` can require Touch ID to unlock ordinary
+age identities, which the agent then caches for the session. Reading further
+entries encrypted for those identities does not invoke the hardware plugin again.
+This also works with other age plugins; gopass does not implement the hardware
+authentication itself.
+
+Keep the software identities used by your store in the gopass keyring. Put the
+hardware plugin identity in a separate, plaintext age identity file, outside the
+encrypted keyring. Protect that file's permissions and retain any backups required
+by the plugin. The file must be readable before the keyring can be unlocked.
+
+For an existing passphrase-protected keyring, configure its new protection and
+migrate it explicitly. Substitute your bootstrap file and its public recipient:
+
+```fish
+gopass config age.keyring-identities ~/.config/gopass/age/keyring-unlock.txt
+gopass config age.keyring-recipients age1...
+gopass age identities reencrypt
+gopass config age.agent-enabled true
+gopass config age.agent-timeout 300
+gopass age agent stop
+gopass age agent unlock
+```
+
+Migration asks for the old keyring passphrase and verifies hardware decryption
+of the new envelope before atomically replacing the keyring. Back up the original
+encrypted keyring before migrating. This command does not change the recipients
+or ciphertext of store entries. Entries encrypted only for a hardware recipient
+still require hardware authentication for each decryption; session caching works
+for entries encrypted for the software identities inside the keyring.
+
+The first entry read can also unlock the session automatically. With the agent
+disabled, each entry read unlocks the keyring directly. An authentication error
+or cancellation fails the operation without falling back to a password. Do not
+leave an ordinary recovery identity in the bootstrap file if hardware
+authentication should be required on this device.
+
+`gopass age agent lock` clears the cached identities. After the configured idle
+timeout, the next read requires authentication again (`0` disables the timeout).
+Changes to the keyring, bootstrap file, preferred identity order or session
+configuration invalidate the cached session on the next read. A lock event while
+authentication is pending prevents that attempt from loading a new session.
+The agent does not detect screen locking itself; a desktop hook can invoke the
+lock command. Local processes running as the same user can use an unlocked agent.
+
+Adding, removing or re-encrypting identities clears the agent and can require
+additional hardware authentication to verify the replacement keyring. Keep
+`age.keyring-recipients` configured for these writes; gopass refuses to silently
+downgrade an existing recipient-encrypted keyring to passphrase protection.
+Restart an agent from an older gopass version before using this feature.
+
+For recovery, include an additional public recipient in `age.keyring-recipients`
+(comma-separated), and keep its private identity securely on another device or
+offline. Hardware-bound identities may not be portable. To recover, set
+`age.keyring-identities` to an independent file containing the recovery identity.
+The encrypted identity keyring can also be decrypted with the standard `age` CLI.
+The store itself still needs a separate backup.
+
+### Unlock and lock flow
+
+1. gopass reads the independent bootstrap file configured by
+   `age.keyring-identities` and uses it to decrypt the local identity keyring.
+2. The resulting software identities decrypt store entries. When enabled, the
+   agent caches these identities for subsequent reads; the hardware private key
+   remains managed by the plugin.
+3. Explicit locking, idle timeout and source changes invalidate the session.
+   Pending authentication cannot restore a session invalidated by a lock.
+   Releasing identity references does not guarantee immediate zeroization of
+   every private-key copy in Go memory.
+
+Recipient protection also supports ordinary age public keys and independent
+software bootstrap identities. It is not restricted to hardware plugins.
+Secure Enclave unlocking with `age-plugin-se` has been manually tested on macOS.
+YubiKey and TPM plugins may support this flow but have not been tested for
+keyring session unlocking.
+
+### Reviewing keyring recipients
+
+Before the first recipient-protected write, or when the approved recipient set
+changes, gopass displays the complete target public-key list and asks for manual
+confirmation, defaulting to no. Each corresponding private identity can unlock
+all software identities in the keyring. A known prior set also allows added and
+removed recipients to be displayed. This applies to migration and identity
+add/remove operations, not to ordinary reads. Reordering or repeating the same
+recipients does not require another review.
+
+Automatic yes does not bypass this review. A noninteractive process can write
+using an already reviewed set, but must fail rather than approve a new set.
+Cancelling leaves the keyring unchanged. After approval, gopass verifies that the
+bootstrap identities can decrypt the replacement before writing it.
+
+The machine-local `identities.review.json` file beside the keyring records a
+version, the reviewed public recipients and the keyring ciphertext's SHA-256.
+It contains no private identities. Missing, invalid or stale records require
+another review; public keys cannot generally be reconstructed from age ciphertext.
+Back up this record with the keyring if preserving approval is useful. If saving
+it fails after the keyring is replaced, gopass reports that the keyring was
+updated and the next write requires review again. These records are trusted
+local state, not tamper protection against an attacker with arbitrary local
+write access. See [the security model](../security.md#age-keyring-protection).
 
 ## Usage with a yubikey
 
