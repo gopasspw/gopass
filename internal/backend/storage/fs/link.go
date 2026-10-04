@@ -46,8 +46,14 @@ func (s *Store) Link(ctx context.Context, from, to string) error {
 		from = filepath.FromSlash(from)
 		to = filepath.FromSlash(to)
 	}
-	fromPath := filepath.Join(s.path, from)
-	toPath := filepath.Join(s.path, to)
+	fromPath, err := s.safePath(from)
+	if err != nil {
+		return err
+	}
+	toPath, err := s.safePath(to)
+	if err != nil {
+		return err
+	}
 	prefix := longestCommonPrefix(fromPath, toPath)
 
 	fromRel := strings.TrimPrefix(fromPath, prefix+string(filepath.Separator))
