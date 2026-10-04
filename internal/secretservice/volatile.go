@@ -111,8 +111,17 @@ func (v *keyringVault) unlinkLocked(id string) {
 
 func (v *keyringVault) put(id string, payload []byte) error {
 	return v.do(func() error {
-		// Replace any existing key: AddKey fails with EEXIST otherwise.
-		v.unlinkLocked(id)
+		// If a key already exists, update it in place. KEYCTL_UPDATE replaces
+		// the payload atomically, so a failure (for example because the key
+		// quota is exhausted) leaves the previous secret intact instead of
+		// destroying it before the new value is committed.
+		if keyID, err := unix.KeyctlSearch(unix.KEY_SPEC_PROCESS_KEYRING, keyType, keyDesc(id), 0); err == nil {
+			if _, err := unix.KeyctlBuffer(unix.KEYCTL_UPDATE, keyID, payload, 0); err != nil {
+				return fmt.Errorf("update key: %w", err)
+			}
+
+			return nil
+		}
 
 		if _, err := unix.AddKey(keyType, keyDesc(id), payload, unix.KEY_SPEC_PROCESS_KEYRING); err != nil {
 			return fmt.Errorf("add key: %w", err)

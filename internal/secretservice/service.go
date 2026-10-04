@@ -680,18 +680,36 @@ func (s *Service) SetAlias(name string, collection dbus.ObjectPath) *dbus.Error 
 }
 
 // resolveCollectionName maps a collection, item or alias object path to a
-// collection name.
+// collection name. It validates that the referenced object actually exists, so
+// Lock/Unlock do not report arbitrary nonexistent paths as successfully
+// processed and a nonexistent item path cannot lock its whole collection.
 func (s *Service) resolveCollectionName(ctx context.Context, p dbus.ObjectPath) (string, error) {
 	if name, err := parseCollectionPath(p); err == nil {
+		if _, err := s.storeFor(name).GetCollection(ctx, name); err != nil {
+			return "", fmt.Errorf("collection does not exist: %s", name)
+		}
+
 		return name, nil
 	}
-	if collection, _, err := parseItemPath(p); err == nil {
+	if collection, id, err := parseItemPath(p); err == nil {
+		if _, err := s.storeFor(collection).GetItem(ctx, collection, ItemNameFromDBusID(id)); err != nil {
+			return "", fmt.Errorf("item does not exist: %s", p)
+		}
+
 		return collection, nil
 	}
 
 	// Alias paths: /org/freedesktop/secrets/aliases/NAME.
 	if alias, ok := IsAliasPath(p); ok {
-		return s.store.GetAlias(ctx, alias)
+		name, err := s.store.GetAlias(ctx, alias)
+		if err != nil {
+			return "", err
+		}
+		if _, err := s.storeFor(name).GetCollection(ctx, name); err != nil {
+			return "", fmt.Errorf("alias target does not exist: %s", name)
+		}
+
+		return name, nil
 	}
 
 	return "", fmt.Errorf("not a collection, item or alias path: %s", p)

@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"sort"
 	"strings"
@@ -13,6 +14,7 @@ import (
 	"time"
 	"unicode/utf8"
 
+	"github.com/gopasspw/gopass/internal/store"
 	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/gopasspw/gopass/pkg/gopass"
 	"github.com/gopasspw/gopass/pkg/gopass/api"
@@ -33,9 +35,19 @@ const (
 	// with the reserved metaPrefix namespace.
 	attrPrefix = "_ss_attr_"
 
-	// attrValueEncodedPrefix marks an attribute value that was base64 encoded
-	// because it could not be stored verbatim in the line-oriented AKV format.
+	// attrNameEncodedPrefix marks an attribute name that was base64 encoded
+	// because it could not be used verbatim as an AKV key. It starts with
+	// metaPrefix, so a verbatim name can never collide with it (such names are
+	// escaped with attrPrefix instead).
+	attrNameEncodedPrefix = "_ss_attrb64_"
+
+	// attrValueEncodedPrefix marks a value that was base64 encoded because it
+	// could not be stored verbatim in the line-oriented AKV format.
 	attrValueEncodedPrefix = "_ss_b64_"
+
+	// aliasKeyEncodedPrefix marks an alias name that was base64 encoded because
+	// it could not be used verbatim as an AKV key.
+	aliasKeyEncodedPrefix = "_ss_alias_"
 
 	// kvSep is the key/value separator used by gopass's AKV secret format.
 	kvSep = ": "
@@ -220,7 +232,7 @@ func applyItemMeta(item *ItemData, meta map[string]string) {
 		case secretKey:
 			// The payload is decoded separately by decodeSecret.
 		case labelKey:
-			item.Label = val
+			item.Label = decodeMetaValue(val)
 		case createdKey:
 			if ts, err := time.Parse(time.RFC3339, val); err == nil {
 				item.Created = ts
@@ -230,12 +242,13 @@ func applyItemMeta(item *ItemData, meta map[string]string) {
 				item.Modified = ts
 			}
 		case contentTypeKey:
-			item.ContentType = val
+			item.ContentType = decodeMetaValue(val)
 		default:
-			// Escaped client attributes (attrPrefix) must be handled before
-			// the reserved-namespace check, since their storage key also
-			// starts with metaPrefix.
-			if strings.HasPrefix(key, attrPrefix) {
+			// Escaped client attributes (attrPrefix) and encoded attribute
+			// names (attrNameEncodedPrefix) must be handled before the
+			// reserved-namespace check, since their storage key also starts
+			// with metaPrefix.
+			if strings.HasPrefix(key, attrPrefix) || strings.HasPrefix(key, attrNameEncodedPrefix) {
 				item.Attributes[attributeNameFromStorageKey(key)] = decodeAttrValue(val)
 
 				continue
@@ -250,19 +263,32 @@ func applyItemMeta(item *ItemData, meta map[string]string) {
 
 // attributeKey maps a client attribute name to its storage key. Client
 // attributes may not collide with the reserved metaPrefix namespace, so names
-// that use it are escaped with an extra prefix. The mapping is reversible.
+// that use it are escaped with an extra prefix. Names that cannot be used
+// verbatim as an AKV key (they contain the separator or a line break) are
+// base64 encoded. The mapping is reversible.
 func attributeKey(name string) string {
 	if strings.HasPrefix(name, metaPrefix) {
 		return attrPrefix + name
 	}
 
-	return name
+	if !strings.ContainsAny(name, "\n\r\x00") && !strings.Contains(name, kvSep) {
+		return name
+	}
+
+	return attrNameEncodedPrefix + base64.StdEncoding.EncodeToString([]byte(name))
 }
 
 // attributeNameFromStorageKey reverses attributeKey.
 func attributeNameFromStorageKey(key string) string {
 	if strings.HasPrefix(key, attrPrefix) {
 		return strings.TrimPrefix(key, attrPrefix)
+	}
+
+	if strings.HasPrefix(key, attrNameEncodedPrefix) {
+		raw, err := base64.StdEncoding.DecodeString(strings.TrimPrefix(key, attrNameEncodedPrefix))
+		if err == nil {
+			return string(raw)
+		}
 	}
 
 	return key
@@ -274,7 +300,10 @@ func attributeNameFromStorageKey(key string) string {
 // round-trip. Values that are already safe are stored verbatim; all others are
 // base64 encoded with a marker prefix. The encoding is reversible.
 func encodeAttrValue(value string) string {
-	if !strings.ContainsAny(value, "\n\r\x00") && !strings.Contains(value, kvSep) {
+	// Values that already start with the marker prefix must be encoded too,
+	// otherwise decodeAttrValue would misinterpret them as encoded data.
+	if !strings.HasPrefix(value, attrValueEncodedPrefix) &&
+		!strings.ContainsAny(value, "\n\r\x00") && !strings.Contains(value, kvSep) {
 		return value
 	}
 
@@ -290,6 +319,46 @@ func decodeAttrValue(value string) string {
 	raw, err := base64.StdEncoding.DecodeString(strings.TrimPrefix(value, attrValueEncodedPrefix))
 	if err != nil {
 		return value
+	}
+
+	return string(raw)
+}
+
+// encodeMetaValue makes an arbitrary metadata value (a label or content type)
+// safe to store as a gopass AKV field. It uses the same reversible encoding as
+// attribute values, so a label containing a line break cannot truncate the
+// value or inject reserved fields.
+func encodeMetaValue(value string) string {
+	return encodeAttrValue(value)
+}
+
+// decodeMetaValue reverses encodeMetaValue.
+func decodeMetaValue(value string) string {
+	return decodeAttrValue(value)
+}
+
+// encodeAliasKey makes an arbitrary alias name safe to use as a gopass AKV key.
+// AKV keys are split at the first ": " and cannot contain line breaks, so names
+// that would not round-trip are base64 encoded with a marker prefix. The
+// encoding is reversible.
+func encodeAliasKey(name string) string {
+	if !strings.HasPrefix(name, aliasKeyEncodedPrefix) &&
+		!strings.ContainsAny(name, "\n\r\x00") && !strings.Contains(name, kvSep) {
+		return name
+	}
+
+	return aliasKeyEncodedPrefix + base64.StdEncoding.EncodeToString([]byte(name))
+}
+
+// decodeAliasKey reverses encodeAliasKey.
+func decodeAliasKey(key string) string {
+	if !strings.HasPrefix(key, aliasKeyEncodedPrefix) {
+		return key
+	}
+
+	raw, err := base64.StdEncoding.DecodeString(strings.TrimPrefix(key, aliasKeyEncodedPrefix))
+	if err != nil {
+		return key
 	}
 
 	return string(raw)
@@ -381,7 +450,7 @@ func (s *gopassStore) GetCollection(ctx context.Context, name string) (*Collecti
 	for key, val := range meta {
 		switch key {
 		case collLabelKey:
-			data.Label = val
+			data.Label = decodeMetaValue(val)
 		case collCreatedKey:
 			if ts, err := time.Parse(time.RFC3339, val); err == nil {
 				data.Created = ts
@@ -413,7 +482,7 @@ func (s *gopassStore) createCollectionLocked(ctx context.Context, name, label st
 	sec := secrets.New()
 	sec.SetPassword("collection-metadata")
 	for _, kv := range []struct{ k, v string }{
-		{collLabelKey, label},
+		{collLabelKey, encodeMetaValue(label)},
 		{collCreatedKey, now},
 		{collModifiedKey, now},
 	} {
@@ -458,7 +527,7 @@ func (s *gopassStore) SetCollectionLabel(ctx context.Context, name, label string
 	sec := secrets.New()
 	sec.SetPassword("collection-metadata")
 	for _, kv := range []struct{ k, v string }{
-		{collLabelKey, label},
+		{collLabelKey, encodeMetaValue(label)},
 		{collCreatedKey, existing.Created.Format(time.RFC3339)},
 		{collModifiedKey, time.Now().Format(time.RFC3339)},
 	} {
@@ -610,10 +679,10 @@ func (s *gopassStore) writeItem(ctx context.Context, collection string, item *It
 	}
 
 	for _, kv := range []struct{ k, v string }{
-		{labelKey, item.Label},
+		{labelKey, encodeMetaValue(item.Label)},
 		{createdKey, item.Created.Format(time.RFC3339)},
 		{modifiedKey, item.Modified.Format(time.RFC3339)},
-		{contentTypeKey, item.ContentType},
+		{contentTypeKey, encodeMetaValue(item.ContentType)},
 	} {
 		if err := sec.Set(kv.k, kv.v); err != nil {
 			return fmt.Errorf("set %s: %w", kv.k, err)
@@ -738,7 +807,7 @@ func (s *gopassStore) GetAlias(ctx context.Context, alias string) (string, error
 		return "", fmt.Errorf("alias not found: %s", alias)
 	}
 
-	if val, ok := sec.Get(alias); ok && val != "" {
+	if val, ok := sec.Get(encodeAliasKey(alias)); ok && val != "" {
 		return val, nil
 	}
 	if alias == "default" {
@@ -760,7 +829,7 @@ func (s *gopassStore) SetAlias(ctx context.Context, alias, collection string) er
 
 	aliases, err := s.Aliases(ctx)
 	if err != nil {
-		aliases = make(map[string]string)
+		return fmt.Errorf("read aliases: %w", err)
 	}
 
 	if collection == "" {
@@ -772,7 +841,7 @@ func (s *gopassStore) SetAlias(ctx context.Context, alias, collection string) er
 	sec := secrets.New()
 	sec.SetPassword("aliases")
 	for k, v := range aliases {
-		if err := sec.Set(k, v); err != nil {
+		if err := sec.Set(encodeAliasKey(k), v); err != nil {
 			return fmt.Errorf("set alias %q: %w", k, err)
 		}
 	}
@@ -781,16 +850,24 @@ func (s *gopassStore) SetAlias(ctx context.Context, alias, collection string) er
 }
 
 // Aliases returns the full alias map. The "default" alias is always present.
+// A missing alias store yields the default map; any other read error (e.g. a
+// decryption or I/O failure) is propagated so callers do not mistake it for an
+// empty store and overwrite existing aliases.
 func (s *gopassStore) Aliases(ctx context.Context) (map[string]string, error) {
 	aliases := make(map[string]string)
 
 	sec, err := s.store.Get(ctx, s.mapper.AliasesPath(), "latest")
-	if err == nil {
+	switch {
+	case err == nil:
 		for _, key := range sec.Keys() {
 			if val, ok := sec.Get(key); ok && val != "" {
-				aliases[key] = val
+				aliases[decodeAliasKey(key)] = val
 			}
 		}
+	case errors.Is(err, store.ErrNotFound):
+		// No alias store yet: fall through with an empty map.
+	default:
+		return nil, fmt.Errorf("read aliases: %w", err)
 	}
 
 	if _, ok := aliases["default"]; !ok {

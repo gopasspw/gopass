@@ -104,7 +104,9 @@ func (c *Collection) exportProps(ctx context.Context) error {
 	return nil
 }
 
-// itemPaths returns the object paths of the collection's items.
+// itemPaths returns the object paths of the collection's items. Every item is
+// exported before its path is published, so a client that enumerates Items and
+// then calls GetSecret directly does not receive UnknownObject.
 func (c *Collection) itemPaths(ctx context.Context) ([]dbus.ObjectPath, error) {
 	ids, err := c.store.Items(ctx, c.name)
 	if err != nil {
@@ -113,7 +115,13 @@ func (c *Collection) itemPaths(ctx context.Context) ([]dbus.ObjectPath, error) {
 
 	paths := make([]dbus.ObjectPath, 0, len(ids))
 	for _, id := range ids {
-		paths = append(paths, ItemDBusPath(c.name, id))
+		item, err := c.svc.ensureItem(ctx, c.name, id)
+		if err != nil {
+			debug.Log("secret-service: cannot export item %s/%s: %s", c.name, id, err)
+
+			continue
+		}
+		paths = append(paths, item.path)
 	}
 
 	return paths, nil

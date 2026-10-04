@@ -49,6 +49,7 @@ func newSessionManager(conn *dbus.Conn) *sessionManager {
 // exported session objects and AES keys alive for the daemon's lifetime.
 func (m *sessionManager) watchNameOwnerChanges() {
 	if err := m.conn.AddMatchSignal(
+		dbus.WithMatchSender("org.freedesktop.DBus"),
 		dbus.WithMatchInterface("org.freedesktop.DBus"),
 		dbus.WithMatchMember("NameOwnerChanged"),
 		dbus.WithMatchObjectPath("/org/freedesktop/DBus"),

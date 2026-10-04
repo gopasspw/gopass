@@ -10,7 +10,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/gopasspw/gopass/internal/store"
 	"github.com/gopasspw/gopass/pkg/gopass"
+	"github.com/gopasspw/gopass/pkg/gopass/secrets"
 )
 
 // fakeStore is a minimal in-memory gopass.Store used to test gopassStore
@@ -39,7 +41,7 @@ func (f *fakeStore) AuditList(ctx context.Context) ([]string, error) { return f.
 func (f *fakeStore) Get(_ context.Context, name, _ string) (gopass.Secret, error) {
 	sec, ok := f.entries[name]
 	if !ok {
-		return nil, fmt.Errorf("not found: %s", name)
+		return nil, store.ErrNotFound
 	}
 
 	return sec, nil
@@ -50,7 +52,9 @@ func (f *fakeStore) Set(_ context.Context, name string, sec gopass.Byter) error 
 	if !ok {
 		return fmt.Errorf("not a secret: %T", sec)
 	}
-	f.entries[name] = s
+	// Round-trip through the line-oriented AKV format, exactly as the real
+	// store does, so tests catch values that do not survive serialization.
+	f.entries[name] = secrets.ParseAKV(s.Bytes())
 
 	return nil
 }
@@ -449,5 +453,96 @@ func TestStoreCollectionModifiedUpdatesOnLabelChange(t *testing.T) {
 	}
 	if !after.Modified.After(before.Modified) {
 		t.Fatalf("modified = %v, want after %v", after.Modified, before.Modified)
+	}
+}
+
+func TestStoreLabelRoundTripLossless(t *testing.T) {
+	ctx := context.Background()
+	s := newTestStore()
+
+	// Labels are arbitrary D-Bus strings. A label containing a line break must
+	// not be truncated or inject reserved fields on reload.
+	label := "line1\n_ss_secret: injected"
+
+	if err := s.CreateCollection(ctx, "default", label); err != nil {
+		t.Fatalf("CreateCollection: %v", err)
+	}
+	coll, err := s.GetCollection(ctx, "default")
+	if err != nil {
+		t.Fatalf("GetCollection: %v", err)
+	}
+	if coll.Label != label {
+		t.Fatalf("collection label = %q, want %q", coll.Label, label)
+	}
+
+	id, err := s.CreateItem(ctx, "default", &ItemData{
+		Secret: []byte("pw"),
+		Label:  label,
+	})
+	if err != nil {
+		t.Fatalf("CreateItem: %v", err)
+	}
+	item, err := s.GetItem(ctx, "default", id)
+	if err != nil {
+		t.Fatalf("GetItem: %v", err)
+	}
+	if item.Label != label {
+		t.Fatalf("item label = %q, want %q", item.Label, label)
+	}
+	if string(item.Secret) != "pw" {
+		t.Fatalf("secret = %q, want pw", item.Secret)
+	}
+}
+
+func TestStoreAliasRoundTripLossless(t *testing.T) {
+	ctx := context.Background()
+	s := newTestStore()
+
+	// Alias names are arbitrary D-Bus strings but are used as AKV keys, which
+	// cannot contain the separator or a line break.
+	alias := "a: b\nc"
+
+	if err := s.SetAlias(ctx, alias, "default"); err != nil {
+		t.Fatalf("SetAlias: %v", err)
+	}
+	got, err := s.GetAlias(ctx, alias)
+	if err != nil {
+		t.Fatalf("GetAlias: %v", err)
+	}
+	if got != "default" {
+		t.Fatalf("alias = %q, want default", got)
+	}
+
+	aliases, err := s.Aliases(ctx)
+	if err != nil {
+		t.Fatalf("Aliases: %v", err)
+	}
+	if aliases[alias] != "default" {
+		t.Fatalf("aliases[%q] = %q, want default", alias, aliases[alias])
+	}
+}
+
+func TestStoreMarkerPrefixedValueRoundTrip(t *testing.T) {
+	ctx := context.Background()
+	s := newTestStore()
+
+	// A value that already starts with the base64 marker must be encoded too,
+	// otherwise it would be decoded as if it were encoded data.
+	value := attrValueEncodedPrefix + "YQ=="
+
+	id, err := s.CreateItem(ctx, "default", &ItemData{
+		Secret:     []byte("pw"),
+		Label:      "Marker",
+		Attributes: map[string]string{"key": value},
+	})
+	if err != nil {
+		t.Fatalf("CreateItem: %v", err)
+	}
+	got, err := s.GetItem(ctx, "default", id)
+	if err != nil {
+		t.Fatalf("GetItem: %v", err)
+	}
+	if got.Attributes["key"] != value {
+		t.Fatalf("attribute = %q, want %q", got.Attributes["key"], value)
 	}
 }
