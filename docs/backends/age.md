@@ -150,6 +150,49 @@ offline. Hardware-bound identities may not be portable. To recover, set
 The encrypted identity keyring can also be decrypted with the standard `age` CLI.
 The store itself still needs a separate backup.
 
+### Unlock and lock flow
+
+1. gopass reads the independent bootstrap file configured by
+   `age.keyring-identities` and uses it to decrypt the local identity keyring.
+2. The resulting software identities decrypt store entries. When enabled, the
+   agent caches these identities for subsequent reads; the hardware private key
+   remains managed by the plugin.
+3. Explicit locking, idle timeout and source changes invalidate the session.
+   Pending authentication cannot restore a session invalidated by a lock.
+   Releasing identity references does not guarantee immediate zeroization of
+   every private-key copy in Go memory.
+
+Recipient protection also supports ordinary age public keys and independent
+software bootstrap identities. It is not restricted to hardware plugins.
+Secure Enclave unlocking with `age-plugin-se` has been manually tested on macOS.
+YubiKey and TPM plugins may support this flow but have not been tested for
+keyring session unlocking.
+
+### Reviewing keyring recipients
+
+Before the first recipient-protected write, or when the approved recipient set
+changes, gopass displays the complete target public-key list and asks for manual
+confirmation, defaulting to no. Each corresponding private identity can unlock
+all software identities in the keyring. A known prior set also allows added and
+removed recipients to be displayed. This applies to migration and identity
+add/remove operations, not to ordinary reads. Reordering or repeating the same
+recipients does not require another review.
+
+Automatic yes does not bypass this review. A noninteractive process can write
+using an already reviewed set, but must fail rather than approve a new set.
+Cancelling leaves the keyring unchanged. After approval, gopass verifies that the
+bootstrap identities can decrypt the replacement before writing it.
+
+The machine-local `identities.review.json` file beside the keyring records a
+version, the reviewed public recipients and the keyring ciphertext's SHA-256.
+It contains no private identities. Missing, invalid or stale records require
+another review; public keys cannot generally be reconstructed from age ciphertext.
+Back up this record with the keyring if preserving approval is useful. If saving
+it fails after the keyring is replaced, gopass reports that the keyring was
+updated and the next write requires review again. These records are trusted
+local state, not tamper protection against an attacker with arbitrary local
+write access. See [the security model](../security.md#age-keyring-protection).
+
 ## Usage with a yubikey
 
 To use with a Yubikey, `age` requires the usage of the [age-plugin-yubikey plugin](https://github.com/str4d/age-plugin-yubikey/).

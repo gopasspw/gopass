@@ -138,6 +138,13 @@ func (a *Age) encryptFile(ctx context.Context, filename string, plaintext []byte
 		return err
 	}
 	recipientProtected := len(recipients) > 0
+	var reviewedRecipients []string
+	if recipientProtected {
+		reviewedRecipients = normalizedKeyringRecipients(ctx)
+		if err := reviewKeyringRecipients(ctx, filename, reviewedRecipients); err != nil {
+			return err
+		}
+	}
 	if !recipientProtected {
 		if err := requirePassphraseKeyring(filename); err != nil {
 			return err
@@ -164,7 +171,14 @@ func (a *Age) encryptFile(ctx context.Context, filename string, plaintext []byte
 		}
 	}
 
-	return writeEncryptedKeyring(filename, buf)
+	if err := writeEncryptedKeyring(filename, buf); err != nil {
+		return err
+	}
+	if recipientProtected {
+		return saveKeyringReview(filename, reviewedRecipients, buf)
+	}
+
+	return nil
 }
 
 // requirePassphraseKeyring prevents an omitted setting from silently replacing

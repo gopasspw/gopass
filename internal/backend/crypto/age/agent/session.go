@@ -147,7 +147,10 @@ func (a *Agent) decryptSession(args []string) ([]byte, error) {
 	return a.decryptLocked(ciphertext)
 }
 
-// clearLocked requires a.mux to be held.
+// clearLocked invalidates pending authentication and releases cached identity
+// references for explicit locks, timeouts and session invalidation. It does not
+// guarantee immediate zeroization of all private-key copies in Go memory.
+// Requires a.mux to be held.
 func (a *Agent) clearLocked() {
 	a.generation++
 	a.unlockToken = ""

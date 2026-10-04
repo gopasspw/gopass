@@ -1,10 +1,20 @@
+//go:build !windows
+
 package tests
 
 import (
+	"context"
+	"errors"
+	"io"
 	"os"
+	"os/exec"
 	"path/filepath"
-	"runtime"
+	"strings"
+	"syscall"
 	"testing"
+	"time"
+
+	"github.com/creack/pty"
 
 	"filippo.io/age"
 	"github.com/gopasspw/gopass/internal/backend/crypto/age/agent"
@@ -12,10 +22,13 @@ import (
 )
 
 // A native envelope exercises the same keyring/agent flow as a hardware
-// plugin, without requiring hardware or interactive authentication in CI.
+// plugin, with a pseudo-terminal for manual recipient approval in CI.
 func TestAgeRecipientKeyringSession(t *testing.T) {
-	if runtime.GOOS == "windows" {
-		t.Skip("age agent Unix sockets are not available on Windows")
+	// GOPASS_HOMEDIR determines the socket directory even when XDG_RUNTIME_DIR
+	// is set. Keep the test home below macOS's Unix socket path limit.
+	probe := filepath.Join(os.TempDir(), t.Name()+strings.Repeat("x", 10), "001", ".run", "gopass-age-agent.sock")
+	if len(probe) > 100 {
+		t.Setenv("TMPDIR", "/tmp")
 	}
 	ts := newAgeTester(t)
 	defer func() {
@@ -32,8 +45,19 @@ func TestAgeRecipientKeyringSession(t *testing.T) {
 	require.NoError(t, err, out)
 	out, err = ts.runCmd([]string{ts.Binary, "config", "age.keyring-recipients", protector.Recipient().String()}, nil)
 	require.NoError(t, err, out)
+	original, err := os.ReadFile(filepath.Join(ts.tempDir, ".config", "gopass", "age", "identities"))
+	require.NoError(t, err)
 	out, err = ts.run("age identities reencrypt")
+	require.Error(t, err, "noninteractive migration must not silently approve recipients: %s", out)
+	require.Contains(t, out, "manual review")
+	out, err = runKeyringReview(t, ts, "n\n")
+	require.Error(t, err, out)
+	unchanged, err := os.ReadFile(filepath.Join(ts.tempDir, ".config", "gopass", "age", "identities"))
+	require.NoError(t, err)
+	require.Equal(t, original, unchanged)
+	out, err = runKeyringReview(t, ts, "y\n")
 	require.NoError(t, err, out)
+	require.Contains(t, out, protector.Recipient().String())
 
 	// Envelope migration must not change the identities used by store entries.
 	t.Setenv("GOPASS_AGE_PASSWORD", "")
@@ -73,4 +97,26 @@ func TestAgeRecipientKeyringSession(t *testing.T) {
 	status, err = client.Status()
 	require.NoError(t, err)
 	require.Equal(t, "locked", status)
+}
+
+// runKeyringReview supplies terminal input rather than bypassing production
+// confirmation. The existing pty dependency provides Unix PTYs for this test.
+func runKeyringReview(t *testing.T, ts *tester, answer string) (string, error) {
+	t.Helper()
+	ctx, cancel := context.WithTimeout(t.Context(), 30*time.Second)
+	defer cancel()
+	cmd := exec.CommandContext(ctx, ts.Binary, "age", "identities", "reencrypt")
+	cmd.Dir = ts.workDir()
+	terminal, err := pty.Start(cmd)
+	require.NoError(t, err)
+	defer func() { _ = terminal.Close() }()
+	_, err = terminal.WriteString(answer)
+	require.NoError(t, err)
+	output, readErr := io.ReadAll(terminal)
+	// Linux reports EIO when the slave closes; other Unix systems return EOF.
+	if readErr != nil && !errors.Is(readErr, syscall.EIO) {
+		require.NoError(t, readErr)
+	}
+
+	return string(output), cmd.Wait()
 }

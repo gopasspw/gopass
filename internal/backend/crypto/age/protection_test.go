@@ -12,18 +12,23 @@ import (
 
 	ageapi "filippo.io/age"
 	"github.com/gopasspw/gopass/internal/config"
+	"github.com/gopasspw/gopass/pkg/ctxutil"
+	"github.com/gopasspw/gopass/pkg/termio"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func protectedKeyringContext(t *testing.T, identityFile, recipients string) context.Context {
 	t.Helper()
+	oldInput := termio.Stdin
+	termio.Stdin = strings.NewReader(strings.Repeat("y\n", 20))
+	t.Cleanup(func() { termio.Stdin = oldInput })
 	cfg := config.NewInMemory()
 	require.NoError(t, cfg.SetEnv("age.agent-enabled", "false"))
 	require.NoError(t, cfg.SetEnv("age.keyring-identities", identityFile))
 	require.NoError(t, cfg.SetEnv("age.keyring-recipients", recipients))
 
-	return cfg.WithConfig(t.Context())
+	return cfg.WithConfig(ctxutil.WithTerminal(ctxutil.WithInteractive(t.Context(), true), true))
 }
 
 func keyringTestIdentity(t *testing.T) *ageapi.X25519Identity {

@@ -264,7 +264,7 @@ func (l loader) Commands() []*cli.Command {
 
 								err = a.addIdentity(ctx, id)
 								if err != nil {
-									return exit.Error(exit.Unknown, err, "failed to save age identity")
+									return exit.Error(exit.Unknown, err, "failed to save age identity: %s", err)
 								}
 
 								rec := IdentityToRecipient(id)
@@ -526,7 +526,7 @@ func (l loader) reencryptKeyring(ctx context.Context, cmd *cli.Command) error {
 		return exit.Error(exit.Unknown, err, "failed to lock age agent before changing identities")
 	}
 	if err := a.reencryptIdentities(ctx); err != nil {
-		return exit.Error(exit.Unknown, err, "failed to re-encrypt identity keyring")
+		return exit.Error(exit.Unknown, err, "failed to re-encrypt identity keyring: %s", err)
 	}
 	out.Notice(ctx, "Age identity keyring re-encrypted; agent credentials cleared")
 

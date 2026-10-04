@@ -86,8 +86,9 @@ func (a *Age) keyringUnlockIdentities(ctx context.Context) ([]age.Identity, erro
 }
 
 // writeEncryptedKeyring replaces the file only after encryption completes. The
-// temporary file contains ciphertext only and must share the destination's
-// filesystem for atomic rename; the ramdisk tempfile helper cannot ensure that.
+// temporary file contains only ciphertext or public review metadata and must
+// share the destination's filesystem for atomic rename; the ramdisk tempfile
+// helper cannot ensure that.
 func writeEncryptedKeyring(filename string, ciphertext []byte) error {
 	file, err := os.CreateTemp(filepath.Dir(filename), ".age-keyring-*")
 	if err != nil {

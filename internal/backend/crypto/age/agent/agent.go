@@ -206,8 +206,6 @@ func (a *Agent) handleConnection(ctx context.Context, conn net.Conn) {
 			debug.Log("received: lock")
 
 			a.lock()
-
-			debug.Log("cleared identities from memory and locked agent")
 			fmt.Fprintln(conn, "OK")
 		case "unlock":
 			debug.Log("received: unlock")
