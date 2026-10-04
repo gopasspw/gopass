@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 
@@ -75,7 +76,10 @@ func TestRecipientProtectedKeyringRoundTrip(t *testing.T) {
 	assert.NotContains(t, string(ciphertext), software.String())
 	info, err := os.Stat(a.identity)
 	require.NoError(t, err)
-	assert.Equal(t, os.FileMode(0o600), info.Mode().Perm())
+	// Windows FileMode exposes only the read-only attribute, not Unix mode bits.
+	if runtime.GOOS != "windows" {
+		assert.Equal(t, os.FileMode(0o600), info.Mode().Perm())
+	}
 }
 
 func TestRecipientProtectedKeyringMigrationPreservesRawIdentities(t *testing.T) {

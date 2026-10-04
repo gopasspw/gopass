@@ -28,13 +28,19 @@ import (
 // `bind: invalid argument` when the agent tries to listen.
 func useShortTempDir(t *testing.T) {
 	t.Helper()
-	// Worst-case probe: a long temp dir name (t.TempDir appends the test name
-	// plus a random suffix) followed by the socket suffix.
-	probe := filepath.Join(os.TempDir(), strings.Repeat("x", 48), ".run", "gopass-age-agent.sock")
+	// Include the actual test name, the random suffix, and t.TempDir's child
+	// directory rather than assuming every test name fits a fixed length.
+	socketPath := func(base string) string {
+		return filepath.Join(base, strings.ReplaceAll(t.Name(), "/", "_")+strings.Repeat("x", 10), "001", ".run", "gopass-age-agent.sock")
+	}
+	probe := socketPath(os.TempDir())
 	if len(probe) <= 100 {
 		return
 	}
-	for _, c := range []string{"/tmp/claude/gpa", "/tmp/gpa"} {
+	for _, c := range []string{"/tmp/gpa", "/tmp/claude/gpa"} {
+		if len(socketPath(c)) > 100 {
+			continue
+		}
 		if err := os.MkdirAll(c, 0o700); err == nil {
 			t.Setenv("TMPDIR", c)
 

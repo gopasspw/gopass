@@ -11,6 +11,8 @@ import (
 	"net"
 	"os"
 	"path/filepath"
+	"runtime"
+	"strings"
 	"testing"
 	"time"
 
@@ -22,6 +24,11 @@ import (
 func TestSourceBoundSession(t *testing.T) {
 	// Use a private socket without Run's process-wide signal handler or runtime
 	// directory so this test cannot contact the user's agent.
+	// Select a short parent before t.TempDir caches its directory.
+	probe := filepath.Join(os.TempDir(), strings.ReplaceAll(t.Name(), "/", "_")+strings.Repeat("x", 10), "001", "agent.sock")
+	if len(probe) > 100 && runtime.GOOS != "windows" {
+		t.Setenv("TMPDIR", "/tmp")
+	}
 	path := filepath.Join(t.TempDir(), "agent.sock")
 	listener, err := net.Listen("unix", path)
 	require.NoError(t, err)
