@@ -22,6 +22,11 @@ const (
 // the generic NotSupported.
 var errSessionNotFound = errors.New("session not found")
 
+// errItemNotFound marks a missing item. Store methods wrap it so callers can
+// map a missing item to NoSuchObject while reporting other failures (e.g. a
+// write error) as NotSupported.
+var errItemNotFound = errors.New("item not found")
+
 // dbusError builds a *dbus.Error with an optional human-readable message.
 func dbusError(name string, err error) *dbus.Error {
 	body := []any{}
@@ -43,3 +48,14 @@ func errExists(err error) *dbus.Error { return dbusError(errAlreadyExists, err) 
 
 // errNoSessionError wraps err as NoSession.
 func errNoSessionError(err error) *dbus.Error { return dbusError(errNoSession, err) }
+
+// itemError maps a store item-update failure to the appropriate D-Bus error:
+// NoSuchObject for a missing item, NotSupported for any other failure (e.g. a
+// write error).
+func itemError(err error) *dbus.Error {
+	if errors.Is(err, errItemNotFound) {
+		return errNotFound(err)
+	}
+
+	return errUnsupported(err)
+}

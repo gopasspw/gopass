@@ -382,7 +382,7 @@ func (s *keyringStore) GetItem(_ context.Context, collection, id string) (*ItemD
 	it, ok := s.items[id]
 	s.mu.RUnlock()
 	if !ok {
-		return nil, fmt.Errorf("item not found: %s", id)
+		return nil, fmt.Errorf("%w: %s", errItemNotFound, id)
 	}
 
 	payload, err := s.vault.get(id)
@@ -456,7 +456,7 @@ func (s *keyringStore) UpdateItem(_ context.Context, collection, id string, item
 
 	existing, ok := s.items[id]
 	if !ok {
-		return fmt.Errorf("item not found: %s", id)
+		return fmt.Errorf("%w: %s", errItemNotFound, id)
 	}
 
 	if err := s.vault.put(id, item.Secret); err != nil {
@@ -478,6 +478,74 @@ func (s *keyringStore) UpdateItem(_ context.Context, collection, id string, item
 	return nil
 }
 
+// SetItemLabel updates only a session item's label.
+func (s *keyringStore) SetItemLabel(_ context.Context, collection, id, label string) error {
+	if err := sessionOnly(collection); err != nil {
+		return err
+	}
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	it, ok := s.items[id]
+	if !ok {
+		return fmt.Errorf("%w: %s", errItemNotFound, id)
+	}
+	it.label = label
+	it.modified = time.Now()
+
+	return nil
+}
+
+// SetItemAttributes updates only a session item's attributes.
+func (s *keyringStore) SetItemAttributes(_ context.Context, collection, id string, attrs map[string]string) error {
+	if err := sessionOnly(collection); err != nil {
+		return err
+	}
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	it, ok := s.items[id]
+	if !ok {
+		return fmt.Errorf("%w: %s", errItemNotFound, id)
+	}
+	cp := make(map[string]string, len(attrs))
+	for k, v := range attrs {
+		cp[k] = v
+	}
+	it.attributes = cp
+	it.modified = time.Now()
+
+	return nil
+}
+
+// SetItemSecret updates only a session item's payload and content type.
+func (s *keyringStore) SetItemSecret(_ context.Context, collection, id string, secret []byte, contentType string) error {
+	if err := sessionOnly(collection); err != nil {
+		return err
+	}
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	it, ok := s.items[id]
+	if !ok {
+		return fmt.Errorf("%w: %s", errItemNotFound, id)
+	}
+
+	if err := s.vault.put(id, secret); err != nil {
+		return err
+	}
+
+	if contentType != "" {
+		it.contentType = contentType
+	}
+	it.modified = time.Now()
+
+	return nil
+}
+
 // DeleteItem removes a session item.
 func (s *keyringStore) DeleteItem(_ context.Context, collection, id string) error {
 	if err := sessionOnly(collection); err != nil {
@@ -490,7 +558,7 @@ func (s *keyringStore) DeleteItem(_ context.Context, collection, id string) erro
 	s.mu.Unlock()
 
 	if !ok {
-		return fmt.Errorf("item not found: %s", id)
+		return fmt.Errorf("%w: %s", errItemNotFound, id)
 	}
 	s.vault.remove(id)
 

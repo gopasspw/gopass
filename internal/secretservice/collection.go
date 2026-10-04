@@ -159,22 +159,6 @@ func (c *Collection) refreshLocked(ctx context.Context) {
 	}
 }
 
-// refreshModified recomputes and publishes the Modified property on every
-// exported object of the collection.
-func (c *Collection) refreshModified(ctx context.Context) {
-	data, err := c.store.GetCollection(ctx, c.name)
-	if err != nil {
-		return
-	}
-
-	for _, o := range c.svc.collectionObjects(c.name) {
-		if o.props == nil {
-			continue
-		}
-		o.props.SetMust(CollectionIface, "Modified", unixOrZero(data.Modified))
-	}
-}
-
 // setLabel persists a label change made via the Properties interface. The prop
 // package updates its own value after this returns; it must not be called
 // re-entrantly.
@@ -184,24 +168,39 @@ func (c *Collection) setLabel(ch *prop.Change) *dbus.Error {
 		return errUnsupported(err)
 	}
 
-	// Keep the other exported objects (aliases) in sync.
-	for _, o := range c.svc.collectionObjects(c.name) {
-		if o == c || o.props == nil {
-			continue
-		}
-		o.props.SetMust(CollectionIface, "Label", label)
+	// The callback runs while the prop package holds c.props' lock. Syncing
+	// the other exported objects (aliases) and refreshing Modified must not run
+	// here: SetMust on another object's props would block on that object's
+	// lock, so two concurrent label writes through different objects could
+	// deadlock. Defer the cross-object work until after the callback returns.
+	go c.syncLabel(context.Background())
+
+	return nil
+}
+
+// syncLabel propagates a persisted label change to every exported object of
+// the collection and republishes the Modified timestamp. It runs on its own
+// goroutine because the prop callback that triggers it holds the originating
+// object's property lock.
+func (c *Collection) syncLabel(ctx context.Context) {
+	// Reload the final stored label so racing writes cannot publish a stale
+	// value.
+	data, err := c.store.GetCollection(ctx, c.name)
+	if err != nil {
+		return
 	}
 
-	// A label change updates the collection's Modified timestamp. The callback
-	// runs while the prop package holds c.props' lock, so the refresh must run
-	// on another goroutine to avoid a self-deadlock.
-	go c.refreshModified(context.Background())
+	for _, o := range c.svc.collectionObjects(c.name) {
+		if o.props == nil {
+			continue
+		}
+		o.props.SetMust(CollectionIface, "Label", data.Label)
+		o.props.SetMust(CollectionIface, "Modified", unixOrZero(data.Modified))
+	}
 
 	// Announce the change at the service level as well, so clients listening
 	// for Service.CollectionChanged observe label updates.
 	c.svc.serviceChanged(c.name)
-
-	return nil
 }
 
 // Delete implements org.freedesktop.Secret.Collection.Delete.

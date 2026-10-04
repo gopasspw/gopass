@@ -102,6 +102,45 @@ func TestKeyringStoreItemLifecycle(t *testing.T) {
 	}
 }
 
+func TestKeyringStoreFieldSpecificUpdates(t *testing.T) {
+	ctx := context.Background()
+	s := newKeyringStore()
+	defer func() { _ = s.Close(ctx) }()
+
+	id, err := s.CreateItem(ctx, SessionCollectionName, &ItemData{
+		Secret:     []byte("original"),
+		Label:      "Original",
+		Attributes: map[string]string{"scope": "test"},
+	})
+	if err != nil {
+		t.Fatalf("CreateItem: %v", err)
+	}
+
+	if err := s.SetItemLabel(ctx, SessionCollectionName, id, "Renamed"); err != nil {
+		t.Fatalf("SetItemLabel: %v", err)
+	}
+	if err := s.SetItemAttributes(ctx, SessionCollectionName, id, map[string]string{"scope": "other"}); err != nil {
+		t.Fatalf("SetItemAttributes: %v", err)
+	}
+	if err := s.SetItemSecret(ctx, SessionCollectionName, id, []byte("updated"), "text/plain"); err != nil {
+		t.Fatalf("SetItemSecret: %v", err)
+	}
+
+	got, err := s.GetItem(ctx, SessionCollectionName, id)
+	if err != nil {
+		t.Fatalf("GetItem: %v", err)
+	}
+	if got.Label != "Renamed" {
+		t.Fatalf("label = %q, want Renamed", got.Label)
+	}
+	if got.Attributes["scope"] != "other" {
+		t.Fatalf("attributes = %v, want scope=other", got.Attributes)
+	}
+	if string(got.Secret) != "updated" {
+		t.Fatalf("secret = %q, want updated", got.Secret)
+	}
+}
+
 func TestKeyringStoreImmutability(t *testing.T) {
 	ctx := context.Background()
 	s := newKeyringStore()

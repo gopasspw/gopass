@@ -165,7 +165,8 @@ func (i *Item) load(ctx context.Context) (*ItemData, error) {
 }
 
 // setAttributes persists an attribute change made via the Properties
-// interface.
+// interface. It updates only the attributes field so a concurrent label or
+// secret update is not reverted.
 func (i *Item) setAttributes(ch *prop.Change) *dbus.Error {
 	attrs, ok := ch.Value.(map[string]string)
 	if !ok {
@@ -173,14 +174,8 @@ func (i *Item) setAttributes(ch *prop.Change) *dbus.Error {
 	}
 
 	ctx := context.Background()
-	data, err := i.load(ctx)
-	if err != nil {
-		return errNotFound(err)
-	}
-	data.Attributes = attrs
-
-	if err := i.store.UpdateItem(ctx, i.collection, i.id, data); err != nil {
-		return errUnsupported(err)
+	if err := i.store.SetItemAttributes(ctx, i.collection, i.id, attrs); err != nil {
+		return itemError(err)
 	}
 
 	i.refreshPropsAsync()
@@ -189,19 +184,15 @@ func (i *Item) setAttributes(ch *prop.Change) *dbus.Error {
 	return nil
 }
 
-// setLabel persists a label change made via the Properties interface.
+// setLabel persists a label change made via the Properties interface. It
+// updates only the label field so a concurrent attribute or secret update is
+// not reverted.
 func (i *Item) setLabel(ch *prop.Change) *dbus.Error {
 	label, _ := ch.Value.(string)
 
 	ctx := context.Background()
-	data, err := i.load(ctx)
-	if err != nil {
-		return errNotFound(err)
-	}
-	data.Label = label
-
-	if err := i.store.UpdateItem(ctx, i.collection, i.id, data); err != nil {
-		return errUnsupported(err)
+	if err := i.store.SetItemLabel(ctx, i.collection, i.id, label); err != nil {
+		return itemError(err)
 	}
 
 	i.refreshPropsAsync()
@@ -264,17 +255,10 @@ func (i *Item) SetSecret(secret Secret, sender dbus.Sender) *dbus.Error {
 		return secretError(err)
 	}
 
-	data, err := i.load(ctx)
-	if err != nil {
-		return errNotFound(err)
-	}
-	data.Secret = value
-	if secret.ContentType != "" {
-		data.ContentType = secret.ContentType
-	}
-
-	if err := i.store.UpdateItem(ctx, i.collection, i.id, data); err != nil {
-		return errUnsupported(err)
+	// Update only the secret field so a concurrent label or attribute update
+	// is not reverted.
+	if err := i.store.SetItemSecret(ctx, i.collection, i.id, value, secret.ContentType); err != nil {
+		return itemError(err)
 	}
 
 	i.refreshProps(ctx)

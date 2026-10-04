@@ -546,3 +546,115 @@ func TestStoreMarkerPrefixedValueRoundTrip(t *testing.T) {
 		t.Fatalf("attribute = %q, want %q", got.Attributes["key"], value)
 	}
 }
+
+func TestStoreFieldSpecificUpdatesPreserveOtherFields(t *testing.T) {
+	ctx := context.Background()
+	s := newTestStore()
+
+	id, err := s.CreateItem(ctx, "default", &ItemData{
+		Secret:      []byte("original"),
+		Label:       "Original",
+		ContentType: "text/plain",
+		Attributes:  map[string]string{"service": "example.com"},
+	})
+	if err != nil {
+		t.Fatalf("CreateItem: %v", err)
+	}
+
+	// Updating the label must not disturb the secret or attributes.
+	if err := s.SetItemLabel(ctx, "default", id, "Renamed"); err != nil {
+		t.Fatalf("SetItemLabel: %v", err)
+	}
+	got, err := s.GetItem(ctx, "default", id)
+	if err != nil {
+		t.Fatalf("GetItem: %v", err)
+	}
+	if got.Label != "Renamed" {
+		t.Fatalf("label = %q, want Renamed", got.Label)
+	}
+	if string(got.Secret) != "original" {
+		t.Fatalf("secret = %q, want original", got.Secret)
+	}
+	if got.Attributes["service"] != "example.com" {
+		t.Fatalf("attributes = %v, want service=example.com", got.Attributes)
+	}
+
+	// Updating the attributes must not disturb the label or secret.
+	if err := s.SetItemAttributes(ctx, "default", id, map[string]string{"service": "other.com"}); err != nil {
+		t.Fatalf("SetItemAttributes: %v", err)
+	}
+	got, err = s.GetItem(ctx, "default", id)
+	if err != nil {
+		t.Fatalf("GetItem: %v", err)
+	}
+	if got.Label != "Renamed" {
+		t.Fatalf("label = %q, want Renamed", got.Label)
+	}
+	if string(got.Secret) != "original" {
+		t.Fatalf("secret = %q, want original", got.Secret)
+	}
+	if got.Attributes["service"] != "other.com" {
+		t.Fatalf("attributes = %v, want service=other.com", got.Attributes)
+	}
+
+	// Updating the secret must not disturb the label or attributes.
+	if err := s.SetItemSecret(ctx, "default", id, []byte("updated"), "text/plain"); err != nil {
+		t.Fatalf("SetItemSecret: %v", err)
+	}
+	got, err = s.GetItem(ctx, "default", id)
+	if err != nil {
+		t.Fatalf("GetItem: %v", err)
+	}
+	if got.Label != "Renamed" {
+		t.Fatalf("label = %q, want Renamed", got.Label)
+	}
+	if string(got.Secret) != "updated" {
+		t.Fatalf("secret = %q, want updated", got.Secret)
+	}
+	if got.Attributes["service"] != "other.com" {
+		t.Fatalf("attributes = %v, want service=other.com", got.Attributes)
+	}
+}
+
+func TestStoreConcurrentFieldUpdatesDoNotLoseData(t *testing.T) {
+	ctx := context.Background()
+	s := newTestStore()
+
+	id, err := s.CreateItem(ctx, "default", &ItemData{
+		Secret:     []byte("original"),
+		Label:      "Original",
+		Attributes: map[string]string{"service": "example.com"},
+	})
+	if err != nil {
+		t.Fatalf("CreateItem: %v", err)
+	}
+
+	// A label update and an attribute update racing on the same item must both
+	// survive: a full read-modify-write of the whole item would revert one of
+	// them.
+	var wg sync.WaitGroup
+	wg.Add(2)
+	go func() {
+		defer wg.Done()
+		_ = s.SetItemLabel(ctx, "default", id, "Renamed")
+	}()
+	go func() {
+		defer wg.Done()
+		_ = s.SetItemAttributes(ctx, "default", id, map[string]string{"service": "other.com"})
+	}()
+	wg.Wait()
+
+	got, err := s.GetItem(ctx, "default", id)
+	if err != nil {
+		t.Fatalf("GetItem: %v", err)
+	}
+	if got.Label != "Renamed" {
+		t.Fatalf("label = %q, want Renamed (lost update)", got.Label)
+	}
+	if got.Attributes["service"] != "other.com" {
+		t.Fatalf("attributes = %v, want service=other.com (lost update)", got.Attributes)
+	}
+	if string(got.Secret) != "original" {
+		t.Fatalf("secret = %q, want original", got.Secret)
+	}
+}

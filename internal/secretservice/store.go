@@ -90,6 +90,13 @@ type Store interface {
 	GetItem(ctx context.Context, collection, id string) (*ItemData, error)
 	CreateItem(ctx context.Context, collection string, item *ItemData) (string, error)
 	UpdateItem(ctx context.Context, collection, id string, item *ItemData) error
+	// SetItemLabel, SetItemAttributes and SetItemSecret update a single field
+	// of an item. They exist so that concurrent property updates cannot lose
+	// one another: a full read-modify-write of the whole item would revert a
+	// concurrent update to a different field.
+	SetItemLabel(ctx context.Context, collection, id, label string) error
+	SetItemAttributes(ctx context.Context, collection, id string, attrs map[string]string) error
+	SetItemSecret(ctx context.Context, collection, id string, secret []byte, contentType string) error
 	DeleteItem(ctx context.Context, collection, id string) error
 	SearchItems(ctx context.Context, collection string, attrs map[string]string) ([]*ItemData, error)
 	SearchAllItems(ctx context.Context, attrs map[string]string) (map[string][]*ItemData, error)
@@ -583,7 +590,7 @@ func (s *gopassStore) GetItem(ctx context.Context, collection, id string) (*Item
 
 	sec, err := s.store.Get(ctx, itemPath, "latest")
 	if err != nil {
-		return nil, fmt.Errorf("item not found: %s/%s", collection, id)
+		return nil, fmt.Errorf("%w: %s/%s", errItemNotFound, collection, id)
 	}
 
 	meta := metaFromSecret(sec)
@@ -651,15 +658,69 @@ func (s *gopassStore) UpdateItem(ctx context.Context, collection, id string, ite
 
 	item.ID = id
 	item.Created = existing.Created
-	item.Modified = time.Now()
 	if item.ContentType == "" {
 		item.ContentType = existing.ContentType
 	}
+
+	return s.persistItemLocked(ctx, collection, item)
+}
+
+// persistItemLocked stamps item with a fresh modification time and writes it.
+// The caller must hold opMu and must have loaded item from the store so its
+// creation time and content type are preserved.
+func (s *gopassStore) persistItemLocked(ctx context.Context, collection string, item *ItemData) error {
+	item.Modified = time.Now()
 	if item.ContentType == "" {
 		item.ContentType = "text/plain"
 	}
 
 	return s.writeItem(ctx, collection, item)
+}
+
+// SetItemLabel updates only an item's label. The read-modify-write runs under
+// opMu so a concurrent update to another field cannot be reverted.
+func (s *gopassStore) SetItemLabel(ctx context.Context, collection, id, label string) error {
+	s.opMu.Lock()
+	defer s.opMu.Unlock()
+
+	item, err := s.GetItem(ctx, collection, id)
+	if err != nil {
+		return err
+	}
+	item.Label = label
+
+	return s.persistItemLocked(ctx, collection, item)
+}
+
+// SetItemAttributes updates only an item's attributes.
+func (s *gopassStore) SetItemAttributes(ctx context.Context, collection, id string, attrs map[string]string) error {
+	s.opMu.Lock()
+	defer s.opMu.Unlock()
+
+	item, err := s.GetItem(ctx, collection, id)
+	if err != nil {
+		return err
+	}
+	item.Attributes = attrs
+
+	return s.persistItemLocked(ctx, collection, item)
+}
+
+// SetItemSecret updates only an item's secret payload and content type.
+func (s *gopassStore) SetItemSecret(ctx context.Context, collection, id string, secret []byte, contentType string) error {
+	s.opMu.Lock()
+	defer s.opMu.Unlock()
+
+	item, err := s.GetItem(ctx, collection, id)
+	if err != nil {
+		return err
+	}
+	item.Secret = secret
+	if contentType != "" {
+		item.ContentType = contentType
+	}
+
+	return s.persistItemLocked(ctx, collection, item)
 }
 
 // writeItem serializes an ItemData into a gopass secret. Simple single-line
