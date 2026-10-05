@@ -9,7 +9,7 @@ require (
 	github.com/caspr-io/yamlpath v0.0.0-20200722075116-502e8d113a9b
 	github.com/cenkalti/backoff/v4 v4.3.0
 	github.com/creack/pty v1.1.24
-	github.com/dustin/go-humanize v1.0.1
+	github.com/dustin/go-humanize v1.1.0
 	github.com/ergochat/readline v0.1.3
 	github.com/fatih/color v1.19.0
 	github.com/godbus/dbus/v5 v5.2.2
