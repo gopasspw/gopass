@@ -78,11 +78,13 @@ func (r *Root) insert(path string, template, link bool, nodePath string) error {
 			Subtree: NewTree(),
 		}
 		// this is the final element (a leaf)
-		if i == len(p)-1 {
+		if i == len(p)-1 && template {
+			// a template lives in a folder, it is not a secret.
+			n.Template = true
+		} else if i == len(p)-1 {
 			n.Leaf = true
 			n.Subtree = nil
 			n.Link = link
-			n.Template = template
 
 			if nodePath != "" {
 				n.Mount = true

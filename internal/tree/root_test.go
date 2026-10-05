@@ -23,7 +23,7 @@ func TestRoot(t *testing.T) {
 	require.NoError(t, r.AddFile("mnt/m1/foo/bar", ""))
 	t.Logf("%+#v", r)
 	assert.Equal(t, `gopass
-├── foo/ (template) (shadowed)
+├── foo/ (template)
 │   ├── bar/
 │   │   ├── baz
 │   │   └── zab
@@ -35,7 +35,6 @@ func TestRoot(t *testing.T) {
 `, r.Format(INF))
 
 	assert.Equal(t, []string{
-		"foo",
 		"foo/bar/baz",
 		"foo/bar/zab",
 		"foo/link",
@@ -102,6 +101,10 @@ func TestAddTemplate(t *testing.T) {
 
 	r := New("gopass")
 	require.NoError(t, r.AddTemplate("foo"))
+	assert.Empty(t, r.List(INF))
+	assert.Equal(t, []string{"foo/"}, r.ListFolders(INF))
+
+	require.NoError(t, r.AddFile("foo", ""))
 	assert.Equal(t, []string{"foo"}, r.List(INF))
 }
 
