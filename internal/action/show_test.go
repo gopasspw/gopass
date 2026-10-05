@@ -503,6 +503,8 @@ func TestShowClipLine(t *testing.T) {
 }
 
 func TestShowParseArgsClipLine(t *testing.T) {
+	_ = gptest.NewUnitTester(t)
+
 	t.Run("clip flag with line number sets ClipLine", func(t *testing.T) {
 		ctx := config.NewContextInMemory()
 		cmd := gptest.CliCtxWithFlags(ctx, t, map[string]string{"clip": "2"}, "secret")
