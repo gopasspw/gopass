@@ -193,6 +193,18 @@ updated and the next write requires review again. These records are trusted
 local state, not tamper protection against an attacker with arbitrary local
 write access. See [the security model](../security.md#age-keyring-protection).
 
+### Agent protocol
+
+The agent speaks a line-oriented, strictly request-response protocol over
+its unix socket: one command per line, answered by exactly one `OK`,
+`OK <payload>` or `ERR <message>` line. Unrecognized commands yield a
+single-line ERR, change no state and never close the connection.
+
+The full specification — command syntax, responses and errors, the lock
+state model, socket location rules, error-handling contract and the
+`hello` capability negotiation — lives in
+[age-agent-protocol.md](age-agent-protocol.md).
+
 ## Usage with a yubikey
 
 To use with a Yubikey, `age` requires the usage of the [age-plugin-yubikey plugin](https://github.com/str4d/age-plugin-yubikey/).

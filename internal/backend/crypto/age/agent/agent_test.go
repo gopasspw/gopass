@@ -1,6 +1,7 @@
 package agent
 
 import (
+	"bufio"
 	"bytes"
 	"context"
 	"crypto"
@@ -8,11 +9,18 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 	"encoding/pem"
+	"fmt"
+	"net"
+	"os"
+	"path/filepath"
+	"runtime"
+	"strings"
 	"testing"
 	"time"
 
 	"filippo.io/age"
 	"filippo.io/age/agessh"
+	"github.com/gopasspw/gopass/internal/buildinfo"
 	"github.com/gopasspw/gopass/pkg/termio"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/crypto/ssh"
@@ -414,4 +422,284 @@ func TestAgentMisframedLine(t *testing.T) {
 
 	// cleanup
 	require.NoError(t, c.Quit())
+}
+
+// shortTempDir returns a scratch directory whose path stays well under
+// the unix socket path limit even on hosts with a long TMPDIR (macOS
+// /var/folders/...): darwin caps sun_path at 104 bytes, linux at 108, and
+// the socket lives another ~35 bytes below this directory. GOPASS_HOMEDIR
+// isolation is used instead of XDG_RUNTIME_DIR because windows resolves
+// the runtime dir from LOCALAPPDATA and would ignore the XDG variable.
+func shortTempDir(t *testing.T) string {
+	t.Helper()
+
+	base := "/tmp"
+	if runtime.GOOS == "windows" {
+		base = os.TempDir()
+	}
+	// os.MkdirTemp rather than t.TempDir: the latter follows TMPDIR,
+	// which on macOS hosts exceeds the darwin sun_path limit (104 bytes)
+	// once the socket path is appended.
+	//nolint:usetesting
+	dir, err := os.MkdirTemp(base, "gopass-agent-")
+	require.NoError(t, err)
+	t.Cleanup(func() {
+		_ = os.RemoveAll(dir)
+	})
+
+	return dir
+}
+
+// startTestAgent isolates the socket directory, starts an in-process agent
+// and returns a client once it answers pings. It replaces the copy-pasted
+// preamble of the hello-era tests: the socket-path guard skips tests on
+// environments that still exceed the platform's unix socket path limit,
+// and the Eventually probe turns a failed Listen into a clear "did not
+// become ready" failure instead of a misleading ping error one second
+// later.
+func startTestAgent(t *testing.T) *Client {
+	t.Helper()
+
+	// isolate the socket dir so the test neither requires write access to
+	// the real runtime dir nor can hit a real user agent (GOPASS_HOMEDIR
+	// wins over the platform runtime dir on every supported platform)
+	t.Setenv("GOPASS_HOMEDIR", shortTempDir(t))
+
+	c := NewClient()
+	// a unix socket path is limited to 104 bytes (darwin) / 108 (linux);
+	// skip rather than fail when an unusual environment still exceeds it
+	if len(c.socketPath) > 103 {
+		t.Skipf("unix socket path too long (%d bytes)", len(c.socketPath))
+	}
+
+	ctx := t.Context()
+	ctx = termio.WithPassPromptFunc(ctx, func(ctx context.Context, prompt string) (string, error) {
+		return "test", nil
+	})
+
+	a, err := New()
+	require.NoError(t, err)
+	go func() {
+		_ = a.Run(ctx)
+	}()
+	t.Cleanup(func() {
+		a.Shutdown(ctx)
+	})
+
+	require.Eventually(t, func() bool {
+		return c.Ping() == nil
+	}, 5*time.Second, 50*time.Millisecond, "age agent did not become ready")
+
+	return c
+}
+
+func TestAgentHello(t *testing.T) {
+	c := startTestAgent(t)
+
+	caps, err := c.Capabilities()
+	require.NoError(t, err)
+
+	// the advertised command set is asserted against a hardcoded list so a
+	// command added to the dispatch table without updating this list fails
+	// here; the reverse drift (dispatched but not advertised) is
+	// structurally impossible because capabilities() derives from the same
+	// table.
+	for _, cmd := range []string{
+		"ping", "status", "identities", "decrypt",
+		"lock", "unlock", "set-timeout", "quit",
+	} {
+		require.True(t, caps.Has(cmd), "missing capability %q in %q", cmd, caps.Raw())
+	}
+	require.False(t, caps.Has("hello"), "hello must not advertise itself")
+	require.False(t, caps.Has("nonexistent"))
+
+	v, ok := caps.Value("maxline")
+	require.True(t, ok)
+	require.Equal(t, "16777216", v)
+
+	// without a stashed build version the token falls back to unknown
+	v, ok = caps.Value("version")
+	require.True(t, ok)
+	require.NotEmpty(t, v)
+
+	// with a stashed build version the token reports exactly that version
+	buildinfo.Version = "1.2.3"
+	defer func() {
+		buildinfo.Version = ""
+	}()
+	caps, err = c.Capabilities()
+	require.NoError(t, err)
+	v, ok = caps.Value("version")
+	require.True(t, ok)
+	require.Equal(t, "1.2.3", v)
+
+	// the optional client argument is ignored by the agent (the token list
+	// is sorted, so it starts with "decrypt identities")
+	resp, err := c.send("hello gopass/9.9.9")
+	require.NoError(t, err)
+	require.True(t, strings.HasPrefix(resp, "decrypt identities"), "unexpected response %q", resp)
+
+	require.NoError(t, c.Quit())
+}
+
+func TestAgentCommandsAdvertised(t *testing.T) {
+	c := startTestAgent(t)
+
+	a := &Agent{}
+	for cmd := range a.commandHandlers() {
+		if cmd == "quit" {
+			// quit shuts the agent down and removes the socket file,
+			// breaking the cleanup below; its dispatch is covered by
+			// the final Quit assertion.
+			continue
+		}
+		_, err := c.send(cmd)
+		if err != nil {
+			// bare commands may legitimately fail on missing arguments,
+			// but they must be recognized, never "unknown command".
+			require.NotContains(t, err.Error(), "unknown command",
+				"command %q is advertised but not implemented", cmd)
+		}
+	}
+
+	require.NoError(t, c.Quit())
+}
+
+// TestAgentUnknownCommandKeepsConnection freezes the protocol invariant
+// that an unrecognized command yields a single-line ERR, changes no state
+// and does not terminate the connection (issue #3624).
+func TestAgentUnknownCommandKeepsConnection(t *testing.T) {
+	c := startTestAgent(t)
+
+	conn, err := net.Dial("unix", c.socketPath)
+	require.NoError(t, err)
+	// fail fast with the stalled assertion named, instead of hanging until
+	// the package timeout, when the agent stops answering lines
+	require.NoError(t, conn.SetReadDeadline(time.Now().Add(5*time.Second)))
+	defer func() {
+		_ = conn.Close()
+	}()
+	r := bufio.NewReader(conn)
+
+	// unknown command: exactly one ERR line
+	fmt.Fprintln(conn, "bogus")
+	line, err := r.ReadString('\n')
+	require.NoError(t, err)
+	require.True(t, strings.HasPrefix(strings.TrimSpace(line), "ERR"), "unexpected response %q", line)
+
+	// no state change: locking still works across an unknown command
+	fmt.Fprintln(conn, "lock")
+	line, err = r.ReadString('\n')
+	require.NoError(t, err)
+	require.Equal(t, "OK", strings.TrimSpace(line))
+
+	fmt.Fprintln(conn, "bogus")
+	line, err = r.ReadString('\n')
+	require.NoError(t, err)
+	require.True(t, strings.HasPrefix(strings.TrimSpace(line), "ERR"))
+
+	fmt.Fprintln(conn, "status")
+	line, err = r.ReadString('\n')
+	require.NoError(t, err)
+	require.Equal(t, "OK locked", strings.TrimSpace(line))
+
+	// the connection keeps serving real commands, including hello
+	fmt.Fprintln(conn, "ping")
+	line, err = r.ReadString('\n')
+	require.NoError(t, err)
+	require.Equal(t, "OK", strings.TrimSpace(line))
+
+	fmt.Fprintln(conn, "hello")
+	line, err = r.ReadString('\n')
+	require.NoError(t, err)
+	require.True(t, strings.HasPrefix(line, "OK "), "unexpected response %q", line)
+
+	require.NoError(t, c.Quit())
+}
+
+// TestClientCapabilitiesLegacy verifies the fallback contract: a pre-hello
+// agent answering ERR to everything makes Capabilities fail, and the caller
+// is expected to keep the pre-hello behaviour (judging by the error's
+// existence, never its text).
+func TestClientCapabilitiesLegacy(t *testing.T) {
+	dir := t.TempDir()
+	sock := filepath.Join(dir, "legacy.sock")
+	l, err := net.Listen("unix", sock)
+	require.NoError(t, err)
+	defer func() {
+		_ = l.Close()
+	}()
+	// client.checkSocketSecurity enforces 0600 on unix: without the chmod
+	// the test would fail at the permission check instead of exercising
+	// the ERR-from-legacy-agent path.
+	require.NoError(t, os.Chmod(sock, 0o600))
+
+	go func() {
+		for {
+			conn, err := l.Accept()
+			if err != nil {
+				return
+			}
+			go func() {
+				defer func() {
+					_ = conn.Close()
+				}()
+				sc := bufio.NewScanner(conn)
+				for sc.Scan() {
+					fmt.Fprintln(conn, "ERR unknown command")
+				}
+			}()
+		}
+	}()
+
+	c := &Client{socketPath: sock}
+	caps, err := c.Capabilities()
+	require.Error(t, err)
+	require.Nil(t, caps)
+
+	// a nil Capabilities must be safe to keep and query: the nil-receiver
+	// guards return the documented zero values
+	require.False(t, caps.Has("ping"))
+	v, ok := caps.Value("maxline")
+	require.False(t, ok)
+	require.Empty(t, v)
+	require.Empty(t, caps.Raw())
+}
+
+func TestParseCapabilities(t *testing.T) {
+	caps := parseCapabilities("ping maxline=42 future-token version=")
+	require.True(t, caps.Has("ping"))
+	require.True(t, caps.Has("future-token"))
+	v, ok := caps.Value("maxline")
+	require.True(t, ok)
+	require.Equal(t, "42", v)
+	v, ok = caps.Value("version")
+	require.True(t, ok)
+	require.Empty(t, v)
+	v, ok = caps.Value("ping")
+	require.True(t, ok)
+	require.Empty(t, v)
+	require.False(t, caps.Has("missing"))
+	require.Equal(t, "ping maxline=42 future-token version=", caps.Raw())
+
+	// empty and malformed input must not panic
+	for _, in := range []string{"", "   ", "=", "=foo"} {
+		require.NotNil(t, parseCapabilities(in))
+	}
+
+	// malformed tokens are skipped without affecting the rest
+	caps = parseCapabilities("=foo ping")
+	require.False(t, caps.Has("=foo"))
+	require.True(t, caps.Has("ping"))
+
+	// duplicate tokens: the first occurrence wins, redefinitions are
+	// ignored (a bare token repeating a key=value one neither upgrades
+	// nor downgrades it)
+	caps = parseCapabilities("version=1.0 version=9.9")
+	v, _ = caps.Value("version")
+	require.Equal(t, "1.0", v)
+	caps = parseCapabilities("ping ping=x")
+	v, ok = caps.Value("ping")
+	require.True(t, ok)
+	require.Empty(t, v)
 }

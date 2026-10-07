@@ -81,22 +81,7 @@ func (l loader) Commands() []*cli.Command {
 							Name:        "status",
 							Usage:       "Check if the age agent is running, this will return 0 if the agent is running and 1 otherwise",
 							Description: "Check if the age agent is running, this will return 0 if the agent is running and 1 otherwise",
-							Action: func(ctx context.Context, cmd *cli.Command) error {
-								ctx = ctxutil.WithGlobalFlags(ctx, cmd)
-								client := agent.NewClient()
-								status, err := client.Status()
-								if err != nil {
-									out.Printf(ctx, "Age agent is not running")
-
-									return exit.Error(exit.Unknown, err, "agent not running")
-								}
-								out.Printf(ctx, "Age agent is running")
-								if status == "locked" {
-									out.Printf(ctx, " (locked)")
-								}
-
-								return nil
-							},
+							Action:      l.agentStatus,
 						},
 						{
 							Name:        "unlock",
@@ -484,6 +469,40 @@ func (l loader) Commands() []*cli.Command {
 			},
 		},
 	}
+}
+
+// agentStatus reports whether the age agent is running and, best effort,
+// its capabilities via the hello negotiation, both fetched over a single
+// connection.
+func (l loader) agentStatus(ctx context.Context, cmd *cli.Command) error {
+	ctx = ctxutil.WithGlobalFlags(ctx, cmd)
+	client := agent.NewClient()
+	info, err := client.Info()
+	if err != nil {
+		out.Printf(ctx, "Age agent is not running")
+
+		return exit.Error(exit.Unknown, err, "agent not running")
+	}
+	out.Printf(ctx, "Age agent is running")
+	if info.Status == "locked" {
+		out.Printf(ctx, " (locked)")
+	}
+
+	// The hello exchange must not change the output semantics above nor the
+	// return value: any hello failure (including a legacy agent's ERR) just
+	// means negotiation is unavailable.
+	if caps := info.Capabilities; caps != nil {
+		// The hello payload comes from the process that owns the agent socket,
+		// so treat it as untrusted and truncate it before echoing it back.
+		if v, ok := caps.Value("version"); ok {
+			out.Printf(ctx, " (agent version %s)", out.Truncated{V: out.Untrusted(v), N: 64})
+		}
+		out.Printf(ctx, "Capabilities: %s", out.Truncated{V: out.Untrusted(caps.Raw()), N: 256})
+	} else {
+		out.Printf(ctx, " (legacy agent, no capability negotiation)")
+	}
+
+	return nil
 }
 
 func (l loader) agent(ctx context.Context, cmd *cli.Command) error {
