@@ -105,13 +105,6 @@ func (c *Client) Decrypt(ciphertext []byte) ([]byte, error) {
 	return base64.StdEncoding.DecodeString(resp)
 }
 
-// Remove removes a passphrase from the agent.
-func (c *Client) Remove(key string) error {
-	_, err := c.send("remove " + key)
-
-	return err
-}
-
 // Lock locks the agent.
 func (c *Client) Lock() error {
 	_, err := c.send("lock")
