@@ -32,6 +32,11 @@ func TestAgent(t *testing.T) {
 		return "test", nil
 	})
 
+	// own the socket dir: without this every test binds the shared default
+	// path, and a delayed cleanup goroutine from a previous test's quit
+	// can remove the next test's freshly-listened socket
+	t.Setenv("GOPASS_HOMEDIR", shortTempDir(t))
+
 	// start agent
 	a, err := New()
 	require.NoError(t, err)
@@ -78,6 +83,11 @@ func TestAgentAutoLock(t *testing.T) {
 	ctx = termio.WithPassPromptFunc(ctx, func(ctx context.Context, prompt string) (string, error) {
 		return "test", nil
 	})
+
+	// own the socket dir: without this every test binds the shared default
+	// path, and a delayed cleanup goroutine from a previous test's quit
+	// can remove the next test's freshly-listened socket
+	t.Setenv("GOPASS_HOMEDIR", shortTempDir(t))
 
 	// start agent
 	a, err := New()
@@ -133,6 +143,11 @@ func TestAgentUnlock(t *testing.T) {
 	ctx = termio.WithPassPromptFunc(ctx, func(ctx context.Context, prompt string) (string, error) {
 		return "test", nil
 	})
+
+	// own the socket dir: without this every test binds the shared default
+	// path, and a delayed cleanup goroutine from a previous test's quit
+	// can remove the next test's freshly-listened socket
+	t.Setenv("GOPASS_HOMEDIR", shortTempDir(t))
 
 	// start agent
 	a, err := New()
@@ -203,6 +218,11 @@ func TestAgentMultipleIdentities(t *testing.T) {
 		return "test", nil
 	})
 
+	// own the socket dir: without this every test binds the shared default
+	// path, and a delayed cleanup goroutine from a previous test's quit
+	// can remove the next test's freshly-listened socket
+	t.Setenv("GOPASS_HOMEDIR", shortTempDir(t))
+
 	// start agent
 	a, err := New()
 	require.NoError(t, err)
@@ -247,6 +267,12 @@ func TestAgentMultipleIdentities(t *testing.T) {
 
 func TestAgentSSHIdentities(t *testing.T) {
 	ctx := t.Context()
+
+	// own the socket dir: without this every test binds the shared default
+	// path, and a delayed cleanup goroutine from a previous test's quit
+	// can remove the next test's freshly-listened socket
+	t.Setenv("GOPASS_HOMEDIR", shortTempDir(t))
+
 	a, err := New()
 	require.NoError(t, err)
 
@@ -338,6 +364,11 @@ func TestAgentLargePayload(t *testing.T) {
 		return "test", nil
 	})
 
+	// own the socket dir: without this every test binds the shared default
+	// path, and a delayed cleanup goroutine from a previous test's quit
+	// can remove the next test's freshly-listened socket
+	t.Setenv("GOPASS_HOMEDIR", shortTempDir(t))
+
 	// start agent
 	a, err := New()
 	require.NoError(t, err)
@@ -388,6 +419,11 @@ func TestAgentMisframedLine(t *testing.T) {
 		return "test", nil
 	})
 
+	// own the socket dir: without this every test binds the shared default
+	// path, and a delayed cleanup goroutine from a previous test's quit
+	// can remove the next test's freshly-listened socket
+	t.Setenv("GOPASS_HOMEDIR", shortTempDir(t))
+
 	// start agent
 	a, err := New()
 	require.NoError(t, err)
@@ -430,6 +466,9 @@ func TestAgentMisframedLine(t *testing.T) {
 // the socket lives another ~35 bytes below this directory. GOPASS_HOMEDIR
 // isolation is used instead of XDG_RUNTIME_DIR because windows resolves
 // the runtime dir from LOCALAPPDATA and would ignore the XDG variable.
+// Pinning GOPASS_HOMEDIR per test also gives every test its own socket
+// path, so tests cannot delete each other's sockets through the agent's
+// quit cleanup.
 func shortTempDir(t *testing.T) string {
 	t.Helper()
 
