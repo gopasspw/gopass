@@ -15,8 +15,8 @@ response line and never speaks on its own.
 - A connection may carry any number of commands sequentially; it ends on
   `quit`, on EOF, or when the client closes it. The official gopass client
   currently opens a fresh connection per command (with one exception: it
-  fetches `status` and `hello` over a single connection), but clients are
-  free to reuse connections.
+  fetches `status`, `lock-in` and `hello` over a single connection), but
+  clients are free to reuse connections.
 - The maximum request line length is agent-defined and advertised via the
   `maxline` token (16 MiB in the official agent). Clients MUST NOT exceed
   the advertised limit; legacy agents, which advertise nothing, accepted
@@ -63,6 +63,18 @@ Liveness probe. Answers `OK`. Takes no arguments.
 
 Reports the lock state. Answers `OK` when unlocked and `OK locked` when
 locked. Takes no arguments.
+
+### `lock-in`
+
+Reports the seconds remaining until the inactivity timer locks the agent.
+Answers `OK <seconds>`, where a negative value means no auto-lock is
+scheduled (the timer is disabled or the agent is already locked). Takes no
+arguments.
+
+This is a read-only query: it never arms, resets or disarms the timer, so
+polling it cannot keep a session alive. It is a newer command; a legacy
+agent answers `ERR unknown command`, which clients must treat as "countdown
+unavailable" rather than an error.
 
 ### `identities <id> [<id> ...]`
 
@@ -163,7 +175,8 @@ The agent keeps three pieces of state:
   still works;
 - an optional idle timer, armed by `set-timeout`. Every `decrypt` resets
   it; when it fires, the agent locks itself exactly as if `lock` had been
-  sent;
+  sent. The `lock-in` command reports the time remaining on this timer
+  without resetting it;
 - an optional `source` binding established by the `session` subcommands:
   while set, only `session decrypt` can decrypt (see `session`).
 
@@ -174,7 +187,7 @@ A typical client session is: `hello` (optional) → `identities` →
 
 ```text
 > hello gopass/1.19.0
-< OK decrypt identities lock ping quit session set-timeout ssh-identity status unlock maxline=16777216 version=1.19.0
+< OK decrypt identities lock lock-in ping quit session set-timeout ssh-identity status unlock maxline=16777216 version=1.19.0
 ```
 
 - Tokens are space-separated on one response line, either bare (`decrypt`)
@@ -218,13 +231,15 @@ user prompt) and is tracked as an open question in #3624.
 
 ```text
 > hello
-< OK decrypt identities lock ping quit session set-timeout ssh-identity status unlock maxline=16777216 version=1.19.0
+< OK decrypt identities lock lock-in ping quit session set-timeout ssh-identity status unlock maxline=16777216 version=1.19.0
 > identities AGE-SECRET-KEY-1EXAMPLE...
 < OK
 > decrypt <base64 ciphertext>
 < OK <base64 plaintext>
 > status
 < OK
+> lock-in
+< OK 42
 > lock
 < OK
 > decrypt <base64 ciphertext>

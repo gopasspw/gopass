@@ -127,9 +127,13 @@ func TestAgentStatus(t *testing.T) {
 	// displayed
 	startAgent(t)
 
+	// arm an auto-lock timer so the countdown is reported
+	require.NoError(t, agent.NewClient().SetTimeout(3600))
+
 	buf = capture()
 	require.NoError(t, l.agentStatus(ctx, cmd))
 	require.Contains(t, buf.String(), "Age agent is running")
+	require.Contains(t, buf.String(), "(auto-locks in ")
 	require.Contains(t, buf.String(), "(agent version ")
 	require.Contains(t, buf.String(), "Capabilities: ")
 	require.NoError(t, agent.NewClient().Quit())

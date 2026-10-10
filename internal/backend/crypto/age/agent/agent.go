@@ -59,6 +59,7 @@ type Agent struct {
 	stopped     bool
 	timer       *time.Timer
 	timeout     time.Duration
+	lockAt      time.Time
 	generation  uint64
 }
 
@@ -149,6 +150,7 @@ func (a *Agent) commandHandlers() map[string]agentHandler {
 		"hello":        a.handleHello,
 		"identities":   a.handleIdentities,
 		"lock":         a.handleLock,
+		"lock-in":      a.handleLockIn,
 		"ping":         a.handlePing,
 		"quit":         a.handleQuit,
 		"session":      a.handleSessionCommand,
@@ -309,6 +311,32 @@ func (a *Agent) handleLock(_ context.Context, conn net.Conn, _ []string) bool {
 	fmt.Fprintln(conn, "OK")
 
 	return true
+}
+
+// handleLockIn reports the seconds remaining until the inactivity timer
+// locks the agent. It is a read-only query: it never arms, resets or
+// disarms the timer, so polling it cannot keep a session alive. The
+// response is "OK <seconds>", where a negative value means no auto-lock
+// is scheduled (the timer is disabled or the agent is already locked).
+func (a *Agent) handleLockIn(_ context.Context, conn net.Conn, _ []string) bool {
+	debug.Log("received: lock-in")
+
+	fmt.Fprintln(conn, "OK "+strconv.Itoa(a.lockInSeconds()))
+
+	return true
+}
+
+// lockInSeconds returns the whole seconds until the auto-lock timer fires,
+// or -1 when no auto-lock is scheduled. It is a pure read of the timer
+// deadline and never mutates agent state.
+func (a *Agent) lockInSeconds() int {
+	a.mux.Lock()
+	defer a.mux.Unlock()
+	if a.locked || a.lockAt.IsZero() {
+		return -1
+	}
+
+	return int(time.Until(a.lockAt).Seconds())
 }
 
 func (a *Agent) handleUnlock(_ context.Context, conn net.Conn, _ []string) bool {

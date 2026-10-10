@@ -157,6 +157,7 @@ func (a *Agent) clearLocked() {
 	a.identities = nil
 	a.source = ""
 	a.locked = true
+	a.lockAt = time.Time{}
 	if a.timer != nil {
 		a.timer.Stop()
 		a.timer = nil
@@ -174,8 +175,11 @@ func (a *Agent) startTimerLocked() {
 	a.unlockToken = ""
 	generation := a.generation
 	if a.timeout <= 0 {
+		a.lockAt = time.Time{}
+
 		return
 	}
+	a.lockAt = time.Now().Add(a.timeout)
 	a.timer = time.AfterFunc(a.timeout, func() {
 		a.mux.Lock()
 		defer a.mux.Unlock()

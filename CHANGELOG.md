@@ -16,6 +16,7 @@ conventions this file is generated from.
 
 - show: Add `show.password` config option to display only the password by default (#3621)
 - age: Add `hello` capability negotiation to the age agent protocol (#3624)
+- age: Report the time left until auto-lock in `gopass age agent status`
 
 ## [1.17.3] - 2026-09-22
 

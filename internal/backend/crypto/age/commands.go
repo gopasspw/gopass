@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"time"
 
 	"filippo.io/age"
 	"github.com/gopasspw/gopass/internal/action/exit"
@@ -79,8 +80,8 @@ func (l loader) Commands() []*cli.Command {
 						},
 						{
 							Name:        "status",
-							Usage:       "Check if the age agent is running, this will return 0 if the agent is running and 1 otherwise",
-							Description: "Check if the age agent is running, this will return 0 if the agent is running and 1 otherwise",
+							Usage:       "Check if the age agent is running and report the time left until it auto-locks, this will return 0 if the agent is running and 1 otherwise",
+							Description: "Check if the age agent is running and report the time left until it auto-locks, this will return 0 if the agent is running and 1 otherwise",
 							Action:      l.agentStatus,
 						},
 						{
@@ -472,8 +473,8 @@ func (l loader) Commands() []*cli.Command {
 }
 
 // agentStatus reports whether the age agent is running and, best effort,
-// its capabilities via the hello negotiation, both fetched over a single
-// connection.
+// its auto-lock countdown and capabilities via the hello negotiation, all
+// fetched over a single connection.
 func (l loader) agentStatus(ctx context.Context, cmd *cli.Command) error {
 	ctx = ctxutil.WithGlobalFlags(ctx, cmd)
 	client := agent.NewClient()
@@ -488,10 +489,23 @@ func (l loader) agentStatus(ctx context.Context, cmd *cli.Command) error {
 		out.Printf(ctx, " (locked)")
 	}
 
+	caps := info.Capabilities
+	// The auto-lock countdown is only meaningful while unlocked and only
+	// when the agent advertises the lock-in query. A legacy agent answers
+	// ERR to lock-in and reports -1, which must not be shown as "auto-lock
+	// disabled" - we simply cannot know.
+	if info.Status != "locked" && caps != nil && caps.Has("lock-in") {
+		if info.LockInSeconds >= 0 {
+			out.Printf(ctx, " (auto-locks in %s)", (time.Duration(info.LockInSeconds) * time.Second).String())
+		} else {
+			out.Printf(ctx, " (auto-lock disabled)")
+		}
+	}
+
 	// The hello exchange must not change the output semantics above nor the
 	// return value: any hello failure (including a legacy agent's ERR) just
 	// means negotiation is unavailable.
-	if caps := info.Capabilities; caps != nil {
+	if caps != nil {
 		// The hello payload comes from the process that owns the agent socket,
 		// so treat it as untrusted and truncate it before echoing it back.
 		if v, ok := caps.Value("version"); ok {
