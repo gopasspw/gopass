@@ -545,7 +545,7 @@ func TestAgentHello(t *testing.T) {
 	// table.
 	for _, cmd := range []string{
 		"ping", "status", "identities", "decrypt",
-		"lock", "unlock", "set-timeout", "quit",
+		"lock", "lock-in", "unlock", "set-timeout", "quit",
 	} {
 		require.True(t, caps.Has(cmd), "missing capability %q in %q", cmd, caps.Raw())
 	}
@@ -600,6 +600,45 @@ func TestAgentCommandsAdvertised(t *testing.T) {
 				"command %q is advertised but not implemented", cmd)
 		}
 	}
+
+	require.NoError(t, c.Quit())
+}
+
+// TestAgentLockIn covers the read-only auto-lock countdown query: it reports
+// -1 when no timer is armed (disabled or locked), a positive countdown while
+// a timer is armed, and never resets the timer itself.
+func TestAgentLockIn(t *testing.T) {
+	c := startTestAgent(t)
+
+	// no timeout configured -> no auto-lock scheduled
+	secs, err := c.LockIn()
+	require.NoError(t, err)
+	require.Equal(t, -1, secs)
+
+	// arm a timeout; the countdown must be positive and at most the timeout
+	require.NoError(t, c.SetTimeout(60))
+	secs, err = c.LockIn()
+	require.NoError(t, err)
+	require.Positive(t, secs)
+	require.LessOrEqual(t, secs, 60)
+
+	// polling must not reset the timer: the countdown keeps decreasing
+	time.Sleep(1100 * time.Millisecond)
+	secs2, err := c.LockIn()
+	require.NoError(t, err)
+	require.Less(t, secs2, secs)
+
+	// disabling the timer reports -1 again
+	require.NoError(t, c.SetTimeout(0))
+	secs, err = c.LockIn()
+	require.NoError(t, err)
+	require.Equal(t, -1, secs)
+
+	// a locked agent has no scheduled auto-lock
+	require.NoError(t, c.Lock())
+	secs, err = c.LockIn()
+	require.NoError(t, err)
+	require.Equal(t, -1, secs)
 
 	require.NoError(t, c.Quit())
 }

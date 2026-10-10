@@ -175,23 +175,28 @@ func (c *Client) Capabilities() (*Capabilities, error) {
 	return parseCapabilities(resp), nil
 }
 
-// AgentInfo is the combined status and capability view of a running agent,
-// gathered over a single connection.
+// AgentInfo is the combined status, auto-lock countdown and capability view
+// of a running agent, gathered over a single connection.
 type AgentInfo struct {
 	// Status is the payload of the status command: "" or "locked".
 	Status string
+
+	// LockInSeconds is the number of whole seconds until the inactivity
+	// timer locks the agent, or -1 when no auto-lock is scheduled (the
+	// timer is disabled or the agent is already locked).
+	LockInSeconds int
 
 	// Capabilities is nil when the agent did not answer hello (a pre-hello
 	// legacy agent, or a failure mid-handshake).
 	Capabilities *Capabilities
 }
 
-// Info queries the agent status and its capabilities over a single
-// connection (the client is otherwise one connection per command). A
-// transport failure on the status exchange fails the call; a failure or
-// ERR on hello only degrades Capabilities to nil, matching the
-// negotiation contract: judge by the error's existence, never its text,
-// and keep the pre-hello behaviour.
+// Info queries the agent status, its auto-lock countdown and its
+// capabilities over a single connection (the client is otherwise one
+// connection per command). A transport failure on the status exchange fails
+// the call; a failure or ERR on lock-in or hello only degrades the
+// corresponding field, matching the negotiation contract: judge by the
+// error's existence, never its text, and keep the pre-hello behaviour.
 func (c *Client) Info() (*AgentInfo, error) {
 	conn, err := c.connect()
 	if err != nil {
@@ -206,16 +211,26 @@ func (c *Client) Info() (*AgentInfo, error) {
 		return nil, err
 	}
 
+	info := &AgentInfo{Status: status, LockInSeconds: -1}
+	// lock-in is a newer command: a legacy agent answers ERR, which only
+	// means the countdown is unavailable, not that the agent is broken.
+	if resp, err := c.exchange(conn, "lock-in"); err == nil {
+		if secs, err := strconv.Atoi(strings.TrimSpace(resp)); err == nil {
+			info.LockInSeconds = secs
+		}
+	}
+
 	helloCmd := "hello"
 	if v, ok := buildinfo.ModuleVersion(); ok {
 		helloCmd += " gopass/" + v
 	}
 	resp, err := c.exchange(conn, helloCmd)
 	if err != nil {
-		return &AgentInfo{Status: status}, nil
+		return info, nil
 	}
+	info.Capabilities = parseCapabilities(resp)
 
-	return &AgentInfo{Status: status, Capabilities: parseCapabilities(resp)}, nil
+	return info, nil
 }
 
 // Ping pings the agent.
@@ -228,6 +243,19 @@ func (c *Client) Ping() error {
 // Status returns the agent's status.
 func (c *Client) Status() (string, error) {
 	return c.send("status")
+}
+
+// LockIn returns the number of whole seconds until the agent's inactivity
+// timer locks it, or -1 when no auto-lock is scheduled (the timer is
+// disabled or the agent is already locked). It is a read-only query and
+// does not reset the timer.
+func (c *Client) LockIn() (int, error) {
+	resp, err := c.send("lock-in")
+	if err != nil {
+		return -1, err
+	}
+
+	return strconv.Atoi(strings.TrimSpace(resp))
 }
 
 // SendIdentities sends the identities to the agent.

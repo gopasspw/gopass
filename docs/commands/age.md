@@ -12,12 +12,12 @@ recipients and identities in sync, see
 ## Synopsis
 
 ```bash
-$ gopass age agent start
-$ gopass age agent status
-$ gopass age identities
-$ gopass age identities add AGE-SECRET-KEY-1... age1...
-$ gopass age identities sort
-$ gopass age lock
+gopass age agent start
+gopass age agent status
+gopass age identities
+gopass age identities add AGE-SECRET-KEY-1... age1...
+gopass age identities sort
+gopass age lock
 ```
 
 ## Subcommands
@@ -32,7 +32,7 @@ a plugin.
 |------------|------------------------------------------------------------------------|
 | `start`    | Start the age agent.                                                   |
 | `stop`     | Stop the age agent.                                                    |
-| `status`   | Check if the age agent is running. Exits 0 when running, non-zero otherwise. |
+| `status`   | Check if the age agent is running, and report the time left until it auto-locks. Exits 0 when running, non-zero otherwise. |
 | `unlock`   | Unlock the agent and reload identities (prompts for the PIN).          |
 | `lock`     | Lock the agent and clear all cached identities.                        |
 
