@@ -396,6 +396,20 @@ _gopass () {
 	      
 	      
 	      ;;
+	  secret-service)
+	      local -a subcommands
+	      subcommands=(
+	      "serve:Start the Secret Service daemon (blocks until interrupted)"
+	      "status:Check whether a Secret Service provider is running"
+	      "install:Install the systemd user unit and D-Bus session activation file"
+	      "uninstall:Remove the systemd user unit and D-Bus session activation file"
+	      "help:Shows a list of commands or help for one command"
+	      )
+	      _describe -t commands "gopass secret-service" subcommands
+	      _arguments : "--help[show help]"
+	      
+	      
+	      ;;
 	  setup)
 	      local -a subcommands
 	      subcommands=(
@@ -542,6 +556,7 @@ _gopass () {
 	  "rcs:Run a RCS command inside a password store"
 	  "recipients:Edit recipient permissions"
 	  "reorg:Reorganize a password store by editing a text file"
+	  "secret-service:Run a D-Bus Secret Service daemon backed by gopass"
 	  "setup:Initialize a new password store"
 	  "show:Display the content of a secret"
 	  "sum:Compute the SHA256 checksum"

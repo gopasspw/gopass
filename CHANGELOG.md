@@ -12,11 +12,34 @@ conventions this file is generated from.
 
 ## [Unreleased]
 
+## [1.17.4] - 2026-10-10
+
 ### Added
 
-- show: Add `show.password` config option to display only the password by default (#3621)
 - age: Add `hello` capability negotiation to the age agent protocol (#3624)
 - age: Report the time left until auto-lock in `gopass age agent status`
+- age: add hello capability negotiation to the age agent (#3634)
+- age: log received identities via out.Secret (#3630) (#3625)
+- age: report auto-lock countdown in `age agent status` (#3656)
+- age: support hardware-backed keyring unlocking (#3648) (#3644)
+- secret-service: add Linux Secret Service daemon (#3434) (#3607)
+- show: Add `show.password` config option to display only the password by default (#3621)
+- show: add show.password config option (#3621) (#3623)
+
+### Fixed
+
+- Mitigate path-traversal gap in Store.Link (#3649)
+- Remove capslock (#3647)
+- age-agent: redact sensitive protocol lines from debug logs (#3625) (#3508)
+- age: cache unlocked SSH identities in agent (#3646)
+- age: honor preferred identity order during decryption (#3643) (#3632)
+- age: prevent agent panic when decrypting plugin identities (#3633)
+- ls: Hide template-only folders from flat listing (#3650)
+- msi: add install dir to user PATH (#3588) (#3622)
+
+### Security
+
+- fs: reject symlinked store entries escaping the store root (#3654)
 
 ## [1.17.3] - 2026-09-22
 
@@ -1312,7 +1335,8 @@ the runtime behaviour, but we could not test this on all platforms, yet.
 * [ENHANCEMENT] Simplified recipient management
 * [ENHANCEMENT] Interactive questions for missing parameters
 
-[Unreleased]: https://github.com/gopasspw/gopass/compare/v1.17.3...HEAD
+[Unreleased]: https://github.com/gopasspw/gopass/compare/v1.17.4...HEAD
+[1.17.4]: https://github.com/gopasspw/gopass/compare/v1.17.3...v1.17.4
 [1.17.3]: https://github.com/gopasspw/gopass/compare/v1.17.2...v1.17.3
 [1.17.2]: https://github.com/gopasspw/gopass/compare/v1.17.1...v1.17.2
 [1.17.1]: https://github.com/gopasspw/gopass/compare/v1.17.0...v1.17.1
