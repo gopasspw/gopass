@@ -324,7 +324,7 @@ func (s *setupHandler) initLocal(ctx context.Context, remote string) error {
 		return fmt.Errorf("failed to init local store: %w", err)
 	}
 
-	if backend.GetStorageBackend(ctx) == backend.GitFS {
+	if be := backend.GetStorageBackend(ctx); be == backend.GitFS || be == backend.GoGit {
 		debug.Log("configuring git remotes")
 		if want, err := termio.AskForBool(ctx, "❓ Do you want to add a git remote?", false); (err == nil && want) || remote != "" {
 			out.Printf(ctx, "Configuring the git remote ...")

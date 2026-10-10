@@ -57,7 +57,7 @@ _gopass () {
 	      "help:Shows a list of commands or help for one command"
 	      )
 	      _describe -t commands "gopass clone" subcommands
-	      _arguments : "--path[Path to clone the repo to]" "--crypto[Select crypto backend \[age gpgcli plain\]]" "--storage[Select storage backend \[cryptfs fossilfs gitfs jjfs\]]" "--check-keys[Check for valid decryption keys. Generate new keys if none are found.]" "--help[show help]"
+	      _arguments : "--path[Path to clone the repo to]" "--crypto[Select crypto backend \[age gpgcli plain\]]" "--storage[Select storage backend \[cryptfs fossilfs gitfs gogit jjfs\]]" "--check-keys[Check for valid decryption keys. Generate new keys if none are found.]" "--help[show help]"
 	      
 	      
 	      ;;
@@ -91,7 +91,7 @@ _gopass () {
 	      "help:Shows a list of commands or help for one command"
 	      )
 	      _describe -t commands "gopass convert" subcommands
-	      _arguments : "--store[Specify which store to convert]" "--move[Replace store?]" "--crypto[Which crypto backend? \[age gpgcli plain\]]" "--storage[Which storage backend? \[cryptfs fossilfs fs gitfs jjfs\]]" "--help[show help]"
+	      _arguments : "--store[Specify which store to convert]" "--move[Replace store?]" "--crypto[Which crypto backend? \[age gpgcli plain\]]" "--storage[Which storage backend? \[cryptfs fossilfs fs gitfs gogit jjfs\]]" "--help[show help]"
 	      
 	      
 	      ;;
@@ -241,7 +241,7 @@ _gopass () {
 	      "help:Shows a list of commands or help for one command"
 	      )
 	      _describe -t commands "gopass init" subcommands
-	      _arguments : "--path[Set the sub-store path to operate on]" "--store[Set the name of the sub-store]" "--crypto[Select crypto backend \[age gpgcli plain\]]" "--storage[Select storage backend \[cryptfs fossilfs fs gitfs jjfs\]]" "--help[show help]"
+	      _arguments : "--path[Set the sub-store path to operate on]" "--store[Set the name of the sub-store]" "--crypto[Select crypto backend \[age gpgcli plain\]]" "--storage[Select storage backend \[cryptfs fossilfs fs gitfs gogit jjfs\]]" "--help[show help]"
 	      
 	      
 	      ;;
@@ -396,13 +396,27 @@ _gopass () {
 	      
 	      
 	      ;;
+	  secret-service)
+	      local -a subcommands
+	      subcommands=(
+	      "serve:Start the Secret Service daemon (blocks until interrupted)"
+	      "status:Check whether a Secret Service provider is running"
+	      "install:Install the systemd user unit and D-Bus session activation file"
+	      "uninstall:Remove the systemd user unit and D-Bus session activation file"
+	      "help:Shows a list of commands or help for one command"
+	      )
+	      _describe -t commands "gopass secret-service" subcommands
+	      _arguments : "--help[show help]"
+	      
+	      
+	      ;;
 	  setup)
 	      local -a subcommands
 	      subcommands=(
 	      "help:Shows a list of commands or help for one command"
 	      )
 	      _describe -t commands "gopass setup" subcommands
-	      _arguments : "--remote[URL to a git remote, will attempt to join this team]" "--team[Name of the team to create or join (may contain slashes). Also used as the local mount point.]" "--create-team[Create a new team instead of joining an existing one (default: false, i.e. join an existing team)]" "--name[Firstname and Lastname for unattended GPG key generation]" "--email[EMail for unattended GPG key generation]" "--crypto[Select crypto backend \[age gpgcli plain\]]" "--storage[Select storage backend \[cryptfs fossilfs fs gitfs jjfs\]]" "--help[show help]"
+	      _arguments : "--remote[URL to a git remote, will attempt to join this team]" "--team[Name of the team to create or join (may contain slashes). Also used as the local mount point.]" "--create-team[Create a new team instead of joining an existing one (default: false, i.e. join an existing team)]" "--name[Firstname and Lastname for unattended GPG key generation]" "--email[EMail for unattended GPG key generation]" "--crypto[Select crypto backend \[age gpgcli plain\]]" "--storage[Select storage backend \[cryptfs fossilfs fs gitfs gogit jjfs\]]" "--help[show help]"
 	      
 	      
 	      ;;
@@ -542,6 +556,7 @@ _gopass () {
 	  "rcs:Run a RCS command inside a password store"
 	  "recipients:Edit recipient permissions"
 	  "reorg:Reorganize a password store by editing a text file"
+	  "secret-service:Run a D-Bus Secret Service daemon backed by gopass"
 	  "setup:Initialize a new password store"
 	  "show:Display the content of a secret"
 	  "sum:Compute the SHA256 checksum"

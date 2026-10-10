@@ -8,6 +8,7 @@ import (
 
 	"github.com/gopasspw/gopass/internal/action/exit"
 	"github.com/gopasspw/gopass/internal/backend/storage/gitfs"
+	"github.com/gopasspw/gopass/internal/backend/storage/gogit"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store/leaf"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
@@ -176,11 +177,19 @@ func (s *miscHandler) doctorCheckAge(_ context.Context) error {
 	return nil
 }
 
-// doctorCheckGit fails if any store uses the git storage backend but the git binary is not found.
-func (s *miscHandler) doctorCheckGit(_ context.Context) error {
+// doctorCheckGit fails if any store uses the git CLI storage backend but the
+// git binary is not found. Stores using the pure-Go go-git backend pass (with
+// an informational note) since they do not need the git binary.
+func (s *miscHandler) doctorCheckGit(ctx context.Context) error {
 	for _, mp := range s.doctorMountPoints() {
 		sub, err := s.Store.GetSubStore(mp)
 		if err != nil || sub == nil {
+			continue
+		}
+
+		if _, ok := sub.Storage().(*gogit.GoGit); ok {
+			out.Printf(ctx, "store %q uses the pure-Go go-git backend (no git binary required)", doctorStoreLabel(mp))
+
 			continue
 		}
 
@@ -204,13 +213,18 @@ func (s *miscHandler) doctorCheckGitIdentity(ctx context.Context) error {
 			continue
 		}
 
-		g, ok := sub.Storage().(*gitfs.Git)
-		if !ok {
+		var get func(string) (string, error)
+		switch st := sub.Storage().(type) {
+		case *gitfs.Git:
+			get = func(key string) (string, error) { return st.ConfigGet(ctx, key) }
+		case *gogit.GoGit:
+			get = func(key string) (string, error) { return st.ConfigGet(ctx, key) }
+		default:
 			continue
 		}
 
 		for _, key := range []string{"user.name", "user.email"} {
-			v, err := g.ConfigGet(ctx, key)
+			v, err := get(key)
 			if err != nil || v == "" {
 				return fmt.Errorf("git config %q not set for store %q", key, doctorStoreLabel(mp))
 			}
