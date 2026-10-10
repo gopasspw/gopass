@@ -4,15 +4,15 @@ The `audit` command will decrypt all secrets and scan for weak passwords or othe
 
 ## Synopsis
 
-```
-$ gopass audit
+```bash
+gopass audit
 ```
 
 ## Excludes
 
 You can exclude certain secrets from the audit by adding a `.gopass-audit-exclude` file to the secret. The file should contain a list of RE2 patters to exclude, one per line. For example:
 
-```
+```bash
 # Lines starting with # are ignored. Trailing comments are not supported.
 # Exclude all secrets in the pin folder.
 # Note: These are RE2, not Glob patterns!
@@ -25,7 +25,7 @@ test_folder/ignore_this
 ## Exit codes
 
 | Code | Meaning |
-|-----:|---------|
+| -----: | --------- |
 | 0 | No issues found |
 | 1 | Audit run itself failed |
 | 13 | Store contents could not be listed |

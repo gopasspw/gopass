@@ -7,8 +7,8 @@ data-stream to store it.
 ## Synopsis
 
 ```bash
-$ echo "test" | gopass cat test/new
-$ gopass cat test/new
+echo "test" | gopass cat test/new
+gopass cat test/new
 ```
 
 ## Modes of operation
@@ -23,7 +23,8 @@ in the password store encoded, with some metadata about the input-stream and the
 used encoding (currently only Base64 supported).
 
 ### Example
-```
+
+```bash
 $ echo "234" | gopass cat test/new
 $ gopass show -f test/new
 Secret: test/new
