@@ -37,14 +37,63 @@ func New(dir string) *Store {
 }
 
 // safePath validates that name resolves to a path under the store root,
-// returning an error if a path traversal is detected.
+// returning an error if a path traversal is detected. Both lexical traversal
+// (e.g. "../foo") and symlinks that point outside the store root are rejected.
 func (s *Store) safePath(name string) (string, error) {
 	resolved := filepath.Join(s.path, filepath.Clean(name))
 	if resolved != s.path && !strings.HasPrefix(resolved, s.path+string(filepath.Separator)) {
 		return "", fmt.Errorf("path traversal detected: %q escapes store root", name)
 	}
 
+	// The lexical check above does not resolve symlinks. A symlink inside the
+	// store whose target lives outside the root would pass it, so resolve the
+	// path and verify the real location stays within the store as well.
+	if err := s.checkSymlinkEscape(resolved); err != nil {
+		return "", err
+	}
+
 	return resolved, nil
+}
+
+// checkSymlinkEscape resolves the longest existing prefix of path and verifies
+// that it does not escape the store root. This catches symlinked store entries
+// (including intermediate directory symlinks) while still allowing paths whose
+// trailing components do not exist yet, e.g. when creating a new secret.
+func (s *Store) checkSymlinkEscape(path string) error {
+	root, err := filepath.EvalSymlinks(s.path)
+	if err != nil {
+		// The store root itself cannot be resolved. Fall back to the
+		// configured path so we do not reject every operation.
+		root = s.path
+	}
+
+	// Walk up until we find a component that exists on disk. The trailing
+	// components of a path that is about to be created do not exist yet.
+	existing := path
+	for {
+		if _, err := os.Lstat(existing); err == nil {
+			break
+		}
+
+		parent := filepath.Dir(existing)
+		if parent == existing {
+			// Reached the filesystem root without finding anything.
+			return nil
+		}
+
+		existing = parent
+	}
+
+	realPath, err := filepath.EvalSymlinks(existing)
+	if err != nil {
+		return fmt.Errorf("failed to resolve path %q: %w", path, err)
+	}
+
+	if realPath != root && !strings.HasPrefix(realPath, root+string(filepath.Separator)) {
+		return fmt.Errorf("path traversal detected: %q escapes store root", path)
+	}
+
+	return nil
 }
 
 // Get retrieves the named content.

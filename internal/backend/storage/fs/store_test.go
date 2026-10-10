@@ -283,3 +283,98 @@ func TestPruneAndIsDirRejectPathTraversal(t *testing.T) {
 		assert.False(t, s.IsDir(ctx, "../outside"), "IsDir should not resolve a name that escapes the store root")
 	})
 }
+
+// TestSymlinkEscapeRejected verifies that a symlink inside the store pointing
+// outside the store root cannot be used to read, write, move or delete files
+// outside the store. See GHSA-v4c2-4fvx-chr3.
+func TestSymlinkEscapeRejected(t *testing.T) {
+	ctx := config.NewContextInMemory()
+
+	base := t.TempDir()
+	storeRoot := filepath.Join(base, "store")
+	outside := filepath.Join(base, "outside")
+	require.NoError(t, os.MkdirAll(storeRoot, 0o700))
+	require.NoError(t, os.MkdirAll(outside, 0o700))
+
+	canary := filepath.Join(outside, "canary.txt")
+	require.NoError(t, os.WriteFile(canary, []byte("do not touch me"), 0o600))
+
+	// A directory symlink inside the store that points outside the root.
+	require.NoError(t, os.Symlink(outside, filepath.Join(storeRoot, "escape")))
+	// A file symlink inside the store that points outside the root.
+	require.NoError(t, os.Symlink(canary, filepath.Join(storeRoot, "escape-file")))
+
+	s := New(storeRoot)
+
+	assertCanaryIntact := func(t *testing.T) {
+		t.Helper()
+
+		content, err := os.ReadFile(canary)
+		require.NoError(t, err, "canary file outside the store root must survive")
+		assert.Equal(t, "do not touch me", string(content), "canary file must not be modified")
+	}
+
+	t.Run("Get", func(t *testing.T) {
+		_, err := s.Get(ctx, "escape/canary.txt")
+		require.Error(t, err, "Get must reject a symlinked path escaping the store root")
+
+		_, err = s.Get(ctx, "escape-file")
+		require.Error(t, err, "Get must reject a symlinked file escaping the store root")
+	})
+
+	t.Run("Set", func(t *testing.T) {
+		err := s.Set(ctx, "escape/new.txt", []byte("pwned"))
+		require.Error(t, err, "Set must reject a symlinked path escaping the store root")
+
+		_, statErr := os.Stat(filepath.Join(outside, "new.txt"))
+		assert.True(t, os.IsNotExist(statErr), "Set must not create files outside the store root")
+
+		err = s.Set(ctx, "escape-file", []byte("pwned"))
+		require.Error(t, err, "Set must reject a symlinked file escaping the store root")
+		assertCanaryIntact(t)
+	})
+
+	t.Run("Delete", func(t *testing.T) {
+		err := s.Delete(ctx, "escape/canary.txt")
+		require.Error(t, err, "Delete must reject a symlinked path escaping the store root")
+		assertCanaryIntact(t)
+
+		err = s.Delete(ctx, "escape-file")
+		require.Error(t, err, "Delete must reject a symlinked file escaping the store root")
+		assertCanaryIntact(t)
+	})
+
+	t.Run("Prune", func(t *testing.T) {
+		err := s.Prune(ctx, "escape")
+		require.Error(t, err, "Prune must reject a symlinked path escaping the store root")
+		assertCanaryIntact(t)
+	})
+
+	t.Run("Move", func(t *testing.T) {
+		err := s.Move(ctx, "escape/canary.txt", "moved.txt", true)
+		require.Error(t, err, "Move must reject a symlinked source escaping the store root")
+		assertCanaryIntact(t)
+
+		err = s.Move(ctx, "moved.txt", "escape/moved.txt", true)
+		require.Error(t, err, "Move must reject a symlinked destination escaping the store root")
+		assertCanaryIntact(t)
+	})
+
+	t.Run("Exists", func(t *testing.T) {
+		assert.False(t, s.Exists(ctx, "escape/canary.txt"), "Exists must not resolve a symlinked path escaping the store root")
+	})
+
+	t.Run("IsDir", func(t *testing.T) {
+		assert.False(t, s.IsDir(ctx, "escape"), "IsDir must not resolve a symlinked path escaping the store root")
+	})
+
+	t.Run("Link", func(t *testing.T) {
+		err := s.Link(ctx, "escape/canary.txt", "link.txt")
+		require.Error(t, err, "Link must reject a symlinked source escaping the store root")
+	})
+
+	t.Run("LinkTarget", func(t *testing.T) {
+		_, _, err := s.LinkTarget(ctx, "escape-file")
+		require.Error(t, err, "LinkTarget must reject a symlinked file escaping the store root")
+	})
+}
