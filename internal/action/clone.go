@@ -130,7 +130,7 @@ func (s *setupHandler) cloneJoinTeam(ctx context.Context, mount string) error {
 func storageBackendOrDefault(ctx context.Context, repo string) backend.StorageBackend {
 	// first try to get it from the context.
 	if be := backend.GetStorageBackend(ctx); be != backend.FS {
-		return be
+		return backend.ResolveStorageBackend(ctx, be)
 	}
 
 	if strings.HasSuffix(repo, ".fossil") {
@@ -138,12 +138,12 @@ func storageBackendOrDefault(ctx context.Context, repo string) backend.StorageBa
 	}
 
 	if strings.HasSuffix(repo, ".git") {
-		return backend.GitFS
+		return backend.ResolveStorageBackend(ctx, backend.GitFS)
 	}
 
 	debug.Log("falling back to the default storage backend for clone (GitFS)")
 
-	return backend.GitFS
+	return backend.ResolveStorageBackend(ctx, backend.GitFS)
 }
 
 func (s *setupHandler) clone(ctx context.Context, repo, mount, path string) error {

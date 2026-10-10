@@ -15,6 +15,7 @@ the context handlers in the same package.
 
 * [fs](backends/fs.md) - Filesystem storage without RCS support
 * [gitfs](backends/gitfs.md) - Filesystem storage with Git RCS
+* [gogit](backends/gogit.md) - Filesystem storage with Git RCS using the pure-Go go-git implementation (no `git` binary required)
 * [fossilfs](backends/fossilfs.md) - Filesystem storage with Fossil RCS. **Highly experimental, likely broken**. Use only if you want to contribute to the backend.
 * [jjfs](backends/jjfs.md) - Filesystem storage with JJ RCS. **Highly experimental, likely broken**. Use only if you want to contribute to the backend.
 * [cryptfs](backends/cryptfs.md) - Fully encrypted filesystem storage. **Highly experimental, likely broken**. Use only if you want to contribute to the backend.

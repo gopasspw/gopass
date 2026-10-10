@@ -88,7 +88,7 @@ mounts move otp process pwgen rcs recipients reorg secret-service setup show sum
 sync templates unclip update version
 ```
 
-**Backends:** `age`, `gpg`, `plain`, `cryptfs`, `fossilfs`, `fs`, `gitfs`, `jjfs`
+**Backends:** `age`, `gpg`, `plain`, `cryptfs`, `fossilfs`, `fs`, `gitfs`, `gogit`, `jjfs`
 
 **Subsystems:** `action`, `audit`, `backend`, `cache`, `completion`, `config`,
 `create`, `cui`, `editor`, `hashsum`, `hook`, `notify`, `out`, `queue`,

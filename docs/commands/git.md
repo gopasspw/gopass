@@ -4,7 +4,10 @@ The `git` command runs an arbitrary `git` command inside a password store,
 without the need to `cd` into the store directory first.
 
 Note: This command is provided by the `gitfs` storage backend and is only
-available when the selected store uses that backend.
+available when the selected store uses that backend. It requires the `git`
+binary at runtime. Stores using the pure-Go [`gogit`](../backends/gogit.md)
+backend still have a `.git` directory, so this command works for them too as
+long as `git` is installed.
 
 ## Synopsis
 
