@@ -1,15 +1,12 @@
 package leaf
 
 import (
-	"bytes"
-	"os"
 	"runtime"
 	"testing"
 
 	"github.com/gopasspw/gopass/internal/backend/crypto/plain"
 	"github.com/gopasspw/gopass/internal/backend/storage/fs"
 	"github.com/gopasspw/gopass/internal/config"
-	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/recipients"
 	"github.com/gopasspw/gopass/internal/store"
 	"github.com/gopasspw/gopass/pkg/gopass/secrets"
@@ -22,11 +19,7 @@ func TestFsck(t *testing.T) {
 
 	ctx := config.NewContextInMemory()
 
-	obuf := &bytes.Buffer{}
-	out.Stdout = obuf
-	defer func() {
-		out.Stdout = os.Stdout
-	}()
+	ctx, stdout, _ := captureOutput(t, ctx)
 
 	// common setup
 	tempdir := t.TempDir()
@@ -50,7 +43,7 @@ func TestFsck(t *testing.T) {
 	}
 
 	require.NoError(t, s.Fsck(ctx, "", nil))
-	obuf.Reset()
+	seekStart(t, stdout)
 }
 
 func TestFsckCheckCaseConflicts(t *testing.T) {

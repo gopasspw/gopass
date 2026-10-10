@@ -1,14 +1,11 @@
 package leaf
 
 import (
-	"bytes"
-	"os"
 	"testing"
 
 	"github.com/gopasspw/gopass/internal/backend/crypto/plain"
 	"github.com/gopasspw/gopass/internal/backend/storage/fs"
 	"github.com/gopasspw/gopass/internal/config"
-	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/recipients"
 	"github.com/gopasspw/gopass/pkg/gopass/secrets"
 	"github.com/stretchr/testify/assert"
@@ -20,11 +17,7 @@ func TestList(t *testing.T) {
 
 	ctx := config.NewContextInMemory()
 
-	obuf := &bytes.Buffer{}
-	out.Stdout = obuf
-	defer func() {
-		out.Stdout = os.Stdout
-	}()
+	ctx, stdout, _ := captureOutput(t, ctx)
 
 	for _, tc := range []struct {
 		name string
@@ -82,7 +75,7 @@ func TestList(t *testing.T) {
 			tempdir := t.TempDir()
 
 			defer func() {
-				obuf.Reset()
+				seekStart(t, stdout)
 			}()
 
 			s := &Store{
@@ -99,7 +92,7 @@ func TestList(t *testing.T) {
 
 			// prepare store
 			require.NoError(t, tc.prep(s))
-			obuf.Reset()
+			seekStart(t, stdout)
 
 			// run test case
 			out, err := s.List(ctx, "")
