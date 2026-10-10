@@ -68,7 +68,7 @@ func WithWriter(ctx context.Context, stdout, stderr io.Writer) context.Context {
 
 // Writer returns the per-context stdout and stderr writers, falling back to
 // the package-level Stdout and Stderr when none were set.
-func Writer(ctx context.Context) (stdout, stderr io.Writer) {
+func Writer(ctx context.Context) (io.Writer, io.Writer) {
 	if wp, ok := ctx.Value(ctxKeyWriter).(writerPair); ok {
 		return wp.stdout, wp.stderr
 	}
