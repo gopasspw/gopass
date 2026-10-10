@@ -1,14 +1,11 @@
 package leaf
 
 import (
-	"bytes"
-	"os"
 	"testing"
 
 	"github.com/gopasspw/gopass/internal/backend/crypto/plain"
 	"github.com/gopasspw/gopass/internal/backend/storage/fs"
 	"github.com/gopasspw/gopass/internal/config"
-	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/recipients"
 	"github.com/gopasspw/gopass/pkg/gopass/secrets"
 	"github.com/stretchr/testify/assert"
@@ -20,11 +17,7 @@ func TestCopy(t *testing.T) {
 
 	ctx := config.NewContextInMemory()
 
-	obuf := &bytes.Buffer{}
-	out.Stdout = obuf
-	defer func() {
-		out.Stdout = os.Stdout
-	}()
+	ctx, stdout, _ := captureOutput(t, ctx)
 
 	for _, tc := range []struct {
 		name string
@@ -77,7 +70,7 @@ func TestCopy(t *testing.T) {
 			tempdir := t.TempDir()
 
 			defer func() {
-				obuf.Reset()
+				seekStart(t, stdout)
 			}()
 
 			s := &Store{
@@ -102,11 +95,7 @@ func TestMove(t *testing.T) {
 
 	ctx := config.NewContextInMemory()
 
-	obuf := &bytes.Buffer{}
-	out.Stdout = obuf
-	defer func() {
-		out.Stdout = os.Stdout
-	}()
+	ctx, stdout, _ := captureOutput(t, ctx)
 
 	for _, tc := range []struct {
 		name string
@@ -159,7 +148,7 @@ func TestMove(t *testing.T) {
 			tempdir := t.TempDir()
 
 			defer func() {
-				obuf.Reset()
+				seekStart(t, stdout)
 			}()
 
 			s := &Store{
@@ -185,11 +174,7 @@ func TestDelete(t *testing.T) {
 
 	ctx := config.NewContextInMemory()
 
-	obuf := &bytes.Buffer{}
-	out.Stdout = obuf
-	defer func() {
-		out.Stdout = os.Stdout
-	}()
+	ctx, stdout, _ := captureOutput(t, ctx)
 
 	for _, tc := range []struct {
 		name string
@@ -224,7 +209,7 @@ func TestDelete(t *testing.T) {
 			tempdir := t.TempDir()
 
 			defer func() {
-				obuf.Reset()
+				seekStart(t, stdout)
 			}()
 
 			s := &Store{
@@ -251,11 +236,7 @@ func TestPrune(t *testing.T) {
 	ctx := config.NewContextInMemory()
 	ctx = config.NewInMemory().WithConfig(ctx)
 
-	obuf := &bytes.Buffer{}
-	out.Stdout = obuf
-	defer func() {
-		out.Stdout = os.Stdout
-	}()
+	ctx, stdout, _ := captureOutput(t, ctx)
 
 	for _, tc := range []struct {
 		name string
@@ -313,7 +294,7 @@ func TestPrune(t *testing.T) {
 			tempdir := t.TempDir()
 
 			defer func() {
-				obuf.Reset()
+				seekStart(t, stdout)
 			}()
 
 			s := &Store{

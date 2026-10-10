@@ -1,12 +1,16 @@
 package out
 
-import "context"
+import (
+	"context"
+	"io"
+)
 
 type contextKey int
 
 const (
 	ctxKeyPrefix contextKey = iota
 	ctxKeyNewline
+	ctxKeyWriter
 )
 
 // WithPrefix returns a context with the given prefix set.
@@ -52,4 +56,27 @@ func HasNewline(ctx context.Context) bool {
 	}
 
 	return bv
+}
+
+// WithWriter returns a context whose output is written to the given writers
+// instead of the package-level Stdout and Stderr. It allows callers, most
+// notably tests running in parallel, to capture or discard output without
+// mutating shared package state.
+func WithWriter(ctx context.Context, stdout, stderr io.Writer) context.Context {
+	return context.WithValue(ctx, ctxKeyWriter, writerPair{stdout, stderr})
+}
+
+// Writer returns the per-context stdout and stderr writers, falling back to
+// the package-level Stdout and Stderr when none were set.
+func Writer(ctx context.Context) (stdout, stderr io.Writer) {
+	if wp, ok := ctx.Value(ctxKeyWriter).(writerPair); ok {
+		return wp.stdout, wp.stderr
+	}
+
+	return Stdout, Stderr
+}
+
+type writerPair struct {
+	stdout io.Writer
+	stderr io.Writer
 }
