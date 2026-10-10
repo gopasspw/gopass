@@ -1,6 +1,6 @@
 # A-17: Pure-Go (go-git) RCS backend as an opt-in alternative to the git CLI
 
-**Status:** proposed  
+**Status:** implemented  
 **Source:** Maintainer request — a pure-Go git backend removes the runtime
 dependency on the `git` binary for cross-compiled and single-binary
 distributions, and for Windows users without Git for Windows on `PATH`. The

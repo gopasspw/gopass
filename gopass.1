@@ -1,5 +1,5 @@
 
-.TH GOPASS "1" "September 2026" "gopass (github.com/gopasspw/gopass) 1.17.3" "User Commands"
+.TH GOPASS "1" "October 2026" "gopass (github.com/gopasspw/gopass) 1.17.3" "User Commands"
 .SH NAME
 gopass - The standard Unix password manager
 .SH SYNOPSIS
@@ -115,7 +115,7 @@ Select crypto backend [age gpgcli plain]
 Path to clone the repo to
 .TP
 \fB\-\-storage\fR,
-Select storage backend [cryptfs fossilfs gitfs jjfs]
+Select storage backend [cryptfs fossilfs gitfs gogit jjfs]
 .SS config
 Display and edit the configuration file
 
@@ -139,7 +139,7 @@ Which crypto backend? [age gpgcli plain]
 Replace store?
 .TP
 \fB\-\-storage\fR,
-Which storage backend? [cryptfs fossilfs fs gitfs jjfs]
+Which storage backend? [cryptfs fossilfs fs gitfs gogit jjfs]
 .TP
 \fB\-\-store\fR,
 Specify which store to convert
@@ -399,7 +399,7 @@ Select crypto backend [age gpgcli plain]
 Set the sub-store path to operate on
 .TP
 \fB\-\-storage\fR,
-Select storage backend [cryptfs fossilfs fs gitfs jjfs]
+Select storage backend [cryptfs fossilfs fs gitfs gogit jjfs]
 .TP
 \fB\-\-store\fR,
 \fB\-s\fR,
@@ -637,6 +637,10 @@ Pretty print recipients
 Reorganize a password store by editing a text file
 
 This command lists all the secrets in a text file, line by line, and then opens it in an editor. Once the user saves and leaves the editor, gopass will read the temp file, calculate the necessary moves and show a diff and a confirmation prompt. Once the user acknowledges that it will reorganize the secrets and create a meaningful commit message.
+.SS secret-service
+Run a D-Bus Secret Service daemon backed by gopass
+
+Implements the org.freedesktop.secrets D-Bus API so that desktop applications (Firefox, Chromium, VS Code, Electron apps, NetworkManager, secret-tool, ...) store their secrets in the same gopass password store as the CLI.
 .SS setup
 Initialize a new password store
 
@@ -661,7 +665,7 @@ Firstname and Lastname for unattended GPG key generation
 URL to a git remote, will attempt to join this team
 .TP
 \fB\-\-storage\fR,
-Select storage backend [cryptfs fossilfs fs gitfs jjfs]
+Select storage backend [cryptfs fossilfs fs gitfs gogit jjfs]
 .TP
 \fB\-\-team\fR,
 \fB\-\-alias\fR,
