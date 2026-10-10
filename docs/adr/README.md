@@ -28,6 +28,7 @@ Update this index in the same commit that adds or supersedes a record.
 | [A-14](A-14-team-workflows.md) | Effortless team workflows | implemented | 2026-06-06 |
 | [A-15](A-15-screenshot-build-tag.md) | `noscreenshot` build tag for OTP screen-capture feature | accepted | 2026-05-25 |
 | [A-16](A-16-break-gopass-hibp-cycle.md) | Break the `gopass` ↔ `gopass-hibp` module dependency cycle | partially implemented | 2026-09-10 |
+| [A-17](A-17-pure-go-git-backend.md) | Pure-Go (go-git) RCS backend as an opt-in alternative to the git CLI | proposed | 2026-10-10 |
 
 Status values are taken from each record's `**Status:**` line. Dates are the
 authoring commit dates reported by `git log --diff-filter=A --follow`.
