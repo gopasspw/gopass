@@ -8,7 +8,7 @@ WARNING: This backend suffers from myriads of different configuration options, a
 
 To start using the `gpgcli` backend initialize a new (sub) store with the `--crypto=gpgcli` flag:
 
-```
+```bash
 gopass init --crypto gpgcli
 gopass recipients add 0xDEADBEEF
 ```

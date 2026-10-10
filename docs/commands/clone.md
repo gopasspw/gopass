@@ -5,9 +5,9 @@ from a remote location, e.g. a remote git repo.
 
 ## Synopsis
 
-```
-$ gopass clone git@example.com/store.git
-$ gopass clone git@example.com/store.git sub/store
+```bash
+gopass clone git@example.com/store.git
+gopass clone git@example.com/store.git sub/store
 ```
 
 ## Flags

@@ -6,8 +6,8 @@ rules apply to.
 
 ## Synopsis
 
-```
-$ gopass alias
+```bash
+gopass alias
 ```
 
 ## Modes of operation
@@ -29,8 +29,8 @@ configuration option for looking up secrets under several domain names. See
 
 ## Exit codes
 
-| Code | Meaning                    |
-|-----:|----------------------------|
+| Code | Meaning                      |
+|-----:|------------------------------|
 | 0    | Aliases printed successfully |
 
 See [docs/exit-codes.md](../exit-codes.md) for the full table.

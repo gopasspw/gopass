@@ -12,15 +12,16 @@ WARNING: This backend is experimental and the on-disk format likely to change.
 
 To start using the `age` backend initialize a new (sub) store with the `--crypto=age` flag:
 
-```
+```sh
 $ gopass age identities add [AGE-... age1...]
 <if you do not specify an age secret key, you'll be prompted for one>
 $ gopass init --crypto age
 ```
 
 or use the wizard that will help you create a new age key:
-```
-$ gopass setup --crypto age
+
+```sh
+gopass setup --crypto age
 ```
 
 This will automatically create a new age keypair and initialize the new store.
@@ -30,10 +31,12 @@ Existing stores can be migrated using `gopass convert --crypto age`.
 N.B. for a fully scripted or **non-interactive setup**, you can use the `GOPASS_AGE_PASSWORD` env variable
 to set your identity file secret passphrase, and specify the age identity and recipients
 that should be used for encrypting/decrypting passwords as follows:
+
+```sh
+gopass age identities add <AGE-...> <age1...>
+GOPASS_AGE_PASSWORD=mypassword gopass init --crypto age <age1...>
 ```
-$ gopass age identities add <AGE-...> <age1...>
-$  GOPASS_AGE_PASSWORD=mypassword gopass init --crypto age <age1...>
-```
+
 Notice the extra space in front of the command to skip most shell's history.
 You'll need to set your name and username using `git` directly if you're using it as storage backend (the default one).
 
@@ -41,8 +44,9 @@ For test automation or other environments where `pinentry` is unavailable, set
 `GOPASS_AGE_STDIN_PASSPHRASE` to force gopass to read the passphrase from the terminal instead.
 
 You can also specify the ssh directory by setting environment variable
-```
-$  GOPASS_SSH_DIR=/Downloads/new_ssh_dir gopass init --crypto age <age1...>
+
+```sh
+GOPASS_SSH_DIR=/Downloads/new_ssh_dir gopass init --crypto age <age1...>
 ```
 
 ## Features
@@ -86,8 +90,9 @@ letting its timeout expire clears both native age and SSH identities from agent 
 The agent listens on a unix socket at `$XDG_RUNTIME_DIR/gopass/gopass-age-agent.sock`.
 
 You can interact with the agent using the following commands:
-- `gopass age agent`: starts the agent in the foreground.
-- `gopass age lock`: locks the agent, clearing all cached identities.
+
+* `gopass age agent start`: starts the agent in the foreground.
+* `gopass age lock`: locks the agent, clearing all cached identities.
 
 ## Hardware-backed keyring unlocking
 
@@ -106,7 +111,7 @@ by the plugin. The file must be readable before the keyring can be unlocked.
 For an existing passphrase-protected keyring, configure its new protection and
 migrate it explicitly. Substitute your bootstrap file and its public recipient:
 
-```fish
+```bash
 gopass config age.keyring-identities ~/.config/gopass/age/keyring-unlock.txt
 gopass config age.keyring-recipients age1...
 gopass age identities reencrypt
@@ -210,6 +215,7 @@ state model, socket location rules, error-handling contract and the
 To use with a Yubikey, `age` requires the usage of the [age-plugin-yubikey plugin](https://github.com/str4d/age-plugin-yubikey/).
 
 Assuming you have Rust installed:
+
 ```bash
 $ cargo install age-plugin-yubikey
 $ age-plugin-yubikey -i

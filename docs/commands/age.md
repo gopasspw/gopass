@@ -11,7 +11,7 @@ recipients and identities in sync, see
 
 ## Synopsis
 
-```
+```bash
 $ gopass age agent start
 $ gopass age agent status
 $ gopass age identities
