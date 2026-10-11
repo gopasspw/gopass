@@ -27,8 +27,10 @@ func captureOutput(t *testing.T, ctx context.Context) (context.Context, *os.File
 	}
 
 	t.Cleanup(func() {
-		stdout.Close()
-		stderr.Close()
+		// best-effort close in a test cleanup; the temp files are removed
+		// with their t.TempDir() when the test finishes
+		_ = stdout.Close()
+		_ = stderr.Close()
 	})
 
 	return out.WithWriter(ctx, stdout, stderr), stdout, stderr
