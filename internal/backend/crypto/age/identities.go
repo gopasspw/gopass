@@ -271,7 +271,10 @@ func (a *Age) ListIdentities(ctx context.Context) ([]string, error) {
 	}
 
 	idStr := make([]string, 0, len(ids))
-	for k := range ids {
+	for k, id := range ids {
+		if _, ok := id.(*wrappedIdentity); ok {
+			k = recipientOf(id)
+		}
 		idStr = append(idStr, k)
 	}
 
