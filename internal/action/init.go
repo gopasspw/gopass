@@ -125,27 +125,16 @@ func initParseContext(ctx context.Context, cmd *cli.Command) (context.Context, e
 		}
 	}
 
-	// GOPASS_GIT_BACKEND overrides the persisted config but not an explicit
-	// --storage flag.
-	if !cmd.IsSet("storage") {
-		if envBE, ok := backend.GitBackendFromEnv(); ok {
-			ctx = backend.WithStorageBackend(ctx, envBE)
-		}
-	}
-
 	if !backend.HasCryptoBackend(ctx) {
 		debug.Log("Using default Crypto Backend (GPGCLI)")
 		ctx = backend.WithCryptoBackend(ctx, backend.GPGCLI)
 	}
 
-	if !backend.HasStorageBackend(ctx) {
-		debug.Log("Using default storage backend (GitFS)")
-		ctx = backend.WithStorageBackend(ctx, backend.GitFS)
-	}
-
-	// Downgrade GitFS to the pure-Go go-git backend when no git binary is
-	// available so a versioned store is still created on git-less systems.
-	ctx = backend.WithStorageBackend(ctx, backend.ResolveStorageBackend(ctx, backend.GetStorageBackend(ctx)))
+	// Resolve the storage backend with the full precedence: --storage flag >
+	// GOPASS_GIT_BACKEND > storage.backend config > GitFS default. GitFS is
+	// downgraded to the pure-Go go-git backend when no git binary is available
+	// so a versioned store is still created on git-less systems.
+	ctx = backend.WithStorageBackend(ctx, backend.ResolveGitBackend(ctx, backend.GitFS))
 
 	sb := backend.GetStorageBackend(ctx)
 	if sb == backend.CryptFS {

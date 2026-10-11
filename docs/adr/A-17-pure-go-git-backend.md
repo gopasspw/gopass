@@ -122,7 +122,10 @@ These are the exact seams the implementation must plug into.
      `Priority()`) calling each loader's `Handles(ctx, path)`.
   4. Fallback `FS`.
 
-  Existing priorities: `gitfs` = 11, `fs` = 50, `jjfs` = 15.
+  Existing priorities: `gitfs` = 11, `gogit` = 12, `jjfs` = 15, `fossilfs` =
+  20, `fs` = 50. `fossilfs` was moved from 12 to 20 so it no longer collides
+  with `gogit` (the registry sorts by priority only, so equal values made the
+  relative order map-iteration dependent).
 
 * **`Init`/`Clone` wiring.** `internal/store/leaf/store.go` `Init` and
   `internal/store/leaf/storage.go` `initStorageBackend` call
@@ -441,7 +444,7 @@ untracked files (see `addUntrackedFiles` equivalent below).
 | `Pull(ctx, remote, branch)` | Respect `IsNoNetwork`. Fetch, then fast-forward if possible, else **file-level merge** (see below). |
 | `AddRemote` | `repo.CreateRemote(&config.RemoteConfig{Name: remote, URLs: []string{url}})`. |
 | `RemoveRemote` | `repo.DeleteRemote(remote)`. |
-| `Revisions(ctx, name)` | `repo.Log(&git.LogOptions{From: head, Order: git.LogOrderCommitterTime, PathFilter: exactPath(name)})`, map each `*object.Commit` to `backend.Revision{Hash, AuthorName, AuthorEmail, Date: c.Author.When, Subject: firstLine, Body: rest}`. |
+| `Revisions(ctx, name)` | `repo.Log(&git.LogOptions{From: head, Order: git.LogOrderCommitterTime})`, then keep only commits whose tree entry for the path differs from the **first parent** (go-git's `PathFilter` compares against the next commit in iteration order, which is wrong across merges). Map each `*object.Commit` to `backend.Revision{Hash, AuthorName, AuthorEmail, Date: c.Author.When, Subject: firstLine, Body: rest}`. |
 | `GetRevision(ctx, name, rev)` | `h, _ := repo.ResolveRevision(plumbing.Revision(rev))`; `c, _ := repo.CommitObject(*h)`; `f, _ := c.File(name)`; `f.Contents()`. Handle `"latest"`/`"HEAD"` by resolving `HEAD` (the `fs` backend treats these specially; keep that behaviour). |
 | `Status(ctx)` | `wt.Status()` formatted deterministically (see "Status output"). |
 | `Compact(ctx)` | `repo.RepackObjects(&git.RepackConfig{})`, then `repo.Prune(git.PruneOptions{})` with a handler that never errors. Best-effort: log and return nil on unsupported errors. |
@@ -481,15 +484,16 @@ loader. **No change to `DetectStorage` is needed for this path.** Document
 **Environment variable (convenience/override).** Add
 `GOPASS_GIT_BACKEND` with values `gitfs` (alias `cli`, `cmd`) and `gogit`.
 Precedence: explicit `--storage` flag > `GOPASS_GIT_BACKEND` > `storage.backend`
-> auto-detect. Implement this in one place — a small helper in
-`internal/action/init.go`/`rcs.go` and in `backend.DetectStorage`:
+> auto-detect. This is centralised in `backend.ResolveGitBackend` (used by
+`init.go`/`rcs.go`) and `backend.GitBackendFromEnvOrConfig` (used by
+`clone.go`), so every entry point applies the same order:
 
 ```go
 // internal/backend/storage.go (new helper, used by DetectStorage and callers)
 //
-// applyGitBackendEnv returns the backend named by GOPASS_GIT_BACKEND, if any.
-func gitBackendFromEnv() (StorageBackend, bool) {
-    switch strings.ToLower(os.Getenv("GOPASS_GIT_BACKEND")) {
+// GitBackendFromEnv returns the backend named by GOPASS_GIT_BACKEND, if any.
+func GitBackendFromEnv() (StorageBackend, bool) {
+    switch strings.ToLower(strings.TrimSpace(os.Getenv("GOPASS_GIT_BACKEND"))) {
     case "gogit":
         return GoGit, true
     case "gitfs", "cli", "cmd":
@@ -504,6 +508,12 @@ Because the env var is read with `os.Getenv("GOPASS_GIT_BACKEND")`, the
 implementer **must** add a row to the `GOPASS_*` table in `docs/config.md`
 (`GOPASS_GIT_BACKEND | string | Select the git backend: gitfs (default) or gogit …`)
 or `TestEnvVarsInDocs` fails.
+
+`GOPASS_GIT_BACKEND` is only honoured when the store's configured/detected
+backend is already a git-family backend (GitFS or GoGit). A cryptfs store
+(whose substorage is gitfs) or a jjfs store colocated with a `.git` directory
+must not be reopened as plain gogit/gitfs, which would expose cryptfs's hashed
+filenames.
 
 **Auto-fallback when no `git` binary is present.** Two mechanisms, both needed:
 
@@ -757,12 +767,16 @@ dependency in `go.mod`): use `ssh.NewSSHAgentAuth` (ssh-agent, honouring
 supported paths:
 
 1. If a `git` binary is available, shell out to `git credential fill`
-   (`printf 'protocol=…\nhost=…\n\n' | git credential fill`) with a timeout, parse
+   (`printf 'protocol=…\nhost=…\n\n' | git credential fill`) with a timeout, run
+   in the store directory so helpers resolve against the store's config, parse
    `username=`/`password=`, and return `http.NewBasicAuth(user, pass)` (or
    `http.NewTokenAuth(pass)` when the password is an OAuth/token secret and
    username is empty). Never log the secret.
-2. If no `git` is available, read the URL userinfo (`https://user:pass@host/…`)
-   or `GIT_ASKPASS`/`.netrc`. Otherwise fail with a clear message:
+2. If no `git` is available, use the URL userinfo (`https://user:pass@host/…`).
+   A username-only URL (e.g. Azure DevOps `https://org@dev.azure.com/…`) does
+   **not** short-circuit the credential helper. `GIT_ASKPASS` and `.netrc` are
+   **not** read by this backend; without a `git` binary and without URL userinfo
+   the operation fails with a clear message:
    *"this store uses HTTPS with a credential helper; install git or configure
    the go-git backend's auth explicitly"*.
 
@@ -812,8 +826,9 @@ files in a store (`.gitattributes`, `.public-keys/*`, config) could diverge.
 Rules:
 
 * Always write the `.gitattributes` file on init (same content as the CLI
-  backend: `*.gpg diff=gpg\n` or `*.age binary\n`). If the CLI backend wrote
-  it earlier, do not rewrite it.
+  backend: `*.gpg diff=gpg\n` or `*.age binary\n`). Like the CLI backend, the
+  file is (re)written on `InitConfig`; a "nothing to commit" result is expected
+  and not reported as an error.
 * Prefer file mode `0o644` for worktree files (matches `fs.Store.Set`); do not
   fight git's executable-bit handling — gopass secrets are never executable.
 * `Status` and object hashes are compared in CI rather than status text (see

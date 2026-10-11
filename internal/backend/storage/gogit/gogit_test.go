@@ -242,9 +242,9 @@ func TestGoGitDeleteVsModify(t *testing.T) {
 }
 
 func TestConflictName(t *testing.T) {
-	h := plumbing.NewHash("1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b")
-	assert.Equal(t, "secrets/api.conflict-1a2b3c4.gpg", conflictName("secrets/api.gpg", h))
-	assert.Equal(t, "secrets/api.conflict-1a2b3c4", conflictName("secrets/api", h))
+	h := plumbing.NewHash("1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b").String()
+	assert.Equal(t, "secrets/api.conflict-1a2b3c4.gpg", conflictName("secrets/api.gpg", h[:7]))
+	assert.Equal(t, "secrets/api.conflict-1a2b3c4", conflictName("secrets/api", h[:7]))
 }
 
 func TestSplitKey(t *testing.T) {

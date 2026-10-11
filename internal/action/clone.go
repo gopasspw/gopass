@@ -128,22 +128,21 @@ func (s *setupHandler) cloneJoinTeam(ctx context.Context, mount string) error {
 // storageBackendOrDefault will return a storage backend that can be clone,
 // i.e. specifically backend.FS can't be cloned.
 func storageBackendOrDefault(ctx context.Context, repo string) backend.StorageBackend {
-	// first try to get it from the context.
+	// first try to get it from the context (the --storage flag).
 	if be := backend.GetStorageBackend(ctx); be != backend.FS {
 		return backend.ResolveStorageBackend(ctx, be)
 	}
 
+	// a fossil repository is always cloned with the fossil backend.
 	if strings.HasSuffix(repo, ".fossil") {
 		return backend.FossilFS
 	}
 
-	if strings.HasSuffix(repo, ".git") {
-		return backend.ResolveStorageBackend(ctx, backend.GitFS)
-	}
+	// otherwise resolve the git backend from GOPASS_GIT_BACKEND / the
+	// storage.backend config, defaulting to GitFS.
+	debug.Log("resolving the default storage backend for clone (GitFS)")
 
-	debug.Log("falling back to the default storage backend for clone (GitFS)")
-
-	return backend.ResolveStorageBackend(ctx, backend.GitFS)
+	return backend.GitBackendFromEnvOrConfig(ctx, backend.GitFS)
 }
 
 func (s *setupHandler) clone(ctx context.Context, repo, mount, path string) error {

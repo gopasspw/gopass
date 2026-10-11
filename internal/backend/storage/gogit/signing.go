@@ -4,6 +4,8 @@ import (
 	"context"
 	"os/exec"
 
+	"github.com/go-git/go-git/v5/config"
+	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/debug"
 )
@@ -11,48 +13,62 @@ import (
 // This file isolates commit-signing policy. go-git can sign with an in-process
 // OpenPGP key, but it does not use gpg-agent, pinentry or smartcards, and it
 // cannot use a passphrase-protected agent key. gopass therefore shells out to
-// the git CLI for signed commits (hybrid mode) when the local config requests
+// the git CLI for signed commits (hybrid mode) when the config requests
 // signing and a git binary is available, and otherwise creates an unsigned
 // commit rather than failing the user's write.
 
-// shouldSign reports whether the local config asks for signed commits.
-func (g *GoGit) shouldSign() bool {
+// signingOption returns the effective value of a git config option, consulting
+// the local scope first and falling back to the global scope. This honours a
+// user-wide commit.gpgsign=true without mutating the repository's stored config
+// (ConfigScoped merges the global scope into the local config in place).
+func (g *GoGit) signingOption(section, option string) string {
 	if g.repo == nil {
-		return false
-	}
-	cfg, err := g.repo.Config()
-	if err != nil || cfg.Raw == nil {
-		return false
+		return ""
 	}
 
-	section := cfg.Raw.Section("commit")
-	if section == nil {
-		return false
-	}
-	if section.Option("gpgsign") == "true" {
-		return true
+	if local, err := g.repo.Config(); err == nil && local.Raw != nil {
+		if v := local.Raw.Section(section).Option(option); v != "" {
+			return v
+		}
 	}
 
-	return false
+	if global, err := config.LoadConfig(config.GlobalScope); err == nil && global.Raw != nil {
+		return global.Raw.Section(section).Option(option)
+	}
+
+	return ""
+}
+
+// shouldSign reports whether the config asks for signed commits. It consults
+// the global scope as well, so a user-wide commit.gpgsign=true is honoured.
+func (g *GoGit) shouldSign() bool {
+	return g.signingOption("commit", "gpgsign") == "true"
 }
 
 // gpgFormat returns the configured gpg.format ("openpgp" or "ssh").
 func (g *GoGit) gpgFormat() string {
-	if g.repo == nil {
-		return ""
-	}
-	cfg, err := g.repo.Config()
-	if err != nil || cfg.Raw == nil {
-		return ""
-	}
-
-	return cfg.Raw.Section("gpg").Option("format")
+	return g.signingOption("gpg", "format")
 }
 
 // commitSignedCLI stages the already-added changes and creates a signed commit
 // by shelling out to the git CLI. It returns an error when git is unavailable or
 // the commit fails, in which case the caller falls back to an unsigned commit.
 func (g *GoGit) commitSignedCLI(ctx context.Context, msg string) error {
+	return g.gitCommitCLI(ctx, msg, nil)
+}
+
+// commitMergeSignedCLI creates a signed two-parent merge commit by shelling out
+// to the git CLI. The remote parent is passed explicitly so the CLI records the
+// same merge shape as the pure-Go path.
+func (g *GoGit) commitMergeSignedCLI(ctx context.Context, msg string, remoteHash plumbing.Hash) error {
+	return g.gitCommitCLI(ctx, msg, []plumbing.Hash{remoteHash})
+}
+
+// gitCommitCLI runs `git commit -S` in the store directory. Hooks are disabled
+// with --no-verify: gopass documents that git hooks never run, and a hook
+// rejection must not be mistaken for a signing failure (which would silently
+// fall back to an unsigned commit and bypass the hook).
+func (g *GoGit) gitCommitCLI(ctx context.Context, msg string, extraParents []plumbing.Hash) error {
 	if _, err := exec.LookPath("git"); err != nil {
 		debug.Log("git binary not available for signed commit")
 
@@ -65,7 +81,12 @@ func (g *GoGit) commitSignedCLI(ctx context.Context, msg string) error {
 		return errUnsupportedSigning
 	}
 
-	cmd := exec.CommandContext(ctx, "git", "commit", "-S", "-m", msg)
+	args := []string{"commit", "-S", "--no-verify", "-m", msg}
+	for _, p := range extraParents {
+		args = append(args, "-p", p.String())
+	}
+
+	cmd := exec.CommandContext(ctx, "git", args...)
 	cmd.Dir = g.fs.Path()
 	if out, err := cmd.CombinedOutput(); err != nil {
 		debug.Log("git commit -S failed: %s: %s", err, string(out))

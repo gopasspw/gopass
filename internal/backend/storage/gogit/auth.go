@@ -3,6 +3,7 @@ package gogit
 import (
 	"bytes"
 	"context"
+	"net/url"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -24,11 +25,13 @@ import (
 // auth returns a transport.AuthMethod for the named remote, or nil when no
 // credentials are required (e.g. local file paths).
 func (g *GoGit) auth(ctx context.Context, remote string) transport.AuthMethod {
-	return authForURL(ctx, g.remoteURL(remote))
+	return authForURL(ctx, g.remoteURL(remote), g.fs.Path())
 }
 
-// authForURL returns an auth method suitable for the given remote URL.
-func authForURL(ctx context.Context, url string) transport.AuthMethod {
+// authForURL returns an auth method suitable for the given remote URL. dir is
+// the directory `git credential fill` runs in, so credential helpers resolve
+// against the store's config rather than the process working directory.
+func authForURL(ctx context.Context, url, dir string) transport.AuthMethod {
 	switch {
 	case isSSHURL(url):
 		user := userFromURL(url)
@@ -43,7 +46,7 @@ func authForURL(ctx context.Context, url string) transport.AuthMethod {
 
 		return nil
 	case strings.HasPrefix(url, "https://"), strings.HasPrefix(url, "http://"):
-		return httpsAuth(ctx, url)
+		return httpsAuth(ctx, url, dir)
 	default:
 		// local file paths need no auth.
 		return nil
@@ -115,17 +118,16 @@ func keyFromSSHCommand(cmd string) string {
 // helpers, so when a git binary is available we shell out to
 // `git credential fill`. Otherwise we fall back to URL userinfo and finally to
 // GIT_ASKPASS/.netrc being honoured by the caller providing explicit config.
-func httpsAuth(ctx context.Context, url string) transport.AuthMethod {
-	// URL userinfo (https://user:pass@host/...) takes precedence.
-	if u, p, ok := urlUserInfo(url); ok {
-		if u == "" {
-			return &http.TokenAuth{Token: p}
-		}
-
+func httpsAuth(ctx context.Context, url, dir string) transport.AuthMethod {
+	// URL userinfo (https://user:pass@host/...) takes precedence, but only
+	// when it actually carries a password. A username-only URL (e.g. Azure
+	// DevOps https://org@dev.azure.com/...) must still consult the credential
+	// helper.
+	if u, p, ok := urlUserInfo(url); ok && p != "" {
 		return &http.BasicAuth{Username: u, Password: p}
 	}
 
-	if a := credentialHelperAuth(ctx, url); a != nil {
+	if a := credentialHelperAuth(ctx, url, dir); a != nil {
 		return a
 	}
 
@@ -134,33 +136,29 @@ func httpsAuth(ctx context.Context, url string) transport.AuthMethod {
 	return nil
 }
 
-// urlUserInfo extracts userinfo from an http(s) URL if present.
+// urlUserInfo extracts userinfo from an http(s) URL if present. The user and
+// password are percent-decoded. ok is true only when a password is present, so
+// a username-only URL does not short-circuit the credential helper.
 func urlUserInfo(raw string) (string, string, bool) {
-	i := strings.Index(raw, "://")
-	if i < 0 {
+	u, err := url.Parse(raw)
+	if err != nil || u.User == nil {
 		return "", "", false
 	}
-	rest := raw[i+3:]
-	at := strings.Index(rest, "@")
-	if at < 0 {
-		return "", "", false
-	}
-	userinfo := rest[:at]
-	slash := strings.Index(userinfo, "/")
-	if slash >= 0 {
-		return "", "", false
-	}
-	user, pass, found := strings.Cut(userinfo, ":")
-	if !found {
-		return user, "", true
+
+	user := u.User.Username()
+	pass, hasPass := u.User.Password()
+	if !hasPass {
+		return user, "", false
 	}
 
 	return user, pass, true
 }
 
 // credentialHelperAuth shells out to `git credential fill` when a git binary is
-// available, returning nil otherwise. The secret is never logged.
-func credentialHelperAuth(ctx context.Context, url string) transport.AuthMethod {
+// available, returning nil otherwise. The secret is never logged. dir is the
+// directory the command runs in so credential helpers resolve against the
+// store's config.
+func credentialHelperAuth(ctx context.Context, url, dir string) transport.AuthMethod {
 	if _, err := exec.LookPath("git"); err != nil {
 		return nil
 	}
@@ -180,6 +178,9 @@ func credentialHelperAuth(ctx context.Context, url string) transport.AuthMethod 
 	defer cancel()
 
 	cmd := exec.CommandContext(ctx, "git", "credential", "fill")
+	if dir != "" {
+		cmd.Dir = dir
+	}
 	cmd.Stdin = input
 	out, err := cmd.Output()
 	if err != nil {
@@ -224,4 +225,20 @@ func splitHTTPURL(raw string) (string, string, string) {
 	}
 
 	return protocol, host, path
+}
+
+// redactURL removes any password from a URL so it can be safely logged or
+// embedded in an error message.
+func redactURL(raw string) string {
+	u, err := url.Parse(raw)
+	if err != nil || u.User == nil {
+		return raw
+	}
+	if _, hasPass := u.User.Password(); !hasPass {
+		return raw
+	}
+
+	u.User = url.UserPassword(u.User.Username(), "REDACTED")
+
+	return u.String()
 }

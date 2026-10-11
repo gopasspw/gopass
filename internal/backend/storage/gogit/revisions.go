@@ -2,6 +2,7 @@ package gogit
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"path/filepath"
 	"strings"
@@ -23,10 +24,13 @@ func (g *GoGit) Revisions(_ context.Context, name string) ([]backend.Revision, e
 	rel := filepath.ToSlash(strings.TrimPrefix(name, g.fs.Path()+"/"))
 	rel = strings.TrimPrefix(rel, "./")
 
+	// go-git's LogOptions.PathFilter is unreliable for merge commits: it
+	// compares each commit with the next one in iteration order rather than
+	// with its parent, so it can list commits that never touched the path.
+	// Walk the full log and compare each commit against its first parent.
 	iter, err := g.repo.Log(&git.LogOptions{
-		From:       head.Hash(),
-		Order:      git.LogOrderCommitterTime,
-		PathFilter: func(p string) bool { return p == rel },
+		From:  head.Hash(),
+		Order: git.LogOrderCommitterTime,
 	})
 	if err != nil {
 		return nil, err
@@ -35,6 +39,14 @@ func (g *GoGit) Revisions(_ context.Context, name string) ([]backend.Revision, e
 
 	revs := make([]backend.Revision, 0, 16)
 	err = iter.ForEach(func(c *object.Commit) error {
+		touched, err := commitTouchesPath(c, rel)
+		if err != nil {
+			return err
+		}
+		if !touched {
+			return nil
+		}
+
 		rev := backend.Revision{
 			Hash:        c.Hash.String(),
 			AuthorName:  c.Author.Name,
@@ -53,6 +65,53 @@ func (g *GoGit) Revisions(_ context.Context, name string) ([]backend.Revision, e
 	}
 
 	return revs, nil
+}
+
+// commitTouchesPath reports whether the commit changed the given path relative
+// to its first parent (or, for a root commit, whether the path exists at all).
+func commitTouchesPath(c *object.Commit, rel string) (bool, error) {
+	tree, err := c.Tree()
+	if err != nil {
+		return false, err
+	}
+	cur, err := entryHash(tree, rel)
+	if err != nil {
+		return false, err
+	}
+
+	if c.NumParents() == 0 {
+		return cur != plumbing.ZeroHash, nil
+	}
+
+	parent, err := c.Parent(0)
+	if err != nil {
+		return false, err
+	}
+	parentTree, err := parent.Tree()
+	if err != nil {
+		return false, err
+	}
+	prev, err := entryHash(parentTree, rel)
+	if err != nil {
+		return false, err
+	}
+
+	return cur != prev, nil
+}
+
+// entryHash returns the blob hash of rel in tree, or the zero hash when the
+// path does not exist in that tree.
+func entryHash(tree *object.Tree, rel string) (plumbing.Hash, error) {
+	e, err := tree.FindEntry(rel)
+	if err != nil {
+		if errors.Is(err, object.ErrEntryNotFound) || errors.Is(err, object.ErrFileNotFound) || errors.Is(err, object.ErrDirectoryNotFound) {
+			return plumbing.ZeroHash, nil
+		}
+
+		return plumbing.ZeroHash, err
+	}
+
+	return e.Hash, nil
 }
 
 // GetRevision returns the content of any revision of the named entity.

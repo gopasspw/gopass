@@ -49,11 +49,11 @@ func Clone(ctx context.Context, repo, path, userName, userEmail string) (*GoGit,
 
 	r, err := git.PlainCloneContext(ctx, path, false, &git.CloneOptions{
 		URL:      repo,
-		Auth:     authForURL(ctx, repo),
+		Auth:     authForURL(ctx, repo, path),
 		Progress: nil,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("failed to clone %q to %q: %w", repo, path, err)
+		return nil, fmt.Errorf("failed to clone %q to %q: %w", redactURL(repo), path, err)
 	}
 
 	g := &GoGit{fs: fs.New(path), repo: r}

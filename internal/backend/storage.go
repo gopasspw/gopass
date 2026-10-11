@@ -68,6 +68,10 @@ func GitBackendFromEnv() (StorageBackend, bool) {
 // go-git backend when no git binary is available. This keeps a .git-backed
 // store versioned on git-less systems instead of degrading to the unversioned
 // fs backend. Any other requested backend is returned unchanged.
+//
+// It is intentionally quiet: it is called once per mount during detection, so
+// the user-facing warning is emitted by ResolveGitBackend on the init/clone
+// paths instead.
 func ResolveStorageBackend(ctx context.Context, requested StorageBackend) StorageBackend {
 	if requested != GitFS {
 		return requested
@@ -76,13 +80,60 @@ func ResolveStorageBackend(ctx context.Context, requested StorageBackend) Storag
 	if _, err := exec.LookPath("git"); err != nil {
 		if _, rerr := StorageRegistry.Get(GoGit); rerr == nil {
 			debug.Log("git binary not found; falling back to pure-Go go-git backend")
-			out.Warningf(ctx, "git binary not found in PATH, falling back to the pure-Go go-git backend")
 
 			return GoGit
 		}
 	}
 
 	return requested
+}
+
+// isGitFamily reports whether the backend is one of the git-backed backends.
+func isGitFamily(be StorageBackend) bool {
+	return be == GitFS || be == GoGit
+}
+
+// GitBackendFromEnvOrConfig returns the git backend selected by the
+// GOPASS_GIT_BACKEND environment variable or the storage.backend config value,
+// falling back to def. GitFS is downgraded to GoGit when no git binary is
+// available.
+func GitBackendFromEnvOrConfig(ctx context.Context, def StorageBackend) StorageBackend {
+	if envBE, ok := GitBackendFromEnv(); ok {
+		return ResolveStorageBackend(ctx, envBE)
+	}
+
+	if name := config.String(ctx, "storage.backend"); name != "" {
+		if key, err := StorageRegistry.Backend(name); err == nil {
+			return ResolveStorageBackend(ctx, key)
+		}
+	}
+
+	return ResolveStorageBackend(ctx, def)
+}
+
+// ResolveGitBackend applies the full backend precedence for git-family
+// operations: an explicit backend in the context (e.g. the --storage flag) wins
+// over GOPASS_GIT_BACKEND, which wins over the storage.backend config, which
+// wins over def. GitFS is downgraded to GoGit when no git binary is available.
+// It warns once when the fallback happens.
+func ResolveGitBackend(ctx context.Context, def StorageBackend) StorageBackend {
+	requested := def
+	if HasStorageBackend(ctx) {
+		requested = GetStorageBackend(ctx)
+	} else if envBE, ok := GitBackendFromEnv(); ok {
+		requested = envBE
+	} else if name := config.String(ctx, "storage.backend"); name != "" {
+		if key, err := StorageRegistry.Backend(name); err == nil {
+			requested = key
+		}
+	}
+
+	resolved := ResolveStorageBackend(ctx, requested)
+	if resolved != requested {
+		out.Warningf(ctx, "git binary not found in PATH, falling back to the pure-Go go-git backend")
+	}
+
+	return resolved
 }
 
 // Storage is an storage backend.
@@ -115,20 +166,33 @@ func DetectStorage(ctx context.Context, path string) (Storage, error) {
 		}
 	}
 
+	// Resolve the backend configured for this store (if any). The config is
+	// scoped per mount, so this is the store's own storage.backend value.
+	configBE := FS
+	hasConfigBE := false
+	if name := config.String(ctx, "storage.backend"); name != "" {
+		if key, err := StorageRegistry.Backend(name); err == nil {
+			configBE = key
+			hasConfigBE = true
+		}
+	}
+
 	// Check if a backend is explicitly selected via GOPASS_GIT_BACKEND. This
-	// takes precedence over the persisted storage.backend config value.
-	if envBE, ok := GitBackendFromEnv(); ok {
+	// takes precedence over the persisted storage.backend config value, but it
+	// only applies to git-family backends: a cryptfs store (whose substorage is
+	// gitfs) or a jjfs store colocated with a .git directory must not be
+	// reopened as plain gogit/gitfs, which would expose cryptfs's hashed
+	// filenames.
+	if envBE, ok := GitBackendFromEnv(); ok && (!hasConfigBE || isGitFamily(configBE)) {
 		if st, err := detectStorageByBackend(ctx, ResolveStorageBackend(ctx, envBE), path); err == nil {
 			return st, nil
 		}
 	}
 
 	// Check if a backend is explicitly configured via the config file.
-	if name := config.String(ctx, "storage.backend"); name != "" {
-		if key, err := StorageRegistry.Backend(name); err == nil {
-			if st, err := detectStorageByBackend(ctx, ResolveStorageBackend(ctx, key), path); err == nil {
-				return st, nil
-			}
+	if hasConfigBE {
+		if st, err := detectStorageByBackend(ctx, ResolveStorageBackend(ctx, configBE), path); err == nil {
+			return st, nil
 		}
 	}
 

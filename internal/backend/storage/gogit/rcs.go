@@ -25,6 +25,10 @@ func (g *GoGit) worktree() (*git.Worktree, error) {
 
 // rel returns the path relative to the store root, or "." for the root itself.
 func (g *GoGit) rel(path string) string {
+	if path == g.fs.Path() {
+		return "."
+	}
+
 	path = strings.TrimPrefix(path, g.fs.Path()+string(filepath.Separator))
 	path = strings.TrimPrefix(path, g.fs.Path()+"/")
 	path = strings.TrimPrefix(path, "./")
@@ -59,7 +63,11 @@ func (g *GoGit) Add(_ context.Context, files ...string) error {
 
 			continue
 		}
-		if err := wt.AddWithOptions(&git.AddOptions{All: true, Path: rel}); err != nil {
+		// go-git checks AddOptions.All before AddOptions.Path, so combining
+		// them would stage the entire worktree. Use Path alone for explicit
+		// paths so a single "Save secret" commit cannot sweep in unrelated
+		// files.
+		if err := wt.AddWithOptions(&git.AddOptions{Path: rel}); err != nil {
 			return fmt.Errorf("failed to add %q: %w", rel, err)
 		}
 	}
@@ -212,7 +220,10 @@ func (g *GoGit) PushPull(ctx context.Context, op, remote, branch string) error {
 		return g.pullRemote(ctx, remote, branch)
 	}
 
-	if err := g.fetch(ctx, remote); err != nil {
+	// Mirror gitfs: pull before pushing so a remote that is ahead does not make
+	// every push fail with a non-fast-forward error. A failed pull is only a
+	// warning; the push below reports the real error.
+	if err := g.pullRemote(ctx, remote, branch); err != nil {
 		out.Warningf(ctx, "Failed to pull before git push: %s", err)
 	}
 
@@ -316,14 +327,41 @@ func (g *GoGit) pullRemote(ctx context.Context, remote, branch string) error {
 	return g.mergeRemote(ctx, remoteHash)
 }
 
-// resetTo hard-resets the working tree and HEAD to the given commit.
+// resetTo fast-forwards the worktree and HEAD to the given commit. It uses
+// go-git's MergeReset (the mode PullContext uses) rather than HardReset so that
+// untracked files are preserved and uncommitted edits to tracked files abort
+// the reset instead of being silently discarded. An unborn HEAD is materialised
+// first, which is what `gopass setup --remote` needs: Init stages the store
+// without committing, then the initial pull runs against an unborn HEAD.
 func (g *GoGit) resetTo(hash plumbing.Hash) error {
 	wt, err := g.worktree()
 	if err != nil {
 		return err
 	}
 
-	return wt.Reset(&git.ResetOptions{Commit: hash, Mode: git.HardReset})
+	if _, err := g.repo.Head(); err != nil {
+		if err := g.setUnbornHead(hash); err != nil {
+			return err
+		}
+	}
+
+	return wt.Reset(&git.ResetOptions{Commit: hash, Mode: git.MergeReset})
+}
+
+// setUnbornHead points the branch HEAD refers to at the given commit, turning
+// an unborn HEAD into a born one.
+func (g *GoGit) setUnbornHead(hash plumbing.Hash) error {
+	head, err := g.repo.Reference(plumbing.HEAD, false)
+	if err != nil {
+		return err
+	}
+
+	target := head.Target()
+	if target == "" {
+		target = plumbing.NewBranchReferenceName(g.defaultBranch())
+	}
+
+	return g.repo.Storer.SetReference(plumbing.NewHashReference(target, hash))
 }
 
 // AddRemote adds a new remote.

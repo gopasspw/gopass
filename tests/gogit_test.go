@@ -2,6 +2,7 @@ package tests
 
 import (
 	"os"
+	"os/exec"
 	"path/filepath"
 	"testing"
 
@@ -35,6 +36,37 @@ func TestGoGitBackend(t *testing.T) {
 	out, err = ts.run("git log")
 	require.NoError(t, err, "failed to run git log:\n%s", out)
 	assert.Contains(t, out, "gogit/secret")
+}
+
+// TestGoGitBackendSync verifies that a gogit store can push to and pull from a
+// remote via `gopass sync`.
+func TestGoGitBackendSync(t *testing.T) {
+	if _, err := exec.LookPath("git"); err != nil {
+		t.Skip("git binary not available")
+	}
+
+	ts := newTester(t)
+	defer ts.teardown()
+
+	out, err := ts.run("init --crypto=gpgcli --storage=gogit " + keyID)
+	require.NoError(t, err, "failed to init gogit store:\n%s", out)
+
+	// create a bare remote and add it as origin.
+	remoteDir := filepath.Join(ts.tempDir, "remote.git")
+	require.NoError(t, exec.Command("git", "init", "--bare", remoteDir).Run())
+	require.NoError(t, exec.Command("git", "-C", ts.storeDir("root"), "remote", "add", "origin", remoteDir).Run())
+
+	// write a secret and sync.
+	out, err = ts.runCmd([]string{ts.Binary, "insert", "--force", "gogit/synced"}, []byte("s3cr3t"))
+	require.NoError(t, err, "failed to insert:\n%s", out)
+
+	out, err = ts.run("sync")
+	require.NoError(t, err, "failed to sync:\n%s", out)
+
+	// the secret must be present in the bare remote.
+	raw, err := exec.Command("git", "-C", remoteDir, "log", "--all", "--name-only").Output()
+	require.NoError(t, err)
+	assert.Contains(t, string(raw), "gogit/synced")
 }
 
 func isDir(path string) bool {

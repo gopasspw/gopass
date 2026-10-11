@@ -2,6 +2,7 @@ package gogit
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -72,7 +73,9 @@ func (g *GoGit) InitConfig(ctx context.Context, userName, userEmail string) erro
 	if err := g.Add(ctx, filepath.Join(g.fs.Path(), ".gitattributes")); err != nil {
 		out.Warningf(ctx, "Failed to add .gitattributes to git")
 	}
-	if err := g.Commit(ctx, commitMsg); err != nil {
+	// Nothing to commit is expected when the file already exists with the same
+	// content (e.g. after a clone), so it must not be reported as a failure.
+	if err := g.Commit(ctx, commitMsg); err != nil && !errors.Is(err, store.ErrGitNothingToCommit) {
 		out.Warningf(ctx, "Failed to commit .gitattributes to git")
 	}
 

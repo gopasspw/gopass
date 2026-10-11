@@ -39,7 +39,13 @@ func New(dir string) *Store {
 // safePath validates that name resolves to a path under the store root,
 // returning an error if a path traversal is detected. Both lexical traversal
 // (e.g. "../foo") and symlinks that point outside the store root are rejected.
+// Paths that would write into the git metadata directory (.git) are rejected as
+// well, so a malicious remote tree can never plant a hook or config file.
 func (s *Store) safePath(name string) (string, error) {
+	if err := rejectGitDir(name); err != nil {
+		return "", err
+	}
+
 	resolved := filepath.Join(s.path, filepath.Clean(name))
 	if resolved != s.path && !strings.HasPrefix(resolved, s.path+string(filepath.Separator)) {
 		return "", fmt.Errorf("path traversal detected: %q escapes store root", name)
@@ -53,6 +59,20 @@ func (s *Store) safePath(name string) (string, error) {
 	}
 
 	return resolved, nil
+}
+
+// rejectGitDir returns an error if name refers to the git metadata directory
+// (.git) or anything inside it. This is a defence-in-depth guard: the store
+// must never write into .git, otherwise a crafted remote tree could plant a
+// hook or rewrite the repository config.
+func rejectGitDir(name string) error {
+	clean := filepath.Clean(filepath.ToSlash(name))
+	clean = strings.TrimPrefix(clean, "./")
+	if clean == ".git" || strings.HasPrefix(clean, ".git/") {
+		return fmt.Errorf("refusing to write to git metadata path %q", name)
+	}
+
+	return nil
 }
 
 // checkSymlinkEscape resolves the longest existing prefix of path and verifies
@@ -313,6 +333,32 @@ func (s *Store) Prune(ctx context.Context, prefix string) error {
 	}
 
 	return s.removeEmptyParentDirectories(path)
+}
+
+// SetSymlink creates (or replaces) a symlink at name pointing at target. It is
+// used to materialise symlinked secrets from a remote tree. Any existing file
+// or link at name is removed first.
+func (s *Store) SetSymlink(_ context.Context, name, target string) error {
+	if runtime.GOOS == "windows" {
+		name = filepath.FromSlash(name)
+	}
+
+	path, err := s.safePath(name)
+	if err != nil {
+		return err
+	}
+
+	if err := os.MkdirAll(filepath.Dir(path), 0o700); err != nil {
+		return err
+	}
+
+	if _, err := os.Lstat(path); err == nil {
+		if err := os.Remove(path); err != nil {
+			return err
+		}
+	}
+
+	return os.Symlink(target, path)
 }
 
 // Name returns the name of this backend.

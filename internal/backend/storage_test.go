@@ -1,6 +1,7 @@
 package backend
 
 import (
+	"context"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -71,4 +72,40 @@ func TestResolveStorageBackend(t *testing.T) {
 	} else {
 		assert.Equal(t, GoGit, got)
 	}
+}
+
+func TestResolveGitBackend(t *testing.T) {
+	ctx := config.NewContextInMemory()
+
+	// an explicit context backend wins over the environment.
+	t.Setenv("GOPASS_GIT_BACKEND", "gogit")
+	ctx = WithStorageBackend(ctx, GitFS)
+	assert.Equal(t, GitFS, ResolveGitBackend(ctx, GitFS))
+
+	// the environment wins over the default.
+	ctx = config.NewContextInMemory()
+	assert.Equal(t, GoGit, ResolveGitBackend(ctx, GitFS))
+
+	// the default is used when nothing is set.
+	t.Setenv("GOPASS_GIT_BACKEND", "")
+	assert.Equal(t, ResolveStorageBackend(ctx, GitFS), ResolveGitBackend(ctx, GitFS))
+}
+
+func TestGitBackendFromEnvOrConfig(t *testing.T) {
+	ctx := config.NewContextInMemory()
+
+	// environment wins.
+	t.Setenv("GOPASS_GIT_BACKEND", "gogit")
+	assert.Equal(t, GoGit, GitBackendFromEnvOrConfig(ctx, GitFS))
+
+	// config is used when the environment is unset.
+	t.Setenv("GOPASS_GIT_BACKEND", "")
+	cfg := config.NewInMemory()
+	require.NoError(t, cfg.Set("", "storage.backend", "gogit"))
+	ctx = cfg.WithConfig(context.Background())
+	assert.Equal(t, GoGit, GitBackendFromEnvOrConfig(ctx, GitFS))
+
+	// default is used when neither is set.
+	ctx = config.NewContextInMemory()
+	assert.Equal(t, ResolveStorageBackend(ctx, GitFS), GitBackendFromEnvOrConfig(ctx, GitFS))
 }
