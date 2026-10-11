@@ -1,17 +1,54 @@
 package age
 
 import (
+	"crypto/elliptic"
 	"fmt"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 	"testing"
 
 	"filippo.io/age"
 	"filippo.io/age/plugin"
+	"filippo.io/age/tag"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+func TestListIdentitiesPluginRecipients(t *testing.T) {
+	curve := elliptic.P256()
+	tagRec, err := tag.NewClassicRecipient(elliptic.MarshalCompressed(curve, curve.Params().Gx, curve.Params().Gy))
+	require.NoError(t, err)
+
+	for _, recipient := range []string{
+		tagRec.String(),
+		"age1yubikey1qt2r3tfk7wvlykudm7ew28dqqm3h8ln9zfsxsq4lcd2w8rh4n4hhz46ur24",
+	} {
+		t.Run(recipient, func(t *testing.T) {
+			ctx := WithOnlyNative(t.Context(), true)
+			a := newTestAge(t)
+			paired := "AGE-PLUGIN-YUBIKEY-1GKZKJQYZL98RLMC67F9PJ|" + recipient
+			require.NoError(t, a.saveIdentities(ctx, []string{paired}, true))
+
+			selected, err := a.ListIdentities(ctx)
+			require.NoError(t, err)
+			require.Equal(t, []string{recipient}, selected)
+			recipients, err := a.FindRecipients(ctx, selected...)
+			require.NoError(t, err)
+			assert.Equal(t, selected, recipients)
+
+			native, err := age.GenerateX25519Identity()
+			require.NoError(t, err)
+			require.NoError(t, a.addIdentity(ctx, native))
+			selected, err = a.ListIdentities(ctx)
+			require.NoError(t, err)
+			want := []string{recipient, native.Recipient().String()}
+			sort.Strings(want)
+			assert.Equal(t, want, selected)
+		})
+	}
+}
 
 func TestParseIdentity(t *testing.T) {
 	tests := []struct {
