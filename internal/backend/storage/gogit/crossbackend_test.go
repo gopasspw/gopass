@@ -115,9 +115,8 @@ func TestCrossBackendMergeGraph(t *testing.T) {
 		assert.Equal(t, "local-"+tag, string(got))
 
 		// the merge commit must have two parents.
-		out, err := exec.Command("git", "-C", dir, "rev-list", "--parents", "-n", "1", "HEAD").Output()
-		require.NoError(t, err)
-		assert.Len(t, strings.Fields(string(out)), 3, "merge commit must have two parents")
+		out := gitInDir(t, dir, "rev-list", "--parents", "-n", "1", "HEAD")
+		assert.Len(t, strings.Fields(out), 3, "merge commit must have two parents")
 	}
 
 	goDir := t.TempDir()
@@ -134,36 +133,52 @@ func TestCrossBackendMergeGraph(t *testing.T) {
 	assert.Equal(t, trackedPaths(t, cliDir), trackedPaths(t, goDir), "merged file sets must match between backends")
 }
 
+// gitInDir runs the git CLI inside dir and returns its stdout. It sets cmd.Dir
+// rather than passing `-C dir`: git implements `-C` with a chdir(), and the
+// MSYS2 git used on Windows resolves that through a POSIX chdir() that does not
+// accept a Windows-style backslash path (e.g. `C:\msys64\tmp\...\001`), so it
+// fails with exit status 128 even though the repository is valid. Setting the
+// process working directory via cmd.Dir avoids the conversion entirely; the
+// gitfs backend uses cmd.Dir for the same reason.
+func gitInDir(t *testing.T, dir string, args ...string) string {
+	t.Helper()
+
+	cmd := exec.Command("git", args...)
+	cmd.Dir = dir
+
+	var stderr strings.Builder
+	cmd.Stderr = &stderr
+
+	out, err := cmd.Output()
+	require.NoError(t, err, "git %s in %s failed: %s", strings.Join(args, " "), dir, stderr.String())
+
+	return string(out)
+}
+
 // trackedPaths returns the sorted list of paths tracked at HEAD.
 func trackedPaths(t *testing.T, dir string) []string {
 	t.Helper()
 
-	out, err := exec.Command("git", "-C", dir, "ls-tree", "-r", "--name-only", "HEAD").Output()
-	require.NoError(t, err)
-
-	paths := strings.Fields(string(out))
+	paths := strings.Fields(gitInDir(t, dir, "ls-tree", "-r", "--name-only", "HEAD"))
 	sort.Strings(paths)
 
 	return paths
 }
 
 // treeHash returns the tree hash of HEAD in the given repository using the git
-// CLI (works for both backends since they share the on-disk format).
+// CLI (works for both backends since they share the on-disk format). It uses
+// `show --format=%T` rather than `rev-parse HEAD^{tree}` because the MSYS2
+// runtime on Windows performs brace expansion on arguments, turning `{tree}`
+// into `tree` and making git fail with "ambiguous argument 'HEAD^tree'".
 func treeHash(t *testing.T, dir string) string {
 	t.Helper()
 
-	out, err := exec.Command("git", "-C", dir, "rev-parse", "HEAD^{tree}").Output()
-	require.NoError(t, err)
-
-	return string(out)
+	return strings.TrimSpace(gitInDir(t, dir, "show", "-s", "--format=%T", "HEAD"))
 }
 
 // lsTree returns the `git ls-tree -r HEAD` output for the given repository.
 func lsTree(t *testing.T, dir string) string {
 	t.Helper()
 
-	out, err := exec.Command("git", "-C", dir, "ls-tree", "-r", "HEAD").Output()
-	require.NoError(t, err)
-
-	return string(out)
+	return gitInDir(t, dir, "ls-tree", "-r", "HEAD")
 }
