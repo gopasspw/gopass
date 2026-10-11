@@ -292,6 +292,69 @@ func TestSecretServiceSessionCollection(t *testing.T) {
 	assert.Error(t, err, "deleting the session collection must fail")
 }
 
+// TestSecretServiceAliasImmediateAvailability verifies that every object the
+// service advertises is callable the moment org.freedesktop.secrets appears
+// on the bus. A client that notices the name (NameHasOwner, NameAcquired
+// signal, activation notification) and immediately calls into an alias path
+// must not lose the startup race. This test polls aggressively and fires the
+// first D-Bus call without any grace period, so it fails when the bus name is
+// acquired before the collection and alias objects are exported.
+func TestSecretServiceAliasImmediateAvailability(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping integration test in short mode")
+	}
+
+	ts := newTester(t)
+	defer ts.teardown()
+
+	ts.initStore()
+
+	address, stopBus := startPrivateBus(t)
+	defer stopBus()
+
+	t.Setenv("DBUS_SESSION_BUS_ADDRESS", address)
+
+	logs := startSecretServiceDaemon(t, ts)
+
+	conn := connectBus(t, address)
+
+	// Poll the name the way a real client would, but as fast as possible so
+	// the first call lands immediately after ownership is visible.
+	deadline := time.Now().Add(60 * time.Second)
+	for time.Now().Before(deadline) {
+		var hasOwner bool
+		if err := conn.BusObject().Call("org.freedesktop.DBus.NameHasOwner", 0, secretservice.ServiceName).Store(&hasOwner); err == nil && hasOwner {
+			break
+		}
+
+		time.Sleep(time.Millisecond)
+	}
+
+	session := openSession(t, conn)
+
+	// The alias path of the volatile session collection must be exported by
+	// the time the name is owned.
+	sessionColl := conn.Object(secretservice.ServiceName, secretservice.AliasDBusPath(secretservice.SessionCollectionName))
+
+	props := map[string]dbus.Variant{
+		secretservice.ItemIface + ".Label": dbus.MakeVariant("Transient"),
+	}
+	secret := secretservice.Secret{
+		Session: session,
+		Value:   []byte("volatile-value"),
+	}
+
+	var itemPath, promptPath dbus.ObjectPath
+	require.NoError(t, sessionColl.Call(secretservice.CollectionIface+".CreateItem", 0, props, secret, false).Store(&itemPath, &promptPath))
+	require.NotEqual(t, secretservice.NullPath, itemPath)
+
+	var got secretservice.Secret
+	require.NoError(t, conn.Object(secretservice.ServiceName, itemPath).Call(secretservice.ItemIface+".GetSecret", 0, session).Store(&got))
+	assert.Equal(t, "volatile-value", string(got.Value))
+
+	_ = logs
+}
+
 // TestSecretServiceStatus checks the status subcommand against a private bus.
 func TestSecretServiceStatus(t *testing.T) {
 	if testing.Short() {
