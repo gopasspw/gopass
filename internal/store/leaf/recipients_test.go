@@ -14,7 +14,6 @@ import (
 	"github.com/gopasspw/gopass/internal/backend/crypto/plain"
 	"github.com/gopasspw/gopass/internal/backend/storage/fs"
 	"github.com/gopasspw/gopass/internal/config"
-	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/recipients"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/tests/gptest"
@@ -29,12 +28,7 @@ func TestGetRecipientsDefault(t *testing.T) {
 
 	tempdir := t.TempDir()
 
-	obuf := &bytes.Buffer{}
-	out.Stdout = obuf
-
-	defer func() {
-		out.Stdout = os.Stdout
-	}()
+	ctx, _, _ = captureOutput(t, ctx)
 
 	genRecs, _, err := createStore(tempdir, nil, nil)
 	require.NoError(t, err)
@@ -62,12 +56,7 @@ func TestGetRecipientsSubID(t *testing.T) {
 
 	tempdir := t.TempDir()
 
-	obuf := &bytes.Buffer{}
-	out.Stdout = obuf
-
-	defer func() {
-		out.Stdout = os.Stdout
-	}()
+	ctx, _, _ = captureOutput(t, ctx)
 
 	genRecs, _, err := createStore(tempdir, nil, nil)
 	require.NoError(t, err)
@@ -101,12 +90,7 @@ func TestSaveRecipients(t *testing.T) {
 	_, _, err := createStore(tempdir, nil, nil)
 	require.NoError(t, err)
 
-	obuf := &bytes.Buffer{}
-	out.Stdout = obuf
-
-	defer func() {
-		out.Stdout = os.Stdout
-	}()
+	ctx, _, _ = captureOutput(t, ctx)
 
 	s := &Store{
 		alias:   "",
@@ -162,12 +146,7 @@ func TestAddRecipient(t *testing.T) {
 	genRecs, _, err := createStore(tempdir, nil, nil)
 	require.NoError(t, err)
 
-	obuf := &bytes.Buffer{}
-	out.Stdout = obuf
-
-	defer func() {
-		out.Stdout = os.Stdout
-	}()
+	ctx, _, _ = captureOutput(t, ctx)
 
 	s := &Store{
 		alias:   "",
@@ -201,12 +180,7 @@ func TestRemoveRecipient(t *testing.T) {
 	_, _, err := createStore(tempdir, nil, nil)
 	require.NoError(t, err)
 
-	obuf := &bytes.Buffer{}
-	out.Stdout = obuf
-
-	defer func() {
-		out.Stdout = os.Stdout
-	}()
+	ctx, _, _ = captureOutput(t, ctx)
 
 	s := &Store{
 		alias:   "",
@@ -238,12 +212,7 @@ func TestRemoveRecipientScopedCleanup(t *testing.T) {
 	_, _, err := createStore(tempdir, []string{"0xDEADBEEF", "0xFEEDBEEF"}, nil)
 	require.NoError(t, err)
 
-	obuf := &bytes.Buffer{}
-	out.Stdout = obuf
-
-	defer func() {
-		out.Stdout = os.Stdout
-	}()
+	ctx, _, _ = captureOutput(t, ctx)
 
 	s := &Store{
 		alias:   "",
@@ -289,12 +258,7 @@ func TestRemoveRecipientPreservesOtherKeys(t *testing.T) {
 	_, _, err := createStore(tempdir, []string{"0xDEADBEEF", "0xFEEDBEEF"}, nil)
 	require.NoError(t, err)
 
-	obuf := &bytes.Buffer{}
-	out.Stdout = obuf
-
-	defer func() {
-		out.Stdout = os.Stdout
-	}()
+	ctx, _, _ = captureOutput(t, ctx)
 
 	s := &Store{
 		alias:   "",
@@ -335,12 +299,7 @@ func TestListRecipients(t *testing.T) {
 	genRecs, _, err := createStore(tempdir, nil, nil)
 	require.NoError(t, err)
 
-	obuf := &bytes.Buffer{}
-	out.Stdout = obuf
-
-	defer func() {
-		out.Stdout = os.Stdout
-	}()
+	ctx, _, _ = captureOutput(t, ctx)
 
 	ctx, err = backend.WithCryptoBackendString(ctx, "plain")
 	require.NoError(t, err)
@@ -369,12 +328,7 @@ func TestCheckRecipients(t *testing.T) {
 	ctx = ctxutil.WithTerminal(ctx, false)
 	ctx = backend.WithCryptoBackend(ctx, backend.GPGCLI)
 
-	obuf := &bytes.Buffer{}
-	out.Stdout = obuf
-
-	defer func() {
-		out.Stdout = os.Stdout
-	}()
+	ctx, _, _ = captureOutput(t, ctx)
 
 	s, err := New(ctx, "", u.StoreDir(""))
 	require.NoError(t, err)
@@ -395,12 +349,7 @@ func TestCanonicalizeRecipientHelper(t *testing.T) {
 
 	tempdir := t.TempDir()
 
-	obuf := &bytes.Buffer{}
-	out.Stdout = obuf
-
-	defer func() {
-		out.Stdout = os.Stdout
-	}()
+	ctx, _, _ = captureOutput(t, ctx)
 
 	s := &Store{
 		alias:   "",
@@ -436,12 +385,7 @@ func TestAddRecipientCanonicalized(t *testing.T) {
 	_, _, err := createStore(tempdir, []string{"0xDEADBEEF"}, nil)
 	require.NoError(t, err)
 
-	obuf := &bytes.Buffer{}
-	out.Stdout = obuf
-
-	defer func() {
-		out.Stdout = os.Stdout
-	}()
+	ctx, _, _ = captureOutput(t, ctx)
 
 	s := &Store{
 		alias:   "",
@@ -475,12 +419,7 @@ func TestCanonicalizeRecipients(t *testing.T) {
 	_, _, err := createStore(tempdir, []string{"DEADBEEF", "FEEDBEEF"}, nil)
 	require.NoError(t, err)
 
-	obuf := &bytes.Buffer{}
-	out.Stdout = obuf
-
-	defer func() {
-		out.Stdout = os.Stdout
-	}()
+	ctx, _, _ = captureOutput(t, ctx)
 
 	s := &Store{
 		alias:   "",
@@ -517,12 +456,7 @@ func TestCanonicalizeRecipientsAlreadyCanonical(t *testing.T) {
 	genRecs, _, err := createStore(tempdir, nil, nil)
 	require.NoError(t, err)
 
-	obuf := &bytes.Buffer{}
-	out.Stdout = obuf
-
-	defer func() {
-		out.Stdout = os.Stdout
-	}()
+	ctx, _, _ = captureOutput(t, ctx)
 
 	s := &Store{
 		alias:   "",
@@ -549,12 +483,7 @@ func TestDiagnoseRecipientsCanonical(t *testing.T) {
 
 	tempdir := t.TempDir()
 
-	obuf := &bytes.Buffer{}
-	out.Stdout = obuf
-
-	defer func() {
-		out.Stdout = os.Stdout
-	}()
+	ctx, _, _ = captureOutput(t, ctx)
 
 	// Default store uses canonical IDs ("0xDEADBEEF", "0xFEEDBEEF").
 	_, _, err := createStore(tempdir, nil, nil)
@@ -585,12 +514,7 @@ func TestDiagnoseRecipientsNonCanonical(t *testing.T) {
 
 	tempdir := t.TempDir()
 
-	obuf := &bytes.Buffer{}
-	out.Stdout = obuf
-
-	defer func() {
-		out.Stdout = os.Stdout
-	}()
+	ctx, _, _ = captureOutput(t, ctx)
 
 	// Create store with non-canonical short IDs (no "0x" prefix).
 	_, _, err := createStore(tempdir, []string{"DEADBEEF", "FEEDBEEF"}, nil)
@@ -626,12 +550,7 @@ func TestDiagnoseRecipientsUnresolvable(t *testing.T) {
 
 	tempdir := t.TempDir()
 
-	obuf := &bytes.Buffer{}
-	out.Stdout = obuf
-
-	defer func() {
-		out.Stdout = os.Stdout
-	}()
+	ctx, _, _ = captureOutput(t, ctx)
 
 	// The plain backend knows only DEADBEEF and FEEDBEEF.
 	// "A3683834" is unknown and has no .public-keys/ file.
@@ -668,12 +587,7 @@ func TestJoinTeamCanDecrypt(t *testing.T) {
 
 	tempdir := t.TempDir()
 
-	obuf := &bytes.Buffer{}
-	out.Stdout = obuf
-
-	defer func() {
-		out.Stdout = os.Stdout
-	}()
+	ctx, _, _ = captureOutput(t, ctx)
 
 	// Default store with canonical IDs that match the plain backend's static keys.
 	_, _, err := createStore(tempdir, nil, nil)
@@ -699,12 +613,7 @@ func TestHasDecryptionKey(t *testing.T) {
 
 	tempdir := t.TempDir()
 
-	obuf := &bytes.Buffer{}
-	out.Stdout = obuf
-
-	defer func() {
-		out.Stdout = os.Stdout
-	}()
+	ctx, _, _ = captureOutput(t, ctx)
 
 	// Default store with known recipients from the plain backend.
 	_, _, err := createStore(tempdir, nil, nil)
@@ -728,12 +637,7 @@ func TestGuardPartialViewWrite(t *testing.T) {
 
 	tempdir := t.TempDir()
 
-	obuf := &bytes.Buffer{}
-	out.Stdout = obuf
-
-	defer func() {
-		out.Stdout = os.Stdout
-	}()
+	ctx, _, _ = captureOutput(t, ctx)
 
 	// All recipients resolvable.
 	_, _, err := createStore(tempdir, nil, nil)
@@ -758,12 +662,7 @@ func TestGuardPartialViewWriteFails(t *testing.T) {
 
 	tempdir := t.TempDir()
 
-	obuf := &bytes.Buffer{}
-	out.Stdout = obuf
-
-	defer func() {
-		out.Stdout = os.Stdout
-	}()
+	ctx, _, _ = captureOutput(t, ctx)
 
 	// A3683834 is unknown to the plain backend and has no .public-keys/ file.
 	_, _, err := createStore(tempdir, []string{"0xDEADBEEF", "A3683834"}, nil)
@@ -794,12 +693,7 @@ func TestUpdateExportedPublicKeysAdditiveOnly(t *testing.T) {
 	_, _, err := createStore(tempdir, nil, nil)
 	require.NoError(t, err)
 
-	obuf := &bytes.Buffer{}
-	out.Stdout = obuf
-
-	defer func() {
-		out.Stdout = os.Stdout
-	}()
+	ctx, _, _ = captureOutput(t, ctx)
 
 	s := &Store{
 		alias:   "",
@@ -827,12 +721,7 @@ func TestUpdateRecipientKeysPlainBackend(t *testing.T) {
 	_, _, err := createStore(tempdir, nil, nil)
 	require.NoError(t, err)
 
-	obuf := &bytes.Buffer{}
-	out.Stdout = obuf
-
-	defer func() {
-		out.Stdout = os.Stdout
-	}()
+	ctx, _, _ = captureOutput(t, ctx)
 
 	s := &Store{
 		alias:   "",
@@ -859,12 +748,7 @@ func TestUpdateRecipientKeysDefaultToOwn(t *testing.T) {
 	_, _, err := createStore(tempdir, nil, nil)
 	require.NoError(t, err)
 
-	obuf := &bytes.Buffer{}
-	out.Stdout = obuf
-
-	defer func() {
-		out.Stdout = os.Stdout
-	}()
+	ctx, _, _ = captureOutput(t, ctx)
 
 	s := &Store{
 		alias:   "",
@@ -891,12 +775,7 @@ func TestDiagnoseRecipientsPubkeyOnly(t *testing.T) {
 
 	tempdir := t.TempDir()
 
-	obuf := &bytes.Buffer{}
-	out.Stdout = obuf
-
-	defer func() {
-		out.Stdout = os.Stdout
-	}()
+	ctx, _, _ = captureOutput(t, ctx)
 
 	// Create a store with one unresolvable ID that has a .public-keys/ entry.
 	_, _, err := createStore(tempdir, []string{"0xDEADBEEF", "A3683834"}, nil)

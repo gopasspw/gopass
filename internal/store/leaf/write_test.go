@@ -1,17 +1,13 @@
 package leaf
 
 import (
-	"bytes"
 	"os"
 	"path/filepath"
 	"testing"
 
 	"github.com/gopasspw/gopass/internal/backend"
-	_ "github.com/gopasspw/gopass/internal/backend/crypto"
 	"github.com/gopasspw/gopass/internal/backend/crypto/gpg"
-	_ "github.com/gopasspw/gopass/internal/backend/storage"
 	"github.com/gopasspw/gopass/internal/config"
-	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/gopass/secrets"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -38,11 +34,6 @@ func TestSet(t *testing.T) {
 // useable key (e.g. because it is expired or not present in the keyring),
 // gopass emits a visible warning instead of silently omitting that recipient.
 func TestSetWarnsAboutInvalidRecipient(t *testing.T) {
-	buf := &bytes.Buffer{}
-	oldStderr := out.Stderr
-	out.Stderr = buf
-	t.Cleanup(func() { out.Stderr = oldStderr })
-
 	dir := t.TempDir()
 	sd := filepath.Join(dir, "sub")
 
@@ -58,6 +49,8 @@ func TestSetWarnsAboutInvalidRecipient(t *testing.T) {
 	require.NoError(t, os.Unsetenv("PAGER"))
 
 	ctx := gpg.WithAlwaysTrust(config.NewContextInMemory(), true)
+
+	ctx, _, stderr := captureOutput(t, ctx)
 	ctx, err = backend.WithCryptoBackendString(ctx, "plain")
 	require.NoError(t, err)
 	ctx, err = backend.WithStorageBackendString(ctx, "fs")
@@ -71,5 +64,5 @@ func TestSetWarnsAboutInvalidRecipient(t *testing.T) {
 	require.NoError(t, s.Set(ctx, "test/entry", sec))
 
 	// A warning about the recipient with no useable key must have been printed.
-	assert.Contains(t, buf.String(), "0xBADKEY")
+	assert.Contains(t, stderrContents(t, stderr), "0xBADKEY")
 }
