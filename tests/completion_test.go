@@ -24,16 +24,101 @@ func TestCompletion(t *testing.T) {
 	})
 
 	t.Run("bash completion", func(t *testing.T) {
-		bash := `_gopass_bash_autocomplete() {
-     local cur opts base
-     COMPREPLY=()
-     cur="${COMP_WORDS[COMP_CWORD]}"
-     # Use error handling to prevent crashes from invalid flags
-     opts=$( ${COMP_WORDS[@]:0:$COMP_CWORD} --generate-shell-completion 2>/dev/null ) || opts=""
-     local IFS=$'\n'
-     COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
-     return 0
- }
+		bash := `__gopass_init_completion() {
+  COMPREPLY=()
+  if declare -F _comp_initialize >/dev/null 2>&1; then
+    _comp_initialize "$@"
+  elif declare -F _get_comp_words_by_ref >/dev/null 2>&1; then
+    _get_comp_words_by_ref "$@" cur prev words cword
+  else
+    cur="${COMP_WORDS[COMP_CWORD]}"
+    cword="${COMP_CWORD}"
+  fi
+}
+
+__gopass_completion_tokens=()
+__gopass_completion_descriptions=()
+
+__gopass_find_description_for() {
+  local candidate="$1"
+  local i
+  for i in "${!__gopass_completion_tokens[@]}"; do
+    if [[ "${__gopass_completion_tokens[i]}" == "${candidate}" ]]; then
+      printf '%s' "${__gopass_completion_descriptions[i]}"
+      return 0
+    fi
+  done
+  return 1
+}
+
+_gopass_bash_autocomplete() {
+  local cur opts
+  COMPREPLY=()
+  cur="${COMP_WORDS[COMP_CWORD]}"
+  __gopass_init_completion -n "=:" || return
+
+  # Keep IFS at newline so that candidates containing spaces stay in one word.
+  local IFS=$'\n'
+
+  if [[ "${cur}" == -* ]]; then
+    opts=$( "${COMP_WORDS[@]:0:$COMP_CWORD}" "${cur}" --generate-shell-completion 2>/dev/null ) || opts=""
+  else
+    opts=$( "${COMP_WORDS[@]:0:$COMP_CWORD}" --generate-shell-completion 2>/dev/null ) || opts=""
+  fi
+
+  # The completion output uses "token:description" lines. Colons in secret
+  # names arrive escaped as "\:" and are kept whole; compgen unescapes them
+  # again when the match is inserted.
+  __gopass_completion_tokens=()
+  __gopass_completion_descriptions=()
+
+  local line token description longest
+  longest=0
+  while IFS= read -r line; do
+    token="${line}"
+    description=""
+    if [[ "${line}" == *"\:"* ]]; then
+      # Escaped colon: a secret name containing a colon. Keep it whole.
+      token="${line}"
+    elif [[ "${line}" == *:* ]]; then
+      token="${line%%:*}"
+      description="${line#*:}"
+    fi
+
+    if [[ -z "${token}" ]]; then
+      continue
+    fi
+
+    __gopass_completion_tokens+=("${token}")
+    __gopass_completion_descriptions+=("${description}")
+    (( ${#token} > longest )) && longest=${#token}
+  done <<< "${opts}"
+
+  local matches=( $(compgen -W "${__gopass_completion_tokens[*]}" -- "${cur}") )
+
+  # COMP_TYPE 63: bash is listing matches (usually the second TAB). Show the
+  # descriptions alongside the tokens.
+  if [[ "${COMP_TYPE:-}" == "63" && ${#matches[@]} -gt 0 ]]; then
+    local listed=()
+    local candidate
+    for candidate in "${matches[@]}"; do
+      local desc
+      desc="$(__gopass_find_description_for "${candidate}")"
+      if [[ -n "${desc}" ]]; then
+        local padded
+        padded="$(printf '%-*s' "${longest}" "${candidate}")"
+        listed+=("${padded}  --  ${desc}")
+      else
+        listed+=("${candidate}")
+      fi
+    done
+    COMPREPLY=("${listed[@]}")
+  else
+    COMPREPLY=("${matches[@]}")
+  fi
+
+  return 0
+}
 
 complete -F _gopass_bash_autocomplete gopass`
 
