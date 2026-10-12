@@ -86,6 +86,7 @@ func copyFile(src, dst string) error {
 	if err != nil {
 		return err
 	}
+
 	return os.WriteFile(dst, data, 0o700)
 }
 
