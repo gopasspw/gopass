@@ -163,7 +163,7 @@ func credentialHelperAuth(ctx context.Context, url, dir string) transport.AuthMe
 		return nil
 	}
 
-	protocol, host, path := splitHTTPURL(url)
+	protocol, host, path, username := splitHTTPURL(url)
 	if host == "" {
 		return nil
 	}
@@ -171,6 +171,9 @@ func credentialHelperAuth(ctx context.Context, url, dir string) transport.AuthMe
 	input := bytes.NewBufferString("protocol=" + protocol + "\nhost=" + host + "\n")
 	if path != "" {
 		input.WriteString("path=" + path + "\n")
+	}
+	if username != "" {
+		input.WriteString("username=" + username + "\n")
 	}
 	input.WriteString("\n")
 
@@ -181,6 +184,9 @@ func credentialHelperAuth(ctx context.Context, url, dir string) transport.AuthMe
 	if dir != "" {
 		cmd.Dir = dir
 	}
+	// Never let git prompt on the TTY: with no helper configured it would block
+	// until the timeout and then be killed.
+	cmd.Env = append(os.Environ(), "GIT_TERMINAL_PROMPT=0")
 	cmd.Stdin = input
 	out, err := cmd.Output()
 	if err != nil {
@@ -209,22 +215,36 @@ func credentialHelperAuth(ctx context.Context, url, dir string) transport.AuthMe
 	return &http.BasicAuth{Username: user, Password: pass}
 }
 
-// splitHTTPURL splits an HTTP(S) URL into protocol, host and path.
-func splitHTTPURL(raw string) (string, string, string) {
-	i := strings.Index(raw, "://")
-	if i < 0 {
-		return "", "", ""
-	}
-	protocol := raw[:i]
-	rest := raw[i+3:]
-	host := rest
-	path := ""
-	if slash := strings.Index(rest, "/"); slash >= 0 {
-		host = rest[:slash]
-		path = rest[slash+1:]
+// splitHTTPURL splits an HTTP(S) URL into protocol, host and path. The host is
+// returned without any userinfo, and a username present in the URL is returned
+// separately so credential helpers keyed on the host (e.g. dev.azure.com) still
+// match a username-only URL such as https://org@dev.azure.com/org/proj/_git/repo.
+func splitHTTPURL(raw string) (string, string, string, string) {
+	u, err := url.Parse(raw)
+	if err != nil {
+		return "", "", "", ""
 	}
 
-	return protocol, host, path
+	username := ""
+	if u.User != nil {
+		username = u.User.Username()
+	}
+
+	return u.Scheme, u.Host, strings.TrimPrefix(u.Path, "/"), username
+}
+
+// stripUserInfo removes any userinfo from a URL so it can be handed to go-git
+// without the credentials ending up in go-git's error messages. Credentials are
+// passed via Auth instead.
+func stripUserInfo(raw string) string {
+	u, err := url.Parse(raw)
+	if err != nil || u.User == nil {
+		return raw
+	}
+
+	u.User = nil
+
+	return u.String()
 }
 
 // redactURL removes any password from a URL so it can be safely logged or

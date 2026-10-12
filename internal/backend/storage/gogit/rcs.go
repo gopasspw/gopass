@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -12,6 +13,9 @@ import (
 	git "github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/config"
 	"github.com/go-git/go-git/v5/plumbing"
+	"github.com/go-git/go-git/v5/plumbing/filemode"
+	"github.com/go-git/go-git/v5/plumbing/format/index"
+	"github.com/go-git/go-git/v5/plumbing/storer"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
@@ -99,7 +103,7 @@ func (g *GoGit) HasStagedChanges(_ context.Context) bool {
 	}
 
 	for _, fs := range st {
-		if fs.Staging != git.Unmodified {
+		if fs.Staging != git.Unmodified && fs.Staging != git.Untracked {
 			return true
 		}
 	}
@@ -140,10 +144,14 @@ func (g *GoGit) Commit(ctx context.Context, msg string) error {
 
 	// Honour commit.gpgsign by shelling out to the git CLI for this commit
 	// only. If that is not possible (no git binary) fall back to an unsigned
-	// commit rather than failing the user's write.
+	// commit rather than failing the user's write, but only when the user
+	// explicitly opted in via gogit.allow-unsigned-commits.
 	if g.shouldSign() {
 		if err := g.commitSignedCLI(ctx, msg); err == nil {
 			return nil
+		}
+		if !g.allowUnsignedCommits(ctx) {
+			return fmt.Errorf("failed to create a signed commit and gogit.allow-unsigned-commits is not set; refusing to create an unsigned commit")
 		}
 		out.Warningf(ctx, "Failed to create a signed commit, creating an unsigned commit instead.")
 	}
@@ -182,10 +190,15 @@ func (g *GoGit) TryCommit(ctx context.Context, msg string) error {
 	return err
 }
 
-// fetch fetches from the named remote.
+// fetch fetches from the named remote. The remote URL is stripped of any
+// userinfo before it is handed to go-git: go-git's HTTP transport embeds the
+// request URL (userinfo included) in its errors, which would leak a password or
+// token into the terminal and the debug log. Credentials are passed via Auth
+// only.
 func (g *GoGit) fetch(ctx context.Context, remote string) error {
 	if err := g.repo.FetchContext(ctx, &git.FetchOptions{
 		RemoteName: remote,
+		RemoteURL:  stripUserInfo(g.remoteURL(remote)),
 		Auth:       g.auth(ctx, remote),
 		Force:      false,
 	}); err != nil && !errors.Is(err, git.NoErrAlreadyUpToDate) {
@@ -234,11 +247,13 @@ func (g *GoGit) PushPull(ctx context.Context, op, remote, branch string) error {
 	return g.pushRemote(ctx, remote, branch)
 }
 
-// pushRemote pushes the local branch to the remote.
+// pushRemote pushes the local branch to the remote. The remote URL is stripped
+// of userinfo for the same reason as in fetch.
 func (g *GoGit) pushRemote(ctx context.Context, remote, branch string) error {
 	refSpec := config.RefSpec(fmt.Sprintf("refs/heads/%s:refs/heads/%s", branch, branch))
 	err := g.repo.PushContext(ctx, &git.PushOptions{
 		RemoteName: remote,
+		RemoteURL:  stripUserInfo(g.remoteURL(remote)),
 		RefSpecs:   []config.RefSpec{refSpec},
 		Auth:       g.auth(ctx, remote),
 	})
@@ -295,10 +310,16 @@ func (g *GoGit) pullRemote(ctx context.Context, remote, branch string) error {
 
 	remoteRef, err := g.repo.Reference(plumbing.NewRemoteReferenceName(remote, branch), true)
 	if err != nil {
-		// Nothing fetched (e.g. empty remote). Nothing to do.
-		debug.Log("remote ref %s/%s not found: %s", remote, branch, err)
+		// A missing remote branch is only benign when the remote is genuinely
+		// empty. Otherwise (e.g. a typo in the branch name) report the error
+		// instead of silently doing nothing.
+		if g.remoteIsEmpty(ctx, remote) {
+			debug.Log("remote %s is empty, nothing to pull", remote)
 
-		return nil
+			return nil
+		}
+
+		return fmt.Errorf("remote branch %s/%s not found: %w", remote, branch, err)
 	}
 	remoteHash := remoteRef.Hash()
 
@@ -320,11 +341,47 @@ func (g *GoGit) pullRemote(ctx context.Context, remote, branch string) error {
 		return err
 	}
 
-	if ff, err := localCommit.IsAncestor(remoteCommit); err == nil && ff {
+	ff, err := localCommit.IsAncestor(remoteCommit)
+	if err != nil {
+		return err
+	}
+	if ff {
 		return g.resetTo(remoteHash)
 	}
 
+	// The remote is an ancestor of local (unpushed local commits): there is
+	// nothing to integrate. Without this check the merge below would create a
+	// redundant empty two-parent merge commit on every pull.
+	if remoteIsAncestor, err := remoteCommit.IsAncestor(localCommit); err != nil {
+		return err
+	} else if remoteIsAncestor {
+		return nil
+	}
+
 	return g.mergeRemote(ctx, remoteHash)
+}
+
+// remoteIsEmpty reports whether the named remote has no branches at all.
+func (g *GoGit) remoteIsEmpty(ctx context.Context, remote string) bool {
+	iter, err := g.repo.References()
+	if err != nil {
+		return false
+	}
+	defer iter.Close()
+
+	prefix := "refs/remotes/" + remote + "/"
+	empty := true
+	_ = iter.ForEach(func(ref *plumbing.Reference) error {
+		if strings.HasPrefix(ref.Name().String(), prefix) {
+			empty = false
+
+			return storer.ErrStop
+		}
+
+		return nil
+	})
+
+	return empty
 }
 
 // resetTo fast-forwards the worktree and HEAD to the given commit. It uses
@@ -340,12 +397,96 @@ func (g *GoGit) resetTo(hash plumbing.Hash) error {
 	}
 
 	if _, err := g.repo.Head(); err != nil {
+		// Unborn HEAD: MergeReset would drop index entries that are not in the
+		// remote tree (e.g. the files Init staged for `gopass setup --remote`).
+		// Snapshot the index and re-add those entries after the reset so the
+		// staged content survives and can be committed on top.
+		staged, err := g.stagedEntries()
+		if err != nil {
+			return err
+		}
+
 		if err := g.setUnbornHead(hash); err != nil {
 			return err
 		}
+		if err := wt.Reset(&git.ResetOptions{Commit: hash, Mode: git.MergeReset}); err != nil {
+			return err
+		}
+
+		return g.restoreStagedEntries(staged)
 	}
 
 	return wt.Reset(&git.ResetOptions{Commit: hash, Mode: git.MergeReset})
+}
+
+// stagedEntries returns the current index entries keyed by path.
+func (g *GoGit) stagedEntries() (map[string]*index.Entry, error) {
+	idx, err := g.repo.Storer.Index()
+	if err != nil {
+		return nil, err
+	}
+
+	entries := make(map[string]*index.Entry, len(idx.Entries))
+	for _, e := range idx.Entries {
+		entries[e.Name] = e
+	}
+
+	return entries, nil
+}
+
+// restoreStagedEntries re-adds the given index entries and materialises their
+// worktree files, keeping any entry that the reset already produced (the remote
+// tree wins for paths present in both). The reset deletes worktree files whose
+// index entries it removed, so the content is restored from the object store.
+func (g *GoGit) restoreStagedEntries(staged map[string]*index.Entry) error {
+	if len(staged) == 0 {
+		return nil
+	}
+
+	idx, err := g.repo.Storer.Index()
+	if err != nil {
+		return err
+	}
+
+	for name, e := range staged {
+		if _, err := idx.Entry(name); err == nil {
+			continue
+		}
+
+		if err := g.materializeIndexEntry(e); err != nil {
+			return err
+		}
+		idx.Entries = append(idx.Entries, e)
+	}
+
+	return g.repo.Storer.SetIndex(idx)
+}
+
+// materializeIndexEntry writes the blob referenced by an index entry back into
+// the worktree, recreating symlinks.
+func (g *GoGit) materializeIndexEntry(e *index.Entry) error {
+	blob, err := g.repo.BlobObject(e.Hash)
+	if err != nil {
+		return err
+	}
+	r, err := blob.Reader()
+	if err != nil {
+		return err
+	}
+	defer func() {
+		_ = r.Close()
+	}()
+
+	content, err := io.ReadAll(r)
+	if err != nil {
+		return err
+	}
+
+	if e.Mode == filemode.Symlink {
+		return g.fs.SetSymlink(context.Background(), e.Name, string(content))
+	}
+
+	return g.fs.Set(context.Background(), e.Name, content)
 }
 
 // setUnbornHead points the branch HEAD refers to at the given commit, turning
@@ -400,7 +541,7 @@ func (g *GoGit) Status(_ context.Context) ([]byte, error) {
 
 	for path, fs := range st {
 		switch {
-		case fs.Staging != git.Unmodified:
+		case fs.Staging != git.Unmodified && fs.Staging != git.Untracked:
 			staged = append(staged, fmt.Sprintf("#   %s:   %s", statusVerb(fs.Staging), path))
 		case fs.Worktree == git.Untracked:
 			untracked = append(untracked, fmt.Sprintf("#   %s", path))
@@ -445,16 +586,29 @@ func statusVerb(code git.StatusCode) string {
 	}
 }
 
-// Compact runs a best-effort repack and prune.
+// Compact runs a best-effort repack and prune. The prune handler deletes
+// unreachable loose objects (a handler returning nil would make the prune a
+// no-op).
 func (g *GoGit) Compact(ctx context.Context) error {
 	if err := g.repo.RepackObjects(&git.RepackConfig{}); err != nil {
 		debug.Log("Failed to repack objects: %s", err)
 
 		return nil
 	}
-	if err := g.repo.Prune(git.PruneOptions{Handler: func(plumbing.Hash) error { return nil }}); err != nil {
+
+	handler := func(plumbing.Hash) error { return nil }
+	if d, ok := g.repo.Storer.(looseObjectDeleter); ok {
+		handler = d.DeleteLooseObject
+	}
+	if err := g.repo.Prune(git.PruneOptions{Handler: handler}); err != nil {
 		debug.Log("Failed to prune objects: %s", err)
 	}
 
 	return nil
+}
+
+// looseObjectDeleter is implemented by go-git's filesystem object storage. It
+// is used to actually delete unreachable loose objects during a prune.
+type looseObjectDeleter interface {
+	DeleteLooseObject(plumbing.Hash) error
 }

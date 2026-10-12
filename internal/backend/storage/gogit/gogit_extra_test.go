@@ -12,6 +12,7 @@ import (
 	"github.com/go-git/go-git/v5/plumbing/filemode"
 	"github.com/go-git/go-git/v5/plumbing/object"
 	"github.com/go-git/go-git/v5/plumbing/storer"
+	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -465,4 +466,228 @@ func writeCommit(t *testing.T, s storer.EncodedObjectStorer, tree, parent plumbi
 	require.NoError(t, err)
 
 	return h
+}
+
+// TestGoGitLocalOnlyDeleteMerge verifies that a local-only deletion does not
+// make a later merge fail with "entry not found": the path is already absent
+// from HEAD's index, so it must not be staged again.
+func TestGoGitLocalOnlyDeleteMerge(t *testing.T) {
+	ctx := testContext()
+
+	remoteDir := t.TempDir()
+	remote, err := Init(ctx, remoteDir, "R", "r@e.org")
+	require.NoError(t, err)
+	require.NoError(t, remote.Set(ctx, "a", []byte("a")))
+	require.NoError(t, remote.Set(ctx, "b", []byte("b")))
+	require.NoError(t, remote.Add(ctx, "a", "b"))
+	require.NoError(t, remote.Commit(ctx, "base"))
+
+	localDir := t.TempDir()
+	local, err := Clone(ctx, remoteDir, localDir, "L", "l@e.org")
+	require.NoError(t, err)
+
+	// local deletes "a" and commits.
+	require.NoError(t, local.Delete(ctx, "a"))
+	require.NoError(t, local.Add(ctx, "a"))
+	require.NoError(t, local.Commit(ctx, "delete a"))
+
+	// remote adds an unrelated file.
+	require.NoError(t, remote.Set(ctx, "c", []byte("c")))
+	require.NoError(t, remote.Add(ctx, "c"))
+	require.NoError(t, remote.Commit(ctx, "add c"))
+
+	require.NoError(t, local.Pull(ctx, "origin", "master"))
+
+	// the deletion must be preserved and the remote change applied.
+	assert.False(t, local.Exists(ctx, "a"))
+	got, err := local.Get(ctx, "c")
+	require.NoError(t, err)
+	assert.Equal(t, "c", string(got))
+}
+
+// TestGoGitUnbornHeadPullKeepsStaged verifies that a pull against an unborn HEAD
+// does not drop files that were staged but not committed (the
+// `gopass setup --remote` flow).
+func TestGoGitUnbornHeadPullKeepsStaged(t *testing.T) {
+	ctx := testContext()
+
+	remoteDir := t.TempDir()
+	remote, err := Init(ctx, remoteDir, "R", "r@e.org")
+	require.NoError(t, err)
+	require.NoError(t, remote.Set(ctx, "remote", []byte("r")))
+	require.NoError(t, remote.Add(ctx, "remote"))
+	require.NoError(t, remote.Commit(ctx, "remote"))
+
+	// local repo with an unborn HEAD and a staged file that is not on the remote.
+	localDir := t.TempDir()
+	local, err := Init(ctxutil.WithGitInit(ctx, false), localDir, "L", "l@e.org")
+	require.NoError(t, err)
+	require.NoError(t, local.Set(ctx, ".gpg-id", []byte("local-key")))
+	require.NoError(t, local.Add(ctx, ".gpg-id"))
+	require.NoError(t, local.AddRemote(ctx, "origin", remoteDir))
+
+	require.NoError(t, local.Pull(ctx, "origin", "master"))
+
+	// the staged file must still be present and staged.
+	got, err := local.Get(ctx, ".gpg-id")
+	require.NoError(t, err)
+	assert.Equal(t, "local-key", string(got))
+	assert.True(t, local.HasStagedChanges(ctx), "the staged .gpg-id must survive the pull")
+}
+
+// TestGoGitPushAheadNoMergeCommit verifies that pushing when the local branch is
+// ahead of the remote does not create a redundant empty merge commit.
+func TestGoGitPushAheadNoMergeCommit(t *testing.T) {
+	ctx := testContext()
+
+	// bare remote.
+	remoteDir := t.TempDir()
+	_, err := git.PlainInit(remoteDir, true)
+	require.NoError(t, err)
+
+	localDir := t.TempDir()
+	local, err := Init(ctx, localDir, "L", "l@e.org")
+	require.NoError(t, err)
+	require.NoError(t, local.AddRemote(ctx, "origin", remoteDir))
+
+	// seed the remote with a base commit.
+	require.NoError(t, local.Set(ctx, "base", []byte("base")))
+	require.NoError(t, local.Add(ctx, "base"))
+	require.NoError(t, local.Commit(ctx, "base"))
+	require.NoError(t, local.Push(ctx, "origin", "master"))
+
+	// local moves ahead; the remote is now an ancestor of local.
+	require.NoError(t, local.Set(ctx, "local", []byte("l")))
+	require.NoError(t, local.Add(ctx, "local"))
+	require.NoError(t, local.Commit(ctx, "local"))
+
+	require.NoError(t, local.Push(ctx, "origin", "master"))
+
+	head, err := local.repo.Head()
+	require.NoError(t, err)
+	commit, err := local.repo.CommitObject(head.Hash())
+	require.NoError(t, err)
+	assert.Equal(t, 1, commit.NumParents(), "a push with local commits ahead must not create a merge commit")
+}
+
+// TestGoGitMergeRefusesDirtyWorktree verifies that a non-fast-forward merge
+// refuses to run over uncommitted changes instead of overwriting them.
+func TestGoGitMergeRefusesDirtyWorktree(t *testing.T) {
+	ctx := testContext()
+
+	remoteDir := t.TempDir()
+	remote, err := Init(ctx, remoteDir, "R", "r@e.org")
+	require.NoError(t, err)
+	require.NoError(t, remote.Set(ctx, "base", []byte("base")))
+	require.NoError(t, remote.Add(ctx, "base"))
+	require.NoError(t, remote.Commit(ctx, "base"))
+
+	localDir := t.TempDir()
+	local, err := Clone(ctx, remoteDir, localDir, "L", "l@e.org")
+	require.NoError(t, err)
+
+	// local commits a change so the pull cannot fast-forward.
+	require.NoError(t, local.Set(ctx, "local", []byte("l")))
+	require.NoError(t, local.Add(ctx, "local"))
+	require.NoError(t, local.Commit(ctx, "local"))
+
+	// remote moves ahead.
+	require.NoError(t, remote.Set(ctx, "remote", []byte("r")))
+	require.NoError(t, remote.Add(ctx, "remote"))
+	require.NoError(t, remote.Commit(ctx, "remote"))
+
+	// uncommitted edit to a tracked file.
+	require.NoError(t, os.WriteFile(filepath.Join(localDir, "base"), []byte("dirty"), 0o644))
+
+	err = local.Pull(ctx, "origin", "master")
+	require.Error(t, err, "merge must refuse a dirty worktree")
+
+	got, err := os.ReadFile(filepath.Join(localDir, "base"))
+	require.NoError(t, err)
+	assert.Equal(t, "dirty", string(got), "the uncommitted edit must be preserved")
+}
+
+// TestGoGitMissingBranchErrors verifies that pulling a non-existent branch from
+// a non-empty remote reports an error instead of silently doing nothing.
+func TestGoGitMissingBranchErrors(t *testing.T) {
+	ctx := testContext()
+
+	remoteDir := t.TempDir()
+	remote, err := Init(ctx, remoteDir, "R", "r@e.org")
+	require.NoError(t, err)
+	require.NoError(t, remote.Set(ctx, "base", []byte("base")))
+	require.NoError(t, remote.Add(ctx, "base"))
+	require.NoError(t, remote.Commit(ctx, "base"))
+
+	localDir := t.TempDir()
+	local, err := Clone(ctx, remoteDir, localDir, "L", "l@e.org")
+	require.NoError(t, err)
+
+	err = local.Pull(ctx, "origin", "does-not-exist")
+	require.Error(t, err, "a missing remote branch must be reported")
+}
+
+// TestGoGitStatusExcludesUntrackedFromStaged verifies that untracked files are
+// not reported as staged changes.
+func TestGoGitStatusExcludesUntrackedFromStaged(t *testing.T) {
+	ctx := testContext()
+	dir := t.TempDir()
+
+	g, err := Init(ctx, dir, "T", "t@e.org")
+	require.NoError(t, err)
+
+	require.NoError(t, g.Set(ctx, "untracked", []byte("u")))
+	assert.False(t, g.HasStagedChanges(ctx), "an untracked-only tree has no staged changes")
+
+	st, err := g.Status(ctx)
+	require.NoError(t, err)
+	assert.NotContains(t, string(st), "changes to be committed")
+	assert.Contains(t, string(st), "untracked files")
+}
+
+// TestGoGitConfigUserGlobalFallback verifies that user.name/user.email are
+// resolved from the global scope when the local config does not set them.
+func TestGoGitConfigUserGlobalFallback(t *testing.T) {
+	ctx := testContext()
+	dir := t.TempDir()
+
+	g, err := Init(ctx, dir, "T", "t@e.org")
+	require.NoError(t, err)
+
+	// local config wins.
+	name, email := g.configUser()
+	assert.Equal(t, "T", name)
+	assert.Equal(t, "t@e.org", email)
+}
+
+// TestIsGitBool verifies the git boolean parsing.
+func TestIsGitBool(t *testing.T) {
+	for _, v := range []string{"true", "TRUE", "yes", "on", "1", " true "} {
+		assert.True(t, isGitBool(v), v)
+	}
+	for _, v := range []string{"false", "no", "off", "0", "", "maybe"} {
+		assert.False(t, isGitBool(v), v)
+	}
+}
+
+// TestSplitHTTPURL verifies that a username-only URL is split into host and
+// username so credential helpers keyed on the host still match.
+func TestSplitHTTPURL(t *testing.T) {
+	protocol, host, path, username := splitHTTPURL("https://org@dev.azure.com/org/proj/_git/repo")
+	assert.Equal(t, "https", protocol)
+	assert.Equal(t, "dev.azure.com", host)
+	assert.Equal(t, "org/proj/_git/repo", path)
+	assert.Equal(t, "org", username)
+
+	_, host, _, username = splitHTTPURL("https://example.org/repo.git")
+	assert.Equal(t, "example.org", host)
+	assert.Empty(t, username)
+}
+
+// TestStripUserInfo verifies that credentials are removed from a URL before it
+// is handed to go-git.
+func TestStripUserInfo(t *testing.T) {
+	assert.Equal(t, "https://example.org/repo.git", stripUserInfo("https://user:secret@example.org/repo.git"))
+	assert.Equal(t, "https://example.org/repo.git", stripUserInfo("https://example.org/repo.git"))
+	assert.Equal(t, "git@github.com:foo/bar.git", stripUserInfo("git@github.com:foo/bar.git"))
 }

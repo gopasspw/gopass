@@ -103,7 +103,7 @@ func GitBackendFromEnvOrConfig(ctx context.Context, def StorageBackend) StorageB
 	}
 
 	if name := config.String(ctx, "storage.backend"); name != "" {
-		if key, err := StorageRegistry.Backend(name); err == nil {
+		if key, err := StorageRegistry.Backend(name); err == nil && isGitFamily(key) {
 			return ResolveStorageBackend(ctx, key)
 		}
 	}
@@ -123,7 +123,7 @@ func ResolveGitBackend(ctx context.Context, def StorageBackend) StorageBackend {
 	} else if envBE, ok := GitBackendFromEnv(); ok {
 		requested = envBE
 	} else if name := config.String(ctx, "storage.backend"); name != "" {
-		if key, err := StorageRegistry.Backend(name); err == nil {
+		if key, err := StorageRegistry.Backend(name); err == nil && isGitFamily(key) {
 			requested = key
 		}
 	}
@@ -177,18 +177,6 @@ func DetectStorage(ctx context.Context, path string) (Storage, error) {
 		}
 	}
 
-	// Check if a backend is explicitly selected via GOPASS_GIT_BACKEND. This
-	// takes precedence over the persisted storage.backend config value, but it
-	// only applies to git-family backends: a cryptfs store (whose substorage is
-	// gitfs) or a jjfs store colocated with a .git directory must not be
-	// reopened as plain gogit/gitfs, which would expose cryptfs's hashed
-	// filenames.
-	if envBE, ok := GitBackendFromEnv(); ok && (!hasConfigBE || isGitFamily(configBE)) {
-		if st, err := detectStorageByBackend(ctx, ResolveStorageBackend(ctx, envBE), path); err == nil {
-			return st, nil
-		}
-	}
-
 	// Check if a backend is explicitly configured via the config file.
 	if hasConfigBE {
 		if st, err := detectStorageByBackend(ctx, ResolveStorageBackend(ctx, configBE), path); err == nil {
@@ -205,6 +193,18 @@ func DetectStorage(ctx context.Context, path string) (Storage, error) {
 			continue
 		}
 		debug.Log("Detected storage backend %q for %q", be, path)
+
+		// GOPASS_GIT_BACKEND overrides the auto-detected backend, but only for
+		// git-family backends: a cryptfs store (whose substorage is gitfs) or a
+		// jjfs store colocated with a .git directory must not be reopened as
+		// plain gogit/gitfs, which would expose cryptfs's hashed filenames.
+		if envBE, ok := GitBackendFromEnv(); ok {
+			if key, err := StorageRegistry.Backend(be.String()); err == nil && isGitFamily(key) {
+				if st, err := detectStorageByBackend(ctx, ResolveStorageBackend(ctx, envBE), path); err == nil {
+					return st, nil
+				}
+			}
+		}
 
 		return be.New(ctx, path)
 	}

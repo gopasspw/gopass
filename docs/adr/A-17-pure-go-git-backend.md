@@ -794,11 +794,18 @@ Policy:
 
 * **Default: unsigned commits.** This matches go-git's native capability and is
   why the backend ships opt-in.
-* If the local config has `commit.gpgsign=true`, attempt to honour it by shelling
-  out to the git CLI for **that commit only** (hybrid mode): stage via go-git,
-  then run `git commit -S -m <msg>` (honouring `gpg.program`, `user.signingkey`).
-  This requires a `git` binary; if absent, emit a warning and create an unsigned
-  commit rather than failing the user's write.
+* If the config has `commit.gpgsign=true` (local or global scope; `true`, `yes`,
+  `on` and `1` are accepted), attempt to honour it by shelling out to the git
+  CLI for **that commit only** (hybrid mode): stage via go-git, then run
+  `git commit -S --no-verify -m <msg>` (honouring `gpg.program`,
+  `user.signingkey`). This requires a `git` binary. If the signature cannot be
+  produced, the commit **fails** unless the user opted into the fallback with
+  `gogit.allow-unsigned-commits=true`, in which case a warning is emitted and an
+  unsigned commit is created. A team relying on signed history therefore never
+  loses it silently.
+* Merge commits go through the same signing path. The remote parent is written
+  to `.git/MERGE_HEAD` before `git commit -S` so the CLI records the two-parent
+  merge shape (passing `-p <hash>` would be parsed as `--patch`).
 * Alternatively, implement `github.com/go-git/go-git/v5.Signer` that pipes the
   object payload to `gpg --status-fd=2 -bsau <key>`. Prefer the shell-out to
   `git commit` for correctness; a `Signer` shelling to `gpg` is acceptable but
@@ -827,8 +834,8 @@ Rules:
 
 * Always write the `.gitattributes` file on init (same content as the CLI
   backend: `*.gpg diff=gpg\n` or `*.age binary\n`). Like the CLI backend, the
-  file is (re)written on `InitConfig`; a "nothing to commit" result is expected
-  and not reported as an error.
+  file **is** (re)written on `InitConfig`; a "nothing to commit" result is
+  expected and not reported as an error.
 * Prefer file mode `0o644` for worktree files (matches `fs.Store.Set`); do not
   fight git's executable-bit handling — gopass secrets are never executable.
 * `Status` and object hashes are compared in CI rather than status text (see
@@ -885,10 +892,10 @@ change is required:
 | fetch / push / fast-forward pull | native | native |
 | remote add/remove/list | native | native |
 | non-fast-forward pull | native (git merge) | **file-level merge + two-parent commit** (custom, see above) |
-| GPG-signed commits | native (gpg/gpg-agent/pinentry/smartcard) | shell out to `git commit -S` if git present; else unsigned + warning |
+| GPG-signed commits | native (gpg/gpg-agent/pinentry/smartcard) | shell out to `git commit -S` if git present; else fail unless `gogit.allow-unsigned-commits` |
 | SSH-signed commits (`gpg.format=ssh`) | native | **unsupported** — warning |
 | SSH remote auth | native (git) | native (x/crypto/ssh + ssh-agent) |
-| HTTPS auth via credential.helper / GCM | native | shell out to `git credential` if git present; else URL/netrc/askpass |
+| HTTPS auth via credential.helper / GCM | native | shell out to `git credential` if git present; else URL userinfo only |
 | git hooks | native | ignored (documented) |
 | `core.autocrlf`, filemode fidelity | native | approximate (blobs unaffected) |
 | gc / compact | `git gc --aggressive` | `RepackObjects` + `Prune` (best effort) |

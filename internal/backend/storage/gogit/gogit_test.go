@@ -17,7 +17,11 @@ import (
 )
 
 func testContext() context.Context {
-	ctx := config.NewContextInMemory()
+	cfg := config.NewInMemory()
+	// The unsigned-commit fallback is opt-in; enable it for the tests so the
+	// signing path can be exercised without a gpg setup.
+	_ = cfg.SetEnv("gogit.allow-unsigned-commits", "true")
+	ctx := cfg.WithConfig(context.Background())
 	ctx = ctxutil.WithAlwaysYes(ctx, true)
 	ctx = ctxutil.WithGitInit(ctx, true)
 

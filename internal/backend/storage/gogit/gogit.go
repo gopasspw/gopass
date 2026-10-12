@@ -48,7 +48,7 @@ func Clone(ctx context.Context, repo, path, userName, userEmail string) (*GoGit,
 	}
 
 	r, err := git.PlainCloneContext(ctx, path, false, &git.CloneOptions{
-		URL:      repo,
+		URL:      stripUserInfo(repo),
 		Auth:     authForURL(ctx, repo, path),
 		Progress: nil,
 	})

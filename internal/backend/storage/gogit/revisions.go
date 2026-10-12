@@ -68,7 +68,11 @@ func (g *GoGit) Revisions(_ context.Context, name string) ([]backend.Revision, e
 }
 
 // commitTouchesPath reports whether the commit changed the given path relative
-// to its first parent (or, for a root commit, whether the path exists at all).
+// to all of its parents. A commit that is TREESAME to any parent (the path has
+// the same blob as in that parent) is dropped, matching git's history
+// simplification: a merge commit whose remote side changed the path is not
+// listed alongside the real remote commit. For a root commit the path counts as
+// touched when it exists at all.
 func commitTouchesPath(c *object.Commit, rel string) (bool, error) {
 	tree, err := c.Tree()
 	if err != nil {
@@ -83,20 +87,26 @@ func commitTouchesPath(c *object.Commit, rel string) (bool, error) {
 		return cur != plumbing.ZeroHash, nil
 	}
 
-	parent, err := c.Parent(0)
-	if err != nil {
-		return false, err
-	}
-	parentTree, err := parent.Tree()
-	if err != nil {
-		return false, err
-	}
-	prev, err := entryHash(parentTree, rel)
-	if err != nil {
-		return false, err
+	for i := range c.NumParents() {
+		parent, err := c.Parent(i)
+		if err != nil {
+			return false, err
+		}
+		parentTree, err := parent.Tree()
+		if err != nil {
+			return false, err
+		}
+		prev, err := entryHash(parentTree, rel)
+		if err != nil {
+			return false, err
+		}
+		if cur == prev {
+			// TREESAME to this parent -> not a change introduced here.
+			return false, nil
+		}
 	}
 
-	return cur != prev, nil
+	return true, nil
 }
 
 // entryHash returns the blob hash of rel in tree, or the zero hash when the

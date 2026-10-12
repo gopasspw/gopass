@@ -378,3 +378,85 @@ func TestSymlinkEscapeRejected(t *testing.T) {
 		require.Error(t, err, "LinkTarget must reject a symlinked file escaping the store root")
 	})
 }
+
+// TestSetDoesNotWriteThroughSymlink verifies that Set replaces a symlink with a
+// regular file instead of writing through it. A remote tree could otherwise
+// plant a symlink (e.g. evil -> .git/config) and then a regular file at the same
+// path, writing into the git metadata directory.
+func TestSetDoesNotWriteThroughSymlink(t *testing.T) {
+	ctx := config.NewContextInMemory()
+
+	storeRoot := t.TempDir()
+	require.NoError(t, os.MkdirAll(filepath.Join(storeRoot, ".git"), 0o700))
+	configFile := filepath.Join(storeRoot, ".git", "config")
+	require.NoError(t, os.WriteFile(configFile, []byte("original"), 0o600))
+
+	// evil -> .git/config (a symlink that stays inside the store root).
+	require.NoError(t, os.Symlink(filepath.Join(".git", "config"), filepath.Join(storeRoot, "evil")))
+
+	s := New(storeRoot)
+
+	require.NoError(t, s.Set(ctx, "evil", []byte("pwned")))
+
+	// The link must have been replaced by a regular file.
+	fi, err := os.Lstat(filepath.Join(storeRoot, "evil"))
+	require.NoError(t, err)
+	assert.Zero(t, fi.Mode()&os.ModeSymlink, "evil must no longer be a symlink")
+
+	// .git/config must be untouched.
+	content, err := os.ReadFile(configFile)
+	require.NoError(t, err)
+	assert.Equal(t, "original", string(content), ".git/config must not be written through the symlink")
+}
+
+// TestSetRejectsSymlinkedLeadingPath verifies that Set refuses to write through
+// a symlinked directory component (e.g. evil -> .git, then evil/config).
+func TestSetRejectsSymlinkedLeadingPath(t *testing.T) {
+	ctx := config.NewContextInMemory()
+
+	storeRoot := t.TempDir()
+	require.NoError(t, os.MkdirAll(filepath.Join(storeRoot, ".git"), 0o700))
+
+	// evil -> .git (a directory symlink inside the store root).
+	require.NoError(t, os.Symlink(".git", filepath.Join(storeRoot, "evil")))
+
+	s := New(storeRoot)
+
+	err := s.Set(ctx, "evil/config", []byte("pwned"))
+	require.Error(t, err, "Set must refuse to write through a symlinked directory component")
+
+	_, statErr := os.Stat(filepath.Join(storeRoot, ".git", "config"))
+	assert.True(t, os.IsNotExist(statErr), ".git/config must not be created")
+}
+
+// TestSetSymlinkTargetValidation verifies that SetSymlink only accepts relative
+// targets that stay inside the store root and outside .git.
+func TestSetSymlinkTargetValidation(t *testing.T) {
+	ctx := config.NewContextInMemory()
+
+	storeRoot := t.TempDir()
+	require.NoError(t, os.MkdirAll(filepath.Join(storeRoot, ".git"), 0o700))
+
+	s := New(storeRoot)
+
+	// A relative target inside the store is fine.
+	require.NoError(t, s.SetSymlink(ctx, "alias", "target.gpg"))
+
+	// Absolute targets are rejected.
+	require.Error(t, s.SetSymlink(ctx, "abs", "/etc/passwd"))
+	// Targets escaping the store root are rejected.
+	require.Error(t, s.SetSymlink(ctx, "escape", "../../etc/passwd"))
+	// Targets pointing into .git are rejected.
+	require.Error(t, s.SetSymlink(ctx, "gitlink", ".git/config"))
+}
+
+// TestRejectGitDirAliases verifies that the .git guard also covers the Windows
+// aliases and nested components.
+func TestRejectGitDirAliases(t *testing.T) {
+	for _, name := range []string{".git", ".GIT", ".git/config", "a/.git/config", ".git.", ".git ", "GIT~1", ".git::$INDEX_ALLOCATION"} {
+		require.Error(t, rejectGitDir(name), name)
+	}
+	for _, name := range []string{"git", ".gitignore", "a/git/config", "secrets/.gpg-id"} {
+		assert.NoError(t, rejectGitDir(name), name)
+	}
+}

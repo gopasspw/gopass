@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"path"
 	"path/filepath"
 	"runtime"
 	"sort"
@@ -61,15 +62,65 @@ func (s *Store) safePath(name string) (string, error) {
 	return resolved, nil
 }
 
-// rejectGitDir returns an error if name refers to the git metadata directory
-// (.git) or anything inside it. This is a defence-in-depth guard: the store
-// must never write into .git, otherwise a crafted remote tree could plant a
-// hook or rewrite the repository config.
+// rejectGitDir returns an error if any component of name refers to the git
+// metadata directory (.git). This is a defence-in-depth guard: the store must
+// never write into .git, otherwise a crafted remote tree could plant a hook or
+// rewrite the repository config.
 func rejectGitDir(name string) error {
-	clean := filepath.Clean(filepath.ToSlash(name))
+	clean := path.Clean(filepath.ToSlash(name))
 	clean = strings.TrimPrefix(clean, "./")
-	if clean == ".git" || strings.HasPrefix(clean, ".git/") {
-		return fmt.Errorf("refusing to write to git metadata path %q", name)
+	for _, part := range strings.Split(clean, "/") {
+		if IsGitDirName(part) {
+			return fmt.Errorf("refusing to write to git metadata path %q", name)
+		}
+	}
+
+	return nil
+}
+
+// IsGitDirName reports whether a single path component names the git metadata
+// directory. The comparison is case-insensitive and also covers the Windows
+// aliases that resolve to .git: trailing dots/spaces, the 8.3 short name
+// (GIT~1) and NTFS alternate data streams (.git::$INDEX_ALLOCATION). Callers
+// must pass the slashed form: filepath.Clean would turn the slashes back into
+// backslashes on Windows, so the ".git/" prefix would never match.
+func IsGitDirName(name string) bool {
+	if i := strings.IndexByte(name, ':'); i >= 0 {
+		name = name[:i]
+	}
+	name = strings.TrimRight(name, ". ")
+
+	return strings.EqualFold(name, ".git") || strings.EqualFold(name, "git~1")
+}
+
+// checkSymlinkLeadingPath refuses to write through a symlinked path component.
+// safePath resolves the longest existing prefix and rejects escapes, but a
+// symlink that points inside the store (e.g. evil -> .git/config) passes that
+// check; writing through it would let a remote tree plant files in .git. This
+// mirrors git's has_symlink_leading_path.
+func (s *Store) checkSymlinkLeadingPath(path string) error {
+	rel, err := filepath.Rel(s.path, path)
+	if err != nil {
+		return err
+	}
+
+	parts := strings.Split(rel, string(filepath.Separator))
+	cur := s.path
+	for _, part := range parts[:len(parts)-1] {
+		cur = filepath.Join(cur, part)
+
+		fi, err := os.Lstat(cur)
+		if err != nil {
+			if os.IsNotExist(err) {
+				// The remaining components do not exist yet.
+				return nil
+			}
+
+			return err
+		}
+		if fi.Mode()&os.ModeSymlink != 0 {
+			return fmt.Errorf("refusing to write through symlinked path component %q", cur)
+		}
 	}
 
 	return nil
@@ -141,6 +192,20 @@ func (s *Store) Set(ctx context.Context, name string, value []byte) error {
 	if err != nil {
 		return err
 	}
+
+	if err := s.checkSymlinkLeadingPath(filename); err != nil {
+		return err
+	}
+
+	// Never write through a symlink: a remote tree could otherwise plant a
+	// symlink (e.g. evil -> .git/config) and then a regular file at the same
+	// path, writing through the link. Replace the link with a regular file.
+	if fi, err := os.Lstat(filename); err == nil && fi.Mode()&os.ModeSymlink != 0 {
+		if err := os.Remove(filename); err != nil {
+			return err
+		}
+	}
+
 	filedir := filepath.Dir(filename)
 
 	if !fsutil.IsDir(filedir) {
@@ -337,7 +402,9 @@ func (s *Store) Prune(ctx context.Context, prefix string) error {
 
 // SetSymlink creates (or replaces) a symlink at name pointing at target. It is
 // used to materialise symlinked secrets from a remote tree. Any existing file
-// or link at name is removed first.
+// or link at name is removed first. Only relative targets that stay inside the
+// store root and outside .git are accepted, so a crafted remote tree cannot
+// plant a link that escapes the store or points into the git metadata.
 func (s *Store) SetSymlink(_ context.Context, name, target string) error {
 	if runtime.GOOS == "windows" {
 		name = filepath.FromSlash(name)
@@ -345,6 +412,10 @@ func (s *Store) SetSymlink(_ context.Context, name, target string) error {
 
 	path, err := s.safePath(name)
 	if err != nil {
+		return err
+	}
+
+	if err := s.validateSymlinkTarget(path, target); err != nil {
 		return err
 	}
 
@@ -359,6 +430,34 @@ func (s *Store) SetSymlink(_ context.Context, name, target string) error {
 	}
 
 	return os.Symlink(target, path)
+}
+
+// validateSymlinkTarget rejects symlink targets that are absolute, escape the
+// store root, or resolve into the git metadata directory. The target is
+// resolved relative to the directory containing the link, matching how the
+// operating system interprets it.
+func (s *Store) validateSymlinkTarget(linkPath, target string) error {
+	if target == "" {
+		return fmt.Errorf("refusing empty symlink target")
+	}
+	if filepath.IsAbs(target) || path.IsAbs(target) {
+		return fmt.Errorf("refusing absolute symlink target %q", target)
+	}
+
+	resolved := filepath.Join(filepath.Dir(linkPath), filepath.FromSlash(target))
+	if resolved != s.path && !strings.HasPrefix(resolved, s.path+string(filepath.Separator)) {
+		return fmt.Errorf("refusing symlink target %q escaping the store root", target)
+	}
+
+	rel, err := filepath.Rel(s.path, resolved)
+	if err != nil {
+		return err
+	}
+	if err := rejectGitDir(rel); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // Name returns the name of this backend.

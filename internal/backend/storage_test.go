@@ -105,7 +105,23 @@ func TestGitBackendFromEnvOrConfig(t *testing.T) {
 	ctx = cfg.WithConfig(context.Background())
 	assert.Equal(t, GoGit, GitBackendFromEnvOrConfig(ctx, GitFS))
 
+	// a non-git-family config value is ignored: clone/rcs init must not resolve
+	// to FS (whose Clone only creates an empty directory).
+	cfg = config.NewInMemory()
+	require.NoError(t, cfg.Set("", "storage.backend", "fs"))
+	ctx = cfg.WithConfig(context.Background())
+	assert.Equal(t, ResolveStorageBackend(ctx, GitFS), GitBackendFromEnvOrConfig(ctx, GitFS))
+
 	// default is used when neither is set.
 	ctx = config.NewContextInMemory()
 	assert.Equal(t, ResolveStorageBackend(ctx, GitFS), GitBackendFromEnvOrConfig(ctx, GitFS))
+}
+
+func TestResolveGitBackendIgnoresNonGitConfig(t *testing.T) {
+	cfg := config.NewInMemory()
+	require.NoError(t, cfg.Set("", "storage.backend", "fs"))
+	ctx := cfg.WithConfig(context.Background())
+
+	// a non-git-family config value must not override the git-family default.
+	assert.Equal(t, ResolveStorageBackend(ctx, GitFS), ResolveGitBackend(ctx, GitFS))
 }

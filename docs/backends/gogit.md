@@ -44,7 +44,7 @@ directory exists and the `git` binary is available, `gitfs` is preferred. If the
 | fetch / push / fast-forward pull | native | native |
 | remote add/remove/list | native | native |
 | non-fast-forward pull | native (`git merge`) | file-level merge + two-parent commit |
-| GPG-signed commits | native (gpg/gpg-agent/pinentry/smartcard) | shells out to `git commit -S` if git is present; otherwise unsigned + warning |
+| GPG-signed commits | native (gpg/gpg-agent/pinentry/smartcard) | shells out to `git commit -S` if git is present; otherwise fails unless `gogit.allow-unsigned-commits=true` |
 | SSH-signed commits (`gpg.format=ssh`) | native | **unsupported** — warning |
 | SSH remote auth | native (git) | native (`x/crypto/ssh` + ssh-agent) |
 | HTTPS auth via `credential.helper` / GCM | native | shells out to `git credential` if git is present; otherwise URL userinfo only |
@@ -74,10 +74,17 @@ meaningless. Changes are therefore resolved per path:
   file is part of the merge commit, so the remote content is preserved in
   history even if you delete the file. If a conflict file with that name already
   exists, the hash prefix is grown until the name is unique.
-- **Recipient files (`.gpg-id`) are never resolved automatically.** A concurrent
-  recipient change aborts the pull with an error and leaves the worktree
-  untouched, so a remote recipient removal is never silently ignored. Resolve
-  `.gpg-id` by hand and pull again.
+- **Recipient and identity files (`.gpg-id`, `.age-recipients`, `.age-ids`,
+  `.gopass-mapping`) are never resolved automatically.** A concurrent change to
+  one of them aborts the pull with an error and leaves the worktree untouched,
+  so a remote recipient removal is never silently ignored. Resolve the file by
+  hand and pull again.
+
+A non-fast-forward merge also **refuses to run over uncommitted changes** to
+staged or tracked files: the remote paths are written with `fs.Set`/`fs.Delete`,
+which would otherwise overwrite uncommitted edits and sweep staged-but-
+uncommitted changes into the merge commit. Commit or discard them and pull
+again. Untracked files are ignored and preserved.
 
 The default is deliberately **never silently discard a secret**. Two files to
 reconcile by hand is a recoverable annoyance; a lost password is not.
@@ -85,16 +92,21 @@ reconcile by hand is a recoverable annoyance; a lost password is not.
 The merge is **transactional**: every remote path is validated (absolute paths,
 paths escaping the store root, and anything inside `.git` are rejected) and the
 whole resolution is computed before anything is written. If applying the plan
-fails, the index and worktree are restored to `HEAD`. Symlinks in the remote
-tree are recreated as symlinks; submodules are refused.
+fails, the index and worktree are restored to `HEAD` for the affected paths.
+Symlinks in the remote tree are recreated as symlinks; submodules are refused.
+The file layer additionally refuses to write through a symlinked path component
+and replaces a symlink with a regular file rather than following it, so a remote
+tree cannot plant a link into `.git` and then write through it.
 
 ## Known limitations
 
-- **Signed commits** are degraded. `commit.gpgsign=true` (local or global scope)
-  is honoured by shelling out to `git commit -S` when a git binary is available;
-  otherwise an unsigned commit is created with a warning. `gpg.format=ssh`
-  signing is unsupported. The shell-out passes `--no-verify`, so git hooks are
-  never run.
+- **Signed commits** are degraded. `commit.gpgsign=true` (local or global scope;
+  `true`, `yes`, `on` and `1` are accepted) is honoured by shelling out to
+  `git commit -S` when a git binary is available. If the signature cannot be
+  produced the commit **fails**, unless you opt into the fallback with
+  `gogit.allow-unsigned-commits=true`, in which case an unsigned commit is
+  created with a warning. `gpg.format=ssh` signing is unsupported. The shell-out
+  passes `--no-verify`, so git hooks are never run.
 - **Credential helpers** are not honoured natively for HTTPS. When a git binary
   is available, `gogit` shells out to `git credential fill` (run in the store
   directory); otherwise only URL userinfo is used. `GIT_ASKPASS` and `.netrc`

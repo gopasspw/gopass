@@ -15,6 +15,7 @@ import (
 	"github.com/go-git/go-git/v5/plumbing/filemode"
 	"github.com/go-git/go-git/v5/plumbing/object"
 	"github.com/go-git/go-git/v5/utils/merkletrie"
+	"github.com/gopasspw/gopass/internal/backend/storage/fs"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store"
 )
@@ -103,6 +104,15 @@ func (g *GoGit) mergeRemote(ctx context.Context, remoteHash plumbing.Hash) error
 	}
 	localHash := head.Hash()
 
+	// Refuse to merge over uncommitted local changes: the plan writes remote
+	// paths with fs.Set/fs.Delete, which would overwrite uncommitted edits and
+	// sweep staged-but-uncommitted changes into the merge commit.
+	if dirty, err := g.hasUncommittedChanges(); err != nil {
+		return err
+	} else if dirty {
+		return fmt.Errorf("refusing to merge with uncommitted changes; commit or discard them and pull again")
+	}
+
 	localCommit, err := g.repo.CommitObject(localHash)
 	if err != nil {
 		return err
@@ -164,7 +174,7 @@ func (g *GoGit) mergeRemote(ctx context.Context, remoteHash plumbing.Hash) error
 	// 5. apply the plan. From here on the worktree is modified; on failure we
 	// restore the index and worktree to HEAD.
 	if err := g.applyMergePlan(ctx, plan, conflicts, remoteTree, remoteHash); err != nil {
-		if rerr := g.restoreToHead(); rerr != nil {
+		if rerr := g.restoreToHead(planPaths(plan, conflicts)); rerr != nil {
 			out.Warningf(ctx, "Failed to restore worktree after failed merge: %s", rerr)
 		}
 
@@ -200,10 +210,10 @@ func resolveMergePlan(paths []string, localChanges, remoteChanges map[string]cha
 
 		switch {
 		case lc.present() && !rc.present():
-			// changed only locally -> keep local
-			if lc.deleted {
-				plan[p] = changeInfo{deleted: true}
-			}
+			// changed only locally -> already committed in HEAD, nothing to do.
+			// In particular a local-only deletion must not be staged again: the
+			// path is already absent from HEAD's index, so staging it would fail
+			// with "entry not found".
 		case rc.present() && !lc.present():
 			// changed only remotely -> apply remote content
 			plan[p] = rc
@@ -350,8 +360,10 @@ func (g *GoGit) stageDelete(p string) error {
 }
 
 // restoreToHead discards any partial merge by resetting the index and worktree
-// to HEAD. MergeReset is used so untracked files are preserved.
-func (g *GoGit) restoreToHead() error {
+// to HEAD. Only the paths touched by the merge are reset (HardReset with Files),
+// so uncommitted changes to unrelated files are preserved and the reset does not
+// fail on the unstaged changes the merge itself just created.
+func (g *GoGit) restoreToHead(paths []string) error {
 	head, err := g.repo.Head()
 	if err != nil {
 		return err
@@ -361,7 +373,43 @@ func (g *GoGit) restoreToHead() error {
 		return err
 	}
 
-	return wt.Reset(&git.ResetOptions{Commit: head.Hash(), Mode: git.MergeReset})
+	return wt.Reset(&git.ResetOptions{Commit: head.Hash(), Mode: git.HardReset, Files: paths})
+}
+
+// planPaths returns the sorted union of the plan and conflict paths.
+func planPaths(plan map[string]changeInfo, conflicts []string) []string {
+	paths := make([]string, 0, len(plan)+len(conflicts))
+	for p := range plan {
+		paths = append(paths, p)
+	}
+	paths = append(paths, conflicts...)
+	sort.Strings(paths)
+
+	return paths
+}
+
+// hasUncommittedChanges reports whether any tracked file has staged or unstaged
+// modifications. Untracked files are ignored: they are not part of the merge.
+func (g *GoGit) hasUncommittedChanges() (bool, error) {
+	wt, err := g.worktree()
+	if err != nil {
+		return false, err
+	}
+	st, err := wt.StatusWithOptions(git.StatusOptions{Strategy: git.Preload})
+	if err != nil {
+		return false, err
+	}
+
+	for _, fs := range st {
+		if fs.Staging != git.Unmodified && fs.Staging != git.Untracked {
+			return true, nil
+		}
+		if fs.Worktree != git.Unmodified && fs.Worktree != git.Untracked {
+			return true, nil
+		}
+	}
+
+	return false, nil
 }
 
 // commitMerge creates the two-parent merge commit, honouring commit.gpgsign the
@@ -370,6 +418,9 @@ func (g *GoGit) commitMerge(ctx context.Context, msg string, localHash, remoteHa
 	if g.shouldSign() {
 		if err := g.commitMergeSignedCLI(ctx, msg, remoteHash); err == nil {
 			return nil
+		}
+		if !g.allowUnsignedCommits(ctx) {
+			return fmt.Errorf("failed to create a signed merge commit and gogit.allow-unsigned-commits is not set; refusing to create an unsigned commit")
 		}
 		out.Warningf(ctx, "Failed to create a signed merge commit, creating an unsigned commit instead.")
 	}
@@ -416,9 +467,15 @@ func conflictName(p, short string) string {
 	return dir + base + ".conflict-" + short + ext
 }
 
-// isRecipientPath reports whether p is a recipient (.gpg-id) file.
+// isRecipientPath reports whether p is a recipient or identity file whose
+// concurrent change must never be resolved automatically.
 func isRecipientPath(p string) bool {
-	return path.Base(p) == ".gpg-id"
+	switch path.Base(p) {
+	case ".gpg-id", ".age-recipients", ".age-ids", ".gopass-mapping":
+		return true
+	default:
+		return false
+	}
 }
 
 // validateRemotePath rejects paths that must never be materialised from a
@@ -440,9 +497,10 @@ func validateRemotePath(p string) error {
 		return fmt.Errorf("refusing path %q escaping the store root", p)
 	}
 
-	first := strings.SplitN(clean, "/", 2)[0]
-	if strings.EqualFold(first, ".git") {
-		return fmt.Errorf("refusing path %q inside the git metadata directory", p)
+	for _, part := range strings.Split(clean, "/") {
+		if fs.IsGitDirName(part) {
+			return fmt.Errorf("refusing path %q inside the git metadata directory", p)
+		}
 	}
 
 	return nil

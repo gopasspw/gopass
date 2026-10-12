@@ -180,14 +180,16 @@ func (g *GoGit) commitSignature(ctx context.Context) *object.Signature {
 	return &object.Signature{Name: name, Email: email, When: when}
 }
 
-// configUser returns the user.name and user.email from the local git config.
+// configUser returns the user.name and user.email, consulting the local git
+// config first and falling back to the global scope. repo.Config() is local
+// scope only, so a store whose identity lives in the global git config would
+// otherwise commit as the gopass placeholder and the doctor identity check
+// would report it as missing.
 func (g *GoGit) configUser() (string, string) {
-	cfg, err := g.repo.Config()
-	if err != nil {
-		return "", ""
-	}
+	name := g.signingOption("user", "name")
+	email := g.signingOption("user", "email")
 
-	return cfg.User.Name, cfg.User.Email
+	return name, email
 }
 
 // remoteURL returns the URL of the named remote, or "" if it does not exist.
