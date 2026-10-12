@@ -195,8 +195,14 @@ func dial(address string) (*dbus.Conn, error) {
 	return conn, nil
 }
 
-// Start exports the service object, acquires the bus name and ensures the
-// default collection exists.
+// Start exports the service object, the collections and their aliases, and
+// only then acquires the bus name. Acquiring the name last guarantees that a
+// client which sees org.freedesktop.secrets appear on the bus can immediately
+// call into any collection or alias object: the moment the name is owned,
+// every object path the service advertises is already exported. Acquiring
+// the name earlier would expose a window in which calls to
+// /org/freedesktop/secrets/aliases/<alias> or the session collection fail
+// with UnknownInterface because those objects are not exported yet.
 func (s *Service) Start(ctx context.Context) error {
 	if err := s.conn.Export(s, ServicePath, ServiceIface); err != nil {
 		return fmt.Errorf("export service: %w", err)
@@ -216,6 +222,26 @@ func (s *Service) Start(ctx context.Context) error {
 	}
 	s.serviceProps = props
 
+	if err := s.ensureDefaultCollection(ctx); err != nil {
+		return err
+	}
+
+	// The volatile session collection is always present and is deliberately
+	// not part of the Collections property.
+	if _, err := s.ensureCollectionFor(ctx, SessionCollectionName, s.sessionStore); err != nil {
+		return fmt.Errorf("export session collection: %w", err)
+	}
+
+	if err := s.syncAliases(ctx); err != nil {
+		return err
+	}
+
+	if err := s.refreshCollectionsProperty(ctx); err != nil {
+		return err
+	}
+
+	// Everything the service advertises is exported now, so clients that
+	// notice the name appear on the bus cannot lose the startup race.
 	flags := dbus.NameFlagDoNotQueue
 	if s.cfg.Replace {
 		flags |= dbus.NameFlagReplaceExisting
@@ -231,21 +257,7 @@ func (s *Service) Start(ctx context.Context) error {
 
 	debug.Log("secret-service: acquired %s", ServiceName)
 
-	if err := s.ensureDefaultCollection(ctx); err != nil {
-		return err
-	}
-
-	// The volatile session collection is always present and is deliberately
-	// not part of the Collections property.
-	if _, err := s.ensureCollectionFor(ctx, SessionCollectionName, s.sessionStore); err != nil {
-		return fmt.Errorf("export session collection: %w", err)
-	}
-
-	if err := s.syncAliases(ctx); err != nil {
-		return err
-	}
-
-	return s.refreshCollectionsProperty(ctx)
+	return nil
 }
 
 // syncAliases exports a Collection object at /org/freedesktop/secrets/aliases/
