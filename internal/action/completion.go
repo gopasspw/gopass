@@ -157,6 +157,12 @@ _GPASS_BASH_AUTOCOMPLETE() {
   local line token description longest
   longest=0
   while IFS= read -r line; do
+    # gopass escapes every special character with a doubled backslash
+    # (see bashEscape). Halve the pairs once, so the single unescaping pass
+    # compgen applies to -W leaves the original character: a secret named
+    # websites:github arrives as websites\\:github and must be offered
+    # and inserted as websites:github.
+    line="${line//\\\\/\\}"
     token="${line}"
     description=""
     if [[ "${line}" == *"\:"* ]]; then

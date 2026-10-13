@@ -102,6 +102,8 @@ func TestCompletionBashTokensNoDescriptions(t *testing.T) {
 	ts := newTester(t)
 	defer ts.teardown()
 
+	ts.initStore()
+
 	t.Run("completes bare command names", func(t *testing.T) {
 		got := runBashCompletion(t, ts.Binary, bashCompletionEnv{
 			words:    []string{ts.Binary, "sh"},
@@ -113,28 +115,34 @@ func TestCompletionBashTokensNoDescriptions(t *testing.T) {
 	})
 
 	t.Run("completes secret names", func(t *testing.T) {
+		out, err := ts.runCmd([]string{ts.Binary, "insert", "foo"}, []byte("bar"))
+		require.NoError(t, err, "failed to insert password:\n%s", out)
+
 		got := runBashCompletion(t, ts.Binary, bashCompletionEnv{
 			words:    []string{ts.Binary, "show", "fo"},
 			cword:    2,
 			compType: "37",
 		})
-		assert.Contains(t, got, "foo")
+		require.Equal(t, []string{"foo"}, got)
 	})
 
 	t.Run("completes secret names containing a colon", func(t *testing.T) {
 		// gopass must not cut a secret whose name contains a colon at the
 		// first colon even though urfave/cli uses colons to separate
 		// descriptions (#3468).
-		require.NoError(t, os.WriteFile(
-			filepath.Join(ts.storeDir(""), "websites:github.txt"),
-			[]byte("secret\n"), 0o600))
+		// The secret goes through insert so it is encrypted and listed
+		// like any secret a user would have.
+		out, err := ts.runCmd([]string{ts.Binary, "insert", "websites:github"}, []byte("secret"))
+		require.NoError(t, err, "failed to insert password:\n%s", out)
+
 		got := runBashCompletion(t, ts.Binary, bashCompletionEnv{
 			words:    []string{ts.Binary, "show", "web"},
 			cword:    2,
 			compType: "37",
 		})
-		require.NotEmpty(t, got)
-		assert.Contains(t, got, "websites:github")
+		// Byte-exact: the entry must carry no leftover escape from the
+		// token:description protocol, i.e. no backslash before the colon.
+		require.Equal(t, []string{"websites:github"}, got)
 	})
 
 	t.Run("completes flags without descriptions", func(t *testing.T) {
