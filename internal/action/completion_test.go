@@ -22,6 +22,13 @@ func TestBashEscape(t *testing.T) {
 		}
 	})
 
+	t.Run("bash escape colon", func(t *testing.T) {
+		expected := `websites\\:github`
+		if escaped := bashEscape(`websites:github`); escaped != expected {
+			t.Errorf("Expected %q, but got %q", expected, escaped)
+		}
+	})
+
 	t.Run("bash escape single quote", func(t *testing.T) {
 		expected := `good\\ ol\'\\ days`
 		if escaped := bashEscape(`good ol' days`); escaped != expected {
