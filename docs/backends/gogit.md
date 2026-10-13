@@ -90,13 +90,14 @@ The default is deliberately **never silently discard a secret**. Two files to
 reconcile by hand is a recoverable annoyance; a lost password is not.
 
 The merge is **transactional**: every remote path is validated (absolute paths,
-paths escaping the store root, and anything inside `.git` are rejected) and the
-whole resolution is computed before anything is written. If applying the plan
-fails, the index and worktree are restored to `HEAD` for the affected paths.
-Symlinks in the remote tree are recreated as symlinks; submodules are refused.
-The file layer additionally refuses to write through a symlinked path component
-and replaces a symlink with a regular file rather than following it, so a remote
-tree cannot plant a link into `.git` and then write through it.
+paths escaping the store root, and anything inside a VCS metadata directory
+(`.git`, `.jj`) are rejected) and the whole resolution is computed before
+anything is written. If applying the plan fails, the index and worktree are
+restored to `HEAD` for the affected paths. Symlinks in the remote tree are
+recreated as symlinks and the executable bit is preserved; submodules are
+refused. The file layer additionally refuses to write through a symlinked path
+component and replaces a symlink with a regular file rather than following it,
+so a remote tree cannot plant a link into `.git` and then write through it.
 
 ## Known limitations
 

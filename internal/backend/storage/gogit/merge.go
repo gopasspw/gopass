@@ -299,10 +299,22 @@ func (g *GoGit) writeTreeEntry(ctx context.Context, p string, ci changeInfo, rem
 			return err
 		}
 
-		return nil
+		return g.applyFileMode(p, ci.mode)
 	default:
 		return fmt.Errorf("refusing to materialise %q with unsupported mode %s from remote", p, ci.mode)
 	}
+}
+
+// applyFileMode makes the worktree file at p match the git file mode. fs.Set
+// always writes 0o644, so an executable entry from the remote would otherwise
+// lose its bit and the merge commit would record a mode change.
+func (g *GoGit) applyFileMode(p string, mode filemode.FileMode) error {
+	perm := os.FileMode(0o644)
+	if mode == filemode.Executable {
+		perm = 0o755
+	}
+
+	return os.Chmod(filepath.Join(g.fs.Path(), filepath.FromSlash(p)), perm)
 }
 
 // materializeConflict keeps the local file untouched and writes the remote blob
@@ -498,8 +510,8 @@ func validateRemotePath(p string) error {
 	}
 
 	for _, part := range strings.Split(clean, "/") {
-		if fs.IsGitDirName(part) {
-			return fmt.Errorf("refusing path %q inside the git metadata directory", p)
+		if fs.IsVCSDirName(part) {
+			return fmt.Errorf("refusing path %q inside a VCS metadata directory", p)
 		}
 	}
 

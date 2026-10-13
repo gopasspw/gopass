@@ -444,10 +444,10 @@ untracked files (see `addUntrackedFiles` equivalent below).
 | `Pull(ctx, remote, branch)` | Respect `IsNoNetwork`. Fetch, then fast-forward if possible, else **file-level merge** (see below). |
 | `AddRemote` | `repo.CreateRemote(&config.RemoteConfig{Name: remote, URLs: []string{url}})`. |
 | `RemoveRemote` | `repo.DeleteRemote(remote)`. |
-| `Revisions(ctx, name)` | `repo.Log(&git.LogOptions{From: head, Order: git.LogOrderCommitterTime})`, then keep only commits whose tree entry for the path differs from the **first parent** (go-git's `PathFilter` compares against the next commit in iteration order, which is wrong across merges). Map each `*object.Commit` to `backend.Revision{Hash, AuthorName, AuthorEmail, Date: c.Author.When, Subject: firstLine, Body: rest}`. |
+| `Revisions(ctx, name)` | `repo.Log(&git.LogOptions{From: head, Order: git.LogOrderCommitterTime})`, then keep only commits whose tree entry for the path differs from **every parent** (go-git's `PathFilter` compares against the next commit in iteration order, which is wrong across merges; comparing against all parents matches git's TREESAME simplification). Map each `*object.Commit` to `backend.Revision{Hash, AuthorName, AuthorEmail, Date: c.Author.When, Subject: firstLine, Body: rest}`. |
 | `GetRevision(ctx, name, rev)` | `h, _ := repo.ResolveRevision(plumbing.Revision(rev))`; `c, _ := repo.CommitObject(*h)`; `f, _ := c.File(name)`; `f.Contents()`. Handle `"latest"`/`"HEAD"` by resolving `HEAD` (the `fs` backend treats these specially; keep that behaviour). |
 | `Status(ctx)` | `wt.Status()` formatted deterministically (see "Status output"). |
-| `Compact(ctx)` | `repo.RepackObjects(&git.RepackConfig{})`, then `repo.Prune(git.PruneOptions{})` with a handler that never errors. Best-effort: log and return nil on unsupported errors. |
+| `Compact(ctx)` | `repo.RepackObjects(&git.RepackConfig{})`, then `repo.Prune(git.PruneOptions{Handler: …})` with a handler that deletes unreachable loose objects (a handler returning nil would make the prune a no-op). Best-effort: log and return nil on unsupported errors. |
 
 `InitConfig(ctx, name, email)` writes `user.name` / `user.email` into the local
 `.git/config` (via `repo.Config()` + `repo.SetConfig`, or `repo.ConfigScoped(config.LocalScope)`),
@@ -792,8 +792,11 @@ the user supplying the key material.
 
 Policy:
 
-* **Default: unsigned commits.** This matches go-git's native capability and is
-  why the backend ships opt-in.
+* **Unsigned commits are the native capability** and are used when no signing is
+  configured. When signing *is* configured it is a hard requirement: a signature
+  that cannot be produced fails the commit, so a team relying on signed history
+  never loses it silently. The unsigned fallback is opt-in via
+  `gogit.allow-unsigned-commits=true`.
 * If the config has `commit.gpgsign=true` (local or global scope; `true`, `yes`,
   `on` and `1` are accepted), attempt to honour it by shelling out to the git
   CLI for **that commit only** (hybrid mode): stage via go-git, then run

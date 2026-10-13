@@ -450,13 +450,13 @@ func TestSetSymlinkTargetValidation(t *testing.T) {
 	require.Error(t, s.SetSymlink(ctx, "gitlink", ".git/config"))
 }
 
-// TestRejectGitDirAliases verifies that the .git guard also covers the Windows
-// aliases and nested components.
-func TestRejectGitDirAliases(t *testing.T) {
-	for _, name := range []string{".git", ".GIT", ".git/config", "a/.git/config", ".git.", ".git ", "GIT~1", ".git::$INDEX_ALLOCATION"} {
-		require.Error(t, rejectGitDir(name), name)
+// TestRejectVCSDirAliases verifies that the VCS metadata guard covers .git
+// (including the Windows aliases and nested components) and .jj.
+func TestRejectVCSDirAliases(t *testing.T) {
+	for _, name := range []string{".git", ".GIT", ".git/config", "a/.git/config", ".git.", ".git ", "GIT~1", ".git::$INDEX_ALLOCATION", ".jj", ".JJ", ".jj/repo", "a/.jj/working_copy"} {
+		require.Error(t, rejectVCSDir(name), name)
 	}
-	for _, name := range []string{"git", ".gitignore", "a/git/config", "secrets/.gpg-id"} {
-		assert.NoError(t, rejectGitDir(name), name)
+	for _, name := range []string{"git", ".gitignore", "a/git/config", "secrets/.gpg-id", ".jjignore"} {
+		assert.NoError(t, rejectVCSDir(name), name)
 	}
 }

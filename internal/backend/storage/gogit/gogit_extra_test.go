@@ -1,8 +1,11 @@
 package gogit
 
 import (
+	"context"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"runtime"
 	"sort"
 	"strings"
 	"testing"
@@ -12,6 +15,7 @@ import (
 	"github.com/go-git/go-git/v5/plumbing/filemode"
 	"github.com/go-git/go-git/v5/plumbing/object"
 	"github.com/go-git/go-git/v5/plumbing/storer"
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -690,4 +694,188 @@ func TestStripUserInfo(t *testing.T) {
 	assert.Equal(t, "https://example.org/repo.git", stripUserInfo("https://user:secret@example.org/repo.git"))
 	assert.Equal(t, "https://example.org/repo.git", stripUserInfo("https://example.org/repo.git"))
 	assert.Equal(t, "git@github.com:foo/bar.git", stripUserInfo("git@github.com:foo/bar.git"))
+}
+
+// TestGoGitMergePreservesExecutableMode verifies that a remote entry with the
+// executable bit is materialised with that bit set, so the merge commit does
+// not record a spurious mode change (fs.Set always writes 0o644).
+func TestGoGitMergePreservesExecutableMode(t *testing.T) {
+	ctx := testContext()
+
+	remoteDir := t.TempDir()
+	remote, err := Init(ctx, remoteDir, "R", "r@e.org")
+	require.NoError(t, err)
+	require.NoError(t, remote.Set(ctx, "base", []byte("base")))
+	require.NoError(t, remote.Add(ctx, "base"))
+	require.NoError(t, remote.Commit(ctx, "base"))
+
+	localDir := t.TempDir()
+	local, err := Clone(ctx, remoteDir, localDir, "L", "l@e.org")
+	require.NoError(t, err)
+
+	// local commits so the pull cannot fast-forward.
+	require.NoError(t, local.Set(ctx, "local", []byte("l")))
+	require.NoError(t, local.Add(ctx, "local"))
+	require.NoError(t, local.Commit(ctx, "local"))
+
+	// remote adds an executable file.
+	require.NoError(t, os.WriteFile(filepath.Join(remoteDir, "run.sh"), []byte("#!/bin/sh\n"), 0o755))
+	require.NoError(t, remote.Add(ctx, "run.sh"))
+	require.NoError(t, remote.Commit(ctx, "add executable"))
+
+	require.NoError(t, local.Pull(ctx, "origin", "master"))
+
+	info, err := os.Lstat(filepath.Join(localDir, "run.sh"))
+	require.NoError(t, err)
+	assert.NotZero(t, info.Mode()&0o111, "the executable bit must be preserved")
+
+	// the index must record the executable mode, not a mode change.
+	idx, err := local.repo.Storer.Index()
+	require.NoError(t, err)
+	entry, err := idx.Entry("run.sh")
+	require.NoError(t, err)
+	assert.Equal(t, filemode.Executable, entry.Mode, "the index must record the executable mode")
+}
+
+// TestGoGitMergeRetryAfterPartialFailure verifies that a merge which fails while
+// applying the plan restores the index and worktree to HEAD, so a later pull
+// succeeds instead of leaving a half-applied merge behind.
+func TestGoGitMergeRetryAfterPartialFailure(t *testing.T) {
+	ctx := testContext()
+
+	remoteDir := t.TempDir()
+	remote, err := Init(ctx, remoteDir, "R", "r@e.org")
+	require.NoError(t, err)
+	require.NoError(t, remote.Set(ctx, "base", []byte("base")))
+	require.NoError(t, remote.Add(ctx, "base"))
+	require.NoError(t, remote.Commit(ctx, "base"))
+
+	localDir := t.TempDir()
+	local, err := Clone(ctx, remoteDir, localDir, "L", "l@e.org")
+	require.NoError(t, err)
+
+	// local commits so the pull cannot fast-forward.
+	require.NoError(t, local.Set(ctx, "local", []byte("l")))
+	require.NoError(t, local.Add(ctx, "local"))
+	require.NoError(t, local.Commit(ctx, "local"))
+
+	// craft a remote commit whose tree contains a submodule entry (refused by
+	// writeTreeEntry) plus a regular file that sorts before it, so the regular
+	// file is written before the failure.
+	head, err := remote.repo.Head()
+	require.NoError(t, err)
+	baseCommit, err := remote.repo.CommitObject(head.Hash())
+	require.NoError(t, err)
+	baseTree, err := baseCommit.Tree()
+	require.NoError(t, err)
+
+	blob := writeBlob(t, remote.repo.Storer, "aaa")
+	entries := map[string]object.TreeEntry{
+		"base": {Name: "base", Mode: filemode.Regular, Hash: baseTree.Entries[0].Hash},
+		"aaa":  {Name: "aaa", Mode: filemode.Regular, Hash: blob},
+		"sub":  {Name: "sub", Mode: filemode.Submodule, Hash: plumbing.NewHash("1111111111111111111111111111111111111111")},
+	}
+	treeHash := buildTree(t, remote.repo.Storer, entries)
+	commitHash := writeCommit(t, remote.repo.Storer, treeHash, head.Hash(), "submodule")
+	require.NoError(t, remote.repo.Storer.SetReference(plumbing.NewHashReference(plumbing.NewBranchReferenceName("master"), commitHash)))
+
+	err = local.Pull(ctx, "origin", "master")
+	require.Error(t, err, "a submodule entry must abort the merge")
+
+	// the partially written file must have been rolled back.
+	assert.False(t, local.Exists(ctx, "aaa"), "the partially applied file must be rolled back")
+	assert.False(t, local.HasStagedChanges(ctx), "the index must be restored to HEAD")
+
+	// the remote moves past the submodule commit; a retry must now succeed.
+	require.NoError(t, remote.Set(ctx, "remote2", []byte("r2")))
+	require.NoError(t, remote.Add(ctx, "remote2"))
+	require.NoError(t, remote.Commit(ctx, "remote2"))
+
+	require.NoError(t, local.Pull(ctx, "origin", "master"))
+	got, err := local.Get(ctx, "remote2")
+	require.NoError(t, err)
+	assert.Equal(t, "r2", string(got))
+}
+
+// TestGoGitMergeSymlinkThenRegularFile verifies that a remote symlink pointing
+// into .git, later replaced by a regular file, does not write through the link.
+func TestGoGitMergeSymlinkThenRegularFile(t *testing.T) {
+	ctx := testContext()
+
+	remoteDir := t.TempDir()
+	remote, err := Init(ctx, remoteDir, "R", "r@e.org")
+	require.NoError(t, err)
+	require.NoError(t, remote.Set(ctx, "base", []byte("base")))
+	require.NoError(t, remote.Add(ctx, "base"))
+	require.NoError(t, remote.Commit(ctx, "base"))
+
+	localDir := t.TempDir()
+	local, err := Clone(ctx, remoteDir, localDir, "L", "l@e.org")
+	require.NoError(t, err)
+
+	// remote adds a symlink evil -> .git/config.
+	require.NoError(t, os.Symlink(filepath.Join(".git", "config"), filepath.Join(remoteDir, "evil")))
+	require.NoError(t, remote.Add(ctx, "evil"))
+	require.NoError(t, remote.Commit(ctx, "add symlink"))
+
+	// fast-forward the local clone so the symlink is materialised on disk.
+	require.NoError(t, local.Pull(ctx, "origin", "master"))
+	info, err := os.Lstat(filepath.Join(localDir, "evil"))
+	require.NoError(t, err)
+	require.NotZero(t, info.Mode()&os.ModeSymlink, "evil must be a symlink after the fast-forward")
+
+	// local commits so the next pull cannot fast-forward.
+	require.NoError(t, local.Set(ctx, "local", []byte("l")))
+	require.NoError(t, local.Add(ctx, "local"))
+	require.NoError(t, local.Commit(ctx, "local"))
+
+	// remote replaces the symlink with a regular file.
+	require.NoError(t, os.Remove(filepath.Join(remoteDir, "evil")))
+	require.NoError(t, os.WriteFile(filepath.Join(remoteDir, "evil"), []byte("pwned"), 0o644))
+	require.NoError(t, remote.Add(ctx, "evil"))
+	require.NoError(t, remote.Commit(ctx, "replace symlink with file"))
+
+	require.NoError(t, local.Pull(ctx, "origin", "master"))
+
+	// evil must now be a regular file and .git/config must be untouched.
+	info, err = os.Lstat(filepath.Join(localDir, "evil"))
+	require.NoError(t, err)
+	assert.Zero(t, info.Mode()&os.ModeSymlink, "evil must be a regular file after the merge")
+
+	content, err := os.ReadFile(filepath.Join(localDir, ".git", "config"))
+	require.NoError(t, err)
+	assert.NotContains(t, string(content), "pwned", ".git/config must not be written through the symlink")
+}
+
+// TestGoGitSignedCommitRequiresOptIn verifies that a configured signature which
+// cannot be produced fails the commit unless the unsigned fallback is opted in.
+func TestGoGitSignedCommitRequiresOptIn(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("stub gpg program is a shell script")
+	}
+	if _, err := exec.LookPath("git"); err != nil {
+		t.Skip("git binary not available")
+	}
+
+	// a context WITHOUT gogit.allow-unsigned-commits.
+	cfg := config.NewInMemory()
+	ctx := cfg.WithConfig(context.Background())
+	ctx = ctxutil.WithAlwaysYes(ctx, true)
+	ctx = ctxutil.WithGitInit(ctx, true)
+
+	dir := t.TempDir()
+	g, err := Init(ctx, dir, "T", "t@e.org")
+	require.NoError(t, err)
+
+	// a stub gpg program that always fails.
+	stub := filepath.Join(t.TempDir(), "gpg")
+	require.NoError(t, os.WriteFile(stub, []byte("#!/bin/sh\nexit 1\n"), 0o755))
+	require.NoError(t, g.ConfigSet(ctx, "commit.gpgsign", "true"))
+	require.NoError(t, g.ConfigSet(ctx, "gpg.program", stub))
+
+	require.NoError(t, g.Set(ctx, "secret", []byte("s")))
+	require.NoError(t, g.Add(ctx, "secret"))
+
+	err = g.Commit(ctx, "signed")
+	require.Error(t, err, "a configured signature that cannot be produced must fail the commit")
 }

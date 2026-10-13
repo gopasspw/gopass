@@ -40,10 +40,10 @@ func New(dir string) *Store {
 // safePath validates that name resolves to a path under the store root,
 // returning an error if a path traversal is detected. Both lexical traversal
 // (e.g. "../foo") and symlinks that point outside the store root are rejected.
-// Paths that would write into the git metadata directory (.git) are rejected as
-// well, so a malicious remote tree can never plant a hook or config file.
+// Paths that would write into a VCS metadata directory (.git, .jj) are rejected
+// as well, so a malicious remote tree can never plant a hook or config file.
 func (s *Store) safePath(name string) (string, error) {
-	if err := rejectGitDir(name); err != nil {
+	if err := rejectVCSDir(name); err != nil {
 		return "", err
 	}
 
@@ -62,35 +62,35 @@ func (s *Store) safePath(name string) (string, error) {
 	return resolved, nil
 }
 
-// rejectGitDir returns an error if any component of name refers to the git
-// metadata directory (.git). This is a defence-in-depth guard: the store must
-// never write into .git, otherwise a crafted remote tree could plant a hook or
-// rewrite the repository config.
-func rejectGitDir(name string) error {
+// rejectVCSDir returns an error if any component of name refers to a VCS
+// metadata directory (.git or .jj). This is a defence-in-depth guard: the store
+// must never write into VCS metadata, otherwise a crafted remote tree could
+// plant a hook or rewrite the repository config.
+func rejectVCSDir(name string) error {
 	clean := path.Clean(filepath.ToSlash(name))
 	clean = strings.TrimPrefix(clean, "./")
 	for _, part := range strings.Split(clean, "/") {
-		if IsGitDirName(part) {
-			return fmt.Errorf("refusing to write to git metadata path %q", name)
+		if IsVCSDirName(part) {
+			return fmt.Errorf("refusing to write to VCS metadata path %q", name)
 		}
 	}
 
 	return nil
 }
 
-// IsGitDirName reports whether a single path component names the git metadata
-// directory. The comparison is case-insensitive and also covers the Windows
-// aliases that resolve to .git: trailing dots/spaces, the 8.3 short name
-// (GIT~1) and NTFS alternate data streams (.git::$INDEX_ALLOCATION). Callers
-// must pass the slashed form: filepath.Clean would turn the slashes back into
-// backslashes on Windows, so the ".git/" prefix would never match.
-func IsGitDirName(name string) bool {
+// IsVCSDirName reports whether a single path component names a VCS metadata
+// directory (.git or .jj). The comparison is case-insensitive and also covers
+// the Windows aliases that resolve to .git: trailing dots/spaces, the 8.3 short
+// name (GIT~1) and NTFS alternate data streams (.git::$INDEX_ALLOCATION).
+// Callers must pass the slashed form: filepath.Clean would turn the slashes
+// back into backslashes on Windows, so the ".git/" prefix would never match.
+func IsVCSDirName(name string) bool {
 	if i := strings.IndexByte(name, ':'); i >= 0 {
 		name = name[:i]
 	}
 	name = strings.TrimRight(name, ". ")
 
-	return strings.EqualFold(name, ".git") || strings.EqualFold(name, "git~1")
+	return strings.EqualFold(name, ".git") || strings.EqualFold(name, "git~1") || strings.EqualFold(name, ".jj")
 }
 
 // checkSymlinkLeadingPath refuses to write through a symlinked path component.
@@ -453,7 +453,7 @@ func (s *Store) validateSymlinkTarget(linkPath, target string) error {
 	if err != nil {
 		return err
 	}
-	if err := rejectGitDir(rel); err != nil {
+	if err := rejectVCSDir(rel); err != nil {
 		return err
 	}
 

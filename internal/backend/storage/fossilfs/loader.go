@@ -47,9 +47,8 @@ func (l loader) Handles(ctx context.Context, path string) error {
 }
 
 func (l loader) Priority() int {
-	// Highest among the VCS backends so a fossil checkout is preferred over a
-	// colocated .git directory. Priorities sort ascending, so this is tried
-	// after gitfs (11), gogit (12) and jjfs (15). Must be unique: gogit uses 12.
+	// Highest among the VCS backends so a fossil checkout is never preferred
+	// over a colocated .git repository.
 	return 20
 }
 
