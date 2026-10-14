@@ -13,7 +13,7 @@ require (
 	github.com/ergochat/readline v0.1.3
 	github.com/fatih/color v1.19.0
 	github.com/go-git/go-git/v5 v5.19.2
-	github.com/godbus/dbus/v5 v5.2.2
+	github.com/godbus/dbus/v5 v5.2.3
 	github.com/gokyle/twofactor v1.0.1
 	github.com/google/go-cmp v0.7.0
 	github.com/google/go-github/v61 v61.0.0
