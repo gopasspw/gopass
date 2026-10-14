@@ -12,6 +12,8 @@ digraph G {
   gitfs [label="internal/backend/storage/gitfs"];
   gitfs -> gitcli;
   gitcli [label="git binary",shape=Mdiamond];
+  leaf -> gogit [style="dotted"];
+  gogit [label="internal/backend/storage/gogit"];
   leaf -> gpg;
   gpg [label="internal/backend/crypto/gpg/cli"];
   leaf -> age [style="dotted"];

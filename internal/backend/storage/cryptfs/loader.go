@@ -107,5 +107,8 @@ func getSubStorage(ctx context.Context) (backend.StorageBackend, error) {
 		debug.Log("Failed to get backend ID for %q: %s", subStoreName, err)
 	}
 
-	return id, err
+	// The substorage defaults to gitfs. On a git-less system that must be
+	// downgraded to the pure-Go go-git backend, otherwise cryptfs stores would
+	// not open at all.
+	return backend.ResolveStorageBackend(ctx, id), err
 }

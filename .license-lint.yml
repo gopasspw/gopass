@@ -20,3 +20,5 @@ allowlisted_modules:
 - github.com/jezek/xgb
 # MIT
 - github.com/jwalton/go-supportscolor
+# BSD-3-Clause AND MPL-2.0 (license in COPYING.md, not LICENSE): https://github.com/cyphar/filepath-securejoin/blob/master/COPYING.md
+- github.com/cyphar/filepath-securejoin

@@ -3,9 +3,13 @@ package backend
 import (
 	"context"
 	"fmt"
+	"os"
+	"os/exec"
+	"strings"
 
 	"github.com/blang/semver/v4"
 	"github.com/gopasspw/gopass/internal/config"
+	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/debug"
 )
 
@@ -26,6 +30,9 @@ const (
 	JJFS
 	// CryptFS is a filename encrypting storage.
 	CryptFS
+	// GoGit is a filesystem-backed storage with Git using the pure-Go go-git
+	// implementation instead of the git binary.
+	GoGit
 )
 
 func (s StorageBackend) String() string {
@@ -34,6 +41,99 @@ func (s StorageBackend) String() string {
 	}
 
 	return ""
+}
+
+// envGitBackend returns the raw value of the GOPASS_GIT_BACKEND environment
+// variable. It is a thin wrapper so the docs lint test (TestEnvVarsInDocs) can
+// see the os.Getenv("GOPASS_GIT_BACKEND") call.
+func envGitBackend() string {
+	return os.Getenv("GOPASS_GIT_BACKEND")
+}
+
+// GitBackendFromEnv returns the git backend named by the GOPASS_GIT_BACKEND
+// environment variable, if any. It accepts "gogit" for the pure-Go backend and
+// "gitfs"/"cli"/"cmd" for the git CLI backend.
+func GitBackendFromEnv() (StorageBackend, bool) {
+	switch strings.ToLower(strings.TrimSpace(envGitBackend())) {
+	case "gogit":
+		return GoGit, true
+	case "gitfs", "cli", "cmd":
+		return GitFS, true
+	default:
+		return FS, false
+	}
+}
+
+// ResolveStorageBackend downgrades a requested GitFS backend to the pure-Go
+// go-git backend when no git binary is available. This keeps a .git-backed
+// store versioned on git-less systems instead of degrading to the unversioned
+// fs backend. Any other requested backend is returned unchanged.
+//
+// It is intentionally quiet: it is called once per mount during detection, so
+// the user-facing warning is emitted by ResolveGitBackend on the init/clone
+// paths instead.
+func ResolveStorageBackend(ctx context.Context, requested StorageBackend) StorageBackend {
+	if requested != GitFS {
+		return requested
+	}
+
+	if _, err := exec.LookPath("git"); err != nil {
+		if _, rerr := StorageRegistry.Get(GoGit); rerr == nil {
+			debug.Log("git binary not found; falling back to pure-Go go-git backend")
+
+			return GoGit
+		}
+	}
+
+	return requested
+}
+
+// isGitFamily reports whether the backend is one of the git-backed backends.
+func isGitFamily(be StorageBackend) bool {
+	return be == GitFS || be == GoGit
+}
+
+// GitBackendFromEnvOrConfig returns the git backend selected by the
+// GOPASS_GIT_BACKEND environment variable or the storage.backend config value,
+// falling back to def. GitFS is downgraded to GoGit when no git binary is
+// available.
+func GitBackendFromEnvOrConfig(ctx context.Context, def StorageBackend) StorageBackend {
+	if envBE, ok := GitBackendFromEnv(); ok {
+		return ResolveStorageBackend(ctx, envBE)
+	}
+
+	if name := config.String(ctx, "storage.backend"); name != "" {
+		if key, err := StorageRegistry.Backend(name); err == nil && isGitFamily(key) {
+			return ResolveStorageBackend(ctx, key)
+		}
+	}
+
+	return ResolveStorageBackend(ctx, def)
+}
+
+// ResolveGitBackend applies the full backend precedence for git-family
+// operations: an explicit backend in the context (e.g. the --storage flag) wins
+// over GOPASS_GIT_BACKEND, which wins over the storage.backend config, which
+// wins over def. GitFS is downgraded to GoGit when no git binary is available.
+// It warns once when the fallback happens.
+func ResolveGitBackend(ctx context.Context, def StorageBackend) StorageBackend {
+	requested := def
+	if HasStorageBackend(ctx) {
+		requested = GetStorageBackend(ctx)
+	} else if envBE, ok := GitBackendFromEnv(); ok {
+		requested = envBE
+	} else if name := config.String(ctx, "storage.backend"); name != "" {
+		if key, err := StorageRegistry.Backend(name); err == nil && isGitFamily(key) {
+			requested = key
+		}
+	}
+
+	resolved := ResolveStorageBackend(ctx, requested)
+	if resolved != requested {
+		out.Warningf(ctx, "git binary not found in PATH, falling back to the pure-Go go-git backend")
+	}
+
+	return resolved
 }
 
 // Storage is an storage backend.
@@ -60,29 +160,26 @@ type Storage interface {
 func DetectStorage(ctx context.Context, path string) (Storage, error) {
 	// The call to HasStorageBackend is important since GetStorageBackend will always return FS
 	// if nothing is found in the context.
-	if be, err := StorageRegistry.Get(GetStorageBackend(ctx)); HasStorageBackend(ctx) && err == nil {
-		debug.V(1).Log("Trying requested storage backend %q for %q", be, path)
-		st, err := be.New(ctx, path)
-		if err == nil {
-			debug.Log("Successfully loaded requested storage backend %q for %q", be, path)
-
+	if HasStorageBackend(ctx) {
+		if st, err := detectRequestedStorage(ctx, path); err == nil {
 			return st, nil
 		}
-		debug.Log("Failed to use requested storage backend %q for %s: %q", be, path, err)
+	}
 
-		// fallback to FS
-		be, err := StorageRegistry.Get(FS)
-		if err != nil {
-			return nil, err
+	// Resolve the backend configured for this store (if any). The config is
+	// scoped per mount, so this is the store's own storage.backend value.
+	configBE := FS
+	hasConfigBE := false
+	if name := config.String(ctx, "storage.backend"); name != "" {
+		if key, err := StorageRegistry.Backend(name); err == nil {
+			configBE = key
+			hasConfigBE = true
 		}
-		debug.Log("Using fallback %q for %q", be, path)
-
-		return be.Init(ctx, path)
 	}
 
 	// Check if a backend is explicitly configured via the config file.
-	if name := config.String(ctx, "storage.backend"); name != "" {
-		if st, err := detectStorageByName(ctx, name, path); err == nil {
+	if hasConfigBE {
+		if st, err := detectStorageByBackend(ctx, ResolveStorageBackend(ctx, configBE), path); err == nil {
 			return st, nil
 		}
 	}
@@ -97,6 +194,18 @@ func DetectStorage(ctx context.Context, path string) (Storage, error) {
 		}
 		debug.Log("Detected storage backend %q for %q", be, path)
 
+		// GOPASS_GIT_BACKEND overrides the auto-detected backend, but only for
+		// git-family backends: a cryptfs store (whose substorage is gitfs) or a
+		// jjfs store colocated with a .git directory must not be reopened as
+		// plain gogit/gitfs, which would expose cryptfs's hashed filenames.
+		if envBE, ok := GitBackendFromEnv(); ok {
+			if key, err := StorageRegistry.Backend(be.String()); err == nil && isGitFamily(key) {
+				if st, err := detectStorageByBackend(ctx, ResolveStorageBackend(ctx, envBE), path); err == nil {
+					return st, nil
+				}
+			}
+		}
+
 		return be.New(ctx, path)
 	}
 
@@ -110,25 +219,45 @@ func DetectStorage(ctx context.Context, path string) (Storage, error) {
 	return be.Init(ctx, path)
 }
 
-// detectStorageByName looks up a storage backend by name and tries to open path with it.
-func detectStorageByName(ctx context.Context, name, path string) (Storage, error) {
-	key, err := StorageRegistry.Backend(name)
+// detectRequestedStorage tries the backend explicitly set in the context,
+// falling back to FS when it cannot be opened. A requested GitFS backend is
+// downgraded to the pure-Go go-git backend when no git binary is available.
+func detectRequestedStorage(ctx context.Context, path string) (Storage, error) {
+	requested := ResolveStorageBackend(ctx, GetStorageBackend(ctx))
+	be, err := StorageRegistry.Get(requested)
 	if err != nil {
-		debug.Log("WARNING: configured storage backend %q not found, falling back to auto-detect", name)
-
 		return nil, err
 	}
 
+	debug.V(1).Log("Trying requested storage backend %q for %q", be, path)
+	if st, err := be.New(ctx, path); err == nil {
+		debug.Log("Successfully loaded requested storage backend %q for %q", be, path)
+
+		return st, nil
+	} else {
+		debug.Log("Failed to use requested storage backend %q for %s: %q", be, path, err)
+	}
+
+	// fallback to FS
+	fsBE, err := StorageRegistry.Get(FS)
+	if err != nil {
+		return nil, err
+	}
+	debug.Log("Using fallback %q for %q", fsBE, path)
+
+	return fsBE.Init(ctx, path)
+}
+
+// detectStorageByBackend looks up a storage backend by key and tries to open path with it.
+func detectStorageByBackend(ctx context.Context, key StorageBackend, path string) (Storage, error) {
 	be, err := StorageRegistry.Get(key)
 	if err != nil {
 		return nil, err
 	}
 
-	debug.Log("Using explicitly configured storage backend %q for %q", name, path)
-
 	st, err := be.New(ctx, path)
 	if err != nil {
-		debug.Log("Failed to use configured storage backend %q for %q: %s", name, path, err)
+		debug.Log("Failed to use configured storage backend %q for %q: %s", key, path, err)
 
 		return nil, err
 	}

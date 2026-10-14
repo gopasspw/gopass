@@ -33,10 +33,10 @@ func (s *setupHandler) RCSInit(ctx context.Context, cmd *cli.Command) error {
 		}
 	}
 
-	// default to git.
-	if !backend.HasStorageBackend(ctx) {
-		ctx = backend.WithStorageBackend(ctx, backend.GitFS)
-	}
+	// Resolve the storage backend with the full precedence: --storage flag >
+	// GOPASS_GIT_BACKEND > storage.backend config > GitFS default. GitFS is
+	// downgraded to the pure-Go go-git backend when no git binary is available.
+	ctx = backend.WithStorageBackend(ctx, backend.ResolveGitBackend(ctx, backend.GitFS))
 
 	if err := s.rcsInit(ctx, store, un, ue); err != nil {
 		return exit.Error(exit.Git, err, "failed to initialize %s: %s", backend.StorageBackendName(backend.GetStorageBackend(ctx)), err)

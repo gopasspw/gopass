@@ -23,6 +23,8 @@ var ignoredEnvs = set.Map([]string{
 	"EMAIL",
 	"GIT_AUTHOR_EMAIL",
 	"GIT_AUTHOR_NAME",
+	"GIT_SSH_COMMAND",
+	"GIT_SSH_KEY",
 	"GNUPGHOME",
 	"GOPASS_CONFIG_NOSYSTEM", // name assembled, tests can't catch it
 	"GOPASS_DEBUG_FILES",     // indirect usage

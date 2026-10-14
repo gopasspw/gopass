@@ -47,7 +47,9 @@ func (l loader) Handles(ctx context.Context, path string) error {
 }
 
 func (l loader) Priority() int {
-	return 12
+	// Highest among the VCS backends so a fossil checkout is never preferred
+	// over a colocated .git repository.
+	return 20
 }
 
 func (l loader) String() string {
