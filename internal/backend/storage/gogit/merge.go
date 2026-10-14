@@ -307,7 +307,10 @@ func (g *GoGit) writeTreeEntry(ctx context.Context, p string, ci changeInfo, rem
 
 // applyFileMode makes the worktree file at p match the git file mode. fs.Set
 // always writes 0o644, so an executable entry from the remote would otherwise
-// lose its bit and the merge commit would record a mode change.
+// lose its bit and the merge commit would record a mode change. Windows has no
+// executable bit, so os.Chmod leaves it regular there and the index (which
+// go-git derives from the OS file mode) records a regular file; gopass secrets
+// are never executable, so this is accepted.
 func (g *GoGit) applyFileMode(p string, mode filemode.FileMode) error {
 	perm := os.FileMode(0o644)
 	if mode == filemode.Executable {

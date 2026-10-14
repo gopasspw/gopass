@@ -727,14 +727,24 @@ func TestGoGitMergePreservesExecutableMode(t *testing.T) {
 
 	info, err := os.Lstat(filepath.Join(localDir, "run.sh"))
 	require.NoError(t, err)
-	assert.NotZero(t, info.Mode()&0o111, "the executable bit must be preserved")
 
-	// the index must record the executable mode, not a mode change.
+	// the index must record the resolved mode, not a spurious mode change.
 	idx, err := local.repo.Storer.Index()
 	require.NoError(t, err)
 	entry, err := idx.Entry("run.sh")
 	require.NoError(t, err)
-	assert.Equal(t, filemode.Executable, entry.Mode, "the index must record the executable mode")
+
+	// Windows has no executable bit: os.Chmod cannot set it and go-git derives
+	// the index mode from the OS file mode, so the merge records a regular file
+	// there. gopass secrets are never executable, so this is accepted. See ADR
+	// A-17, "CRLF, file mode, and index divergence".
+	if runtime.GOOS == "windows" {
+		assert.Zero(t, info.Mode()&0o111, "windows cannot represent the executable bit")
+		assert.Equal(t, filemode.Regular, entry.Mode, "windows records a regular file")
+	} else {
+		assert.NotZero(t, info.Mode()&0o111, "the executable bit must be preserved")
+		assert.Equal(t, filemode.Executable, entry.Mode, "the index must record the executable mode")
+	}
 }
 
 // TestGoGitMergeRetryAfterPartialFailure verifies that a merge which fails while
