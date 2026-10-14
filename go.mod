@@ -12,7 +12,7 @@ require (
 	github.com/dustin/go-humanize v1.1.0
 	github.com/ergochat/readline v0.1.3
 	github.com/fatih/color v1.19.0
-	github.com/go-git/go-git/v5 v5.19.0
+	github.com/go-git/go-git/v5 v5.19.2
 	github.com/godbus/dbus/v5 v5.2.2
 	github.com/gokyle/twofactor v1.0.1
 	github.com/google/go-cmp v0.7.0
