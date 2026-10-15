@@ -391,6 +391,15 @@ func (g *GoGit) remoteIsEmpty(ctx context.Context, remote string) bool {
 // first, which is what `gopass setup --remote` needs: Init stages the store
 // without committing, then the initial pull runs against an unborn HEAD.
 func (g *GoGit) resetTo(hash plumbing.Hash) error {
+	// Validate the remote tree before it is materialised. The fast-forward path
+	// resets the worktree straight to the remote commit without a diff, so the
+	// check in mergeRemote does not cover it. go-git's reset reports a rejected
+	// name only as an opaque ErrDirectoryNotFound, so the check has to happen
+	// here to keep the offending path in the message.
+	if err := g.validateCommitTree(hash); err != nil {
+		return err
+	}
+
 	wt, err := g.worktree()
 	if err != nil {
 		return err
