@@ -186,6 +186,55 @@ func TestGoGitMergeRejectsGitPath(t *testing.T) {
 	assert.True(t, os.IsNotExist(err), "hook must not be materialised")
 }
 
+// TestGoGitMergeRejectsGitPathDivergent verifies the same rejection on the
+// divergent (merge) path, where the remote commit is not a fast-forward and
+// mergeRemote has to validate the remote tree before diffing it.
+func TestGoGitMergeRejectsGitPathDivergent(t *testing.T) {
+	ctx := testContext()
+
+	remoteDir := t.TempDir()
+	remote, err := Init(ctx, remoteDir, "R", "r@e.org")
+	require.NoError(t, err)
+	require.NoError(t, remote.Set(ctx, "base", []byte("base")))
+	require.NoError(t, remote.Add(ctx, "base"))
+	require.NoError(t, remote.Commit(ctx, "base"))
+
+	localDir := t.TempDir()
+	local, err := Clone(ctx, remoteDir, localDir, "L", "l@e.org")
+	require.NoError(t, err)
+
+	// Diverge: the local side commits its own change so the pull cannot
+	// fast-forward and has to go through mergeRemote.
+	require.NoError(t, local.Set(ctx, "local", []byte("local")))
+	require.NoError(t, local.Add(ctx, "local"))
+	require.NoError(t, local.Commit(ctx, "local"))
+
+	// craft a remote commit whose tree contains .git/hooks/pre-commit.
+	head, err := remote.repo.Head()
+	require.NoError(t, err)
+	baseCommit, err := remote.repo.CommitObject(head.Hash())
+	require.NoError(t, err)
+	baseTree, err := baseCommit.Tree()
+	require.NoError(t, err)
+
+	blob := writeBlob(t, remote.repo.Storer, "#!/bin/sh\necho pwned\n")
+	entries := map[string]object.TreeEntry{
+		"base":                  {Name: "base", Mode: filemode.Regular, Hash: baseTree.Entries[0].Hash},
+		".git/hooks/pre-commit": {Name: "pre-commit", Mode: filemode.Executable, Hash: blob},
+	}
+	treeHash := buildTree(t, remote.repo.Storer, entries)
+	commitHash := writeCommit(t, remote.repo.Storer, treeHash, head.Hash(), "malicious")
+	require.NoError(t, remote.repo.Storer.SetReference(plumbing.NewHashReference(plumbing.NewBranchReferenceName("master"), commitHash)))
+
+	err = local.Pull(ctx, "origin", "master")
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), ".git")
+
+	// the hook must not have been written.
+	_, err = os.Stat(filepath.Join(localDir, ".git", "hooks", "pre-commit"))
+	assert.True(t, os.IsNotExist(err), "hook must not be materialised")
+}
+
 // TestGoGitMergeGpgIDConflict verifies that a concurrent recipient change is
 // not resolved automatically.
 func TestGoGitMergeGpgIDConflict(t *testing.T) {

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"path"
 	"path/filepath"
@@ -143,7 +144,19 @@ func (g *GoGit) mergeRemote(ctx context.Context, remoteHash plumbing.Hash) error
 		return err
 	}
 
-	// 2. per-side changes vs base
+	// 2. validate every path in the remote tree before diffing it. A remote
+	// commit must never be able to write outside the store root or into .git.
+	//
+	// This has to happen before the diff: from go-git v5.19.3 on, object.DiffTree
+	// walks the tree with path validation disabled and surfaces a rejected name
+	// only later, through Tree.Tree, which flattens the error to
+	// ErrDirectoryNotFound. Validating here keeps the offending path in the
+	// message and does not depend on go-git's internal walker behaviour.
+	if err := validateTreePaths(remoteTree); err != nil {
+		return err
+	}
+
+	// 3. per-side changes vs base
 	localChanges, err := treeChanges(baseTree, localTree)
 	if err != nil {
 		return err
@@ -155,8 +168,9 @@ func (g *GoGit) mergeRemote(ctx context.Context, remoteHash plumbing.Hash) error
 
 	paths := unionPaths(localChanges, remoteChanges)
 
-	// 3. validate every remote path before touching the worktree. A remote
-	// commit must never be able to write outside the store root or into .git.
+	// 4. validate every changed path again before touching the worktree. The
+	// tree walk above already covers the remote tree; this is defense in depth
+	// for paths that only appear in the diff.
 	for _, p := range paths {
 		if err := validateRemotePath(p); err != nil {
 			return err
@@ -490,6 +504,55 @@ func isRecipientPath(p string) bool {
 		return true
 	default:
 		return false
+	}
+}
+
+// validateCommitTree validates the tree of the given commit before its content
+// is materialised into the worktree. It is used by the fast-forward path, which
+// resets the worktree straight to the remote commit without a diff.
+func (g *GoGit) validateCommitTree(hash plumbing.Hash) error {
+	commit, err := g.repo.CommitObject(hash)
+	if err != nil {
+		return err
+	}
+	tree, err := commit.Tree()
+	if err != nil {
+		return err
+	}
+
+	return validateTreePaths(tree)
+}
+
+// validateTreePaths rejects a tree that contains any path which must never be
+// materialised from a remote: absolute paths, paths escaping the store root,
+// and anything inside a VCS metadata directory.
+//
+// The walk uses go-git's default (validating) tree walker, which rejects
+// `.git`-shaped names itself. That is deliberate: it keeps this check working
+// across go-git versions. From v5.19.3 on, object.DiffTree walks with path
+// validation disabled and surfaces a rejected name only later, through
+// Tree.Tree, which flattens the error to ErrDirectoryNotFound. Validating the
+// tree up front keeps the offending path in the message and does not depend on
+// go-git's internal walker behaviour.
+func validateTreePaths(tree *object.Tree) error {
+	if tree == nil {
+		return nil
+	}
+
+	walker := object.NewTreeWalker(tree, true, nil)
+	defer walker.Close()
+
+	for {
+		name, _, err := walker.Next()
+		if errors.Is(err, io.EOF) {
+			return nil
+		}
+		if err != nil {
+			return err
+		}
+		if err := validateRemotePath(name); err != nil {
+			return err
+		}
 	}
 }
 
