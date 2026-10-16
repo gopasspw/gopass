@@ -12,7 +12,7 @@ require (
 	github.com/dustin/go-humanize v1.1.0
 	github.com/ergochat/readline v0.1.3
 	github.com/fatih/color v1.19.0
-	github.com/go-git/go-git/v5 v5.19.2
+	github.com/go-git/go-git/v5 v5.19.3
 	github.com/godbus/dbus/v5 v5.2.3
 	github.com/gokyle/twofactor v1.0.1
 	github.com/google/go-cmp v0.7.0
@@ -70,7 +70,7 @@ require (
 	github.com/gdamore/tcell/v3 v3.5.0 // indirect
 	github.com/gen2brain/shm v0.1.1 // indirect
 	github.com/go-git/gcfg v1.5.1-0.20230307220236-3a3c6141e376 // indirect
-	github.com/go-git/go-billy/v5 v5.9.0 // indirect
+	github.com/go-git/go-billy/v5 v5.9.2 // indirect
 	github.com/go-viper/mapstructure/v2 v2.5.0 // indirect
 	github.com/gobwas/glob v1.0.0 // indirect
 	github.com/golang/groupcache v0.0.0-20241129210726-2c02b8208cf8 // indirect
@@ -89,7 +89,7 @@ require (
 	github.com/noborus/tcellansi v0.4.1 // indirect
 	github.com/pelletier/go-toml/v2 v2.4.3 // indirect
 	github.com/pierrec/lz4/v4 v4.1.31 // indirect
-	github.com/pjbgf/sha1cd v0.6.0 // indirect
+	github.com/pjbgf/sha1cd v0.7.0 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/sagikazarmark/locafero v0.12.0 // indirect
 	github.com/sergi/go-diff v1.3.2-0.20230802210424-5b0b94c5c0d3 // indirect
