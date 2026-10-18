@@ -10,6 +10,7 @@ import (
 
 	"github.com/gopasspw/gopass/internal/backend/crypto/gpg"
 	"github.com/gopasspw/gopass/internal/backend/crypto/gpg/gpgconf"
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/pkg/debug"
 	lru "github.com/hashicorp/golang-lru/v2"
 )
@@ -36,6 +37,29 @@ type GPG struct {
 	privKeys  gpg.KeyList
 	listCache *lru.TwoQueueCache[string, gpg.KeyList]
 	throwKids bool
+}
+
+// timeoutFromContext returns the maximum duration a gpg invocation may take.
+// It defaults to Timeout and can be overridden with the gpg.timeout config
+// option, in seconds. A value of zero (or less) disables the deadline, so
+// slow passphrase entry is never cut short.
+func timeoutFromContext(ctx context.Context) time.Duration {
+	secs := config.AsIntWithDefault(config.String(ctx, "gpg.timeout"), int(Timeout/time.Second))
+	if secs <= 0 {
+		return 0
+	}
+
+	return time.Duration(secs) * time.Second
+}
+
+// withTimeout bounds the given context by the configured gpg.timeout. A zero
+// timeout leaves the context without its own deadline.
+func withTimeout(ctx context.Context, timeout time.Duration) (context.Context, context.CancelFunc) {
+	if timeout <= 0 {
+		return context.WithCancel(ctx)
+	}
+
+	return context.WithTimeout(ctx, timeout)
 }
 
 // Config is the gpg wrapper config.

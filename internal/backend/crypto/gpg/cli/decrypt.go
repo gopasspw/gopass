@@ -3,6 +3,8 @@ package cli
 import (
 	"bytes"
 	"context"
+	"errors"
+	"fmt"
 	"io"
 	"os"
 	"os/exec"
@@ -12,7 +14,8 @@ import (
 
 // Decrypt will try to decrypt the given file.
 func (g *GPG) Decrypt(ctx context.Context, ciphertext []byte) ([]byte, error) {
-	ctx, cancel := context.WithTimeout(ctx, Timeout)
+	timeout := timeoutFromContext(ctx)
+	ctx, cancel := withTimeout(ctx, timeout)
 	defer cancel()
 
 	args := append(g.args, "--decrypt")
@@ -30,6 +33,12 @@ func (g *GPG) Decrypt(ctx context.Context, ciphertext []byte) ([]byte, error) {
 	stdout, err := cmd.Output()
 	if err != nil {
 		debug.Log("GPG decrypt failed: %s %+v: %+v", cmd.Path, cmd.Args, err)
+		if timeout > 0 && errors.Is(ctx.Err(), context.DeadlineExceeded) {
+			// GPG was killed because it did not finish within the deadline.
+			// Most often that is a passphrase prompt nobody answered in time,
+			// so point at the knob that governs the wait.
+			err = fmt.Errorf("gpg decrypt did not finish within %s. If you need more time to enter your GPG passphrase, raise the timeout with `gopass config gpg.timeout <seconds>`, e.g. `gopass config gpg.timeout 600` for ten minutes, or set it to 0 to disable the deadline: %w", timeout, err)
+		}
 	}
 
 	return stdout, err

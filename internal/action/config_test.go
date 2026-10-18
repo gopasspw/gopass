@@ -50,6 +50,7 @@ core.follow-references = false
 core.nopager = true
 core.notifications = true
 generate.autoclip = true
+gpg.timeout = 60
 `
 		want += "mounts.path = " + fsutil.ShrinkPath(u.StoreDir("")) + "\n" +
 			"pwgen.xkcd-lang = en\n" +
@@ -98,6 +99,7 @@ core.follow-references = false
 core.nopager = true
 core.notifications = true
 generate.autoclip = true
+gpg.timeout = 60
 `
 		want += "mounts.path = " + fsutil.ShrinkPath(u.StoreDir("")) + "\n" +
 			"pwgen.xkcd-lang = en\n" +
@@ -139,6 +141,7 @@ core.follow-references
 core.nopager
 core.notifications
 generate.autoclip
+gpg.timeout
 mounts.path
 pwgen.xkcd-lang
 show.fuzzysearch
