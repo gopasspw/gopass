@@ -25,6 +25,7 @@ core.cliptimeout = 45
 core.exportkeys = false
 core.follow-references = false
 core.notifications = true
+gpg.timeout = 60
 `
 	wanted += "mounts.path = " + ts.storeDir("root") + "\n" +
 		`pwgen.xkcd-lang = en
@@ -83,6 +84,7 @@ core.cliptimeout = 45
 core.exportkeys = false
 core.follow-references = false
 core.notifications = true
+gpg.timeout = 60
 `
 	wanted += "mounts.mnt/m1.path = " + fsutil.ShrinkPath(ts.storeDir("m1")) + "\n"
 	wanted += "mounts.path = " + ts.storeDir("root") + "\n"
