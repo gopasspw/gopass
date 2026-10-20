@@ -17,7 +17,7 @@ import (
 // listKey lists all keys of the given type and matching the search strings.
 func (g *GPG) listKeys(ctx context.Context, typ string, search ...string) (gpg.KeyList, error) {
 	debug.Log("listing %s keys for %v", typ, search)
-	ctx, cancel := context.WithTimeout(ctx, Timeout)
+	ctx, cancel := withTimeout(ctx, timeoutFromContext(ctx))
 	defer cancel()
 
 	args := make([]string, 0, 4+len(search))

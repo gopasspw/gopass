@@ -57,6 +57,7 @@ var defaults = map[string]string{
 	"core.exportkeys":        "true",
 	"core.notifications":     "true",
 	"core.follow-references": "false",
+	"gpg.timeout":            "60",
 	"pwgen.xkcd-lang":        "en",
 	"show.fuzzysearch":       "true",
 	"show.password":          "false",

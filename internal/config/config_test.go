@@ -45,6 +45,7 @@ func TestConfig(t *testing.T) {
 		"core.notifications",
 		"core.string",
 		"env.string",
+		"gpg.timeout",
 		"mounts.path",
 		"pwgen.xkcd-lang",
 		"show.fuzzysearch",
