@@ -62,9 +62,8 @@ func TestDoctorStoreLabel(t *testing.T) {
 	assert.Equal(t, "foo/bar", doctorStoreLabel("foo/bar"))
 }
 
-// TestDoctorAgeWithoutBinary verifies that doctor passes for an age store
-// when the age CLI is not in PATH. The age backend is pure Go and never
-// invokes the CLI. See GH-3676.
+// TestDoctorAgeWithoutBinary checks that doctor passes for an age store
+// without the age CLI in PATH. See GH-3676.
 func TestDoctorAgeWithoutBinary(t *testing.T) {
 	u := gptest.NewUnitTester(t)
 
@@ -100,8 +99,7 @@ func TestDoctorAgeWithoutBinary(t *testing.T) {
 	t.Setenv("PATH", t.TempDir())
 
 	err = act.Doctor(ctx, gptest.CliCtxWithFlags(ctx, t, map[string]string{"verbose": "true"}))
-	// Windows reports writable directories as mode 0777, so the store
-	// permissions check fails there regardless of this fix.
+	// Windows reports writable dirs as 0777, failing the permissions check.
 	if runtime.GOOS != "windows" {
 		require.NoError(t, err, buf.String())
 	}
