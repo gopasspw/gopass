@@ -21,7 +21,6 @@ Checks performed:
 | Check | Description |
 |---|---|
 | GPG binary | Verifies `gpg` is in `PATH` when a store uses GPG encryption |
-| age binary | Verifies `age` is in `PATH` when a store uses age encryption |
 | git binary | Verifies `git` is in `PATH` when a store uses the gitfs backend |
 | git identity | Checks that `user.name` and `user.email` are set in git config for each git-backed store |
 | store permissions | Checks that each store directory exists and is not world-writable |

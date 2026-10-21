@@ -37,7 +37,6 @@ func (s *miscHandler) Doctor(ctx context.Context, cmd *cli.Command) error {
 
 	checks := []check{
 		{"GPG binary", s.doctorCheckGPG},
-		{"age binary", s.doctorCheckAge},
 		{"git binary", s.doctorCheckGit},
 		{"git identity", s.doctorCheckGitIdentity},
 		{"store permissions", s.doctorCheckStorePermissions},
@@ -148,26 +147,6 @@ func (s *miscHandler) doctorCheckGPG(_ context.Context) error {
 		if sub.Crypto().Name() == "gpg" {
 			if _, err := exec.LookPath("gpg"); err != nil {
 				return fmt.Errorf("gpg binary not found in PATH (required by store %q)", doctorStoreLabel(mp))
-			}
-
-			return nil
-		}
-	}
-
-	return nil
-}
-
-// doctorCheckAge fails if any store uses age encryption but the age binary is not found.
-func (s *miscHandler) doctorCheckAge(_ context.Context) error {
-	for _, mp := range s.doctorMountPoints() {
-		sub, err := s.Store.GetSubStore(mp)
-		if err != nil || sub == nil {
-			continue
-		}
-
-		if sub.Crypto().Name() == "age" {
-			if _, err := exec.LookPath("age"); err != nil {
-				return fmt.Errorf("age binary not found in PATH (required by store %q)", doctorStoreLabel(mp))
 			}
 
 			return nil
