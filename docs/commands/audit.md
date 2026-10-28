@@ -22,6 +22,10 @@ test_folder/ignore_this
 # Gopass internally uses forward slashes as path separators, even on Windows. So no need to escape backslashes.
 ```
 
+## Symlinks
+
+Secrets that are symlinks to another secret (e.g. created with `gopass link`) are skipped. Only the secret they point to is audited, so a link and its target are not reported as duplicates.
+
 ## Exit codes
 
 | Code | Meaning |

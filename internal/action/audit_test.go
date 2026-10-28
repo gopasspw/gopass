@@ -76,4 +76,31 @@ func TestAudit(t *testing.T) {
 		assert.Contains(t, report, "secrets")
 		assert.Contains(t, report, "duration")
 	})
+
+	t.Run("audit skips symlinked secrets", func(t *testing.T) {
+		sec := secrets.NewAKV()
+		sec.SetPassword("Dk3!vq9#Lm2@xZ7$")
+		require.NoError(t, act.Store.Set(ctx, "atlassian.com", sec))
+		require.NoError(t, act.Store.Link(ctx, "atlassian.com", "trello.com"))
+		defer func() {
+			_ = act.Store.Delete(ctx, "trello.com")
+			_ = act.Store.Delete(ctx, "atlassian.com")
+		}()
+
+		outFile := t.TempDir() + "/report.json"
+		require.NoError(t, act.Audit(ctx, gptest.CliCtxWithFlags(ctx, t, map[string]string{"format": "json", "output-file": outFile})))
+		buf.Reset()
+
+		data, err := os.ReadFile(outFile)
+		require.NoError(t, err)
+		var report struct {
+			Secrets map[string]struct {
+				Findings map[string]any `json:"findings"`
+			} `json:"secrets"`
+		}
+		require.NoError(t, json.Unmarshal(data, &report))
+		assert.NotContains(t, report.Secrets, "trello.com")
+		require.Contains(t, report.Secrets, "atlassian.com")
+		assert.NotContains(t, report.Secrets["atlassian.com"].Findings, "duplicates")
+	})
 }
