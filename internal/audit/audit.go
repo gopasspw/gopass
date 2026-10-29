@@ -32,6 +32,10 @@ type secretGetter interface {
 	Concurrency() int
 }
 
+type linkTargeter interface {
+	LinkTarget(context.Context, string) (string, bool, error)
+}
+
 type validator struct {
 	Name        string
 	Description string
@@ -173,6 +177,16 @@ func (a *Auditor) audit(ctx context.Context, secrets <-chan string, done chan st
 
 func (a *Auditor) auditSecret(ctx context.Context, secret string) {
 	debug.Log("Auditing %q", secret)
+
+	// symlinks point to a secret that is audited on its own. Checking them
+	// again would only report the link and its target as duplicates.
+	if lt, ok := a.s.(linkTargeter); ok {
+		if target, isLink, err := lt.LinkTarget(ctx, secret); err == nil && isLink {
+			debug.Log("Skipping %q, it links to %q", secret, target)
+
+			return
+		}
+	}
 
 	// handle old passwords
 	revs, err := a.s.ListRevisions(ctx, secret)

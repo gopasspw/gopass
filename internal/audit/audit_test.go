@@ -66,6 +66,33 @@ func TestAuditSecret(t *testing.T) {
 	assert.Contains(t, a.r.secrets, secret)
 }
 
+type mockLinkedSecretGetter struct {
+	mockSecretGetter
+
+	links map[string]string
+}
+
+func (m *mockLinkedSecretGetter) LinkTarget(ctx context.Context, name string) (string, bool, error) {
+	target, found := m.links[name]
+
+	return target, found, nil
+}
+
+func TestBatchSkipsLinks(t *testing.T) {
+	ctx := t.Context()
+	s := &mockLinkedSecretGetter{
+		links: map[string]string{"secret2": "secret1"},
+	}
+	a := New(ctx, s)
+
+	report, err := a.Batch(ctx, []string{"secret1", "secret2", "secret3"})
+	require.NoError(t, err)
+
+	assert.Contains(t, report.Secrets, "secret1")
+	assert.NotContains(t, report.Secrets, "secret2")
+	assert.Equal(t, "Duplicates detected. Shared with: {secret3}", report.Secrets["secret1"].Findings["duplicates"].Message)
+}
+
 func TestCheckHIBP(t *testing.T) {
 	ctx := t.Context()
 	s := &mockSecretGetter{}

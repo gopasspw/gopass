@@ -16,3 +16,10 @@ func (r *Store) Link(ctx context.Context, from, to string) error {
 
 	return subFrom.Link(ctx, fName, tName)
 }
+
+// LinkTarget returns the target of a linked secret, if the named entry is a link.
+func (r *Store) LinkTarget(ctx context.Context, name string) (string, bool, error) {
+	sub, _ := r.getStore(name)
+
+	return sub.LinkTarget(ctx, name)
+}
