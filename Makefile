@@ -150,7 +150,7 @@ codequality: licensecheck
 	@which govulncheck > /dev/null; if [ $$? -ne 0 ]; then \
 		$(GO) install golang.org/x/vuln/cmd/govulncheck@latest; \
 	fi
-	@govulncheck >/dev/null || exit 1
+	@govulncheck ./... >/dev/null || exit 1
 	@printf '%s\n' '$(OK)'
 
 licensecheck:
