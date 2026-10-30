@@ -44,6 +44,18 @@ func TestSetAndGet(t *testing.T) {
 	fileHasContent(filepath.Join("a", "other"), initialContent)
 }
 
+func TestListBrokenSymlink(t *testing.T) {
+	t.Parallel()
+
+	storeRoot := t.TempDir()
+	require.NoError(t, os.WriteFile(filepath.Join(storeRoot, "valid"), []byte("secret"), 0o600))
+	require.NoError(t, os.Symlink(filepath.Join(storeRoot, "missing"), filepath.Join(storeRoot, "broken")))
+
+	files, err := New(storeRoot).List(config.NewContextInMemory(), "")
+	require.NoError(t, err)
+	assert.ElementsMatch(t, []string{"broken", "valid"}, files)
+}
+
 func TestMove(t *testing.T) {
 	t.Parallel()
 
