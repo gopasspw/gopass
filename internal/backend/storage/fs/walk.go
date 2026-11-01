@@ -39,6 +39,15 @@ func walk(root, filename, linkDir string, walkFn filepath.WalkFunc) error {
 		// handle symlinks
 		destPath, err := filepath.EvalSymlinks(path)
 		if err != nil {
+			if os.IsNotExist(err) {
+				destInfo, lstatErr := os.Lstat(path)
+				if lstatErr != nil {
+					return lstatErr
+				}
+
+				return walkFn(path, destInfo, nil)
+			}
+
 			return err
 		}
 
