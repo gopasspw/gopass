@@ -129,8 +129,6 @@ Please see [docs/setup.md](https://github.com/gopasspw/gopass/blob/master/docs/s
 go install github.com/gopasspw/gopass@latest
 ```
 
-Note: `latest` is not a stable release. We recommend to only use released versions.
-
 ### Manual download
 
 Download the [latest release](https://github.com/gopasspw/gopass/releases/latest) and add the binary to your PATH.
