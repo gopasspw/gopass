@@ -159,19 +159,7 @@ func (a *Age) IdentityRecipients(ctx context.Context) ([]age.Recipient, error) {
 		return nil, err
 	}
 
-	var r []age.Recipient
-	for _, id := range ids {
-		if rec := IdentityToRecipient(id); rec != nil {
-			r = append(r, rec)
-		}
-	}
-	debug.Log("got %d recipients from %d age identities", len(r), len(ids))
-
-	if err := a.recpCache.Set(idRecpCacheKey, recipientsToString(r)); err != nil {
-		debug.Log("failed to cache identity recipients: %s", err)
-	}
-
-	return r, nil
+	return a.cacheIDRecipients(ids), nil
 }
 
 // identityToString returns the portable string encoding of a natively
@@ -333,6 +321,22 @@ func (a *Age) cachedIDRecipients() []age.Recipient {
 	return rs
 }
 
+func (a *Age) cacheIDRecipients(ids []age.Identity) []age.Recipient {
+	var r []age.Recipient
+	for _, id := range ids {
+		if rec := IdentityToRecipient(id); rec != nil {
+			r = append(r, rec)
+		}
+	}
+	debug.Log("got %d recipients from %d age identities", len(r), len(ids))
+
+	if err := a.recpCache.Set(idRecpCacheKey, recipientsToString(r)); err != nil {
+		debug.Log("failed to cache identity recipients: %s", err)
+	}
+
+	return r
+}
+
 func (a *Age) addIdentity(ctx context.Context, id age.Identity) error {
 	// we invalidate our recipient id cache when we add a new identity
 	if err := a.recpCache.Remove(idRecpCacheKey); err != nil {
@@ -471,6 +475,10 @@ func (a *Age) getNativeIdentities(ctx context.Context) (map[string]age.Identity,
 	if err != nil {
 		return nil, err
 	}
+
+	// Unlocking the agent ends up here, refreshing the recipient cache lets
+	// processes without a terminal (e.g. the secret service) encrypt until it expires.
+	a.cacheIDRecipients(ids)
 
 	return idMap(ids), nil
 }

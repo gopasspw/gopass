@@ -89,6 +89,11 @@ identity—not its passphrase—to the agent over the protected local socket. Lo
 letting its timeout expire clears both native age and SSH identities from agent memory.
 The agent listens on a unix socket at `$XDG_RUNTIME_DIR/gopass/gopass-age-agent.sock`.
 
+Encrypting a secret doesn't use the agent. It only needs the public recipients of your identities,
+which gopass caches on disk for 30 hours. Unlocking the keyring, e.g. with `gopass age agent unlock`,
+refreshes that cache, so processes without a terminal (like `gopass secret-service serve`) can store
+secrets afterwards without asking for the keyring passphrase.
+
 You can interact with the agent using the following commands:
 
 * `gopass age agent start`: starts the agent in the foreground.
