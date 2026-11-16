@@ -162,7 +162,7 @@ func (s *binaryHandler) isInStore(fn string) bool {
 	if err != nil {
 		return false
 	}
-	if strings.HasPrefix(fp, s.Store.Path()) {
+	if rel, err := filepath.Rel(s.Store.Path(), fp); err == nil && rel != ".." && !strings.HasPrefix(rel, ".."+string(filepath.Separator)) {
 		return true
 	}
 	for _, mp := range s.Store.Mounts() {
@@ -170,7 +170,7 @@ func (s *binaryHandler) isInStore(fn string) bool {
 		if err != nil {
 			continue
 		}
-		if strings.HasPrefix(fp, mp) {
+		if rel, err := filepath.Rel(mp, fp); err == nil && rel != ".." && !strings.HasPrefix(rel, ".."+string(filepath.Separator)) {
 			return true
 		}
 	}

@@ -348,3 +348,44 @@ func writeBinfile(t *testing.T, fn string, size int) {
 	assert.Equal(t, size, n)
 	require.NoError(t, os.WriteFile(fn, buf, 0o644))
 }
+
+func TestBinaryCopyStorePathBoundaries(t *testing.T) {
+	u := gptest.NewUnitTester(t)
+	ctx := ctxutil.WithHidden(ctxutil.WithAlwaysYes(config.NewContextInMemory(), true), true)
+	act, err := newMock(ctx, u.StoreDir(""))
+	require.NoError(t, err)
+	ctx = act.cfg.WithConfig(ctx)
+	require.NoError(t, u.InitStore("mount"))
+	mountPath := filepath.Join(t.TempDir(), "mounted")
+	require.NoError(t, os.Rename(u.StoreDir("mount"), mountPath))
+	require.NoError(t, act.Store.AddMount(ctx, "mount", mountPath))
+
+	for _, storePath := range []string{u.StoreDir(""), mountPath} {
+		t.Run(filepath.Base(storePath), func(t *testing.T) {
+			require.True(t, act.binary.isInStore(storePath))
+			require.True(t, act.binary.isInStore(filepath.Join(storePath, "child.txt")))
+			sibling := storePath + "-backup"
+			require.NoError(t, os.MkdirAll(sibling, 0o700))
+			for _, move := range []bool{false, true} {
+				t.Run(map[bool]string{false: "copy", true: "move"}[move], func(t *testing.T) {
+					secret := filepath.Base(storePath) + "/" + t.Name()
+					infile := filepath.Join(sibling, "input.txt")
+					outfile := filepath.Join(sibling, "output.txt")
+					require.NoError(t, os.WriteFile(infile, []byte("boundary regression\n"), 0o600))
+					require.False(t, act.binary.isInStore(infile))
+					require.NoError(t, act.binaryCopy(ctx, gptest.CliCtx(ctx, t), infile, secret, move))
+					require.NoError(t, act.binaryCopy(ctx, gptest.CliCtx(ctx, t), secret, outfile, move))
+					got, err := os.ReadFile(outfile)
+					require.NoError(t, err)
+					require.Equal(t, "boundary regression\n", string(got))
+				})
+			}
+			child := filepath.Join(storePath, "child.txt")
+			require.NoError(t, os.WriteFile(child, []byte("protected\n"), 0o600))
+			require.ErrorContains(t, act.binaryCopy(ctx, gptest.CliCtx(ctx, t), child, "protected", false), "Source is in the store")
+			require.NoError(t, os.WriteFile(filepath.Join(sibling, "input.txt"), []byte("boundary regression\n"), 0o600))
+			require.NoError(t, act.binaryCopy(ctx, gptest.CliCtx(ctx, t), filepath.Join(sibling, "input.txt"), filepath.Base(storePath)+"-protected", false))
+			require.ErrorContains(t, act.binaryCopy(ctx, gptest.CliCtx(ctx, t), filepath.Base(storePath)+"-protected", child, false), "Destination is in the store")
+		})
+	}
+}
