@@ -20,6 +20,7 @@ $ gopass fsck
 Flag | Aliases | Description
 ---- | ------- | -----------
 `--decrypt` | | Decrypt and reencrypt all secrets.
+`--store` | | Limit fsck to this mount point.
 
 ## Exit codes
 
