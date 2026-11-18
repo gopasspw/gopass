@@ -7,7 +7,7 @@ recipient coverage (on supported crypto backends, only).
 ## Synopsis
 
 ```
-$ gopass fsck
+$ gopass fsck [--store=<mount>] [--decrypt] [filter]
 ```
 
 ## Modes of operation
@@ -20,6 +20,7 @@ $ gopass fsck
 Flag | Aliases | Description
 ---- | ------- | -----------
 `--decrypt` | | Decrypt and reencrypt all secrets.
+`--store` | | Limit fsck to a specific mount point (use `<root>` for the root store).
 
 ## Exit codes
 
