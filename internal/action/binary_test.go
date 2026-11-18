@@ -351,6 +351,13 @@ func writeBinfile(t *testing.T, fn string, size int) {
 
 func TestBinaryCopyStorePathBoundaries(t *testing.T) {
 	u := gptest.NewUnitTester(t)
+
+	buf := &bytes.Buffer{}
+	out.Stdout = buf
+	defer func() {
+		out.Stdout = os.Stdout
+	}()
+
 	ctx := ctxutil.WithHidden(ctxutil.WithAlwaysYes(config.NewContextInMemory(), true), true)
 	act, err := newMock(ctx, u.StoreDir(""))
 	require.NoError(t, err)
@@ -364,10 +371,16 @@ func TestBinaryCopyStorePathBoundaries(t *testing.T) {
 		t.Run(filepath.Base(storePath), func(t *testing.T) {
 			require.True(t, act.binary.isInStore(storePath))
 			require.True(t, act.binary.isInStore(filepath.Join(storePath, "child.txt")))
+			require.True(t, act.binary.isInStore(filepath.Join(storePath, "..hidden")))
+			require.False(t, act.binary.isInStore(filepath.Dir(storePath)))
 			sibling := storePath + "-backup"
 			require.NoError(t, os.MkdirAll(sibling, 0o700))
-			for _, move := range []bool{false, true} {
-				t.Run(map[bool]string{false: "copy", true: "move"}[move], func(t *testing.T) {
+			for _, tc := range []struct {
+				name string
+				move bool
+			}{{"copy", false}, {"move", true}} {
+				move := tc.move
+				t.Run(tc.name, func(t *testing.T) {
 					secret := filepath.Base(storePath) + "/" + t.Name()
 					infile := filepath.Join(sibling, "input.txt")
 					outfile := filepath.Join(sibling, "output.txt")
