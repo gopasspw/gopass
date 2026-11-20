@@ -1,5 +1,5 @@
 
-.TH GOPASS "1" "October 2026" "gopass (github.com/gopasspw/gopass) 1.17.4" "User Commands"
+.TH GOPASS "1" "November 2026" "gopass (github.com/gopasspw/gopass) 1.17.4" "User Commands"
 .SH NAME
 gopass - The standard Unix password manager
 .SH SYNOPSIS
@@ -529,6 +529,10 @@ Write QR code to FILE
 \fB\-\-snip\fR,
 \fB\-s\fR,
 Scan screen content to insert a OTP QR code into provided entry
+.SS passkey
+Manage and use passkeys (WebAuthn credentials)
+
+This command manages passkeys, the credentials used to sign in to web sites with WebAuthn. gopass acts as a software authenticator: the private key of a passkey is kept in a secret below passkeys/<rp-id>/ and is synced with the store. Without a subcommand the stored passkeys are listed.
 .SS process
 Process a template file
 

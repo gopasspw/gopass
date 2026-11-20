@@ -318,6 +318,21 @@ _gopass () {
 	      
 	      _gopass_complete_passwords
 	      ;;
+	  passkey|passkeys|webauthn)
+	      local -a subcommands
+	      subcommands=(
+	      "list:List passkeys"
+	      "create:Create a new passkey"
+	      "assert:Sign in with a passkey"
+	      "import:Import passkeys from a Credential Exchange Format file"
+	      "export:Export passkeys as a Credential Exchange Format file"
+	      "help:Shows a list of commands or help for one command"
+	      )
+	      _describe -t commands "gopass passkey" subcommands
+	      _arguments : "--help[show help]"
+	      
+	      
+	      ;;
 	  process)
 	      local -a subcommands
 	      subcommands=(
@@ -549,6 +564,7 @@ _gopass () {
 	  "mounts:Edit mounted stores"
 	  "move:Move secrets from one location to another"
 	  "otp:Generate time- or hmac-based tokens"
+	  "passkey:Manage and use passkeys (WebAuthn credentials)"
 	  "process:Process a template file"
 	  "pull:Pull a store from its remote"
 	  "push:Push a store to its remote"
