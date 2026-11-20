@@ -2,7 +2,6 @@ package passkey
 
 import (
 	"bytes"
-	"crypto/rand"
 	"crypto/sha256"
 	"encoding/json"
 	"errors"
@@ -27,6 +26,20 @@ const (
 	// cxfTypePasskey is the type of the passkey credential.
 	cxfTypePasskey = "passkey"
 )
+
+// cxfAccountID is the ID of the account of every export.
+//
+// Identifiers should stay the same across exports, so that an importer can
+// recognize what it has seen before. gopass has no notion of a user account
+// that could provide one, and an ID derived from the store or the user would
+// reveal something about either. The account of an export is therefore
+// always the same, a hash of a fixed label. The IDs of the items are derived
+// from the credential IDs and tell the exports of different stores apart.
+var cxfAccountID = func() []byte {
+	sum := sha256.Sum256([]byte("gopass.pw passkey export account"))
+
+	return sum[:16]
+}()
 
 // cxfHeader is the top-level structure of an exchange.
 type cxfHeader struct {
@@ -74,17 +87,17 @@ type cxfPasskey struct {
 
 // ExportCXF writes the credentials of the entries to w as an unencrypted
 // Credential Exchange Format document. The document contains the private
-// keys and must be protected accordingly.
+// keys and must be protected accordingly. The entries whose credentials were
+// exported are returned, and those that were left out.
+//
+// A credential that is stored more than once is exported once. The first
+// entry holding it is returned as exported, the others as neither.
 //
 // The format has no notion of a signature counter. Credentials that maintain
-// one must not be exported. They are left out and returned.
-func ExportCXF(w io.Writer, entries []Entry) ([]Entry, error) {
-	accountID := make([]byte, 16)
-	if _, err := rand.Read(accountID); err != nil {
-		return nil, fmt.Errorf("failed to generate account ID: %w", err)
-	}
-
+// one must not be exported. They are left out and returned as skipped.
+func ExportCXF(w io.Writer, entries []Entry) ([]Entry, []Entry, error) {
 	items := make([]cxfItem, 0, len(entries))
+	exported := make([]Entry, 0, len(entries))
 	skipped := make([]Entry, 0)
 
 	seen := make([][]byte, 0, len(entries))
@@ -92,7 +105,7 @@ func ExportCXF(w io.Writer, entries []Entry) ([]Entry, error) {
 	for _, entry := range entries {
 		cred := entry.Credential
 		if err := cred.validate(); err != nil {
-			return nil, fmt.Errorf("%s: %w", entry.Name, err)
+			return nil, nil, fmt.Errorf("%s: %w", entry.Name, err)
 		}
 
 		// A credential that is stored more than once is exported once: the
@@ -110,7 +123,7 @@ func ExportCXF(w io.Writer, entries []Entry) ([]Entry, error) {
 
 		key, err := marshalPrivateKey(cred.Key)
 		if err != nil {
-			return nil, fmt.Errorf("%s: %w", entry.Name, err)
+			return nil, nil, fmt.Errorf("%s: %w", entry.Name, err)
 		}
 
 		pk, err := json.Marshal(cxfPasskey{
@@ -124,7 +137,7 @@ func ExportCXF(w io.Writer, entries []Entry) ([]Entry, error) {
 			Extensions:      cred.Extensions,
 		})
 		if err != nil {
-			return nil, fmt.Errorf("%s: failed to encode passkey: %w", entry.Name, err)
+			return nil, nil, fmt.Errorf("%s: failed to encode passkey: %w", entry.Name, err)
 		}
 
 		// Item IDs are opaque and limited to 64 bytes. Credential IDs can be
@@ -142,6 +155,7 @@ func ExportCXF(w io.Writer, entries []Entry) ([]Entry, error) {
 		}
 
 		items = append(items, item)
+		exported = append(exported, entry)
 	}
 
 	enc := json.NewEncoder(w)
@@ -154,16 +168,16 @@ func ExportCXF(w io.Writer, entries []Entry) ([]Entry, error) {
 		ExporterDisplayName: cxfExporterName,
 		Timestamp:           time.Now().Unix(),
 		Accounts: []cxfAccount{{
-			ID:          accountID,
+			ID:          cxfAccountID,
 			Collections: []json.RawMessage{},
 			Items:       items,
 		}},
 	})
 	if err != nil {
-		return nil, fmt.Errorf("failed to write export: %w", err)
+		return nil, nil, fmt.Errorf("failed to write export: %w", err)
 	}
 
-	return skipped, nil
+	return exported, skipped, nil
 }
 
 // ImportCXF reads the passkeys of an unencrypted Credential Exchange Format

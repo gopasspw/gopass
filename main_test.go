@@ -90,6 +90,7 @@ var commandsWithError = set.Map([]string{
 	".passkey.create",
 	".passkey.export",
 	".passkey.import",
+	".passkey.remove",
 	".pull",
 	".process",
 	".push",

@@ -98,6 +98,9 @@ func FuzzDecode(f *testing.F) {
 		buf, err := cred.Encode()
 		require.NoError(f, err)
 		f.Add(buf)
+
+		// with members of a later version
+		f.Add(bytes.Replace(buf, []byte(`{"v":1,`), []byte(`{"v":1,"later":{"a":[1, 2]},"Note":"x",`), 1))
 	}
 
 	f.Add([]byte(`{"v":1,"rpId":"example.com","userHandle":"aGFuZGxl","credentialId":"aWQ","key":"AAAA"}`))
@@ -124,6 +127,12 @@ func FuzzDecode(f *testing.F) {
 		assert.Equal(t, cred.UserHandle, again.UserHandle)
 		assert.Equal(t, cred.SignCount, again.SignCount)
 
+		// What is written once does not change when it is written again,
+		// members this version does not know included.
+		twice, err := again.Encode()
+		require.NoError(t, err)
+		assert.Equal(t, string(buf), string(twice))
+
 		att, err := cred.Attest(Consent{Present: true})
 		require.NoError(t, err)
 		assert.GreaterOrEqual(t, len(att.AuthenticatorData), 37+16+2+len(cred.ID))
@@ -145,7 +154,7 @@ func FuzzImportCXF(f *testing.F) {
 
 	var doc bytes.Buffer
 
-	_, err = ExportCXF(&doc, []Entry{{Name: "passkeys/example.com/alice", Credential: cred}})
+	_, _, err = ExportCXF(&doc, []Entry{{Name: "passkeys/example.com/alice", Credential: cred}})
 	require.NoError(f, err)
 
 	f.Add(doc.Bytes())

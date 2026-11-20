@@ -389,7 +389,10 @@ func TestCredentialChangesWhileAsking(t *testing.T) {
 	assert.Equal(t, uint32(1), readCreds(ctx, t, api, entry.Name)[0].SignCount)
 
 	// The same goes for a passkey that is gone.
-	swap = func() { require.NoError(t, store.Remove(ctx, entry.Name, entry.Credential.ID)) }
+	swap = func() {
+		_, err := store.Remove(ctx, entry.Name, entry.Credential.ID)
+		require.NoError(t, err)
+	}
 
 	auth, _, err = a.Authenticate(ctx, exampleOrigin, requestOptions(), nil)
 	require.ErrorIs(t, err, ErrNoCredentials)

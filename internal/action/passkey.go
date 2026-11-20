@@ -240,8 +240,8 @@ func (s *passkeyHandler) PasskeyCreate(ctx context.Context, cmd *cli.Command) er
 		// The user handle is what identifies an account. Without one, a
 		// passkey for a user that already has one is meant for the same
 		// account.
-		if h := s.passkeyUserHandle(ctx, st, rpID, user); h != nil {
-			handle = h
+		if cred, found := st.FindUser(ctx, rpID, user); found {
+			handle = cred.UserHandle
 		}
 	}
 
@@ -280,23 +280,6 @@ func (s *passkeyHandler) PasskeyCreate(ctx context.Context, cmd *cli.Command) er
 	return printJSON(ctx, rsp)
 }
 
-// passkeyUserHandle returns the user handle of the passkey that is stored
-// below the prefix for the user with the given name, or nil.
-func (s *passkeyHandler) passkeyUserHandle(ctx context.Context, st *passkey.Store, rpID, user string) []byte {
-	entries, err := st.List(ctx, rpID)
-	if err != nil {
-		debug.Log("failed to read some passkeys of %s: %s", rpID, err)
-	}
-
-	for _, e := range entries {
-		if e.Credential.UserName == user && st.Owns(e.Name) {
-			return e.Credential.UserHandle
-		}
-	}
-
-	return nil
-}
-
 // PasskeyAssert signs a challenge with a passkey and prints the
 // authentication response.
 func (s *passkeyHandler) PasskeyAssert(ctx context.Context, cmd *cli.Command) error {
@@ -316,12 +299,9 @@ func (s *passkeyHandler) PasskeyAssert(ctx context.Context, cmd *cli.Command) er
 		return err
 	}
 
-	var credentialID []byte
-	if cmd.IsSet("credential") {
-		credentialID, err = decodeFlag(cmd, "credential", 0)
-		if err != nil {
-			return err
-		}
+	credentialID, err := credentialFlag(cmd)
+	if err != nil {
+		return err
 	}
 
 	verification := cmd.String("user-verification")
@@ -329,103 +309,233 @@ func (s *passkeyHandler) PasskeyAssert(ctx context.Context, cmd *cli.Command) er
 		return exit.Error(exit.Usage, nil, "invalid --user-verification %q, use one of required, preferred or discouraged", verification)
 	}
 
-	st := s.store(ctx)
-	rpID := strings.ToLower(name)
-
-	// The argument is either an RP ID or the name of a secret with passkeys.
-	if s.Store.Exists(ctx, name) {
-		rpID, credentialID, err = s.passkeyFromSecret(ctx, name, credentialID)
-		if err != nil {
-			return err
+	request := func(rpID string) *passkey.RequestOptions {
+		return &passkey.RequestOptions{
+			Challenge:        challenge,
+			RPID:             &rpID,
+			UserVerification: verification,
 		}
 	}
 
-	opts := &passkey.RequestOptions{
-		Challenge:        challenge,
-		RPID:             &rpID,
-		UserVerification: verification,
+	st := s.store(ctx)
+	auth := s.authenticator(st)
+
+	// The argument is the name of a secret with passkeys or an RP ID. Each
+	// secret is read once: the passkey that is used is one of those read.
+	entries, err := s.passkeysOf(ctx, st, name)
+	if err != nil {
+		return err
 	}
+
+	if entries == nil {
+		rpID := strings.ToLower(name)
+
+		origin, err := originFlag(cmd, rpID)
+		if err != nil {
+			return err
+		}
+
+		entries, err = auth.Candidates(ctx, origin, request(rpID))
+		if err != nil {
+			return passkeyError(err)
+		}
+	}
+
+	entry, err := s.passkeySelect(ctx, entries, credentialID, "Please select the passkey to sign in with")
+	if err != nil {
+		return err
+	}
+
+	rpID := entry.Credential.RPID
 
 	origin, err := originFlag(cmd, rpID)
 	if err != nil {
 		return err
 	}
 
-	auth := s.authenticator(st)
-
-	if len(credentialID) == 0 {
-		credentialID, err = s.passkeySelect(ctx, auth, origin, opts)
-		if err != nil {
-			return err
-		}
-	}
-
-	rsp, entry, err := auth.Authenticate(ctx, origin, opts, credentialID)
+	rsp, used, err := auth.AuthenticateWith(ctx, origin, request(rpID), entry)
 	if err != nil {
 		return passkeyError(err)
 	}
 
-	if entry.Warning != nil {
-		out.Warningf(ctx, "%s", entry.Warning)
+	if used.Warning != nil {
+		out.Warningf(ctx, "%s", used.Warning)
 	}
 
 	return printJSON(ctx, rsp)
 }
 
-// passkeyFromSecret returns the RP ID and the ID of the passkey stored in
-// the secret with the given name. If the secret has more than one passkey
-// it must be selected by its ID.
-func (s *passkeyHandler) passkeyFromSecret(ctx context.Context, name string, credentialID []byte) (string, []byte, error) {
-	sec, err := s.Store.Get(ctx, name)
-	if err != nil {
-		return "", nil, exit.Error(exit.Decrypt, err, "failed to read %s: %s", name, err)
+// credentialFlag returns the value of --credential, or nil if it is not set.
+func credentialFlag(cmd *cli.Command) ([]byte, error) {
+	if !cmd.IsSet("credential") {
+		return nil, nil
 	}
 
-	creds, err := passkey.FromSecret(sec)
+	return decodeFlag(cmd, "credential", 0)
+}
+
+// passkeysOf returns the passkeys in the secret with the given name. It
+// returns nil if the name is meant as an RP ID: if there is no such secret,
+// or if it holds no passkeys and the name could be a domain. A domain never
+// contains a "/", but a secret named like one ("example.com") is common.
+func (s *passkeyHandler) passkeysOf(ctx context.Context, st *passkey.Store, name string) ([]passkey.Entry, error) {
+	if !s.Store.Exists(ctx, name) {
+		return nil, nil
+	}
+
+	entries, err := st.Load(ctx, name)
 	if err != nil {
-		if len(creds) == 0 {
-			return "", nil, exit.Error(exit.Unknown, err, "failed to parse the passkeys in %s: %s", name, err)
+		if len(entries) == 0 {
+			if errors.Is(err, passkey.ErrInvalidCredential) {
+				return nil, exit.Error(exit.Unknown, err, "failed to parse the passkeys in %s: %s", name, err)
+			}
+
+			return nil, exit.Error(exit.Decrypt, err, "%s", err)
 		}
 		out.Warningf(ctx, "Some passkeys in %s could not be parsed: %s", name, err)
 	}
 
-	if len(credentialID) > 0 {
-		creds = slices.DeleteFunc(creds, func(c *passkey.Credential) bool { return !bytes.Equal(c.ID, credentialID) })
+	if len(entries) > 0 {
+		return entries, nil
 	}
 
-	switch len(creds) {
-	case 0:
-		return "", nil, exit.Error(exit.NotFound, nil, "No matching passkey found in %s", name)
-	case 1:
-		return creds[0].RPID, creds[0].ID, nil
-	default:
-		return "", nil, exit.Error(exit.Usage, nil, "%s holds %d passkeys. Use --credential to select one", name, len(creds))
+	if strings.Contains(name, "/") {
+		return nil, exit.Error(exit.NotFound, nil, "No passkeys found in %s", name)
 	}
+
+	debug.Log("%s holds no passkeys, using it as an RP ID", name)
+
+	return nil, nil
 }
 
-// passkeySelect lets the user pick one of several passkeys that can be used
-// to sign in. It returns nil if there is nothing to choose from.
-func (s *passkeyHandler) passkeySelect(ctx context.Context, auth *passkey.Authenticator, origin passkey.Origin, opts *passkey.RequestOptions) ([]byte, error) {
-	entries, err := auth.Candidates(ctx, origin, opts)
-	if err != nil {
-		return nil, passkeyError(err)
+// passkeySelect picks the passkey to use among entries: the one with the
+// given ID, the only one, or the one the user selects.
+func (s *passkeyHandler) passkeySelect(ctx context.Context, entries []passkey.Entry, credentialID []byte, prompt string) (passkey.Entry, error) {
+	if len(credentialID) > 0 {
+		entries = slices.DeleteFunc(slices.Clone(entries), func(e passkey.Entry) bool {
+			return !bytes.Equal(e.Credential.ID, credentialID)
+		})
 	}
 
-	if len(entries) < 2 || !ctxutil.IsInteractive(ctx) || !ctxutil.IsTerminal(ctx) || ctxutil.IsAlwaysYes(ctx) {
-		return nil, nil
+	switch len(entries) {
+	case 0:
+		return passkey.Entry{}, exit.Error(exit.NotFound, passkey.ErrNoCredentials, "No matching passkey found")
+	case 1:
+		return entries[0], nil
+	}
+
+	if len(credentialID) > 0 && !slices.ContainsFunc(entries, func(e passkey.Entry) bool { return e.Name != entries[0].Name }) {
+		// A line that was copied within a secret is the same passkey.
+		return entries[0], nil
+	}
+
+	if !ctxutil.IsInteractive(ctx) || !ctxutil.IsTerminal(ctx) || ctxutil.IsAlwaysYes(ctx) {
+		if len(credentialID) > 0 {
+			return passkey.Entry{}, exit.Error(exit.Usage, nil, "The passkey is stored in more than one secret. Name the secret to select one")
+		}
+
+		return passkey.Entry{}, exit.Error(exit.Usage, passkey.ErrSelectionRequired, "%d passkeys match. Use --credential to select one", len(entries))
 	}
 
 	choices := make([]string, 0, len(entries))
 	for _, e := range entries {
-		choices = append(choices, fmt.Sprintf("%s - %s", e.Credential.Label(), e.Name))
+		choices = append(choices, passkeyChoice(e))
 	}
 
-	act, sel := cui.GetSelection(ctx, "Please select the passkey to sign in with", choices)
+	act, sel := cui.GetSelection(ctx, prompt, choices)
 	if act != "default" || sel < 0 || sel >= len(entries) {
-		return nil, exit.Error(exit.Aborted, nil, "user aborted")
+		return passkey.Entry{}, exit.Error(exit.Aborted, nil, "user aborted")
 	}
 
-	return entries[sel].Credential.ID, nil
+	return entries[sel], nil
+}
+
+// passkeyChoice describes a passkey in a selection. Passkeys of the same
+// account, e.g. one that works and one the site never accepted, have the
+// same label and are stored in the same secret. They are told apart by when
+// they were created and by the start of their ID, as printed by list.
+func passkeyChoice(e passkey.Entry) string {
+	details := make([]string, 0, 2)
+	if !e.Credential.Created.IsZero() {
+		details = append(details, "created "+e.Credential.Created.UTC().Format("2006-01-02"))
+	}
+
+	id := passkey.Base64URL(e.Credential.ID).String()
+	if len(id) > 8 {
+		id = id[:8] + "…"
+	}
+	details = append(details, "ID "+id)
+
+	return fmt.Sprintf("%s - %s (%s)", e.Credential.Label(), e.Name, strings.Join(details, ", "))
+}
+
+// PasskeyRemove removes a passkey from the secret holding it.
+func (s *passkeyHandler) PasskeyRemove(ctx context.Context, cmd *cli.Command) error {
+	ctx = ctxutil.WithGlobalFlags(ctx, cmd)
+
+	name := cmd.Args().First()
+	if name == "" {
+		return exit.Error(exit.Usage, nil, "Usage: %s passkey remove <rp-id|secret> [--credential <id>]", s.Name)
+	}
+
+	credentialID, err := credentialFlag(cmd)
+	if err != nil {
+		return err
+	}
+
+	st := s.store(ctx)
+
+	entries, err := s.passkeysOf(ctx, st, name)
+	if err != nil {
+		return err
+	}
+
+	if entries == nil {
+		rpID := strings.ToLower(name)
+
+		entries, err = st.List(ctx, rpID)
+		if err != nil {
+			if len(entries) == 0 {
+				return exit.Error(exit.List, err, "failed to list passkeys: %s", err)
+			}
+			out.Warningf(ctx, "Some passkeys could not be read: %s", err)
+		}
+
+		if len(entries) == 0 {
+			return exit.Error(exit.NotFound, passkey.ErrNoCredentials, "No passkeys found for %s", rpID)
+		}
+	}
+
+	entry, err := s.passkeySelect(ctx, entries, credentialID, "Please select the passkey to remove")
+	if err != nil {
+		return err
+	}
+
+	cred := entry.Credential
+
+	if !cmd.Bool("force") {
+		question := fmt.Sprintf("Remove the passkey for %q at %s (%s) from %s?", cred.Label(), cred.RPID, passkey.Base64URL(cred.ID), entry.Name)
+		if !termio.AskForConfirmation(ctx, question) {
+			return exit.Error(exit.Aborted, nil, "Aborted: the passkey was not removed")
+		}
+	}
+
+	left, err := st.Remove(ctx, entry.Name, cred.ID)
+	if err != nil {
+		if !errors.Is(err, passkey.ErrNotSynced) {
+			return exit.Error(exit.Encrypt, err, "failed to remove the passkey from %s: %s", entry.Name, err)
+		}
+		out.Warningf(ctx, "%s", err)
+	}
+
+	out.OKf(ctx, "Removed the passkey for %q at %s from %s", cred.Label(), cred.RPID, entry.Name)
+	out.Noticef(ctx, "The site still lists it. Remove it there as well if you no longer use it")
+
+	if left == 0 {
+		out.Noticef(ctx, "%s holds no passkeys anymore. Remove it with '%s rm %s' if it is no longer needed", entry.Name, s.Name, entry.Name)
+	}
+
+	return nil
 }
 
 // PasskeyImport imports the passkeys of a Credential Exchange Format file.
@@ -490,7 +600,7 @@ func (s *passkeyHandler) PasskeyExport(ctx context.Context, cmd *cli.Command) er
 
 	var buf bytes.Buffer
 
-	skipped, err := passkey.ExportCXF(&buf, entries)
+	exported, skipped, err := passkey.ExportCXF(&buf, entries)
 	if err != nil {
 		return exit.Error(exit.Unknown, err, "failed to export passkeys: %s", err)
 	}
@@ -499,11 +609,11 @@ func (s *passkeyHandler) PasskeyExport(ctx context.Context, cmd *cli.Command) er
 		out.Warningf(ctx, "Not exported, the format does not support signature counters: %s (%s)", e.Name, e.Credential.Label())
 	}
 
-	if len(skipped) == len(entries) {
+	if len(exported) == 0 {
 		return exit.Error(exit.Unsupported, nil, "None of the passkeys can be exported")
 	}
 
-	out.Warningf(ctx, "The export contains the private keys of %d passkeys and is not encrypted", len(entries)-len(skipped))
+	out.Warningf(ctx, "The export contains the private keys of %d passkeys and is not encrypted", len(exported))
 
 	file := cmd.String("output")
 	if cmd.IsSet("output") && file == "" {
@@ -521,7 +631,7 @@ func (s *passkeyHandler) PasskeyExport(ctx context.Context, cmd *cli.Command) er
 		return exit.Error(exit.IO, err, "failed to write %s: %s", file, err)
 	}
 
-	out.OKf(ctx, "Exported %d passkeys to %s", len(entries)-len(skipped), file)
+	out.OKf(ctx, "Exported %d passkeys to %s", len(exported), file)
 
 	return nil
 }

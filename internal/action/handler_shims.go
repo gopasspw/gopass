@@ -306,6 +306,10 @@ func (s *Action) PasskeyAssert(ctx context.Context, cmd *cli.Command) error {
 	return s.passkeyH.PasskeyAssert(ctx, cmd)
 }
 
+func (s *Action) PasskeyRemove(ctx context.Context, cmd *cli.Command) error {
+	return s.passkeyH.PasskeyRemove(ctx, cmd)
+}
+
 func (s *Action) PasskeyImport(ctx context.Context, cmd *cli.Command) error {
 	return s.passkeyH.PasskeyImport(ctx, cmd)
 }

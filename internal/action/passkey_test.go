@@ -11,12 +11,14 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 	"unicode"
 
 	"github.com/gopasspw/gopass/internal/action/exit"
 	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
+	"github.com/gopasspw/gopass/pkg/gopass/secrets"
 	"github.com/gopasspw/gopass/pkg/passkey"
 	"github.com/gopasspw/gopass/tests/gptest"
 	"github.com/stretchr/testify/assert"
@@ -504,6 +506,199 @@ func TestPasskeyIsHiddenByShow(t *testing.T) {
 	// The private key is not shown if safecontent is enabled.
 	assert.True(t, isUnsafeKey(ctx, passkey.SecretKey, sec))
 	assert.Equal(t, "passkey: *****", showSafeContent(ctx, sec))
+}
+
+// passkeyCreate creates a passkey and returns the registration response.
+func passkeyCreate(ctx context.Context, t *testing.T, act *Action, buf *bytes.Buffer, rpID, user string) passkey.RegistrationResponse {
+	t.Helper()
+
+	buf.Reset()
+	require.NoError(t, act.PasskeyCreate(ctx, gptest.CliCtxWithFlags(ctx, t, map[string]string{"algorithm": "ES256"}, rpID, user)))
+
+	var reg passkey.RegistrationResponse
+	require.NoError(t, json.Unmarshal(buf.Bytes(), &reg), buf.String())
+	buf.Reset()
+
+	return reg
+}
+
+// passkeyIDs returns the IDs of the passkeys in a secret.
+func passkeyIDs(ctx context.Context, t *testing.T, act *Action, name string) []string {
+	t.Helper()
+
+	sec, err := act.Store.Get(ctx, name)
+	require.NoError(t, err)
+
+	creds, err := passkey.FromSecret(sec)
+	require.NoError(t, err)
+
+	ids := make([]string, 0, len(creds))
+	for _, c := range creds {
+		ids = append(ids, passkey.Base64URL(c.ID).String())
+	}
+
+	return ids
+}
+
+func TestPasskeyAssertSecretOrRPID(t *testing.T) {
+	ctx, act, buf := passkeyTest(t, true)
+
+	reg := passkeyCreate(ctx, t, act, buf, "example.com", "alice")
+
+	assertWith := func(name string, flags map[string]string) passkey.AuthenticationResponse {
+		t.Helper()
+		buf.Reset()
+
+		all := map[string]string{"challenge": "c2lnbiBpbg"}
+		for k, v := range flags {
+			all[k] = v
+		}
+
+		require.NoError(t, act.PasskeyAssert(ctx, gptest.CliCtxWithFlags(ctx, t, all, name)), name)
+
+		var auth passkey.AuthenticationResponse
+		require.NoError(t, json.Unmarshal(buf.Bytes(), &auth), buf.String())
+		buf.Reset()
+
+		return auth
+	}
+
+	// Many stores have a secret named after a site. It does not hide the
+	// passkeys of the site.
+	login := secrets.New()
+	login.SetPassword("hunter2")
+	require.NoError(t, act.Store.Set(ctx, "example.com", login))
+
+	assert.Equal(t, reg.ID, assertWith("example.com", nil).ID)
+
+	// A passkey can be kept anywhere, e.g. next to the password, and is
+	// found by the name of its secret.
+	stored, err := act.Store.Get(ctx, "passkeys/example.com/alice")
+	require.NoError(t, err)
+
+	line, _ := stored.Get(passkey.SecretKey)
+	require.NoError(t, login.Set(passkey.SecretKey, line))
+	require.NoError(t, act.Store.Set(ctx, "websites/example.com", login))
+
+	auth := assertWith("websites/example.com", map[string]string{"origin": "https://login.example.com"})
+	assert.Equal(t, reg.ID, auth.ID)
+	assert.Contains(t, string(auth.Response.ClientDataJSON), `"origin":"https://login.example.com"`)
+
+	// The secret named like the site holds a passkey now. It is used.
+	require.NoError(t, act.Store.Set(ctx, "example.com", login))
+	assert.Equal(t, reg.ID, assertWith("example.com", nil).ID)
+
+	// A secret that holds no passkey is no RP ID if it can not be one.
+	plain := secrets.New()
+	plain.SetPassword("hunter2")
+	require.NoError(t, act.Store.Set(ctx, "websites/example.org", plain))
+
+	err = act.PasskeyAssert(ctx, gptest.CliCtxWithFlags(ctx, t, map[string]string{"challenge": "c2lnbiBpbg"}, "websites/example.org"))
+	require.Error(t, err)
+	assert.Equal(t, exit.NotFound, exitCode(t, err))
+	assert.Empty(t, buf.String())
+}
+
+func TestPasskeyRemove(t *testing.T) {
+	ctx, act, buf := passkeyTest(t, true)
+
+	first := passkeyCreate(ctx, t, act, buf, "example.com", "alice")
+	second := passkeyCreate(ctx, t, act, buf, "example.com", "alice")
+	passkeyCreate(ctx, t, act, buf, "example.com", "bob")
+
+	alice := "passkeys/example.com/alice"
+	require.Equal(t, []string{first.ID, second.ID}, passkeyIDs(ctx, t, act, alice))
+
+	err := act.PasskeyRemove(ctx, gptest.CliCtx(ctx, t))
+	require.Error(t, err)
+	assert.Equal(t, exit.Usage, exitCode(t, err))
+
+	// Which one? There is nobody to ask.
+	err = act.PasskeyRemove(ctx, gptest.CliCtx(ctx, t, alice))
+	require.Error(t, err)
+	assert.Equal(t, exit.Usage, exitCode(t, err))
+
+	err = act.PasskeyRemove(ctx, gptest.CliCtxWithFlags(ctx, t, map[string]string{"credential": "dW5rbm93bg"}, alice))
+	require.Error(t, err)
+	assert.Equal(t, exit.NotFound, exitCode(t, err))
+
+	// Nobody confirmed it: nothing is removed.
+	no := ctxutil.WithAlwaysYes(ctx, false)
+	err = act.PasskeyRemove(no, gptest.CliCtxWithFlags(no, t, map[string]string{"credential": first.ID}, alice))
+	require.Error(t, err)
+	assert.Equal(t, exit.Aborted, exitCode(t, err))
+	assert.Equal(t, []string{first.ID, second.ID}, passkeyIDs(ctx, t, act, alice))
+
+	// by the secret
+	buf.Reset()
+	require.NoError(t, act.PasskeyRemove(ctx, gptest.CliCtxWithFlags(ctx, t, map[string]string{"credential": first.ID}, alice)))
+	assert.Equal(t, []string{second.ID}, passkeyIDs(ctx, t, act, alice))
+	assert.Contains(t, buf.String(), "Removed the passkey")
+	assert.NotContains(t, buf.String(), "holds no passkeys")
+
+	// by the RP ID, without asking
+	buf.Reset()
+	require.NoError(t, act.PasskeyRemove(no, gptest.CliCtxWithFlags(no, t, map[string]string{"credential": second.ID, "force": "true"}, "example.com")))
+	assert.Empty(t, passkeyIDs(ctx, t, act, alice))
+	assert.Contains(t, buf.String(), alice+" holds no passkeys anymore")
+
+	// The secret is kept. It may hold more than passkeys.
+	assert.True(t, act.Store.Exists(ctx, alice))
+
+	// The only passkey left needs no selection.
+	require.NoError(t, act.PasskeyRemove(ctx, gptest.CliCtx(ctx, t, "example.com")))
+
+	err = act.PasskeyList(ctx, gptest.CliCtx(ctx, t, "example.com"))
+	require.Error(t, err)
+	assert.Equal(t, exit.NotFound, exitCode(t, err))
+
+	err = act.PasskeyRemove(ctx, gptest.CliCtx(ctx, t, "example.com"))
+	require.Error(t, err)
+	assert.Equal(t, exit.NotFound, exitCode(t, err))
+}
+
+func TestPasskeyExportCountsEachPasskeyOnce(t *testing.T) {
+	ctx, act, buf := passkeyTest(t, true)
+
+	passkeyCreate(ctx, t, act, buf, "example.com", "alice")
+
+	// a copy in a shared folder
+	sec, err := act.Store.Get(ctx, "passkeys/example.com/alice")
+	require.NoError(t, err)
+	require.NoError(t, act.Store.Set(ctx, "team/passkeys/example.com/alice", sec))
+
+	file := filepath.Join(t.TempDir(), "passkeys.json")
+	require.NoError(t, act.PasskeyExport(ctx, gptest.CliCtxWithFlags(ctx, t, map[string]string{"output": file})))
+	assert.Contains(t, buf.String(), "Exported 1 passkeys")
+
+	exported, err := os.ReadFile(file)
+	require.NoError(t, err)
+	assert.Equal(t, 1, strings.Count(string(exported), `"type": "passkey"`))
+}
+
+func TestPasskeyChoice(t *testing.T) {
+	t.Parallel()
+
+	created := time.Date(2026, 11, 20, 18, 51, 15, 0, time.UTC)
+	entry := func(id string) passkey.Entry {
+		return passkey.Entry{
+			Name: "passkeys/example.com/alice",
+			Credential: &passkey.Credential{
+				ID:              []byte(id),
+				UserName:        "alice",
+				UserDisplayName: "Alice",
+				Created:         created,
+			},
+		}
+	}
+
+	// Two passkeys of one account, in one secret, can be told apart.
+	assert.Equal(t, "alice (Alice) - passkeys/example.com/alice (created 2026-11-20, ID MDEyMzQ1…)", passkeyChoice(entry("0123456789")))
+	assert.NotEqual(t, passkeyChoice(entry("0123456789")), passkeyChoice(entry("9876543210")))
+
+	short := entry("ab")
+	short.Credential.Created = time.Time{}
+	assert.Equal(t, "alice (Alice) - passkeys/example.com/alice (ID YWI)", passkeyChoice(short))
 }
 
 // exitCode returns the exit code of an error returned by an action.

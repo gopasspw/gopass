@@ -206,6 +206,25 @@ func (c *Config) GetGlobal(key string) string {
 	return c.root.GetGlobal(key)
 }
 
+// userScopes are the config scopes only the user of this machine controls,
+// in the order of their precedence.
+var userScopes = []string{"env", "global", "system", "preset"}
+
+// GetUser returns the given key from the configs only the user of this
+// machine controls: the environment, the per-user (global) and the system
+// config, and the presets. The per-store configs (local and worktree) are
+// skipped. They live in the store and anyone who can push to its remote can
+// change them. Use this for settings that must not be changed that way.
+func (c *Config) GetUser(key string) string {
+	for _, scope := range userScopes {
+		if v, found := c.root.GetFrom(key, scope); found {
+			return v
+		}
+	}
+
+	return ""
+}
+
 // GetM returns the given key from the mount or the root config if mount is empty.
 func (c *Config) GetM(mount, key string) string {
 	// env vars always win

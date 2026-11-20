@@ -39,10 +39,11 @@ func TestCXFRoundTrip(t *testing.T) {
 
 	var buf bytes.Buffer
 
-	skipped, err := ExportCXF(&buf, entries)
+	exported, skipped, err := ExportCXF(&buf, entries)
 	require.NoError(t, err)
 	require.Len(t, skipped, 1)
 	assert.Equal(t, counting.ID, skipped[0].Credential.ID)
+	assert.Len(t, exported, len(entries)-1)
 
 	// the structure of the document
 	var doc struct {
@@ -289,7 +290,7 @@ func TestImportCXFInvalid(t *testing.T) {
 	require.NoError(t, err)
 	assert.Empty(t, creds)
 
-	_, err = ExportCXF(&bytes.Buffer{}, []Entry{{Name: "broken", Credential: &Credential{RPID: "example.com"}}})
+	_, _, err = ExportCXF(&bytes.Buffer{}, []Entry{{Name: "broken", Credential: &Credential{RPID: "example.com"}}})
 	require.ErrorIs(t, err, ErrInvalidCredential)
 
 	// more than one document
@@ -348,4 +349,58 @@ func TestImportCXFMalformedPasskeys(t *testing.T) {
 		require.Len(t, creds, 1, name)
 		assert.Equal(t, []byte("id"), creds[0].ID, name)
 	}
+}
+
+func TestExportCXFIdentifiers(t *testing.T) {
+	t.Parallel()
+
+	cred := newCred(t, "example.com", "alice", "handle")
+	other := newCred(t, "example.com", "bob", "other")
+
+	// The same passkey can be stored twice, e.g. as a copy in a shared
+	// store. It is exported, and counted, once.
+	entries := []Entry{
+		{Name: "passkeys/example.com/alice", Credential: cred},
+		{Name: "team/passkeys/example.com/alice", Credential: cred},
+		{Name: "passkeys/example.com/bob", Credential: other},
+	}
+
+	export := func() (string, []string) {
+		var buf bytes.Buffer
+
+		exported, skipped, err := ExportCXF(&buf, entries)
+		require.NoError(t, err)
+		assert.Empty(t, skipped)
+		require.Len(t, exported, 2)
+		assert.Equal(t, "passkeys/example.com/alice", exported[0].Name)
+		assert.Equal(t, "passkeys/example.com/bob", exported[1].Name)
+
+		var doc struct {
+			Accounts []struct {
+				ID    string `json:"id"`
+				Items []struct {
+					ID string `json:"id"`
+				} `json:"items"`
+			} `json:"accounts"`
+		}
+		require.NoError(t, json.Unmarshal(buf.Bytes(), &doc))
+		require.Len(t, doc.Accounts, 1)
+		require.Len(t, doc.Accounts[0].Items, 2)
+
+		items := []string{doc.Accounts[0].Items[0].ID, doc.Accounts[0].Items[1].ID}
+		assert.NotEqual(t, items[0], items[1])
+
+		return doc.Accounts[0].ID, items
+	}
+
+	// Identifiers are the same in every export, so that an importer can
+	// recognize what it has seen before.
+	account, items := export()
+	account2, items2 := export()
+	assert.Equal(t, account, account2)
+	assert.Equal(t, items, items2)
+
+	id, err := ParseBase64URL(account)
+	require.NoError(t, err)
+	assert.Len(t, id, 16)
 }

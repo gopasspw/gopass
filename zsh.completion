@@ -324,6 +324,7 @@ _gopass () {
 	      "list:List passkeys"
 	      "create:Create a new passkey"
 	      "assert:Sign in with a passkey"
+	      "remove:Remove a passkey"
 	      "import:Import passkeys from a Credential Exchange Format file"
 	      "export:Export passkeys as a Credential Exchange Format file"
 	      "help:Shows a list of commands or help for one command"

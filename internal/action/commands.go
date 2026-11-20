@@ -1032,6 +1032,31 @@ func (s *Action) GetCommands() []*cli.Command {
 					},
 				},
 				{
+					Name:      "remove",
+					Usage:     "Remove a passkey",
+					ArgsUsage: "<rp-id|secret>",
+					Aliases:   []string{"rm", "delete"},
+					Description: "" +
+						"This command removes a passkey from the secret holding it. The passkey is " +
+						"selected by the ID of the relying party or by the name of the secret. " +
+						"The secret and the other passkeys in it are kept. The relying party still " +
+						"lists the passkey: remove it there as well.",
+					Before:        s.IsInitialized,
+					Action:        s.PasskeyRemove,
+					ShellComplete: s.Complete,
+					Flags: []cli.Flag{
+						&cli.StringFlag{
+							Name:  "credential",
+							Usage: "ID of the passkey to remove, base64url encoded. Needed if more than one matches",
+						},
+						&cli.BoolFlag{
+							Name:    "force",
+							Aliases: []string{"f"},
+							Usage:   "Remove the passkey without asking for confirmation",
+						},
+					},
+				},
+				{
 					Name:      "import",
 					Usage:     "Import passkeys from a Credential Exchange Format file",
 					ArgsUsage: "<file>",

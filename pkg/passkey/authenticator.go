@@ -223,19 +223,32 @@ func (a *Authenticator) Register(ctx context.Context, origin Origin, opts *Creat
 		VerificationRequired: sel.UserVerification == requirementRequired,
 	}
 
-	if err := a.checkExcluded(cctx, req, opts.ExcludeCredentials); err != nil {
-		return nil, nil, err
-	}
-
-	// The user should know if the account has a passkey already.
-	existing, found, err := a.store.AccountSecret(cctx, rpID, user.ID)
+	// The passkeys of the Relying Party are read once for everything the
+	// ceremony needs to know about them. Excluded credentials can be stored
+	// anywhere, the account of the user only below the prefix.
+	names, err := a.store.Names(cctx, rpID)
 	if err != nil {
 		return nil, nil, errorf(UnknownError, "failed to look up existing passkeys: %w", err)
 	}
 
-	if found {
-		req.Entry = existing
+	if len(opts.ExcludeCredentials) == 0 {
+		names = slices.DeleteFunc(names, func(n string) bool { return !a.store.Owns(n) })
 	}
+
+	entries, err := a.store.load(cctx, names)
+	if err != nil {
+		// What can not be read is treated like an unknown credential.
+		debug.Log("failed to read some passkeys of %s: %s", rpID, err)
+	}
+
+	if err := a.checkExcluded(cctx, req, entries, opts.ExcludeCredentials); err != nil {
+		return nil, nil, err
+	}
+
+	// The user should know if the account has a passkey already. The new
+	// one is added to the same secret.
+	existing, _ := a.store.accountIn(entries, rpID, user.ID)
+	req.Entry = existing
 
 	req.Operation = OperationRegister
 
@@ -272,7 +285,7 @@ func (a *Authenticator) Register(ctx context.Context, origin Origin, opts *Creat
 		return nil, nil, err
 	}
 
-	name, warning := a.store.Put(ctx, cred)
+	name, warning := a.store.putTo(ctx, cred, existing)
 	if warning != nil && !errors.Is(warning, ErrNotSynced) {
 		return nil, nil, errorf(UnknownError, "failed to store the passkey: %w", warning)
 	}
@@ -307,19 +320,13 @@ func (a *Authenticator) Register(ctx context.Context, origin Origin, opts *Creat
 }
 
 // checkExcluded fails if one of the credentials a Relying Party does not
-// want to be registered again is stored. Whether one is stored is not
-// disclosed without the consent of the user.
+// want to be registered again is among the stored entries. Whether one is
+// stored is not disclosed without the consent of the user.
 //
 // See https://www.w3.org/TR/webauthn-3/#sctn-op-make-cred step 3.
-func (a *Authenticator) checkExcluded(ctx context.Context, req ConsentRequest, excluded []CredentialDescriptor) error {
+func (a *Authenticator) checkExcluded(ctx context.Context, req ConsentRequest, entries []Entry, excluded []CredentialDescriptor) error {
 	if len(excluded) == 0 {
 		return nil
-	}
-
-	entries, err := a.store.List(ctx, req.RPID)
-	if err != nil {
-		// What can not be read is treated like an unknown credential.
-		debug.Log("failed to read some passkeys of %s: %s", req.RPID, err)
 	}
 
 	matches := filterEntries(entries, excluded)
@@ -354,7 +361,8 @@ func filterEntries(entries []Entry, descriptors []CredentialDescriptor) []Entry 
 // Candidates returns the credentials that can satisfy an authentication
 // request: those of the Relying Party, restricted to the allowed credentials
 // if the Relying Party named any. It is meant to let the user pick an account
-// before [Authenticator.Authenticate] is called.
+// and to pass the choice to [Authenticator.AuthenticateWith], which does not
+// read the store again.
 //
 // The result is for the eyes of the user only. Handing any of it to the
 // Relying Party before the user consented reveals which accounts exist.
@@ -417,6 +425,10 @@ func (a *Authenticator) candidates(ctx context.Context, rpID string, allowed []C
 // It may be nil if there is only one. Otherwise the ceremony fails with
 // [ErrSelectionRequired].
 //
+// The candidates are read from the store again. A caller that has them
+// already, e.g. to let the user pick one, can use
+// [Authenticator.AuthenticateWith] instead.
+//
 // See https://www.w3.org/TR/webauthn-3/#sctn-getAssertion
 func (a *Authenticator) Authenticate(ctx context.Context, origin Origin, opts *RequestOptions, credentialID []byte) (*AuthenticationResponse, *Entry, error) {
 	if opts == nil {
@@ -442,6 +454,51 @@ func (a *Authenticator) Authenticate(ctx context.Context, origin Origin, opts *R
 		return nil, nil, err
 	}
 
+	return a.authenticate(ctx, cctx, cd, rpID, opts, entry)
+}
+
+// AuthenticateWith performs an authentication ceremony like
+// [Authenticator.Authenticate], with a credential the caller has read
+// already: one of the [Authenticator.Candidates], or one of a secret the user
+// named, see [Store.Load]. Nothing is read from the store, unless the
+// credential maintains a signature counter.
+//
+// The credential must be able to satisfy the request: it must be bound to
+// the RP ID the request is scoped to and, if the Relying Party lists the
+// credentials it allows, be one of them.
+func (a *Authenticator) AuthenticateWith(ctx context.Context, origin Origin, opts *RequestOptions, entry Entry) (*AuthenticationResponse, *Entry, error) {
+	if opts == nil {
+		return nil, nil, errorf(TypeError, "options are missing")
+	}
+
+	cd, rpID, err := clientData(clientDataGet, origin, opts.RPID, opts.Challenge)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	if entry.Credential == nil {
+		return nil, nil, errorf(TypeError, "credential is missing")
+	}
+
+	// A credential is never used for another Relying Party, whatever the
+	// name of the secret holding it says.
+	if entry.Credential.RPID != rpID {
+		return nil, nil, errorf(NotAllowedError, "%w for %s in %s", ErrNoCredentials, rpID, entry.Name)
+	}
+
+	if len(opts.AllowCredentials) > 0 && len(filterEntries([]Entry{entry}, opts.AllowCredentials)) == 0 {
+		return nil, nil, errorf(NotAllowedError, "%w: the site does not allow the passkey in %s", ErrNoCredentials, entry.Name)
+	}
+
+	cctx, cancel := withTimeout(ctx, opts.Timeout)
+	defer cancel()
+
+	return a.authenticate(ctx, cctx, cd, rpID, opts, entry)
+}
+
+// authenticate asks for consent and signs the assertion with the credential
+// of entry. cctx bounds the ceremony, ctx what is written to the store.
+func (a *Authenticator) authenticate(ctx, cctx context.Context, cd ClientData, rpID string, opts *RequestOptions, entry Entry) (*AuthenticationResponse, *Entry, error) {
 	consent, err := a.askConsent(cctx, ConsentRequest{
 		Operation:            OperationAuthenticate,
 		RPID:                 rpID,

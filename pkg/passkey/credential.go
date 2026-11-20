@@ -8,7 +8,10 @@ import (
 	"crypto/x509"
 	"encoding/json"
 	"fmt"
+	"maps"
 	"math"
+	"reflect"
+	"slices"
 	"strings"
 	"time"
 	"unicode"
@@ -56,6 +59,11 @@ type Credential struct {
 	// these extensions. The data is only kept so that it survives being
 	// imported and exported again.
 	Extensions json.RawMessage
+
+	// unknown holds the members of the stored form that this version does
+	// not know, e.g. ones a later version of gopass added. They are written
+	// back as they are, so that they survive a change made by this version.
+	unknown map[string]json.RawMessage
 }
 
 // NewOptions are the properties of a credential to generate.
@@ -184,12 +192,18 @@ func printable(s string) string {
 }
 
 // String returns a description of the credential without its private key.
-func (c *Credential) String() string {
-	if c == nil {
-		return "passkey(nil)"
-	}
-
+//
+// String, GoString and MarshalJSON have value receivers, so that a copy of a
+// credential is described the same way and never with the private key.
+func (c Credential) String() string {
 	return fmt.Sprintf("passkey(%s at %s, %s)", c.Label(), c.RPID, Base64URL(c.ID))
+}
+
+// GoString implements fmt.GoStringer. Like String, it leaves out the private
+// key, which "%#v" would otherwise print.
+func (c Credential) GoString() string {
+	return fmt.Sprintf("passkey.Credential{ID: %q, RPID: %q, UserName: %q, Algorithm: %s}",
+		Base64URL(c.ID), c.RPID, c.UserName, c.Algorithm())
 }
 
 // validate checks the invariants every usable credential must satisfy.
@@ -326,6 +340,10 @@ func (c *Credential) Advance() error {
 // credentialJSON is the serialized form of a credential. The names of the
 // members match the passkey dictionary of the FIDO Credential Exchange Format
 // where both have the same member.
+//
+// Members are only ever added to this version of the schema. A member that
+// changes the meaning of others requires a new version, which older versions
+// of gopass refuse to read and hence to change.
 type credentialJSON struct {
 	Version         int             `json:"v"`
 	RPID            string          `json:"rpId"`
@@ -342,9 +360,29 @@ type credentialJSON struct {
 	Extensions      json.RawMessage `json:"fido2Extensions,omitempty"`
 }
 
+// knownMembers are the names of the members of credentialJSON.
+var knownMembers = func() []string {
+	t := reflect.TypeFor[credentialJSON]()
+
+	names := make([]string, 0, t.NumField())
+	for i := range t.NumField() {
+		name, _, _ := strings.Cut(t.Field(i).Tag.Get("json"), ",")
+		names = append(names, name)
+	}
+
+	return names
+}()
+
+// isKnownMember reports whether a member is one of credentialJSON. Like the
+// JSON decoder, it does not tell apart names that only differ in case.
+func isKnownMember(name string) bool {
+	return slices.ContainsFunc(knownMembers, func(k string) bool { return strings.EqualFold(k, name) })
+}
+
 // Encode returns the form in which a credential is stored: a single line of
 // JSON that includes the private key as a PKCS#8 structure. Binary members
-// are base64url encoded.
+// are base64url encoded. Members a decoded credential had that this version
+// does not know follow the known ones.
 //
 // HTML characters are not escaped. The result is stored, not rendered, and
 // names like "Alice & Bob" should stay readable.
@@ -384,7 +422,41 @@ func (c *Credential) Encode() ([]byte, error) {
 		return nil, fmt.Errorf("failed to encode credential: %w", err)
 	}
 
-	return bytes.TrimRight(buf.Bytes(), "\n"), nil
+	line := bytes.TrimRight(buf.Bytes(), "\n")
+	if len(c.unknown) == 0 {
+		return line, nil
+	}
+
+	return appendMembers(line, c.unknown)
+}
+
+// appendMembers adds members to an encoded JSON object, sorted by name. The
+// values are compacted, so that the result stays on a single line.
+func appendMembers(object []byte, members map[string]json.RawMessage) ([]byte, error) {
+	var buf bytes.Buffer
+
+	enc := json.NewEncoder(&buf)
+	enc.SetEscapeHTML(false)
+
+	buf.Write(bytes.TrimSuffix(object, []byte("}")))
+
+	for _, name := range slices.Sorted(maps.Keys(members)) {
+		buf.WriteByte(',')
+
+		if err := enc.Encode(name); err != nil {
+			return nil, fmt.Errorf("failed to encode credential: %w", err)
+		}
+		buf.Truncate(buf.Len() - 1) // the encoder ends every value with a line break
+		buf.WriteByte(':')
+
+		if err := json.Compact(&buf, members[name]); err != nil {
+			return nil, fmt.Errorf("failed to encode credential: member %q: %w", name, err)
+		}
+	}
+
+	buf.WriteByte('}')
+
+	return buf.Bytes(), nil
 }
 
 // Decode parses a credential encoded by [Credential.Encode].
@@ -396,6 +468,25 @@ func Decode(data []byte) (*Credential, error) {
 
 	if cj.Version != schemaVersion {
 		return nil, fmt.Errorf("%w: unsupported schema version %d", ErrInvalidCredential, cj.Version)
+	}
+
+	// The data is a JSON object, or the first Unmarshal had failed.
+	var members map[string]json.RawMessage
+	if err := json.Unmarshal(data, &members); err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrInvalidCredential, err)
+	}
+
+	var unknown map[string]json.RawMessage
+
+	for name, value := range members {
+		if isKnownMember(name) {
+			continue
+		}
+
+		if unknown == nil {
+			unknown = make(map[string]json.RawMessage)
+		}
+		unknown[name] = value
 	}
 
 	key, err := parsePrivateKey(cj.Key)
@@ -415,6 +506,7 @@ func Decode(data []byte) (*Credential, error) {
 		BackupEligible: true,
 		BackupState:    true,
 		Extensions:     cj.Extensions,
+		unknown:        unknown,
 	}
 
 	if cj.BackupEligible != nil {
@@ -447,7 +539,7 @@ func Decode(data []byte) (*Credential, error) {
 // MarshalJSON returns a description of the credential that is safe to hand
 // to a user interface. It does not contain the private key. Use
 // [Credential.Encode] to serialize a credential for storage.
-func (c *Credential) MarshalJSON() ([]byte, error) {
+func (c Credential) MarshalJSON() ([]byte, error) {
 	desc := struct {
 		ID              Base64URL `json:"id"`
 		RPID            string    `json:"rpId"`

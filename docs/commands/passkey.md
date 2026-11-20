@@ -21,6 +21,7 @@ extension that talks to gopass, e.g. through
 $ gopass passkey [list [rp-id]]
 $ gopass passkey create <rp-id> <user>
 $ gopass passkey assert <rp-id|secret> --challenge <challenge>
+$ gopass passkey remove <rp-id|secret>
 $ gopass passkey import <file>
 $ gopass passkey export [rp-id]
 ```
@@ -50,14 +51,17 @@ passkey: {"v":1,"rpId":"example.com","userName":"alice","userDisplayName":"Alice
 The line holds everything that is needed to use the passkey, including the
 private key (`key`, a PKCS#8 structure). Binary values are base64url encoded.
 The line is hidden by `gopass show` if `show.safecontent` is enabled. The
-password of such a secret, its first line, is not used.
+password of such a secret, its first line, is not used. Members of the line
+that this version of gopass does not know, e.g. ones a later version added,
+are kept when gopass changes the secret.
 
 A secret holds all passkeys of a user account. It can have more than one
 `passkey:` line, e.g. after importing passkeys for the same account from
 different credential managers or after registering with a site twice. gopass
 never removes a passkey on its own: whether a site accepted a new passkey is
 not known to gopass, and a passkey that works must not be lost to one that
-does not. Remove a line with `gopass edit` if a passkey is no longer needed.
+does not. Remove a passkey that is no longer needed with
+`gopass passkey remove`.
 
 The names of secrets are not encrypted. Storing passkeys in a folder of their
 own means that the secrets holding the passkeys of a site can be found without
@@ -123,7 +127,15 @@ $ gopass config passkey.user-verification true
 A ceremony you confirmed is then reported as user verified, which is how
 many password managers treat an unlocked vault. Do not enable it if e.g.
 your GPG key has no passphrase or your agent caches it for a long time on a
-computer others have access to.
+computer others have access to. Note that the confirmation can be skipped with
+`--yes`: together with this option, a ceremony is then reported as user
+present and verified without any interaction.
+
+This option, like all `passkey.*` options, is only read from your own config
+(`gopass config passkey.user-verification true`), the system config and the
+environment, never from the config of a store. That is versioned with the
+store, and anyone who can push to the store could otherwise claim user
+verification for you, or have new passkeys written to a folder they can read.
 
 ## Commands
 
@@ -153,7 +165,8 @@ $ gopass passkey create example.com alice --challenge cmVnaXN0ZXI
 
 A passkey that already exists for the account is kept, see above. If no
 `--user-handle` is given, the passkey is created for the account of the user
-with that name if there is one, and for a new account otherwise.
+with that name if `passkeys/<rp-id>/<user>` holds one, and for a new account
+otherwise. Only that secret is decrypted to find out.
 
 | Flag             | Aliases | Description                                                                                            |
 |------------------|---------|--------------------------------------------------------------------------------------------------------|
@@ -175,9 +188,17 @@ $ gopass passkey assert example.com --challenge c2lnbiBpbg
 $ gopass passkey assert passkeys/example.com/alice --challenge c2lnbiBpbg --origin https://login.example.com
 ```
 
-If more than one passkey of a relying party matches you are asked to pick
-one. In scripts, and if a secret holds more than one passkey, use
-`--credential` to select it.
+A secret that is named can be anywhere in the store, e.g.
+`websites/example.com` next to the password, and only that secret is
+decrypted. Given an RP ID, the secrets in `passkeys/<rp-id>/` (and in the
+other folders named `passkeys`) are decrypted once each. A secret named like
+the RP ID that holds no passkey, like the `example.com` of many stores, does
+not get in the way.
+
+If more than one passkey matches you are asked to pick one. The choices show
+when a passkey was created and the start of its ID, so that two passkeys of
+the same account can be told apart. In scripts use `--credential` to select
+one.
 
 | Flag                  | Aliases | Description                                                                              |
 |-----------------------|---------|------------------------------------------------------------------------------------------|
@@ -185,6 +206,25 @@ one. In scripts, and if a secret holds more than one passkey, use
 | `--origin`            | `-o`    | Origin of the page that requests the assertion. Defaults to `https://<rp-id>`.           |
 | `--credential`        |         | ID of the passkey to use, base64url encoded.                                             |
 | `--user-verification` |         | Requirement of the relying party: `required`, `preferred` (default) or `discouraged`.    |
+
+### `passkey remove`
+
+Removes a passkey from the secret holding it, after asking for confirmation.
+The passkey is selected like for `assert`: by the RP ID or by the name of the
+secret, with `--credential` or a choice if more than one matches. The secret
+and everything else in it are kept.
+
+```
+$ gopass passkey remove example.com
+$ gopass passkey remove passkeys/example.com/alice --credential 3yZL-uu9GR2Vmm6_61WyIlXIfjNzKWZB8bfjMX3fWmI
+```
+
+The site still lists the passkey. Remove it there as well.
+
+| Flag           | Aliases | Description                                         |
+|----------------|---------|-----------------------------------------------------|
+| `--credential` |         | ID of the passkey to remove, base64url encoded.     |
+| `--force`      | `-f`    | Remove the passkey without asking for confirmation. |
 
 ### `passkey import` and `passkey export`
 
@@ -228,4 +268,5 @@ an export, as the format demands, and imported passkeys never count.
 ## Config options
 
 See [config.md](../config.md): `passkey.prefix`, `passkey.signcount` and
-`passkey.user-verification`.
+`passkey.user-verification`. They are only read from your own config, the
+system config and the environment, not from the config of a store.

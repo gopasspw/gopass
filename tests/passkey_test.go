@@ -229,6 +229,61 @@ func TestPasskey(t *testing.T) {
 		require.NoError(t, err)
 		assert.Contains(t, out, reg.ID)
 	})
+
+	t.Run("secret named like the site", func(t *testing.T) {
+		// Many stores have one. It does not hide the passkeys of the site.
+		_, err := ts.runWithInput("insert -f example.com", "hunter2\n")
+		require.NoError(t, err)
+
+		out, err := ts.run("--yes passkey assert example.com --challenge c2lnbiBpbg")
+		require.NoError(t, err, out)
+
+		var auth webauthnResponse
+		require.NoError(t, json.Unmarshal([]byte(out), &auth), out)
+		assert.Equal(t, reg.ID, auth.ID)
+	})
+
+	t.Run("store config is ignored", func(t *testing.T) {
+		// The config of a store is versioned with it. Whoever can push to
+		// the store must not be able to redirect new passkeys.
+		cfg := filepath.Join(ts.storeDir("root"), "config")
+		require.NoError(t, os.WriteFile(cfg, []byte("[passkey]\n\tprefix = shared/passkeys\n"), 0o600))
+
+		out, err := ts.run("--yes passkey create example.com bob")
+		require.NoError(t, err, out)
+		require.NoError(t, os.Remove(cfg))
+
+		out, err = ts.run("passkey list example.com")
+		require.NoError(t, err)
+		assert.Contains(t, out, "passkeys/example.com/bob")
+		assert.NotContains(t, out, "shared/")
+	})
+
+	t.Run("remove", func(t *testing.T) {
+		// Two passkeys match, and there is nobody to pick one.
+		_, err := ts.run("--yes passkey remove example.com")
+		require.Error(t, err)
+
+		out, err := ts.run("--yes passkey remove passkeys/example.com/bob")
+		require.NoError(t, err, out)
+		assert.Contains(t, out, "Removed the passkey")
+		assert.Contains(t, out, "holds no passkeys anymore")
+
+		out, err = ts.run("passkey list example.com")
+		require.NoError(t, err)
+		assert.NotContains(t, out, "passkeys/example.com/bob")
+		assert.Contains(t, out, reg.ID)
+
+		// Not confirmed: kept.
+		_, err = ts.run("passkey remove example.com")
+		require.Error(t, err)
+
+		out, err = ts.run("passkey remove example.com --force --credential " + reg.ID)
+		require.NoError(t, err, out)
+
+		_, err = ts.run("passkey list example.com")
+		require.Error(t, err)
+	})
 }
 
 // TestPasskeyIsCommitted checks that a passkey is not just written but also

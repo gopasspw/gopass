@@ -1,6 +1,7 @@
 package passkey
 
 import (
+	"bytes"
 	"crypto/ecdsa"
 	"crypto/ed25519"
 	"crypto/elliptic"
@@ -344,6 +345,56 @@ func TestCredentialEncoding(t *testing.T) {
 	}
 }
 
+func TestCredentialKeepsUnknownMembers(t *testing.T) {
+	t.Parallel()
+
+	cred := newCred(t, "example.com", "alice", "handle")
+
+	line, err := cred.Encode()
+	require.NoError(t, err)
+
+	// A later version of gopass may add members to the schema. A line it
+	// wrote must not lose them when this version changes the secret, e.g.
+	// to add another passkey or to advance a counter.
+	// The values are kept as they are, only without the white space that
+	// would break the line.
+	extended := strings.Replace(string(line), `{"v":1,`, `{"v":1,"zNote":"keep \u003cme>","aBlob":{ "size" :`+"\n"+` 3 },`, 1)
+
+	got, err := Decode([]byte(extended))
+	require.NoError(t, err)
+	assert.Equal(t, cred.ID, got.ID)
+
+	again, err := got.Encode()
+	require.NoError(t, err)
+	assert.NotContains(t, string(again), "\n")
+	assert.True(t, bytes.HasPrefix(again, line[:len(line)-1]), string(again))
+	assert.True(t, strings.HasSuffix(string(again), `,"aBlob":{"size":3},"zNote":"keep \u003cme>"}`), string(again))
+
+	// It still decodes to the same credential, and keeps the members.
+	twice, err := Decode(again)
+	require.NoError(t, err)
+	assert.Equal(t, got.ID, twice.ID)
+
+	thrice, err := twice.Encode()
+	require.NoError(t, err)
+	assert.Equal(t, string(again), string(thrice))
+
+	// The decoder does not tell apart names that only differ in case. A
+	// member like that is the known one, not another.
+	upper := strings.Replace(string(line), `"rpId":`, `"RPID":`, 1)
+
+	got, err = Decode([]byte(upper))
+	require.NoError(t, err)
+	assert.Equal(t, "example.com", got.RPID)
+
+	again, err = got.Encode()
+	require.NoError(t, err)
+	assert.Equal(t, string(line), string(again))
+
+	// The members are not part of what is shown to a user.
+	assert.NotContains(t, string(must(json.Marshal(twice))), "zNote")
+}
+
 func TestCredentialDoesNotLeakItsKey(t *testing.T) {
 	t.Parallel()
 
@@ -365,16 +416,32 @@ func TestCredentialDoesNotLeakItsKey(t *testing.T) {
 		// not contain the private key. Only Encode does.
 		entry := Entry{Name: "passkeys/example.com/alice", Credential: cred}
 
+		// A copy of a credential, e.g. a field or a map value, must not be
+		// described with its private key either.
+		type holder struct{ C Credential }
+
 		for name, out := range map[string]string{
-			"json":       string(must(json.Marshal(cred))),
-			"json entry": string(must(json.Marshal([]Entry{entry}))),
-			"string":     cred.String(),
-			"%v":         fmt.Sprintf("%v", cred),
-			"%+v":        fmt.Sprintf("%+v", cred),
-			"%+v entry":  fmt.Sprintf("%+v", entry),
+			"json":         string(must(json.Marshal(cred))),
+			"json value":   string(must(json.Marshal(*cred))),
+			"json field":   string(must(json.Marshal(holder{C: *cred}))),
+			"json map":     string(must(json.Marshal(map[string]Credential{"a": *cred}))),
+			"json entry":   string(must(json.Marshal([]Entry{entry}))),
+			"string":       cred.String(),
+			"%v":           fmt.Sprintf("%v", cred),
+			"%+v":          fmt.Sprintf("%+v", cred),
+			"%v value":     fmt.Sprintf("%v", *cred),
+			"%+v value":    fmt.Sprintf("%+v", *cred),
+			"%#v":          fmt.Sprintf("%#v", cred),
+			"%#v value":    fmt.Sprintf("%#v", *cred),
+			"%+v field":    fmt.Sprintf("%+v", holder{C: *cred}),
+			"%#v field":    fmt.Sprintf("%#v", holder{C: *cred}),
+			"%+v entry":    fmt.Sprintf("%+v", entry),
+			"%#v entry":    fmt.Sprintf("%#v", []Entry{entry}),
+			"%v map value": fmt.Sprintf("%v", map[string]Credential{"a": *cred}),
 		} {
 			assert.NotContains(t, out, key, name)
 			assert.NotContains(t, out, key[:16], name)
+			assert.NotContains(t, out, "PrivateKey", name)
 			assert.Contains(t, out, Base64URL(cred.ID).String(), name)
 		}
 
@@ -384,7 +451,9 @@ func TestCredentialDoesNotLeakItsKey(t *testing.T) {
 		), string(must(json.Marshal(cred))))
 	}
 
-	assert.Equal(t, "passkey(nil)", (*Credential)(nil).String())
+	// fmt and encoding/json handle a nil credential without describing it.
+	assert.Equal(t, "<nil>", fmt.Sprintf("%v", (*Credential)(nil)))
+	assert.Equal(t, "null", string(must(json.Marshal((*Credential)(nil)))))
 }
 
 func TestCredentialDecodeInvalid(t *testing.T) {

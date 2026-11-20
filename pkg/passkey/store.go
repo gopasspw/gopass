@@ -77,6 +77,11 @@ type Store struct {
 // NewStore returns a Store that keeps credentials in s. New credentials are
 // written below the folder configured as "passkey.prefix", or below
 // "passkeys" if that is not set.
+//
+// The config keys of this package are only read from the configs the user
+// controls, never from the config of a store: that is versioned with the
+// store, and whoever can push to the store could otherwise redirect new
+// credentials to another folder or claim user verification.
 func NewStore(ctx context.Context, s SecretStore) *Store {
 	return &Store{
 		store:  s,
@@ -85,7 +90,7 @@ func NewStore(ctx context.Context, s SecretStore) *Store {
 }
 
 func prefixFromConfig(ctx context.Context) string {
-	prefix := path.Clean("/" + config.String(ctx, "passkey.prefix"))[1:]
+	prefix := path.Clean("/" + config.UserString(ctx, "passkey.prefix"))[1:]
 	if prefix == "" {
 		return Folder
 	}
@@ -99,9 +104,10 @@ func (s *Store) Prefix() string {
 }
 
 // SignCounterEnabled reports whether new credentials should maintain a
-// signature counter according to the config key "passkey.signcount".
+// signature counter according to the config key "passkey.signcount". See
+// [NewStore] for where the key is read from.
 func SignCounterEnabled(ctx context.Context) bool {
-	return config.Bool(ctx, "passkey.signcount")
+	return config.UserBool(ctx, "passkey.signcount")
 }
 
 // get reads the secret with the given name as it is stored.
@@ -113,9 +119,10 @@ func (s *Store) get(ctx context.Context, name string) (gopass.Secret, error) {
 
 // UserVerificationEnabled reports whether a ceremony the user confirmed is
 // reported as user verified, according to the config key
-// "passkey.user-verification". See [ConsentByConfirmation].
+// "passkey.user-verification". See [ConsentByConfirmation], and [NewStore]
+// for where the key is read from.
 func UserVerificationEnabled(ctx context.Context) bool {
-	return config.Bool(ctx, "passkey.user-verification")
+	return config.UserBool(ctx, "passkey.user-verification")
 }
 
 // rpIDOf returns the RP ID encoded in the name of a secret and whether the
@@ -211,6 +218,12 @@ func (s *Store) List(ctx context.Context, rpID string) ([]Entry, error) {
 		return nil, err
 	}
 
+	return s.load(ctx, names)
+}
+
+// load decrypts the secrets with the given names, which must be names
+// returned by [Store.Names], and returns their credentials. See [Store.List].
+func (s *Store) load(ctx context.Context, names []string) ([]Entry, error) {
 	var errs []error
 
 	entries := make([]Entry, 0, len(names))
@@ -242,6 +255,35 @@ func (s *Store) List(ctx context.Context, rpID string) ([]Entry, error) {
 	}
 
 	return entries, errors.Join(errs...)
+}
+
+// Load returns the credentials stored in the secret with the given name,
+// wherever it is located. Only this secret is decrypted. A secret that holds
+// no credentials results in neither entries nor an error.
+//
+// Unlike [Store.List], Load does not compare the RP ID of a credential with
+// the name of the secret. The caller chose the secret, and a credential is
+// bound to the RP ID it holds. Lines that can not be parsed are reported in
+// the returned error, wrapping [ErrInvalidCredential], together with the
+// credentials of the lines that could.
+func (s *Store) Load(ctx context.Context, name string) ([]Entry, error) {
+	sec, err := s.get(ctx, name)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read %s: %w", name, err)
+	}
+
+	creds, err := FromSecret(sec)
+
+	entries := make([]Entry, 0, len(creds))
+	for _, cred := range creds {
+		entries = append(entries, Entry{Name: name, Credential: cred})
+	}
+
+	if err != nil {
+		return entries, fmt.Errorf("failed to parse %s: %w", name, err)
+	}
+
+	return entries, nil
 }
 
 // FromSecret returns the credentials stored in a secret. Lines that can not
@@ -327,12 +369,23 @@ func (s *Store) Put(ctx context.Context, cred *Credential) (string, error) {
 		return "", err
 	}
 
-	target, found, err := s.AccountSecret(ctx, cred.RPID, cred.UserHandle)
+	target, _, err := s.AccountSecret(ctx, cred.RPID, cred.UserHandle)
 	if err != nil {
 		return "", err
 	}
 
-	if !found {
+	return s.putTo(ctx, cred, target)
+}
+
+// putTo stores a credential in the secret with the given name, which must be
+// the account secret of the credential, see [Store.AccountSecret]. If target
+// is empty the account has none yet and a new secret is created.
+func (s *Store) putTo(ctx context.Context, cred *Credential, target string) (string, error) {
+	if err := cred.validate(); err != nil {
+		return "", err
+	}
+
+	if target == "" {
 		target = s.prefix + "/" + cred.RPID + "/" + accountName(cred)
 	}
 
@@ -395,6 +448,57 @@ func (s *Store) AccountSecret(ctx context.Context, rpID string, userHandle []byt
 	return "", false, nil
 }
 
+// accountIn returns the account secret of a user account among entries
+// loaded by [Store.List]. It is what [Store.AccountSecret] returns for the
+// same state of the store.
+func (s *Store) accountIn(entries []Entry, rpID string, userHandle []byte) (string, bool) {
+	for _, e := range entries {
+		if s.Owns(e.Name) && e.Credential.RPID == rpID && bytes.Equal(e.Credential.UserHandle, userHandle) {
+			return e.Name, true
+		}
+	}
+
+	return "", false
+}
+
+// FindUser returns a credential of the user account with the given name at
+// a Relying Party, if one is stored in the secret below the prefix that is
+// named after the user. That is the secret the credentials of a new account
+// are written to, see [Store.Put]. Only this secret is decrypted.
+func (s *Store) FindUser(ctx context.Context, rpID, userName string) (*Credential, bool) {
+	account := sanitizeName(userName)
+	if account == "" {
+		return nil, false
+	}
+
+	names, err := s.Names(ctx, rpID)
+	if err != nil {
+		debug.Log("failed to list the passkeys of %s: %s", rpID, err)
+
+		return nil, false
+	}
+
+	want := s.prefix + "/" + rpID + "/" + account
+
+	i := slices.IndexFunc(names, func(n string) bool { return s.Owns(n) && strings.EqualFold(n, want) })
+	if i < 0 {
+		return nil, false
+	}
+
+	entries, err := s.load(ctx, names[i:i+1])
+	if err != nil {
+		debug.Log("failed to read some passkeys in %s: %s", names[i], err)
+	}
+
+	for _, e := range entries {
+		if e.Credential.UserName == userName {
+			return e.Credential, true
+		}
+	}
+
+	return nil, false
+}
+
 // Advance increments the signature counter of a credential in the secret
 // with the given name, and returns the credential as it is stored now. The
 // counter is read from the store right before it is written back, so that an
@@ -446,11 +550,14 @@ func sameCredential(a, b *Credential) bool {
 }
 
 // Remove deletes the credential with the given ID from the secret with the
-// given name. The secret itself is kept, even if no credential is left.
+// given name and returns the number of credentials left in the secret. The
+// secret itself is kept, even if no credential is left.
 //
-// An error wrapping [ErrNotSynced] is returned if the credential was removed
-// but the store reported a failure afterwards.
-func (s *Store) Remove(ctx context.Context, name string, id []byte) error {
+// An error wrapping [ErrNotSynced] is returned together with the number if
+// the credential was removed but the store reported a failure afterwards.
+func (s *Store) Remove(ctx context.Context, name string, id []byte) (int, error) {
+	left := 0
+
 	_, err := s.modify(ctx, name, func(creds []*Credential) ([]*Credential, error) {
 		n := len(creds)
 		creds = slices.DeleteFunc(creds, func(c *Credential) bool { return bytes.Equal(c.ID, id) })
@@ -458,11 +565,15 @@ func (s *Store) Remove(ctx context.Context, name string, id []byte) error {
 		if len(creds) == n {
 			return nil, fmt.Errorf("%w in %s", ErrNoCredentials, name)
 		}
+		left = len(creds)
 
 		return creds, nil
 	})
+	if err != nil && !errors.Is(err, ErrNotSynced) {
+		return 0, err
+	}
 
-	return err
+	return left, err
 }
 
 // modify applies fn to the credentials of the secret with the given name and

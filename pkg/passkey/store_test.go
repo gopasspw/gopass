@@ -391,7 +391,8 @@ func TestStoreAdvanceAndRemove(t *testing.T) {
 	unknown := newCred(t, "example.com", "alice", "handle")
 	_, err = s.Advance(ctx, name, unknown)
 	require.ErrorIs(t, err, ErrNoCredentials)
-	require.ErrorIs(t, s.Remove(ctx, name, unknown.ID), ErrNoCredentials)
+	_, err = s.Remove(ctx, name, unknown.ID)
+	require.ErrorIs(t, err, ErrNoCredentials)
 
 	// The credential in the store must be the one that is meant, not just
 	// one with its ID: another key or another account is refused.
@@ -412,11 +413,19 @@ func TestStoreAdvanceAndRemove(t *testing.T) {
 
 	assert.Equal(t, uint32(5), readCreds(ctx, t, api, name)[1].SignCount)
 
-	require.NoError(t, s.Remove(ctx, name, a.ID))
+	left, err := s.Remove(ctx, name, a.ID)
+	require.NoError(t, err)
+	assert.Equal(t, 1, left)
 
 	entries, err := s.List(ctx, "example.com")
 	require.NoError(t, err)
 	assert.Equal(t, [][]byte{b.ID}, ids(entries))
+
+	// The secret is kept when the last passkey is gone.
+	left, err = s.Remove(ctx, name, b.ID)
+	require.NoError(t, err)
+	assert.Zero(t, left)
+	assert.Empty(t, readCreds(ctx, t, api, name))
 }
 
 func TestStoreIgnoresMisplacedCredentials(t *testing.T) {
@@ -477,7 +486,8 @@ func TestStoreMalformedLines(t *testing.T) {
 	// But the secret is not changed: writing it would drop the line.
 	_, err = s.Put(ctx, newCred(t, "example.com", "alice", "handle"))
 	require.ErrorIs(t, err, ErrInvalidCredential)
-	require.ErrorIs(t, s.Remove(ctx, name, good.ID), ErrInvalidCredential)
+	_, err = s.Remove(ctx, name, good.ID)
+	require.ErrorIs(t, err, ErrInvalidCredential)
 	_, err = s.Advance(ctx, name, good)
 	require.ErrorIs(t, err, ErrInvalidCredential)
 
@@ -605,7 +615,8 @@ func TestStoreNeverOverwritesUnreadableSecrets(t *testing.T) {
 
 	_, err = s.Advance(ctx, name, cred)
 	require.ErrorIs(t, err, errDecrypt)
-	require.ErrorIs(t, s.Remove(ctx, name, cred.ID), errDecrypt)
+	_, err = s.Remove(ctx, name, cred.ID)
+	require.ErrorIs(t, err, errDecrypt)
 
 	after, err := api.Get(ctx, name, "latest")
 	require.NoError(t, err)
@@ -640,7 +651,9 @@ func TestStoreNotSynced(t *testing.T) {
 	assert.Equal(t, uint32(2), got.SignCount)
 	assert.Equal(t, uint32(2), readCreds(ctx, t, api, name)[0].SignCount)
 
-	require.ErrorIs(t, s.Remove(ctx, name, cred.ID), ErrNotSynced)
+	left, err := s.Remove(ctx, name, cred.ID)
+	require.ErrorIs(t, err, ErrNotSynced)
+	assert.Zero(t, left)
 	assert.Empty(t, readCreds(ctx, t, api, name))
 
 	// A secret that was not written is a failure, whatever the reason.
