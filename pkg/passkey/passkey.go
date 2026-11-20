@@ -1,133 +1,122 @@
-// Package passkey implements the support of Webauthn credentials for authentication.
-// It is based on the W3C's "Web Authentication: An API for accessing Public Key Credentials"
-// https://www.w3.org/TR/webauthn-2/
+// Package passkey implements a WebAuthn software authenticator backed by a
+// gopass password store.
+//
+// gopass acts as an authenticator in the synced-passkey model: the credential
+// private key lives in an encrypted secret and is shared, through the store's
+// version control, with every device that has access to the store.
+//
+// The package is layered. Each layer is usable on its own:
+//
+//   - [Credential] is a public key credential source. It can be generated,
+//     serialized (see [Credential.Encode]) and it implements the two
+//     authenticator operations [Credential.Attest] and [Credential.Assert].
+//   - [Store] persists credentials in a password store, one "passkey" line
+//     per credential, below "passkeys/<rp id>/<account>".
+//   - [Authenticator] combines both with the processing a WebAuthn client
+//     performs. It consumes the JSON option dictionaries a Relying Party hands
+//     to navigator.credentials.create() and navigator.credentials.get() and
+//     produces the JSON a client returns from PublicKeyCredential.toJSON().
+//
+// The implementation follows the W3C Recommendation "Web Authentication: An
+// API for accessing Public Key Credentials - Level 3"
+// (https://www.w3.org/TR/webauthn-3/), the FIDO Client to Authenticator
+// Protocol 2.2 for the CBOR encoding rules and the FIDO Credential Exchange
+// Format 1.0 for import and export.
+//
+// # Stability
+//
+// This package has no stability guarantee yet. The exported symbols may still
+// change while browser integrations are being built on top of it.
 package passkey
 
 import (
-	"crypto/ecdsa"
-	"crypto/elliptic"
-	"crypto/rand"
-	"crypto/sha256"
 	"encoding/base64"
-	"encoding/binary"
 	"encoding/json"
 	"fmt"
+	"strings"
 )
 
-// CredentialFlags for the credential parameters.
-// See: https://www.w3.org/TR/webauthn-2/#flags
-type CredentialFlags struct {
-	UserPresent     bool
-	UserVerified    bool
-	AttestationData bool
-	ExtensionData   bool
+// AAGUID is the Authenticator Attestation GUID identifying gopass as the
+// authenticator that created a credential. It is the same for every gopass
+// installation.
+//
+// See https://www.w3.org/TR/webauthn-3/#aaguid
+var AAGUID = [16]byte{
+	0x87, 0x76, 0x3d, 0x3e, 0xd8, 0x5f, 0x41, 0xd2,
+	0x8c, 0x6f, 0xbd, 0x10, 0x70, 0x1e, 0xcc, 0x95,
 }
 
-// Credential is a structure to store information and key of public key credential.
-type Credential struct {
-	ID        string
-	Rp        string
-	UserName  string
-	Algorithm string
-	SecretKey *ecdsa.PrivateKey
-	Counter   uint32
-	Flags     CredentialFlags
+const (
+	// credentialType is the only PublicKeyCredentialType defined by WebAuthn.
+	credentialType = "public-key"
+	// credentialIDLen is the length of the credential IDs gopass generates.
+	credentialIDLen = 32
+	// maxCredentialIDLen is the maximum length of a credential ID.
+	maxCredentialIDLen = 1023
+	// maxUserHandleLen is the maximum length of a user handle.
+	maxUserHandleLen = 64
+)
+
+// Base64URL is a byte string that is encoded as unpadded base64url in JSON.
+// WebAuthn uses this encoding for every binary value in its JSON types.
+//
+// See https://www.w3.org/TR/webauthn-3/#base64url-encoding
+type Base64URL []byte
+
+// String returns the unpadded base64url encoding.
+func (b Base64URL) String() string {
+	return base64.RawURLEncoding.EncodeToString(b)
 }
 
-// ClientData for signature.
-// See: https://www.w3.org/TR/webauthn-1/#sec-client-data
-type ClientData struct {
-	Challenge string `json:"challenge"`
-	Origin    string `json:"origin"`
-	CredType  string `json:"type"`
+// MarshalJSON implements json.Marshaler.
+func (b Base64URL) MarshalJSON() ([]byte, error) {
+	return json.Marshal(b.String())
 }
 
-// Response from a GetAssertion.
-// See: https://www.w3.org/TR/webauthn-1/#authenticatorGetAssertion-return-values
-type Response struct {
-	AuthenticatorData []byte `json:"authdata"`
-	ClientDataJSON    []byte `json:"client_data_json"`
-	Signature         []byte `json:"signature"`
-	Login             string `json:"login"`
-}
-
-func authDataFlags(options CredentialFlags) uint8 {
-	flags := uint8(0)
-
-	if options.ExtensionData {
-		flags |= 0b10000000
+// UnmarshalJSON implements json.Unmarshaler. A JSON null is decoded to a nil
+// slice. Padding is tolerated since not all producers omit it.
+func (b *Base64URL) UnmarshalJSON(data []byte) error {
+	var s *string
+	if err := json.Unmarshal(data, &s); err != nil {
+		return fmt.Errorf("base64url value must be a string: %w", err)
 	}
 
-	if options.AttestationData {
-		flags |= 0b01000000
+	if s == nil {
+		*b = nil
+
+		return nil
 	}
 
-	if options.UserVerified {
-		flags |= 0b00000100
-	}
-
-	if options.UserPresent {
-		flags |= 0b00000001
-	}
-
-	return flags
-}
-
-// CreateCredential is an implementation of the authenticatorMakeCredential Operation.
-// See: https://www.w3.org/TR/webauthn-2/#sctn-op-make-cred
-func CreateCredential(rp string, user string, flags CredentialFlags) (*Credential, error) {
-	rawID := make([]byte, 32)
-	_, err := rand.Read(rawID)
+	buf, err := decodeBase64URL(*s)
 	if err != nil {
-		return nil, fmt.Errorf("error while generating random ID: %w", err)
+		return err
 	}
-	privateKey, _ := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	*b = buf
 
-	return &Credential{
-		ID:        base64.RawURLEncoding.EncodeToString(rawID),
-		Rp:        rp,
-		UserName:  user,
-		Algorithm: "ECDSA",
-		SecretKey: privateKey,
-		Counter:   0,
-		Flags:     flags,
-	}, nil
+	return nil
 }
 
-// GetAssertion is an implementation of the authenticatorGetAssertion Operation.
-// See: https://www.w3.org/TR/webauthn-2/#authenticatorgetassertion
-func (cred *Credential) GetAssertion(challenge string, origin string) (*Response, error) {
-	credType := "webauthn.get"
-	clientData := ClientData{
-		CredType:  credType,
-		Challenge: challenge,
-		Origin:    origin,
+// ParseBase64URL decodes a base64url string. Padding is tolerated.
+func ParseBase64URL(s string) (Base64URL, error) {
+	return decodeBase64URL(s)
+}
+
+// decodeBase64URL decodes base64url with or without padding. Anything else
+// a lenient decoder would skip, like line breaks, is an error.
+func decodeBase64URL(s string) ([]byte, error) {
+	if strings.ContainsAny(s, "\r\n") {
+		return nil, fmt.Errorf("invalid base64url value: contains line breaks")
 	}
-	clientDataJSON, err := json.Marshal(clientData)
+
+	// Padding completes a group of four with one or two characters.
+	if len(s)%4 == 0 {
+		s = strings.TrimSuffix(strings.TrimSuffix(s, "="), "=")
+	}
+
+	buf, err := base64.RawURLEncoding.Strict().DecodeString(s)
 	if err != nil {
-		return nil, fmt.Errorf("error while reading client data: %w", err)
+		return nil, fmt.Errorf("invalid base64url value: %w", err)
 	}
 
-	clientDataHash := sha256.Sum256(clientDataJSON)
-	rpIDHash := sha256.Sum256([]byte(cred.Rp))
-	flags := []byte{authDataFlags(cred.Flags)}
-
-	// Signature counter is incremented according to https://www.w3.org/TR/webauthn-2/#signature-counter
-	cred.Counter += 1
-	signCount := make([]byte, 4)
-	binary.BigEndian.PutUint32(signCount, cred.Counter)
-	authData := append(rpIDHash[:], flags...)
-	authData = append(authData[:], signCount[:]...)
-	message := sha256.Sum256(append(authData[:], clientDataHash[:]...))
-	signature, serr := ecdsa.SignASN1(rand.Reader, cred.SecretKey, message[:])
-	if err != nil {
-		return nil, serr
-	}
-
-	return &Response{
-		AuthenticatorData: authData,
-		ClientDataJSON:    clientDataJSON,
-		Signature:         signature,
-		Login:             cred.UserName,
-	}, nil
+	return buf, nil
 }

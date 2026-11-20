@@ -12,6 +12,10 @@ conventions this file is generated from.
 
 ## [Unreleased]
 
+### Changed
+
+- [PKG-BREAK] pkg/passkey: The package was reworked into a complete WebAuthn authenticator. `CreateCredential`, `Credential.GetAssertion`, `CredentialFlags`, `ClientData.CredType` and `Response` are gone. Use `Authenticator.Register` and `Authenticator.Authenticate` to perform ceremonies, or `New`, `Credential.Attest` and `Credential.Assert` to create and use a credential directly. `Credential` no longer exposes an `*ecdsa.PrivateKey` but a `crypto.Signer`.
+
 ## [1.17.4] - 2026-10-10
 
 ### Added
