@@ -231,12 +231,19 @@ func TestStorePutIsIdempotent(t *testing.T) {
 	assert.Equal(t, [][]byte{first.ID, second.ID}, ids(entries))
 
 	// Stores refuse to write a secret that did not change. Storing a
-	// credential that is already there does not even try.
+	// credential that is already there does not even try, even when
+	// rewriting the passkey lines would change their position.
+	const secret = "passkeys/example.com/alice"
+	sec, err := api.Get(ctx, secret, "latest")
+	require.NoError(t, err)
+	require.NoError(t, sec.Add("note", "keep below the passkeys"))
+	require.NoError(t, api.Set(ctx, secret, sec))
+
 	ro := NewStore(ctx, readOnlyStore{api})
 
 	name, err := ro.Put(ctx, first)
 	require.NoError(t, err)
-	assert.Equal(t, "passkeys/example.com/alice", name)
+	assert.Equal(t, secret, name)
 
 	_, err = ro.Put(ctx, newCred(t, "example.com", "alice", "handle"))
 	require.ErrorIs(t, err, errReadOnly)

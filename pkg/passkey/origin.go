@@ -81,9 +81,9 @@ func parseOrigin(origin string) (string, string, error) {
 		return "", "", fmt.Errorf("%w: %w", errOpaqueOrigin, err)
 	}
 
-	// WebAuthn is limited to secure contexts. The one exception that is
-	// made for plain HTTP is the host localhost.
-	if scheme == "http" && host != "localhost" {
+	// WebAuthn is limited to secure contexts. localhost and its subdomains
+	// can be used over plain HTTP. The RP ID rules still apply separately.
+	if scheme == "http" && host != "localhost" && !strings.HasSuffix(host, ".localhost") {
 		return "", "", fmt.Errorf("%w: %q", errInsecureOrigin, origin)
 	}
 

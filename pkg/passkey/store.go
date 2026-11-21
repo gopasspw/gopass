@@ -290,7 +290,10 @@ func (s *Store) Load(ctx context.Context, name string) ([]Entry, error) {
 // be parsed are reported in the returned error, together with the
 // credentials of the lines that could.
 func FromSecret(sec gopass.Secret) ([]*Credential, error) {
-	values, _ := sec.Values(SecretKey)
+	values, found := sec.Values(SecretKey)
+	if !found {
+		return nil, nil
+	}
 
 	var errs []error
 
@@ -381,7 +384,8 @@ func (s *Store) Put(ctx context.Context, cred *Credential) (string, error) {
 // the account secret of the credential, see [Store.AccountSecret]. If target
 // is empty the account has none yet and a new secret is created.
 func (s *Store) putTo(ctx context.Context, cred *Credential, target string) (string, error) {
-	if err := cred.validate(); err != nil {
+	encoded, err := cred.Encode()
+	if err != nil {
 		return "", err
 	}
 
@@ -389,23 +393,31 @@ func (s *Store) putTo(ctx context.Context, cred *Credential, target string) (str
 		target = s.prefix + "/" + cred.RPID + "/" + accountName(cred)
 	}
 
-	var stored bool
-
-	return s.modify(ctx, target, func(creds []*Credential) ([]*Credential, error) {
+	return s.modify(ctx, target, func(creds []*Credential) ([]*Credential, bool, error) {
+		var stored, changed bool
 		// A credential takes the place of the one it replaces, so that
 		// storing it again leaves the secret as it is.
 		for i, c := range creds {
-			if bytes.Equal(c.ID, cred.ID) {
+			if !bytes.Equal(c.ID, cred.ID) {
+				continue
+			}
+			stored = true
+
+			current, err := c.Encode()
+			if err != nil {
+				return nil, false, err
+			}
+			if !bytes.Equal(current, encoded) {
 				creds[i] = cred
-				stored = true
+				changed = true
 			}
 		}
 
 		if stored {
-			return creds, nil
+			return creds, changed, nil
 		}
 
-		return append(creds, cred), nil
+		return append(creds, cred), true, nil
 	})
 }
 
@@ -512,22 +524,23 @@ func (s *Store) FindUser(ctx context.Context, rpID, userName string) (*Credentia
 func (s *Store) Advance(ctx context.Context, name string, cred *Credential) (*Credential, error) {
 	var stored *Credential
 
-	_, err := s.modify(ctx, name, func(creds []*Credential) ([]*Credential, error) {
+	_, err := s.modify(ctx, name, func(creds []*Credential) ([]*Credential, bool, error) {
 		i := slices.IndexFunc(creds, func(c *Credential) bool { return bytes.Equal(c.ID, cred.ID) })
 		if i < 0 {
-			return nil, fmt.Errorf("%w in %s", ErrNoCredentials, name)
+			return nil, false, fmt.Errorf("%w in %s", ErrNoCredentials, name)
 		}
 
 		if !sameCredential(creds[i], cred) {
-			return nil, fmt.Errorf("%w in %s: the passkey was replaced", ErrNoCredentials, name)
+			return nil, false, fmt.Errorf("%w in %s: the passkey was replaced", ErrNoCredentials, name)
 		}
 
+		counting := creds[i].Counting()
 		if err := creds[i].Advance(); err != nil {
-			return nil, err
+			return nil, false, err
 		}
 		stored = creds[i]
 
-		return creds, nil
+		return creds, counting, nil
 	})
 	if err != nil && !errors.Is(err, ErrNotSynced) {
 		return nil, err
@@ -558,16 +571,16 @@ func sameCredential(a, b *Credential) bool {
 func (s *Store) Remove(ctx context.Context, name string, id []byte) (int, error) {
 	left := 0
 
-	_, err := s.modify(ctx, name, func(creds []*Credential) ([]*Credential, error) {
+	_, err := s.modify(ctx, name, func(creds []*Credential) ([]*Credential, bool, error) {
 		n := len(creds)
 		creds = slices.DeleteFunc(creds, func(c *Credential) bool { return bytes.Equal(c.ID, id) })
 
 		if len(creds) == n {
-			return nil, fmt.Errorf("%w in %s", ErrNoCredentials, name)
+			return nil, false, fmt.Errorf("%w in %s", ErrNoCredentials, name)
 		}
 		left = len(creds)
 
-		return creds, nil
+		return creds, true, nil
 	})
 	if err != nil && !errors.Is(err, ErrNotSynced) {
 		return 0, err
@@ -580,8 +593,9 @@ func (s *Store) Remove(ctx context.Context, name string, id []byte) (int, error)
 // writes the result back. Anything else the secret contains is kept. The
 // secret is created if it does not exist. The name the secret was written to
 // is returned: it can differ in case from the requested name. It is also
-// returned with an error wrapping ErrNotSynced.
-func (s *Store) modify(ctx context.Context, name string, fn func([]*Credential) ([]*Credential, error)) (string, error) {
+// returned with an error wrapping ErrNotSynced. If fn reports no change, the
+// secret is left byte for byte as it was.
+func (s *Store) modify(ctx context.Context, name string, fn func([]*Credential) ([]*Credential, bool, error)) (string, error) {
 	all, err := s.store.List(ctx)
 	if err != nil {
 		return "", fmt.Errorf("failed to list secrets: %w", err)
@@ -616,9 +630,12 @@ func (s *Store) modify(ctx context.Context, name string, fn func([]*Credential) 
 		}
 	}
 
-	creds, err = fn(creds)
+	creds, changed, err := fn(creds)
 	if err != nil {
 		return "", err
+	}
+	if !changed {
+		return name, nil
 	}
 
 	before := bytes.Clone(sec.Bytes())

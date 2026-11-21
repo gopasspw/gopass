@@ -44,9 +44,11 @@ func TestResolveRPID(t *testing.T) {
 		// "*.ck" is a public suffix, "www.ck" is not
 		{"https://shop.example.co.ck", "example.co.ck", "example.co.ck"},
 		{"https://shop.www.ck", "www.ck", "www.ck"},
-		// plain HTTP is a secure context on localhost only
+		// plain HTTP is a secure context on localhost and its subdomains
 		{"http://localhost", none, "localhost"},
 		{"http://localhost:8000", "localhost", "localhost"},
+		{"http://dev.localhost:3000", none, "dev.localhost"},
+		{"http://app.dev.localhost", "dev.localhost", "dev.localhost"},
 	} {
 		var rpID *string
 		if tc.rpID != none {
@@ -86,6 +88,7 @@ func TestResolveRPIDRejected(t *testing.T) {
 		{"https://shop.example.co.ck", "co.ck", SecurityError},
 		{"https://shop.example.co.ck", "ck", SecurityError},
 		{"https://app.localhost", "localhost", SecurityError},
+		{"http://app.localhost", "localhost", SecurityError},
 		// IP addresses are not domains, in whatever notation
 		{"https://192.0.2.1", none, SecurityError},
 		{"https://192.0.2.1", "192.0.2.1", SecurityError},
@@ -123,7 +126,8 @@ func TestResolveRPIDRejected(t *testing.T) {
 		// not a secure context
 		{"http://example.com", none, SecurityError},
 		{"http://example.com", "example.com", SecurityError},
-		{"http://dev.localhost", none, SecurityError},
+		{"http://notlocalhost", none, SecurityError},
+		{"http://localhost.example.com", none, SecurityError},
 		{"http://127.0.0.1", none, SecurityError},
 		// not a tuple origin
 		{"", "example.com", NotAllowedError},

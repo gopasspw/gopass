@@ -59,6 +59,12 @@ func TestSecretCodec(t *testing.T) {
 func TestSecretCodecFormats(t *testing.T) {
 	t.Parallel()
 
+	yaml, err := secrets.ParseYAML([]byte("hunter2\n---\nusername: alice\n"))
+	require.NoError(t, err)
+	creds, err := FromSecret(yaml)
+	require.NoError(t, err)
+	assert.Empty(t, creds)
+
 	cred, err := New(NewOptions{
 		RPID:            "example.com",
 		UserHandle:      []byte("handle"),
@@ -82,7 +88,7 @@ func TestSecretCodecFormats(t *testing.T) {
 	url, _ := parsed.Get("url")
 	assert.Equal(t, "https://example.com", url)
 
-	creds, err := FromSecret(parsed)
+	creds, err = FromSecret(parsed)
 	require.NoError(t, err)
 	require.Len(t, creds, 1)
 	assert.Equal(t, cred.ID, creds[0].ID)

@@ -232,15 +232,17 @@ func TestPasskey(t *testing.T) {
 
 	t.Run("secret named like the site", func(t *testing.T) {
 		// Many stores have one. It does not hide the passkeys of the site.
-		_, err := ts.runWithInput("insert -f example.com", "hunter2\n")
-		require.NoError(t, err)
+		for _, secret := range []string{"hunter2\n", "hunter2\n---\nusername: alice\n"} {
+			_, err := ts.runWithInput("insert -f -m example.com", secret)
+			require.NoError(t, err)
 
-		out, err := ts.run("--yes passkey assert example.com --challenge c2lnbiBpbg")
-		require.NoError(t, err, out)
+			out, err := ts.run("--yes passkey assert example.com --challenge c2lnbiBpbg")
+			require.NoError(t, err, out)
 
-		var auth webauthnResponse
-		require.NoError(t, json.Unmarshal([]byte(out), &auth), out)
-		assert.Equal(t, reg.ID, auth.ID)
+			var auth webauthnResponse
+			require.NoError(t, json.Unmarshal([]byte(out), &auth), out)
+			assert.Equal(t, reg.ID, auth.ID)
+		}
 	})
 
 	t.Run("store config is ignored", func(t *testing.T) {

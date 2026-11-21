@@ -25,6 +25,7 @@ func FuzzResolveRPID(f *testing.F) {
 		{"https://a.b.example.co.uk", "example.co.uk", true},
 		{"https://bücher.example", "", false},
 		{"http://localhost:8000", "localhost", true},
+		{"http://dev.localhost:3000", "", false},
 		{"https://example.com", "com", true},
 		{"https://example.com", "", true},
 		{"https://example.com.evil.example", "example.com", true},
@@ -61,7 +62,7 @@ func FuzzResolveRPID(f *testing.F) {
 		assert.Equal(t, serialized, again)
 
 		if !strings.HasPrefix(serialized, "https://") {
-			assert.Regexp(t, `^http://localhost(:\d+)?$`, serialized)
+			assert.Regexp(t, `^http://([a-z0-9_-]+\.)*localhost(:\d+)?$`, serialized)
 		}
 
 		// The RP ID is the one that was asked for, in its canonical form.
