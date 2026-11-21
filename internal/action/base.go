@@ -96,6 +96,11 @@ type otpHandler struct {
 	findFn       func(ctx context.Context, cmd *cli.Command, needle string, cb showFunc, fuzzy bool) error
 }
 
+// passkeyHandler handles passkeys (WebAuthn credentials).
+type passkeyHandler struct {
+	*base
+}
+
 // miscHandler handles miscellaneous operations that do not fit a narrower
 // category (aliases, version, convert, reorg, process, unclip, update,
 // reminder, repl, doctor, completion, config, otp-adjacent helpers).

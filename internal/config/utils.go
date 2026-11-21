@@ -59,6 +59,22 @@ func String(ctx context.Context, key string) string {
 	return cfg.GetM(mp, key)
 }
 
+// UserBool returns a bool value from the config in the context, ignoring the
+// per-store configs. See [Config.GetUser].
+func UserBool(ctx context.Context, key string) bool {
+	cfg, _ := FromContext(ctx)
+
+	return AsBool(cfg.GetUser(key))
+}
+
+// UserString returns a string value from the config in the context, ignoring
+// the per-store configs. See [Config.GetUser].
+func UserString(ctx context.Context, key string) string {
+	cfg, _ := FromContext(ctx)
+
+	return cfg.GetUser(key)
+}
+
 // Int returns an integer value from the config in the context.
 func Int(ctx context.Context, key string) int {
 	cfg, mp := FromContext(ctx)

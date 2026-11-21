@@ -222,6 +222,20 @@ Some sites will not directly show you the URL contained in the QR code. If this 
 
 Both TOTP and HOTP are supported. However, to generate HOTP tokens, the counter in the stored URL must be manually incremented (e.g. via `gopass edit myhotpsecret`).  
 
+### Passkeys
+
+gopass can create, store and use [passkeys](https://www.w3.org/TR/webauthn-3/), the public key credentials web sites accept instead of a password. The private key of a passkey is kept in a secret below `passkeys/<rp-id>/` and is synced with your store, so it is available on all of your devices.
+
+```shell
+$ gopass passkey create example.com alice
+$ gopass passkey list
+SECRET                      RP ID        USER   ALGORITHM  CREATED     CREDENTIAL ID
+passkeys/example.com/alice  example.com  alice  ES256      2026-11-20  3yZL-uu9GR2Vmm6_61WyIlXIfjNzKWZB8bfjMX3fWmI
+$ gopass passkey assert example.com --challenge c2lnbiBpbg
+```
+
+Passkeys can be imported from and exported to other credential managers in the FIDO Credential Exchange Format. Signing in to a web site with a passkey needs a browser extension that talks to gopass. See the [docs for passkey](commands/passkey.md) to learn more.
+
 ### Listing existing secrets
 
 You can list all entries of the store:
@@ -595,7 +609,7 @@ Note: Until the gitconfig package support multi-values only one alias per domain
 Gopass can limit display of certain *unsafe* fields in secrets.
 By default no fields are obstructed, but if the `show.safecontent`
 config option is set to `true` the `Password` field is obstructed.
-The keys `password`, `totp`, `hotp` and `otpauth` are always obstructed
+The keys `password`, `totp`, `hotp`, `otpauth` and `passkey` are always obstructed
 when `safecontent` is enabled, and the `show.hidden-keys` config option
 can list additional keys to obstruct.
 

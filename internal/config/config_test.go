@@ -92,6 +92,40 @@ func TestEnvConfig(t *testing.T) {
 	assert.Equal(t, "true", cfg.Get("show.safecontent"))
 }
 
+func TestGetUserIgnoresStoreConfig(t *testing.T) {
+	td := t.TempDir()
+	t.Setenv("GOPASS_HOMEDIR", td)
+	t.Setenv("GOPASS_CONFIG_NOSYSTEM", "true")
+
+	// The first run records the path of the root store, the second loads
+	// its config.
+	_ = New()
+	cfg := New()
+	ctx := cfg.WithConfig(t.Context())
+
+	// presets apply
+	assert.Equal(t, defaults["core.autosync"], cfg.GetUser("core.autosync"))
+
+	// The per-store config is versioned with the store. Whoever can push to
+	// it can change it, so it is not consulted.
+	require.NoError(t, cfg.Set("<root>", "passkey.user-verification", "true"))
+	assert.Equal(t, "true", cfg.Get("passkey.user-verification"))
+	assert.Empty(t, cfg.GetUser("passkey.user-verification"))
+	assert.False(t, UserBool(ctx, "passkey.user-verification"))
+	assert.True(t, Bool(ctx, "passkey.user-verification"))
+
+	require.NoError(t, cfg.Set("<root>", "passkey.prefix", "shared/passkeys"))
+	assert.Empty(t, UserString(ctx, "passkey.prefix"))
+
+	// The per-user config is.
+	require.NoError(t, cfg.Set("", "passkey.prefix", "mine/passkeys"))
+	assert.Equal(t, "mine/passkeys", UserString(ctx, "passkey.prefix"))
+
+	// And the environment overrides it.
+	require.NoError(t, cfg.SetEnv("passkey.prefix", "env/passkeys"))
+	assert.Equal(t, "env/passkeys", UserString(ctx, "passkey.prefix"))
+}
+
 func TestInvalidEnvConfig(t *testing.T) {
 	envs := map[string]string{
 		// notice the double _ in the middle, this is a regression test
