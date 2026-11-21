@@ -148,6 +148,15 @@ func (s *Store) rpIDOf(name string) (string, bool) {
 	return "", false
 }
 
+// IsPasskeyName reports whether a name matches the passkey storage layout:
+// <prefix>/<rp id>/<account> or <any folder>/passkeys/<rp id>/<account>.
+// It does not read the secret or check whether it contains a passkey.
+func (s *Store) IsPasskeyName(name string) bool {
+	_, ok := s.rpIDOf(name)
+
+	return ok
+}
+
 // Owns reports whether a secret is located directly below the prefix, i.e.
 // where new credentials are written to, and not in a folder that was only
 // found because of its name.

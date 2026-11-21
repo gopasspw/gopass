@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 	"time"
@@ -425,7 +426,11 @@ func TestPasskeyExportAndImport(t *testing.T) {
 
 	fi, err := os.Stat(file)
 	require.NoError(t, err)
-	assert.Equal(t, os.FileMode(0o600), fi.Mode().Perm())
+	if runtime.GOOS != "windows" {
+		// Windows reports writable files as 0o666; the folder's ACL
+		// determines who can read the export.
+		assert.Equal(t, os.FileMode(0o600), fi.Mode().Perm())
+	}
 
 	exported, err := os.ReadFile(file)
 	require.NoError(t, err)

@@ -83,6 +83,10 @@ func TestStoreNames(t *testing.T) {
 	s := NewStore(ctx, api)
 	assert.Equal(t, "passkeys", s.Prefix())
 
+	assert.True(t, s.IsPasskeyName("team/PASSKEYS/example.com/shared"))
+	assert.False(t, s.IsPasskeyName("websites/example.com/alice"))
+	assert.False(t, s.IsPasskeyName("passkeys/example.com"))
+
 	// The secrets below the prefix come first.
 	names, err := s.Names(ctx, "example.com")
 	require.NoError(t, err)
