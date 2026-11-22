@@ -34,6 +34,7 @@ func TestConfig(t *testing.T) {
 	assert.Equal(t, []string{
 		"age.agent-enabled",
 		"age.agent-timeout",
+		"age.recipients-timeout",
 		"core.autopush",
 		"core.autosync",
 		"core.bool",
