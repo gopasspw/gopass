@@ -9,7 +9,9 @@ import (
 
 	"github.com/blang/semver/v4"
 	"github.com/go-git/go-git/v5"
+	gitconfig "github.com/go-git/go-git/v5/config"
 	"github.com/go-git/go-git/v5/plumbing"
+	"github.com/go-git/go-git/v5/plumbing/transport"
 	"github.com/gopasspw/gopass/internal/backend"
 	"github.com/gopasspw/gopass/internal/backend/storage/fs"
 	"github.com/gopasspw/gopass/internal/out"
@@ -52,7 +54,23 @@ func Clone(ctx context.Context, repo, path, userName, userEmail string) (*GoGit,
 		Auth:     authForURL(ctx, repo, path),
 		Progress: nil,
 	})
-	if err != nil {
+	if errors.Is(err, transport.ErrEmptyRemoteRepository) {
+		// Match git CLI behaviour: cloning an empty repository initializes
+		// a local repo with "origin" configured to the remote URL.
+		r, err = git.PlainInitWithOptions(path, &git.PlainInitOptions{
+			InitOptions: git.InitOptions{DefaultBranch: plumbing.NewBranchReferenceName("master")},
+			Bare:        false,
+		})
+		if err != nil {
+			return nil, fmt.Errorf("failed to init empty clone %q at %q: %w", redactURL(repo), path, err)
+		}
+		if _, err := r.CreateRemote(&gitconfig.RemoteConfig{
+			Name: "origin",
+			URLs: []string{repo},
+		}); err != nil {
+			return nil, fmt.Errorf("failed to add origin remote for empty clone %q: %w", redactURL(repo), err)
+		}
+	} else if err != nil {
 		return nil, fmt.Errorf("failed to clone %q to %q: %w", redactURL(repo), path, err)
 	}
 

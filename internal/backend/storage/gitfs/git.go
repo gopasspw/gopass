@@ -9,6 +9,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -450,6 +451,46 @@ func (g *Git) AddRemote(ctx context.Context, remote, url string) error {
 // RemoveRemote removes a remote.
 func (g *Git) RemoveRemote(ctx context.Context, remote string) error {
 	return g.Cmd(ctx, "gitRemoveRemote", "remote", "remove", remote)
+}
+
+// ListRemoteBranches returns the sorted branch names present on the given
+// remote. Returns an empty slice when the remote has no branches or when
+// network operations are disabled.
+func (g *Git) ListRemoteBranches(ctx context.Context, remote string) ([]string, error) {
+	if ctxutil.IsNoNetwork(ctx) {
+		debug.Log("Skipping network ops. NoNetwork=true")
+
+		return nil, nil
+	}
+	if !g.IsInitialized() {
+		return nil, store.ErrGitNotInit
+	}
+	if remote == "" {
+		remote = "origin"
+	}
+
+	stdout, stderr, err := g.captureCmd(ctx, "gitLsRemote", "ls-remote", "--heads", remote)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %s", err, strings.TrimSpace(string(stderr)))
+	}
+
+	var branches []string
+	for line := range strings.SplitSeq(string(stdout), "\n") {
+		line = strings.TrimSpace(line)
+		if line == "" {
+			continue
+		}
+		fields := strings.Fields(line)
+		if len(fields) < 2 {
+			continue
+		}
+		if branch, ok := strings.CutPrefix(fields[1], "refs/heads/"); ok && branch != "" {
+			branches = append(branches, branch)
+		}
+	}
+	slices.Sort(branches)
+
+	return branches, nil
 }
 
 // Revisions will list all available revisions of the named entity

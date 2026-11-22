@@ -3,6 +3,7 @@ package gitfs
 import (
 	"bytes"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"testing"
 
@@ -174,4 +175,71 @@ func TestInitWithoutSetupRemoteCreatesCommit(t *testing.T) {
 
 	// Without the flag the initial commit should have been created.
 	assert.False(t, git.HasStagedChanges(ctx), "expected no staged changes after automatic commit")
+}
+
+func TestListRemoteBranches(t *testing.T) {
+	td := t.TempDir()
+
+	ctx := config.NewContextInMemory()
+	ctx = ctxutil.WithAlwaysYes(ctx, true)
+
+	buf := &bytes.Buffer{}
+	out.Stdout = buf
+	defer func() { out.Stdout = os.Stdout }()
+
+	// Create an empty bare remote.
+	emptyBare := filepath.Join(td, "empty.git")
+	cmd := exec.CommandContext(ctx, "git", "init", "--bare", emptyBare)
+	require.NoError(t, cmd.Run())
+
+	// Create a local repo pointing to the empty bare remote.
+	localDir := filepath.Join(td, "local")
+	require.NoError(t, os.Mkdir(localDir, 0o755))
+	require.NoError(t, os.WriteFile(filepath.Join(localDir, "secret"), []byte("val\n"), 0o644))
+
+	g, err := Init(ctx, localDir, "Test User", "test@example.com")
+	require.NoError(t, err)
+	require.NoError(t, g.AddRemote(ctx, "origin", emptyBare))
+
+	branches, err := g.ListRemoteBranches(ctx, "origin")
+	require.NoError(t, err)
+	assert.Empty(t, branches)
+
+	// Create a non-empty bare remote with a "main" branch.
+	popBare := filepath.Join(td, "populated.git")
+	cmd = exec.CommandContext(ctx, "git", "init", "--bare", popBare)
+	require.NoError(t, cmd.Run())
+
+	seedDir := filepath.Join(td, "seed")
+	require.NoError(t, os.Mkdir(seedDir, 0o755))
+	for _, args := range [][]string{
+		{"init", "-b", "main"},
+		{"config", "user.name", "Seed"},
+		{"config", "user.email", "seed@example.com"},
+	} {
+		c := exec.CommandContext(ctx, "git", args...)
+		c.Dir = seedDir
+		require.NoError(t, c.Run())
+	}
+	require.NoError(t, os.WriteFile(filepath.Join(seedDir, "README.md"), []byte("hello\n"), 0o644))
+	for _, args := range [][]string{
+		{"add", "README.md"},
+		{"commit", "-m", "initial"},
+		{"remote", "add", "origin", popBare},
+		{"push", "origin", "main"},
+	} {
+		c := exec.CommandContext(ctx, "git", args...)
+		c.Dir = seedDir
+		require.NoError(t, c.Run())
+	}
+
+	require.NoError(t, g.AddRemote(ctx, "populated", popBare))
+	branches, err = g.ListRemoteBranches(ctx, "populated")
+	require.NoError(t, err)
+	assert.Equal(t, []string{"main"}, branches)
+
+	// NoNetwork skips remote inspection.
+	branches, err = g.ListRemoteBranches(ctxutil.WithNoNetwork(ctx, true), "populated")
+	require.NoError(t, err)
+	assert.Nil(t, branches)
 }
