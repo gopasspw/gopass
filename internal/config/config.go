@@ -50,6 +50,7 @@ func newGitconfig() *gitconfig.Configs {
 var defaults = map[string]string{
 	"age.agent-enabled":      "false",
 	"age.agent-timeout":      "0",
+	"age.recipients-timeout": "108000",
 	"core.autopush":          "true",
 	"core.autosync":          "true",
 	"core.casefold":          "false",

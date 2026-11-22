@@ -59,7 +59,7 @@ func New(ctx context.Context, loadSSHKeys bool, sshKeyPath string) (*Age, error)
 		return nil, err
 	}
 
-	rc, err := cache.NewOnDisk("age-identity-recipients", 30*time.Hour)
+	rc, err := cache.NewOnDisk("age-identity-recipients", time.Duration(config.Int(ctx, "age.recipients-timeout"))*time.Second)
 	if err != nil {
 		return nil, err
 	}

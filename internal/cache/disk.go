@@ -22,6 +22,7 @@ type OnDisk struct {
 }
 
 // NewOnDisk creates a new on disk cache.
+// A ttl of zero or less never expires entries.
 func NewOnDisk(name string, ttl time.Duration) (*OnDisk, error) {
 	d := filepath.Join(appdir.UserCache(), "gopass", name)
 
@@ -63,7 +64,7 @@ func (o *OnDisk) Get(key string) ([]string, error) {
 		return nil, fmt.Errorf("failed to stat %s: %w", fn, err)
 	}
 
-	if time.Now().After(fi.ModTime().Add(o.ttl)) {
+	if o.ttl > 0 && time.Now().After(fi.ModTime().Add(o.ttl)) {
 		return nil, fmt.Errorf("expired")
 	}
 
