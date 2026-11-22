@@ -76,6 +76,15 @@ func Writer(ctx context.Context) (io.Writer, io.Writer) {
 	return Stdout, Stderr
 }
 
+// ToStderr returns a context whose stdout writer is redirected to the
+// current stderr writer. Use this for status, header, or progress messages
+// that must not pollute stdout when the primary output is a secret payload.
+func ToStderr(ctx context.Context) context.Context {
+	_, errW := Writer(ctx)
+
+	return WithWriter(ctx, errW, errW)
+}
+
 type writerPair struct {
 	stdout io.Writer
 	stderr io.Writer
