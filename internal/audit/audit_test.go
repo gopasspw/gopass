@@ -2,10 +2,12 @@ package audit
 
 import (
 	"context"
+	"sync/atomic"
 	"testing"
 	"time"
 
 	"github.com/gopasspw/gopass/internal/backend"
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/pkg/gopass"
 	"github.com/gopasspw/gopass/pkg/gopass/secrets"
 	"github.com/stretchr/testify/assert"
@@ -101,4 +103,68 @@ func TestCheckHIBP(t *testing.T) {
 	err := a.checkHIBP(ctx)
 
 	require.NoError(t, err)
+}
+
+type concurrencyTrackingSecretGetter struct {
+	mockSecretGetter
+
+	concurrency int
+	inFlight    atomic.Int32
+	maxInFlight atomic.Int32
+}
+
+func (m *concurrencyTrackingSecretGetter) Get(ctx context.Context, name string) (gopass.Secret, error) {
+	cur := m.inFlight.Add(1)
+	for {
+		prev := m.maxInFlight.Load()
+		if cur <= prev || m.maxInFlight.CompareAndSwap(prev, cur) {
+			break
+		}
+	}
+	time.Sleep(5 * time.Millisecond)
+	m.inFlight.Add(-1)
+
+	return m.mockSecretGetter.Get(ctx, name)
+}
+
+func (m *concurrencyTrackingSecretGetter) Concurrency() int {
+	return m.concurrency
+}
+
+func TestBatchRespectsConcurrency(t *testing.T) {
+	t.Run("store concurrency 1", func(t *testing.T) {
+		ctx := config.NewContextInMemory()
+		s := &concurrencyTrackingSecretGetter{concurrency: 1}
+		a := New(ctx, s)
+
+		report, err := a.Batch(ctx, []string{"s1", "s2", "s3", "s4"})
+		require.NoError(t, err)
+		assert.Len(t, report.Secrets, 4)
+		assert.Equal(t, int32(1), s.maxInFlight.Load())
+	})
+
+	t.Run("audit.concurrency caps store concurrency", func(t *testing.T) {
+		cfg := config.NewInMemory()
+		require.NoError(t, cfg.Set("", "audit.concurrency", "1"))
+		ctx := cfg.WithConfig(t.Context())
+
+		s := &concurrencyTrackingSecretGetter{concurrency: 4}
+		a := New(ctx, s)
+
+		report, err := a.Batch(ctx, []string{"s1", "s2", "s3", "s4"})
+		require.NoError(t, err)
+		assert.Len(t, report.Secrets, 4)
+		assert.Equal(t, int32(1), s.maxInFlight.Load())
+	})
+
+	t.Run("zero concurrency clamped to 1", func(t *testing.T) {
+		ctx := config.NewContextInMemory()
+		s := &concurrencyTrackingSecretGetter{concurrency: 0}
+		a := New(ctx, s)
+
+		report, err := a.Batch(ctx, []string{"s1", "s2"})
+		require.NoError(t, err)
+		assert.Len(t, report.Secrets, 2)
+		assert.Equal(t, int32(1), s.maxInFlight.Load())
+	})
 }

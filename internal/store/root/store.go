@@ -7,7 +7,6 @@ package root
 import (
 	"context"
 	"fmt"
-	"math"
 	"runtime"
 	"strings"
 
@@ -121,12 +120,19 @@ func (r *Store) Storage(ctx context.Context, name string) backend.Storage {
 }
 
 // Concurrency returns the concurrency level supported by this store,
-// which is the minimum of all mount points, limited by the number of cores.
+// which is the minimum of the root store and all mount points,
+// limited by the number of cores.
 func (r *Store) Concurrency() int {
-	c := math.MaxInt
-	for _, sub := range r.mounts {
-		c = min(c, sub.Concurrency())
+	c := runtime.NumCPU()
+	if r.store != nil {
+		c = min(c, r.store.Concurrency())
 	}
 
-	return min(c, runtime.NumCPU())
+	for _, sub := range r.mounts {
+		if sub != nil {
+			c = min(c, sub.Concurrency())
+		}
+	}
+
+	return max(c, 1)
 }
