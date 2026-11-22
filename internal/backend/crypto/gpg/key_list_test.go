@@ -61,4 +61,29 @@ func TestKeyList(t *testing.T) {
 	k, err = kl.FindKey("0xDEADBEEF")
 	require.NoError(t, err)
 	assert.Equal(t, "0x62AF4031C82E2019", k.ID())
+
+	// search by subkey id with trailing '!' and lowercase hex
+	k, err = kl.FindKey("0xdeadbeef!")
+	require.NoError(t, err)
+	assert.Equal(t, "0x62AF4031C82E2019", k.ID())
+
+	// search by lowercase fingerprint and 0X-prefixed long ID
+	k, err = kl.FindKey("25ff1614b8f87b52ffff99b962af4031c82e2019")
+	require.NoError(t, err)
+	assert.Equal(t, "0x62AF4031C82E2019", k.ID())
+
+	k, err = kl.FindKey("0X62af4031c82e2019")
+	require.NoError(t, err)
+	assert.Equal(t, "0x62AF4031C82E2019", k.ID())
+
+	// search by angle-bracketed / case-insensitive email
+	k, err = kl.FindKey("<JIM.DOE@example.org>")
+	require.NoError(t, err)
+	assert.Equal(t, "0x62AF4031C82E2019", k.ID())
+
+	// empty / prefix-only / degenerate IDs must not match
+	for _, invalid := range []string{"", "   ", "0x", "0X", "!", "0x!", "<>"} {
+		_, err = kl.FindKey(invalid)
+		require.ErrorIs(t, err, ErrKeyNotFound, "id=%q", invalid)
+	}
 }

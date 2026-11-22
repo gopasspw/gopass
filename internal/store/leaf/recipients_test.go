@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"runtime"
 	"sort"
@@ -11,6 +12,8 @@ import (
 	"testing"
 
 	"github.com/gopasspw/gopass/internal/backend"
+	"github.com/gopasspw/gopass/internal/backend/crypto/gpg"
+	gpgcli "github.com/gopasspw/gopass/internal/backend/crypto/gpg/cli"
 	"github.com/gopasspw/gopass/internal/backend/crypto/plain"
 	"github.com/gopasspw/gopass/internal/backend/storage/fs"
 	"github.com/gopasspw/gopass/internal/config"
@@ -805,4 +808,141 @@ func TestDiagnoseRecipientsPubkeyOnly(t *testing.T) {
 		}
 	}
 	assert.True(t, found, "A3683834 should be reported as .public-keys/ only warning")
+}
+
+// TestHasDecryptionKeyEmpty verifies that hasDecryptionKey returns false when
+// .gpg-id is empty rather than calling FindIdentities with no search terms.
+func TestHasDecryptionKeyEmpty(t *testing.T) {
+	t.Parallel()
+
+	ctx := config.NewContextInMemory()
+	tempdir := t.TempDir()
+	ctx, _, _ = captureOutput(t, ctx)
+
+	require.NoError(t, os.WriteFile(filepath.Join(tempdir, ".plain-id"), []byte("\n"), 0o600))
+
+	s := &Store{
+		alias:   "",
+		path:    tempdir,
+		crypto:  plain.New(),
+		storage: fs.New(tempdir),
+	}
+
+	assert.False(t, s.hasDecryptionKey(ctx), "empty recipient file must not match local keys")
+}
+
+// TestJoinTeamGPGRecipientFormats verifies that JoinTeam / hasDecryptionKey
+// recognizes matching GPG keys regardless of whether .gpg-id stores a full
+// fingerprint, 0x-prefixed fingerprint, long ID, short ID, or email address
+// (GH-3028), and returns false for an empty .gpg-id or non-matching recipients.
+func TestJoinTeamGPGRecipientFormats(t *testing.T) {
+	if _, err := exec.LookPath("gpg"); err != nil {
+		t.Skip("gpg not found in PATH")
+	}
+
+	gnupgHome := filepath.Join(t.TempDir(), "gnupg")
+	require.NoError(t, os.MkdirAll(gnupgHome, 0o700))
+
+	genCmd := exec.CommandContext(t.Context(), "gpg", "--homedir", gnupgHome, "--batch", "--passphrase", "", "--quick-gen-key", "Clone User <clone@example.org>", "default", "default", "never")
+	genOut, err := genCmd.CombinedOutput()
+	require.NoError(t, err, "quick-gen-key failed: %s", string(genOut))
+
+	t.Cleanup(func() {
+		_ = exec.Command("gpgconf", "--homedir", gnupgHome, "--kill", "gpg-agent").Run()
+	})
+
+	listCmd := exec.CommandContext(t.Context(), "gpg", "--homedir", gnupgHome, "--with-colons", "--with-fingerprint", "--list-secret-keys")
+	listOut, err := listCmd.Output()
+	require.NoError(t, err)
+
+	var fpr string
+	for line := range strings.SplitSeq(string(listOut), "\n") {
+		if !strings.HasPrefix(line, "fpr:") {
+			continue
+		}
+		fields := strings.Split(line, ":")
+		if len(fields) >= 10 {
+			fpr = fields[9]
+
+			break
+		}
+	}
+	require.Len(t, fpr, 40)
+
+	t.Setenv("GNUPGHOME", gnupgHome)
+
+	ctx := config.NewContextInMemory()
+	ctx = gpg.WithAlwaysTrust(ctx, false)
+	ctx = gpg.WithUseCache(ctx, false)
+	ctx, _, _ = captureOutput(t, ctx)
+
+	g, err := gpgcli.New(ctx, gpgcli.Config{})
+	require.NoError(t, err)
+
+	longID := fpr[len(fpr)-16:]
+	shortID := fpr[len(fpr)-8:]
+
+	matchCases := []struct {
+		name  string
+		gpgID string
+	}{
+		{name: "full fingerprint", gpgID: fpr + "\n"},
+		{name: "0x-prefixed full fingerprint", gpgID: "0x" + fpr + "\n"},
+		{name: "long ID without 0x", gpgID: longID + "\n"},
+		{name: "long ID with 0x", gpgID: "0x" + longID + "\n"},
+		{name: "short ID without 0x", gpgID: shortID + "\n"},
+		{name: "short ID with 0x", gpgID: "0x" + shortID + "\n"},
+		{name: "email address", gpgID: "clone@example.org\n"},
+		{name: "mixed recipients with full fingerprint", gpgID: "0xDEADBEEFDEADBEEF\n" + fpr + "\n"},
+	}
+
+	for _, tc := range matchCases {
+		t.Run(tc.name, func(t *testing.T) {
+			storeDir := t.TempDir()
+			require.NoError(t, os.WriteFile(filepath.Join(storeDir, ".gpg-id"), []byte(tc.gpgID), 0o600))
+
+			s := &Store{
+				alias:   "",
+				path:    storeDir,
+				crypto:  g,
+				storage: fs.New(storeDir),
+			}
+
+			assert.True(t, s.hasDecryptionKey(ctx))
+			exported, err := s.JoinTeam(ctx)
+			require.NoError(t, err)
+			assert.False(t, exported, "user with matching key should not export a new key")
+		})
+	}
+
+	t.Run("empty gpg-id does not match", func(t *testing.T) {
+		storeDir := t.TempDir()
+		require.NoError(t, os.WriteFile(filepath.Join(storeDir, ".gpg-id"), []byte("\n"), 0o600))
+
+		s := &Store{
+			alias:   "",
+			path:    storeDir,
+			crypto:  g,
+			storage: fs.New(storeDir),
+		}
+
+		assert.False(t, s.hasDecryptionKey(ctx))
+	})
+
+	t.Run("non-matching recipient exports own key", func(t *testing.T) {
+		storeDir := t.TempDir()
+		require.NoError(t, os.WriteFile(filepath.Join(storeDir, ".gpg-id"), []byte("0xDEADBEEFDEADBEEF\n"), 0o600))
+
+		s := &Store{
+			alias:   "",
+			path:    storeDir,
+			crypto:  g,
+			storage: fs.New(storeDir),
+		}
+
+		assert.False(t, s.hasDecryptionKey(ctx))
+		exported, err := s.JoinTeam(ctx)
+		require.NoError(t, err)
+		assert.True(t, exported, "user without matching key should export own public key")
+	})
 }

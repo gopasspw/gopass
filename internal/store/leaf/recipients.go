@@ -160,6 +160,10 @@ func (s *Store) JoinTeam(ctx context.Context) (bool, error) {
 // identities matches a recipient in the .gpg-id list.
 func (s *Store) hasDecryptionKey(ctx context.Context) bool {
 	recp := s.Recipients(ctx)
+	if len(recp) == 0 {
+		return false
+	}
+
 	ids, err := s.crypto.FindIdentities(ctx, recp...)
 
 	return err == nil && len(ids) > 0
