@@ -25,6 +25,11 @@ func ValidateSecretName(name string) error {
 		return fmt.Errorf("invalid secret name %q: must not start with a slash", name)
 	}
 
+	// Reject platform-native absolute paths (e.g. "C:\..." on Windows).
+	if filepath.IsAbs(name) {
+		return fmt.Errorf("invalid secret name %q: must not be an absolute path", name)
+	}
+
 	// Reject names that end with a slash, which would produce an empty basename
 	// (e.g. "dir/.gpg").
 	if strings.HasSuffix(name, "/") {
