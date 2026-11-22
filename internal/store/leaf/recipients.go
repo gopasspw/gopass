@@ -597,6 +597,9 @@ RECIPIENTS:
 				debug.Log("RemoveRecipient: failed to delete %s: %s", pubKeyPath, err)
 			} else {
 				debug.Log("RemoveRecipient: deleted %s", pubKeyPath)
+				if err := s.storage.TryAdd(ctx, pubKeyPath); err != nil {
+					debug.Log("RemoveRecipient: failed to stage deletion of %s: %s", pubKeyPath, err)
+				}
 			}
 		}
 
@@ -607,6 +610,9 @@ RECIPIENTS:
 				debug.Log("RemoveRecipient: failed to delete legacy %s: %s", legacyPath, err)
 			} else {
 				debug.Log("RemoveRecipient: deleted legacy %s", legacyPath)
+				if err := s.storage.TryAdd(ctx, legacyPath); err != nil {
+					debug.Log("RemoveRecipient: failed to stage deletion of legacy %s: %s", legacyPath, err)
+				}
 			}
 		}
 	}
@@ -844,11 +850,28 @@ func (s *Store) saveRecipients(ctx context.Context, rs recipientMarshaler, msg s
 	}
 
 	idf := s.idFile(ctx, "")
+	oldBuf, errOld := s.storage.Get(ctx, idf)
 
 	buf := rs.Marshal()
 	errSet := s.storage.Set(ctx, idf, buf)
 	if errSet != nil && !errors.Is(errSet, store.ErrMeaninglessWrite) {
 		return fmt.Errorf("failed to write recipients file: %w", errSet)
+	}
+
+	if !errors.Is(errSet, store.ErrMeaninglessWrite) {
+		if err := s.storage.TryAdd(ctx, idf); err != nil {
+			s.rollbackRecipientsFile(ctx, idf, oldBuf, errOld)
+
+			return fmt.Errorf("failed to add file %q to git: %w", idf, err)
+		}
+
+		if err := s.storage.TryCommit(ctx, msg); err != nil {
+			s.rollbackRecipientsFile(ctx, idf, oldBuf, errOld)
+
+			return fmt.Errorf("failed to commit changes to git: %w", err)
+		}
+	} else {
+		debug.Log("no need to overwrite recipient file: ErrMeaninglessWrite")
 	}
 
 	// always save recipients hash to global config
@@ -868,17 +891,7 @@ func (s *Store) saveRecipients(ctx context.Context, rs recipientMarshaler, msg s
 	}
 
 	if errors.Is(errSet, store.ErrMeaninglessWrite) {
-		debug.Log("no need to overwrite recipient file: ErrMeaninglessWrite")
-
 		return nil
-	}
-
-	if err := s.storage.TryAdd(ctx, idf); err != nil {
-		return fmt.Errorf("failed to add file %q to git: %w", idf, err)
-	}
-
-	if err := s.storage.TryCommit(ctx, msg); err != nil {
-		return fmt.Errorf("failed to commit changes to git: %w", err)
 	}
 
 	if !config.AsBool(cfg.GetM(s.alias, "core.autopush")) {
@@ -908,6 +921,22 @@ func (s *Store) saveRecipients(ctx context.Context, rs recipientMarshaler, msg s
 	debug.Log("recipients saved")
 
 	return nil
+}
+
+func (s *Store) rollbackRecipientsFile(ctx context.Context, idf string, oldBuf []byte, errOld error) {
+	if errOld == nil {
+		if err := s.storage.Set(ctx, idf, oldBuf); err != nil && !errors.Is(err, store.ErrMeaninglessWrite) {
+			debug.Log("failed to restore recipients file %q: %s", idf, err)
+		}
+	} else {
+		if err := s.storage.Delete(ctx, idf); err != nil {
+			debug.Log("failed to delete recipients file %q during rollback: %s", idf, err)
+		}
+	}
+
+	if err := s.storage.TryAdd(ctx, idf); err != nil {
+		debug.Log("failed to restore %q in git index: %s", idf, err)
+	}
 }
 
 // CanonicalizeRecipients rewrites the .gpg-id file so that every recipient

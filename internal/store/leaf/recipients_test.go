@@ -3,6 +3,8 @@ package leaf
 import (
 	"bufio"
 	"bytes"
+	"context"
+	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -16,6 +18,7 @@ import (
 	gpgcli "github.com/gopasspw/gopass/internal/backend/crypto/gpg/cli"
 	"github.com/gopasspw/gopass/internal/backend/crypto/plain"
 	"github.com/gopasspw/gopass/internal/backend/storage/fs"
+	"github.com/gopasspw/gopass/internal/backend/storage/gitfs"
 	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/recipients"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
@@ -968,4 +971,186 @@ func TestJoinTeamGPGRecipientFormats(t *testing.T) {
 		require.NoError(t, err)
 		assert.True(t, exported, "user without matching key should export own public key")
 	})
+}
+
+type failingCommitStorage struct {
+	backend.Storage
+	failCommit bool
+	failAdd    bool
+}
+
+func (f *failingCommitStorage) TryAdd(ctx context.Context, args ...string) error {
+	if f.failAdd {
+		return fmt.Errorf("simulated git add failure")
+	}
+
+	return f.Storage.TryAdd(ctx, args...)
+}
+
+func (f *failingCommitStorage) TryCommit(ctx context.Context, msg string) error {
+	if f.failCommit {
+		return fmt.Errorf("simulated git commit signing failure")
+	}
+
+	return f.Storage.TryCommit(ctx, msg)
+}
+
+func TestRemoveRecipientRollbackOnCommitFailure(t *testing.T) {
+	t.Parallel()
+
+	ctx := config.NewContextInMemory()
+	ctx = ctxutil.WithHidden(ctx, true)
+	cfg := config.NewInMemory()
+	ctx = cfg.WithConfig(ctx)
+	ctx, _, _ = captureOutput(t, ctx)
+
+	tempdir := t.TempDir()
+	_, _, err := createStore(tempdir, []string{"0xDEADBEEF", "0xFEEDBEEF"}, nil)
+	require.NoError(t, err)
+
+	base := fs.New(tempdir)
+	st := &failingCommitStorage{Storage: base, failCommit: true}
+
+	s := &Store{
+		alias:   "",
+		path:    tempdir,
+		crypto:  plain.New(),
+		storage: st,
+	}
+
+	// Seed an initial recipients.hash and a .public-keys/ file.
+	origRS, err := s.GetRecipients(ctx, "")
+	require.NoError(t, err)
+	require.NoError(t, cfg.Set("", s.rhKey(), origRS.Hash()))
+	require.NoError(t, base.Set(ctx, filepath.Join(".public-keys", "0xDEADBEEF"), []byte("dead-key")))
+
+	// First attempt fails at git commit.
+	err = s.RemoveRecipient(ctx, "0xDEADBEEF")
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "simulated git commit signing failure")
+
+	// Recipients file, recipients.hash, and .public-keys/ must be untouched.
+	rs, err := s.GetRecipients(ctx, "")
+	require.NoError(t, err)
+	assert.Equal(t, []string{"0xDEADBEEF", "0xFEEDBEEF"}, rs.IDs())
+	assert.Equal(t, origRS.Hash(), cfg.GetGlobal(s.rhKey()))
+	assert.True(t, base.Exists(ctx, filepath.Join(".public-keys", "0xDEADBEEF")))
+
+	// Once commits work again, retrying RemoveRecipient must succeed.
+	st.failCommit = false
+	require.NoError(t, s.RemoveRecipient(ctx, "0xDEADBEEF"))
+
+	rs, err = s.GetRecipients(ctx, "")
+	require.NoError(t, err)
+	assert.Equal(t, []string{"0xFEEDBEEF"}, rs.IDs())
+	assert.Equal(t, rs.Hash(), cfg.GetGlobal(s.rhKey()))
+	assert.False(t, base.Exists(ctx, filepath.Join(".public-keys", "0xDEADBEEF")))
+}
+
+func TestAddRecipientRollbackOnCommitFailure(t *testing.T) {
+	t.Parallel()
+
+	ctx := config.NewContextInMemory()
+	ctx = ctxutil.WithHidden(ctx, true)
+	cfg := config.NewInMemory()
+	ctx = cfg.WithConfig(ctx)
+	ctx, _, _ = captureOutput(t, ctx)
+
+	tempdir := t.TempDir()
+	_, _, err := createStore(tempdir, []string{"0xDEADBEEF"}, nil)
+	require.NoError(t, err)
+
+	base := fs.New(tempdir)
+	st := &failingCommitStorage{Storage: base, failCommit: true}
+
+	s := &Store{
+		alias:   "",
+		path:    tempdir,
+		crypto:  plain.New(),
+		storage: st,
+	}
+
+	origRS, err := s.GetRecipients(ctx, "")
+	require.NoError(t, err)
+	require.NoError(t, cfg.Set("", s.rhKey(), origRS.Hash()))
+
+	err = s.AddRecipient(ctx, "0xFEEDBEEF")
+	require.Error(t, err)
+
+	// Recipients file and hash must remain unchanged after rollback.
+	rs, err := s.GetRecipients(ctx, "")
+	require.NoError(t, err)
+	assert.Equal(t, []string{"0xDEADBEEF"}, rs.IDs())
+	assert.Equal(t, origRS.Hash(), cfg.GetGlobal(s.rhKey()))
+
+	// Retrying once commits succeed must add the recipient cleanly.
+	st.failCommit = false
+	require.NoError(t, s.AddRecipient(ctx, "0xFEEDBEEF"))
+
+	rs, err = s.GetRecipients(ctx, "")
+	require.NoError(t, err)
+	assert.Equal(t, []string{"0xDEADBEEF", "0xFEEDBEEF"}, rs.IDs())
+}
+
+func TestRemoveRecipientGitFSRollbackOnCommitFailure(t *testing.T) {
+	t.Parallel()
+
+	if _, err := exec.LookPath("git"); err != nil {
+		t.Skip("git binary not found in PATH")
+	}
+
+	ctx := config.NewContextInMemory()
+	ctx = ctxutil.WithHidden(ctx, true)
+	ctx = ctxutil.WithGitInit(ctx, true)
+	cfg := config.NewInMemory()
+	ctx = cfg.WithConfig(ctx)
+	ctx, _, _ = captureOutput(t, ctx)
+
+	tempdir := t.TempDir()
+	_, _, err := createStore(tempdir, []string{"0xDEADBEEF", "0xFEEDBEEF"}, nil)
+	require.NoError(t, err)
+	require.NoError(t, os.MkdirAll(filepath.Join(tempdir, ".public-keys"), 0o700))
+	require.NoError(t, os.WriteFile(filepath.Join(tempdir, ".public-keys", "0xDEADBEEF"), []byte("dead-key"), 0o600))
+
+	gitSt, err := gitfs.Init(ctx, tempdir, "test", "test@example.com")
+	require.NoError(t, err)
+
+	st := &failingCommitStorage{Storage: gitSt, failCommit: true}
+	s := &Store{
+		alias:   "",
+		path:    tempdir,
+		crypto:  plain.New(),
+		storage: st,
+	}
+
+	// Simulate commit failure (e.g. GPG commit-signing failure).
+	err = s.RemoveRecipient(ctx, "0xDEADBEEF")
+	require.Error(t, err)
+
+	gitStatusPorcelain := func(t *testing.T) string {
+		t.Helper()
+
+		cmd := exec.CommandContext(ctx, "git", "-C", tempdir, "status", "--porcelain")
+		out, err := cmd.CombinedOutput()
+		require.NoError(t, err, string(out))
+
+		return strings.TrimSpace(string(out))
+	}
+
+	// Working tree and git index must be completely clean, and .gpg-id restored.
+	rs, err := s.GetRecipients(ctx, "")
+	require.NoError(t, err)
+	assert.Equal(t, []string{"0xDEADBEEF", "0xFEEDBEEF"}, rs.IDs())
+	assert.False(t, gitSt.HasStagedChanges(ctx), "git index must not have staged changes after rollback")
+	assert.Empty(t, gitStatusPorcelain(t), "git working tree must be clean after rollback")
+
+	// Retry after commit signing is fixed.
+	st.failCommit = false
+	require.NoError(t, s.RemoveRecipient(ctx, "0xDEADBEEF"))
+
+	rs, err = s.GetRecipients(ctx, "")
+	require.NoError(t, err)
+	assert.Equal(t, []string{"0xFEEDBEEF"}, rs.IDs())
+	assert.False(t, gitSt.Exists(ctx, filepath.Join(".public-keys", "0xDEADBEEF")))
+	assert.Empty(t, gitStatusPorcelain(t), "git working tree must be clean after successful removal")
 }
