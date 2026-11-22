@@ -840,18 +840,41 @@ func TestJoinTeamGPGRecipientFormats(t *testing.T) {
 		t.Skip("gpg not found in PATH")
 	}
 
-	gnupgHome := filepath.Join(t.TempDir(), "gnupg")
-	require.NoError(t, os.MkdirAll(gnupgHome, 0o700))
+	var gnupgHome string
+	if runtime.GOOS == "windows" {
+		gnupgHome = t.TempDir()
+	} else {
+		// macOS has a 104-byte UNIX socket path limit (sun_path), which t.TempDir()
+		// under /var/folders/... easily exceeds for gpg-agent sockets.
+		var err error
+		gnupgHome, err = os.MkdirTemp("/tmp", "gp-gpg-*") //nolint:usetesting // need short path under /tmp for macOS gpg-agent socket
+		if err != nil {
+			gnupgHome = t.TempDir()
+		} else {
+			t.Cleanup(func() {
+				_ = os.RemoveAll(gnupgHome)
+			})
+		}
+	}
 
-	genCmd := exec.CommandContext(t.Context(), "gpg", "--homedir", gnupgHome, "--batch", "--passphrase", "", "--quick-gen-key", "Clone User <clone@example.org>", "default", "default", "never")
+	gpgHome := gnupgHome
+	if runtime.GOOS == "windows" {
+		// MSYS2 gpg expects POSIX-style paths (/c/...) rather than Windows drive paths.
+		gpgHome = strings.ReplaceAll(gnupgHome, `\`, "/")
+		if len(gpgHome) >= 2 && gpgHome[1] == ':' {
+			gpgHome = "/" + strings.ToLower(gpgHome[:1]) + gpgHome[2:]
+		}
+	}
+
+	genCmd := exec.CommandContext(t.Context(), "gpg", "--homedir", gpgHome, "--batch", "--passphrase", "", "--quick-gen-key", "Clone User <clone@example.org>", "default", "default", "never")
 	genOut, err := genCmd.CombinedOutput()
 	require.NoError(t, err, "quick-gen-key failed: %s", string(genOut))
 
 	t.Cleanup(func() {
-		_ = exec.Command("gpgconf", "--homedir", gnupgHome, "--kill", "gpg-agent").Run()
+		_ = exec.Command("gpgconf", "--homedir", gpgHome, "--kill", "gpg-agent").Run()
 	})
 
-	listCmd := exec.CommandContext(t.Context(), "gpg", "--homedir", gnupgHome, "--with-colons", "--with-fingerprint", "--list-secret-keys")
+	listCmd := exec.CommandContext(t.Context(), "gpg", "--homedir", gpgHome, "--with-colons", "--with-fingerprint", "--list-secret-keys")
 	listOut, err := listCmd.Output()
 	require.NoError(t, err)
 
@@ -869,7 +892,7 @@ func TestJoinTeamGPGRecipientFormats(t *testing.T) {
 	}
 	require.Len(t, fpr, 40)
 
-	t.Setenv("GNUPGHOME", gnupgHome)
+	t.Setenv("GNUPGHOME", gpgHome)
 
 	ctx := config.NewContextInMemory()
 	ctx = gpg.WithAlwaysTrust(ctx, false)

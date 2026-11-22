@@ -4,6 +4,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 
@@ -13,18 +14,40 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func shortGPGTempDir(t *testing.T) string {
+	t.Helper()
+
+	if runtime.GOOS == "windows" {
+		return t.TempDir()
+	}
+
+	// macOS has a 104-byte UNIX socket path limit (sun_path), which t.TempDir()
+	// under /var/folders/... easily exceeds for gpg-agent sockets.
+	dir, err := os.MkdirTemp("/tmp", "gp-*") //nolint:usetesting // need short path under /tmp for macOS gpg-agent socket
+	if err != nil {
+		return t.TempDir()
+	}
+	t.Cleanup(func() {
+		_ = os.RemoveAll(dir)
+	})
+
+	return dir
+}
+
 func genGPGTestKey(t *testing.T, homedir, uid string) (string, string) {
 	t.Helper()
 
-	cmd := exec.CommandContext(t.Context(), "gpg", "--homedir", homedir, "--batch", "--passphrase", "", "--quick-gen-key", uid, "default", "default", "never")
+	gpgHome := gpgHomeEnv(homedir, runtime.GOOS)
+
+	cmd := exec.CommandContext(t.Context(), "gpg", "--homedir", gpgHome, "--batch", "--passphrase", "", "--quick-gen-key", uid, "default", "default", "never")
 	out, err := cmd.CombinedOutput()
 	require.NoError(t, err, "quick-gen-key failed: %s", string(out))
 
 	t.Cleanup(func() {
-		_ = exec.Command("gpgconf", "--homedir", homedir, "--kill", "gpg-agent").Run()
+		_ = exec.Command("gpgconf", "--homedir", gpgHome, "--kill", "gpg-agent").Run()
 	})
 
-	listCmd := exec.CommandContext(t.Context(), "gpg", "--homedir", homedir, "--with-colons", "--with-fingerprint", "--list-secret-keys")
+	listCmd := exec.CommandContext(t.Context(), "gpg", "--homedir", gpgHome, "--with-colons", "--with-fingerprint", "--list-secret-keys")
 	listOut, err := listCmd.Output()
 	require.NoError(t, err)
 
@@ -55,8 +78,9 @@ func TestFindIdentitiesFormatsAndLocale(t *testing.T) {
 		t.Skip("gpg not found in PATH")
 	}
 
-	userHome := filepath.Join(t.TempDir(), "user")
-	teamHome := filepath.Join(t.TempDir(), "team")
+	root := shortGPGTempDir(t)
+	userHome := filepath.Join(root, "u")
+	teamHome := filepath.Join(root, "t")
 
 	// Pre-create homedirs with 0700 permissions for gpg.
 	require.NoError(t, os.MkdirAll(userHome, 0o700))
@@ -65,17 +89,20 @@ func TestFindIdentitiesFormatsAndLocale(t *testing.T) {
 	myFpr, mySubFpr := genGPGTestKey(t, userHome, "Alice Tester <alice@example.org>")
 	teamFpr, _ := genGPGTestKey(t, teamHome, "Bob Teammate <bob@example.org>")
 
+	userGPGHome := gpgHomeEnv(userHome, runtime.GOOS)
+	teamGPGHome := gpgHomeEnv(teamHome, runtime.GOOS)
+
 	// Export teammate's public key and import it into user's keyring (mirrors JoinTeam step 1).
-	exportCmd := exec.CommandContext(t.Context(), "gpg", "--homedir", teamHome, "--armor", "--export", teamFpr)
+	exportCmd := exec.CommandContext(t.Context(), "gpg", "--homedir", teamGPGHome, "--armor", "--export", teamFpr)
 	teamPub, err := exportCmd.Output()
 	require.NoError(t, err)
 
-	importCmd := exec.CommandContext(t.Context(), "gpg", "--homedir", userHome, "--import")
+	importCmd := exec.CommandContext(t.Context(), "gpg", "--homedir", userGPGHome, "--import")
 	importCmd.Stdin = strings.NewReader(string(teamPub))
 	importOut, err := importCmd.CombinedOutput()
 	require.NoError(t, err, "import teammate pubkey failed: %s", string(importOut))
 
-	t.Setenv("GNUPGHOME", userHome)
+	t.Setenv("GNUPGHOME", userGPGHome)
 	// Force a non-English locale to verify listKeys still recognizes "No secret key".
 	t.Setenv("LC_ALL", "de_DE.UTF-8")
 	t.Setenv("LANGUAGE", "de")
