@@ -8,6 +8,7 @@ import (
 	"fmt"
 
 	"github.com/fatih/color"
+	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/termio"
 )
@@ -19,11 +20,12 @@ func GetSelection(ctx context.Context, prompt string, choices []string) (string,
 		return "impossible", 0
 	}
 
+	_, errW := out.Writer(ctx)
 	for i, c := range choices {
-		fmt.Print(color.GreenString("[%  d]", i))
-		fmt.Printf(" %s\n", c)
+		fmt.Fprint(errW, color.GreenString("[%  d]", i))
+		fmt.Fprintf(errW, " %s\n", c)
 	}
-	fmt.Println()
+	fmt.Fprintln(errW)
 	var i int
 	for {
 		var err error
@@ -35,10 +37,10 @@ func GetSelection(ctx context.Context, prompt string, choices []string) (string,
 			return "aborted", 0
 		}
 		if err != nil {
-			fmt.Println(err.Error())
+			fmt.Fprintln(errW, err.Error())
 		}
 	}
-	fmt.Println(i)
+	fmt.Fprintln(errW, i)
 
 	return "default", i
 }

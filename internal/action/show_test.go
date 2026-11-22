@@ -837,3 +837,64 @@ func TestShowHasAliasDomain(t *testing.T) {
 	alias := act.hasAliasDomain(ctx, "websites/foo.com/user")
 	assert.Equal(t, "websites/foo.de/user", alias)
 }
+
+func TestShowOutputStreams(t *testing.T) {
+	u := gptest.NewUnitTester(t)
+
+	ctx := config.NewContextInMemory()
+	ctx = ctxutil.WithAlwaysYes(ctx, true)
+	ctx = ctxutil.WithInteractive(ctx, false)
+
+	act, err := newMock(ctx, u.StoreDir(""))
+	require.NoError(t, err)
+	require.NotNil(t, act)
+	ctx = act.cfg.WithConfig(ctx)
+
+	sec := secrets.NewAKV()
+	sec.SetPassword("# Improvements")
+	require.NoError(t, act.Store.Set(ctx, "FAST/2.notes/improvements pass-simple.md", sec))
+
+	color.NoColor = true
+
+	t.Run("exact match in terminal sends header to stderr and secret to stdout", func(t *testing.T) {
+		outBuf := &bytes.Buffer{}
+		errBuf := &bytes.Buffer{}
+		tctx := out.WithWriter(ctxutil.WithTerminal(ctx, true), outBuf, errBuf)
+
+		c := gptest.CliCtx(tctx, t, "FAST/2.notes/improvements pass-simple.md")
+		require.NoError(t, act.Show(tctx, c))
+
+		assert.Equal(t, "# Improvements\n\n", outBuf.String())
+		assert.Contains(t, errBuf.String(), "Secret: FAST/2.notes/improvements pass-simple.md")
+		assert.NotContains(t, outBuf.String(), "Secret:")
+	})
+
+	t.Run("partial match in terminal sends search status and header to stderr and only secret to stdout", func(t *testing.T) {
+		outBuf := &bytes.Buffer{}
+		errBuf := &bytes.Buffer{}
+		tctx := out.WithWriter(ctxutil.WithTerminal(ctx, true), outBuf, errBuf)
+
+		c := gptest.CliCtx(tctx, t, "FAST/2.notes/improvements pass-simp")
+		require.NoError(t, act.Show(tctx, c))
+
+		assert.Equal(t, "# Improvements\n\n", outBuf.String())
+		assert.Contains(t, errBuf.String(), `Entry "FAST/2.notes/improvements pass-simp" not found. Starting search...`)
+		assert.Contains(t, errBuf.String(), `Found exact match in "FAST/2.notes/improvements pass-simple.md"`)
+		assert.Contains(t, errBuf.String(), "Secret: FAST/2.notes/improvements pass-simple.md")
+		assert.NotContains(t, outBuf.String(), "Starting search")
+		assert.NotContains(t, outBuf.String(), "Found exact match")
+		assert.NotContains(t, outBuf.String(), "Secret:")
+	})
+
+	t.Run("partial match when piped returns error and writes nothing to stdout", func(t *testing.T) {
+		outBuf := &bytes.Buffer{}
+		errBuf := &bytes.Buffer{}
+		tctx := out.WithWriter(ctxutil.WithTerminal(ctx, false), outBuf, errBuf)
+
+		c := gptest.CliCtx(tctx, t, "FAST/2.notes/improvements pass-simp")
+		err := act.Show(tctx, c)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "entry is not in the password store")
+		assert.Empty(t, outBuf.String())
+	})
+}
