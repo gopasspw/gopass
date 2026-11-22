@@ -51,24 +51,7 @@ func (a *Age) parseRecipients(ctx context.Context, recipients []string) ([]age.R
 	ret := make([]age.Recipient, 0, len(recipients))
 	for _, r := range recipients {
 		switch {
-		case strings.HasPrefix(r, "age1pq"):
-			id, err := age.ParseHybridRecipient(r)
-			if err != nil {
-				debug.Log("Failed to parse recipient %q as Hybrid: %s", r, err)
-
-				pid, err := plugin.NewRecipient(r, pluginTerminalUI)
-				if err != nil {
-					debug.Log("Failed to parse recipient %q as an age plugin: %s", out.Secret(r), err)
-
-					continue
-				}
-				ret = append(ret, &wrappedRecipient{rec: pid, encoding: r})
-
-				continue
-			}
-			ret = append(ret, id)
-
-		case strings.HasPrefix(r, "age1tag"):
+		case strings.HasPrefix(r, "age1tag1") || strings.HasPrefix(r, "age1tagpq1"):
 			id, err := tag.ParseRecipient(r)
 			if err != nil {
 				debug.Log("Failed to parse recipient %q as tag: %s", r, err)
@@ -77,18 +60,28 @@ func (a *Age) parseRecipients(ctx context.Context, recipients []string) ([]age.R
 			}
 			ret = append(ret, id)
 
+		case strings.HasPrefix(r, "age1pq1"):
+			id, err := age.ParseHybridRecipient(r)
+			if err != nil {
+				debug.Log("Failed to parse recipient %q as Hybrid: %s", r, err)
+
+				continue
+			}
+			ret = append(ret, id)
+
+		case strings.HasPrefix(r, "age1") && strings.Count(r, "1") > 1:
+			pid, err := plugin.NewRecipient(r, pluginTerminalUI)
+			if err != nil {
+				debug.Log("Failed to parse recipient %q as an age plugin: %s", out.Secret(r), err)
+
+				continue
+			}
+			ret = append(ret, &wrappedRecipient{rec: pid, encoding: r})
+
 		case strings.HasPrefix(r, "age1"):
 			id, err := age.ParseX25519Recipient(r)
 			if err != nil {
 				debug.Log("Failed to parse recipient %q as X25519: %s", r, err)
-
-				pid, err := plugin.NewRecipient(r, pluginTerminalUI)
-				if err != nil {
-					debug.Log("Failed to parse recipient %q as an age plugin: %s", out.Secret(r), err)
-
-					continue
-				}
-				ret = append(ret, &wrappedRecipient{rec: pid, encoding: r})
 
 				continue
 			}
