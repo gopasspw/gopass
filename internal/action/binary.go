@@ -162,20 +162,36 @@ func (s *binaryHandler) isInStore(fn string) bool {
 	if err != nil {
 		return false
 	}
-	if strings.HasPrefix(fp, s.Store.Path()) {
+	if isSubpath(s.Store.Path(), fp) {
 		return true
 	}
 	for _, mp := range s.Store.Mounts() {
-		mp, err := filepath.Abs(mp)
-		if err != nil {
-			continue
-		}
-		if strings.HasPrefix(fp, mp) {
+		if isSubpath(mp, fp) {
 			return true
 		}
 	}
 
 	return false
+}
+
+// isSubpath returns true if target is base itself or located below it.
+// Only whole path elements are compared, so "/a/b-backup" is not below "/a/b".
+func isSubpath(base, target string) bool {
+	if base == "" {
+		return false
+	}
+	absBase, err := filepath.Abs(base)
+	if err != nil {
+		return false
+	}
+	if target == absBase {
+		return true
+	}
+	if !strings.HasSuffix(absBase, string(filepath.Separator)) {
+		absBase += string(filepath.Separator)
+	}
+
+	return strings.HasPrefix(target, absBase)
 }
 
 // binaryCopy implements the control flow for copy and move. We support two
