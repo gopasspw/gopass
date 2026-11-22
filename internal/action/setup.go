@@ -13,6 +13,7 @@ import (
 	"github.com/gopasspw/gopass/internal/backend/crypto/age"
 	"github.com/gopasspw/gopass/internal/backend/crypto/gpg"
 	gpgcli "github.com/gopasspw/gopass/internal/backend/crypto/gpg/cli"
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store/root"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
@@ -211,7 +212,13 @@ func (s *setupHandler) initGenerateIdentity(ctx context.Context, crypto backend.
 
 	out.OKf(ctx, "Key pair for %s generated", crypto.Name())
 
-	out.Notice(ctx, "🔐 We need to unlock your newly created private key now! Please enter the passphrase you just generated.")
+	if shouldPrintUnlockNotice(ctx, crypto) {
+		if pwGenerated {
+			out.Notice(ctx, "🔐 We need to unlock your newly created private key now! Please enter the passphrase you just generated.")
+		} else {
+			out.Notice(ctx, "🔐 We need to unlock your newly created private key now! Please enter your passphrase.")
+		}
+	}
 
 	// avoid the gpg cache or we won't find the newly created key
 	kl, err := crypto.ListIdentities(gpg.WithUseCache(ctx, false))
@@ -234,6 +241,22 @@ func (s *setupHandler) initGenerateIdentity(ctx context.Context, crypto backend.
 	out.OKf(ctx, "Key pair %s validated", kl[0])
 
 	return nil
+}
+
+// shouldPrintUnlockNotice reports whether the subsequent ListIdentities call
+// will prompt the user to enter a passphrase to unlock the newly created key.
+// Only the age backend with a passphrase-protected keyring and no pre-supplied
+// passphrase/callback decrypts its keyring during ListIdentities; gpgcli only
+// lists secret keys and never prompts to unlock them.
+func shouldPrintUnlockNotice(ctx context.Context, crypto backend.Crypto) bool {
+	if crypto.Name() != "age" {
+		return false
+	}
+	if ctxutil.GetAgePassphrase(ctx) != "" || ctxutil.HasPasswordCallback(ctx) {
+		return false
+	}
+
+	return strings.TrimSpace(config.String(ctx, "age.keyring-recipients")) == ""
 }
 
 type keyExporter interface {
