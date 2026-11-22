@@ -402,3 +402,129 @@ func TestBinaryCopyStorePathBoundaries(t *testing.T) {
 		})
 	}
 }
+
+// TestBinaryCopyStoreFSPathAndDirectoryTargets covers https://github.com/gopasspw/gopass/issues/2767:
+// passing a filesystem path inside the store (such as an expanded $PASSWORD_STORE_DIR
+// or relative path into the store) must be rejected with a store-relative suggestion
+// instead of creating nested directories, and directory targets should append the
+// source basename.
+func TestBinaryCopyStoreFSPathAndDirectoryTargets(t *testing.T) {
+	u := gptest.NewUnitTester(t)
+
+	buf := &bytes.Buffer{}
+	out.Stdout = buf
+	defer func() {
+		out.Stdout = os.Stdout
+	}()
+
+	ctx := ctxutil.WithHidden(ctxutil.WithAlwaysYes(config.NewContextInMemory(), true), true)
+	act, err := newMock(ctx, u.StoreDir(""))
+	require.NoError(t, err)
+	ctx = act.cfg.WithConfig(ctx)
+
+	require.NoError(t, u.InitStore("mount"))
+	mountPath := filepath.Join(t.TempDir(), "mounted")
+	require.NoError(t, os.Rename(u.StoreDir("mount"), mountPath))
+	require.NoError(t, act.Store.AddMount(ctx, "mount", mountPath))
+
+	rootPath := u.StoreDir("")
+	srcDir := t.TempDir()
+	srcFile := filepath.Join(srcDir, "test-file.txt")
+	require.NoError(t, os.WriteFile(srcFile, []byte("hello world\n"), 0o600))
+
+	t.Run("absolute path into root store is rejected with suggestion", func(t *testing.T) {
+		dest := filepath.Join(rootPath, "sub", "test-file.txt")
+		err := act.BinaryCopy(ctx, gptest.CliCtx(ctx, t, srcFile, dest))
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "filesystem path inside the password store")
+		assert.Contains(t, err.Error(), `"sub/test-file.txt"`)
+		assert.NotContains(t, err.Error(), "ambiguity")
+	})
+
+	t.Run("absolute path to root store directory itself is rejected with basename suggestion", func(t *testing.T) {
+		err := act.BinaryCopy(ctx, gptest.CliCtx(ctx, t, srcFile, rootPath))
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "filesystem path inside the password store")
+		assert.Contains(t, err.Error(), `"test-file.txt"`)
+	})
+
+	t.Run("relative path into root store from outside is rejected with suggestion", func(t *testing.T) {
+		t.Chdir(filepath.Dir(rootPath))
+		relDir := filepath.Base(rootPath)
+		relTarget := filepath.Join(relDir, "nested", "test-file.txt")
+
+		err := act.BinaryCopy(ctx, gptest.CliCtx(ctx, t, srcFile, relTarget))
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "filesystem path inside the password store")
+		assert.Contains(t, err.Error(), `"nested/test-file.txt"`)
+		assert.False(t, act.Store.Exists(ctx, filepath.ToSlash(relTarget)))
+
+		err = act.BinaryCopy(ctx, gptest.CliCtx(ctx, t, srcFile, relDir))
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "filesystem path inside the password store")
+		assert.Contains(t, err.Error(), `"test-file.txt"`)
+		assert.False(t, act.Store.Exists(ctx, relDir))
+	})
+
+	t.Run("absolute path into mounted store suggests mount alias", func(t *testing.T) {
+		dest := filepath.Join(mountPath, "team", "test-file.txt")
+		err := act.BinaryCopy(ctx, gptest.CliCtx(ctx, t, srcFile, dest))
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "filesystem path inside the password store")
+		assert.Contains(t, err.Error(), `"mount/team/test-file.txt"`)
+
+		err = act.BinaryCopy(ctx, gptest.CliCtx(ctx, t, srcFile, mountPath))
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "filesystem path inside the password store")
+		assert.Contains(t, err.Error(), `"mount/test-file.txt"`)
+	})
+
+	t.Run("relative secret name still works when cwd is inside the store", func(t *testing.T) {
+		t.Chdir(rootPath)
+		require.NoError(t, act.BinaryCopy(ctx, gptest.CliCtx(ctx, t, srcFile, "from-inside-cwd")))
+		assert.True(t, act.Store.Exists(ctx, "from-inside-cwd"))
+
+		// Absolute store path is still rejected even when cwd is inside the store.
+		err := act.BinaryCopy(ctx, gptest.CliCtx(ctx, t, srcFile, filepath.Join(rootPath, "abs-from-inside")))
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "filesystem path inside the password store")
+		assert.Contains(t, err.Error(), `"abs-from-inside"`)
+	})
+
+	t.Run("trailing slash and existing store directory append source basename", func(t *testing.T) {
+		t.Chdir(srcDir)
+
+		// New directory with trailing slash
+		require.NoError(t, act.BinaryCopy(ctx, gptest.CliCtx(ctx, t, "./test-file.txt", "folder/")))
+		assert.True(t, act.Store.Exists(ctx, "folder/test-file.txt"))
+		assert.False(t, act.Store.Exists(ctx, "folder"))
+
+		// Existing store directory without trailing slash
+		otherFile := filepath.Join(srcDir, "other.txt")
+		require.NoError(t, os.WriteFile(otherFile, []byte("other\n"), 0o600))
+		require.NoError(t, act.BinaryCopy(ctx, gptest.CliCtx(ctx, t, otherFile, "folder")))
+		assert.True(t, act.Store.Exists(ctx, "folder/other.txt"))
+		assert.False(t, act.Store.Exists(ctx, "folder"))
+
+		// Mount point with and without trailing slash
+		require.NoError(t, act.BinaryCopy(ctx, gptest.CliCtx(ctx, t, "./test-file.txt", "mount/")))
+		assert.True(t, act.Store.Exists(ctx, "mount/test-file.txt"))
+
+		require.NoError(t, act.BinaryCopy(ctx, gptest.CliCtx(ctx, t, otherFile, "mount")))
+		assert.True(t, act.Store.Exists(ctx, "mount/other.txt"))
+
+		// Invalid directory-like paths must still be rejected
+		for _, bad := range []string{"/", "/dir/", "./", "../"} {
+			require.Error(t, act.BinaryCopy(ctx, gptest.CliCtx(ctx, t, "./test-file.txt", bad)), "expected %q to fail", bad)
+		}
+	})
+
+	t.Run("store to existing filesystem directory appends secret basename", func(t *testing.T) {
+		outDir := t.TempDir()
+		require.NoError(t, act.BinaryCopy(ctx, gptest.CliCtx(ctx, t, "folder/test-file.txt", outDir)))
+
+		got, err := os.ReadFile(filepath.Join(outDir, "test-file.txt"))
+		require.NoError(t, err)
+		assert.Equal(t, "hello world\n", string(got))
+	})
+}
