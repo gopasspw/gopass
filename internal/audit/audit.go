@@ -126,6 +126,9 @@ func (a *Auditor) Batch(ctx context.Context, secrets []string) (*Report, error) 
 			maxJobs = maxVal
 		}
 	}
+	if maxJobs < 1 {
+		maxJobs = 1
+	}
 
 	// Spawn workers that run the auditing of all secrets concurrently.
 	debug.Log("launching %d audit workers", maxJobs)

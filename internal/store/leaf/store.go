@@ -250,5 +250,9 @@ func (s *Store) Valid() bool {
 // Concurrency returns the number of concurrent operations allowed
 // by this stores crypto implementation (e.g. usually 1 for GPG).
 func (s *Store) Concurrency() int {
+	if s == nil || s.crypto == nil {
+		return 1
+	}
+
 	return s.Crypto().Concurrency()
 }
