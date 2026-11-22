@@ -1,3 +1,8 @@
+# NOTE: This workflow is synced verbatim to gopass integration repositories by
+# helpers/postrel (only the top-level `name:` line is rewritten).
+# Keep gopass-specific jobs (such as container builds) in separate workflow
+# files, and ensure every Makefile target invoked here (gha-linux,
+# test-integration, gha-windows, gha-osx) exists in all integration repos.
 name: Build gopass
 
 on:
@@ -76,33 +81,6 @@ jobs:
       run: make gha-linux
     - name: Integration Test
       run: make test-integration
-
-  container:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Harden Runner
-        uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
-        with:
-          egress-policy: audit
-
-      - name: Checkout repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
-      - name: Extract metadata (tags, labels) for Docker
-        id: meta
-        uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
-        env:
-          IMAGE_NAME: ${{ github.repository }}
-        with:
-          images: ${{ env.IMAGE_NAME }}
-
-      - name: Build container image
-        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
-        with:
-          context: .
-          push: false
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
 
   windows:
     runs-on: windows-latest
