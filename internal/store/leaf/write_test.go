@@ -26,6 +26,9 @@ func TestSet(t *testing.T) {
 	require.NoError(t, s.Set(ctx, "zab/zab", sec))
 
 	require.Error(t, s.Set(ctx, "../../../../../etc/passwd", sec))
+	require.Error(t, s.Set(ctx, "", sec))
+	require.Error(t, s.Set(ctx, "dir/", sec))
+	require.Error(t, s.Set(ctx, ".", sec))
 
 	require.NoError(t, s.Set(ctx, "zab", sec))
 }

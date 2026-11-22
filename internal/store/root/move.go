@@ -168,6 +168,10 @@ func (r *Store) moveFromTo(ctx context.Context, subFrom *leaf.Store, from, to, f
 func (r *Store) directMove(ctx context.Context, from, to string, del bool) error {
 	debug.Log("directMove from %q to %q", from, to)
 
+	if err := r.ValidateSecretName(to); err != nil {
+		return err
+	}
+
 	// will also remove the store prefix, if applicable
 	subFrom, from := r.getStore(from)
 

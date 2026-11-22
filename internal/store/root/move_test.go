@@ -627,3 +627,31 @@ func TestMoveHonorsAutoPushConfig(t *testing.T) {
 	ctx = ctxutil.WithCommitMessage(ctx, "Move foo to bar")
 	require.NoError(t, rs.Move(ctx, "foo", "bar"))
 }
+
+func TestMoveAndCopyToMountPoint(t *testing.T) {
+	u := gptest.NewUnitTester(t)
+
+	ctx := t.Context()
+	ctx = ctxutil.WithAlwaysYes(ctx, true)
+	ctx = ctxutil.WithHidden(ctx, true)
+
+	rs, err := createRootStore(ctx, u)
+	require.NoError(t, err)
+
+	sec := secrets.New()
+	sec.SetPassword("secret-password")
+	require.NoError(t, rs.Set(ctx, "root-secret", sec))
+
+	require.NoError(t, u.InitStore("sub"))
+	require.NoError(t, rs.AddMount(ctx, "sub", u.StoreDir("sub")))
+
+	// Copying a secret to a mount point copies it inside the mount.
+	require.NoError(t, rs.Copy(ctx, "root-secret", "sub"))
+	got, err := rs.Get(ctx, "sub/root-secret")
+	require.NoError(t, err)
+	assert.Equal(t, "secret-password", got.Password())
+
+	// Moving a single secret to "." must fail rather than creating an empty-basename file.
+	require.Error(t, rs.Move(ctx, "root-secret", "."))
+	assert.False(t, rs.Exists(ctx, ""))
+}

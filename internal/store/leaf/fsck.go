@@ -194,6 +194,12 @@ func (s *Store) fsckLoop(ctx context.Context, path string, progress ctxutil.Prog
 
 		debug.Log("[%s] Checking %s", path, name)
 
+		if err := store.ValidateSecretName(name); err != nil {
+			fmt.Fprintf(&warnings, "invalid secret name %q (file %q): %s\n", name, s.passfile(ctx, name), err)
+
+			continue
+		}
+
 		msg, fromMime, err := s.fsckCheckEntry(ctx, name)
 		if err != nil {
 			fmt.Fprintf(&warnings, "failed to check %q:\n    %s\n", name, err)

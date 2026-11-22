@@ -37,6 +37,10 @@ func (s *secretHandler) Insert(ctx context.Context, cmd *cli.Command) error {
 		return exit.Error(exit.NoName, nil, "Usage: %s insert name", s.Name)
 	}
 
+	if err := s.Store.ValidateSecretName(name); err != nil {
+		return exit.Error(exit.Usage, err, "%s", err)
+	}
+
 	return s.insert(ctx, cmd, name, key, echo, multiline, force, appending, kvps)
 }
 
