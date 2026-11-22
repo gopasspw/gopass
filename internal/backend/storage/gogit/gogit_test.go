@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	git "github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/out"
@@ -265,4 +266,48 @@ func TestSplitKey(t *testing.T) {
 		assert.Equal(t, tc.sub, sub, tc.in)
 		assert.Equal(t, tc.opt, opt, tc.in)
 	}
+}
+
+func TestListRemoteBranchesAndCloneEmpty(t *testing.T) {
+	ctx := testContext()
+
+	// Empty bare remote.
+	emptyBare := filepath.Join(t.TempDir(), "empty.git")
+	_, err := git.PlainInit(emptyBare, true)
+	require.NoError(t, err)
+
+	// Cloning an empty remote should succeed and configure origin.
+	clonedEmpty := filepath.Join(t.TempDir(), "cloned-empty")
+	g, err := Clone(ctx, emptyBare, clonedEmpty, "Test", "test@example.org")
+	require.NoError(t, err)
+	require.NotNil(t, g)
+
+	branches, err := g.ListRemoteBranches(ctx, "origin")
+	require.NoError(t, err)
+	assert.Empty(t, branches)
+
+	// Populated remote on branch "main".
+	popDir := t.TempDir()
+	popRepo, err := git.PlainInitWithOptions(popDir, &git.PlainInitOptions{
+		InitOptions: git.InitOptions{DefaultBranch: plumbing.NewBranchReferenceName("main")},
+		Bare:        false,
+	})
+	require.NoError(t, err)
+	pop := &GoGit{fs: nil, repo: popRepo}
+	_ = pop
+	popG, err := Init(ctx, popDir, "Pop", "pop@example.org")
+	require.NoError(t, err)
+	require.NoError(t, popG.Set(ctx, "secret", []byte("val")))
+	require.NoError(t, popG.Add(ctx, "secret"))
+	require.NoError(t, popG.Commit(ctx, "initial"))
+
+	require.NoError(t, g.AddRemote(ctx, "populated", popDir))
+	branches, err = g.ListRemoteBranches(ctx, "populated")
+	require.NoError(t, err)
+	assert.Equal(t, []string{"main"}, branches)
+
+	// NoNetwork skips remote inspection.
+	branches, err = g.ListRemoteBranches(ctxutil.WithNoNetwork(ctx, true), "populated")
+	require.NoError(t, err)
+	assert.Nil(t, branches)
 }
