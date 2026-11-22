@@ -17,7 +17,7 @@ require (
 	github.com/gokyle/twofactor v1.0.1
 	github.com/google/go-cmp v0.7.0
 	github.com/google/go-github/v61 v61.0.0
-	github.com/gopasspw/clipboard v0.0.5
+	github.com/gopasspw/clipboard v0.0.6-0.20261117050150-4c7f24252a9a
 	github.com/gopasspw/gitconfig v0.0.5
 	github.com/hashicorp/golang-lru/v2 v2.0.7
 	github.com/jsimonetti/pwscheme v0.0.0-20220922140336-67a4d090f150
