@@ -2,8 +2,11 @@ package action
 
 import (
 	"bytes"
+	"context"
+	"io"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/gopasspw/gopass/internal/backend"
@@ -11,6 +14,7 @@ import (
 	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
+	"github.com/gopasspw/gopass/pkg/termio"
 	"github.com/gopasspw/gopass/tests/gptest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -112,6 +116,7 @@ func TestSetupAgeGitFS(t *testing.T) {
 	require.Error(t, errIsInit)
 	require.NoError(t, act.Setup(ctx, c))
 	assert.Contains(t, buf.String(), "Welcome to gopass")
+	assert.NotContains(t, buf.String(), "We need to unlock your newly created private key now!")
 
 	crypto := act.Store.Crypto(ctx, "")
 	require.NotNil(t, crypto)
@@ -187,4 +192,160 @@ func TestSetupPlainFS(t *testing.T) {
 	require.NoError(t, act.Setup(ctx, c))
 	assert.Contains(t, buf.String(), "Welcome to gopass")
 	buf.Reset()
+}
+
+type setupStubCrypto struct {
+	*plain.Mocker
+	name string
+}
+
+func (s *setupStubCrypto) Name() string {
+	return s.name
+}
+
+func (s *setupStubCrypto) GenerateIdentity(context.Context, string, string, string) (string, error) {
+	return "0xDEADBEEF", nil
+}
+
+func (s *setupStubCrypto) ListIdentities(context.Context) ([]string, error) {
+	return []string{"0xDEADBEEF"}, nil
+}
+
+// TestInitGenerateIdentityUnlockNotice verifies that initGenerateIdentity only
+// prints the unlock passphrase notice when the backend will actually prompt the
+// user to unlock the newly generated key (age with a passphrase-protected
+// keyring and no pre-configured passphrase/callback). See GH-2862.
+func TestInitGenerateIdentityUnlockNotice(t *testing.T) {
+	u := gptest.NewUnitTester(t)
+
+	const unlockPrefix = "We need to unlock your newly created private key now!"
+
+	baseCtx := config.NewContextInMemory()
+	act, err := newMock(baseCtx, u.StoreDir(""))
+	require.NoError(t, err)
+
+	tests := []struct {
+		name        string
+		cryptoName  string
+		setupCtx    func(context.Context) context.Context
+		stdin       string
+		wantContain string
+		wantAbsent  string
+	}{
+		{
+			name:       "gpgcli generated passphrase does not prompt to unlock",
+			cryptoName: "gpgcli",
+			setupCtx: func(ctx context.Context) context.Context {
+				return ctxutil.WithAlwaysYes(ctx, true)
+			},
+			wantAbsent: unlockPrefix,
+		},
+		{
+			name:       "gpgcli user passphrase does not prompt to unlock",
+			cryptoName: "gpgcli",
+			setupCtx: func(ctx context.Context) context.Context {
+				ctx = ctxutil.WithInteractive(ctx, true)
+				ctx = ctxutil.WithAlwaysYes(ctx, false)
+
+				return termio.WithPassPromptFunc(ctx, func(context.Context, string) (string, error) {
+					return "secret", nil
+				})
+			},
+			// name, email, enter passphrase=y, continue=y, export pubkey=n
+			stdin:      "\n\ny\ny\nn\n",
+			wantAbsent: unlockPrefix,
+		},
+		{
+			name:       "age generated passphrase prompts to unlock",
+			cryptoName: "age",
+			setupCtx: func(ctx context.Context) context.Context {
+				return ctxutil.WithAlwaysYes(ctx, true)
+			},
+			wantContain: "Please enter the passphrase you just generated.",
+		},
+		{
+			name:       "age user passphrase prompts without generated wording",
+			cryptoName: "age",
+			setupCtx: func(ctx context.Context) context.Context {
+				ctx = ctxutil.WithInteractive(ctx, true)
+				ctx = ctxutil.WithAlwaysYes(ctx, false)
+
+				return termio.WithPassPromptFunc(ctx, func(context.Context, string) (string, error) {
+					return "secret", nil
+				})
+			},
+			// enter passphrase=y, export pubkey=n
+			stdin:       "y\nn\n",
+			wantContain: "Please enter your passphrase.",
+			wantAbsent:  "you just generated",
+		},
+		{
+			name:       "age with preset passphrase does not prompt to unlock",
+			cryptoName: "age",
+			setupCtx: func(ctx context.Context) context.Context {
+				ctx = ctxutil.WithAlwaysYes(ctx, true)
+
+				return ctxutil.WithAgePassphrase(ctx, "foobar")
+			},
+			wantAbsent: unlockPrefix,
+		},
+		{
+			name:       "age with password callback does not prompt to unlock",
+			cryptoName: "age",
+			setupCtx: func(ctx context.Context) context.Context {
+				ctx = ctxutil.WithAlwaysYes(ctx, true)
+
+				return ctxutil.WithPasswordCallback(ctx, func(string, bool) ([]byte, error) {
+					return []byte("foobar"), nil
+				})
+			},
+			wantAbsent: unlockPrefix,
+		},
+		{
+			name:       "age with keyring-recipients does not prompt for passphrase",
+			cryptoName: "age",
+			setupCtx: func(ctx context.Context) context.Context {
+				ctx = ctxutil.WithAlwaysYes(ctx, true)
+				cfg := config.NewInMemory()
+				require.NoError(t, cfg.Set("", "age.keyring-recipients", "age1ql3z7hjy54pw3hyww5ayyfg7zqgvc7w3j2elw8zmrj2kg5sfn9aqmcac8p"))
+
+				return cfg.WithConfig(ctx)
+			},
+			wantAbsent: unlockPrefix,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			buf := &bytes.Buffer{}
+			oldOut, oldErr := out.Stdout, out.Stderr
+			oldStdin, oldTermErr := termio.Stdin, termio.Stderr
+			out.Stdout = buf
+			out.Stderr = buf
+			termio.Stderr = io.Discard
+			if tc.stdin != "" {
+				termio.Stdin = strings.NewReader(tc.stdin)
+			}
+			t.Cleanup(func() {
+				out.Stdout = oldOut
+				out.Stderr = oldErr
+				termio.Stdin = oldStdin
+				termio.Stderr = oldTermErr
+			})
+
+			ctx := config.NewContextInMemory()
+			ctx = tc.setupCtx(ctx)
+			crypto := &setupStubCrypto{Mocker: plain.New(), name: tc.cryptoName}
+
+			require.NoError(t, act.initGenerateIdentity(ctx, crypto, "foo bar", "foo.bar@example.org"))
+
+			got := buf.String()
+			if tc.wantContain != "" {
+				assert.Contains(t, got, tc.wantContain)
+			}
+			if tc.wantAbsent != "" {
+				assert.NotContains(t, got, tc.wantAbsent)
+			}
+		})
+	}
 }
