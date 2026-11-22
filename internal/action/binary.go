@@ -42,6 +42,10 @@ func (s *binaryHandler) Cat(ctx context.Context, cmd *cli.Command) error {
 
 	// if content is piped to stdin, read and save it.
 	if info.Mode()&os.ModeCharDevice == 0 {
+		if err := s.Store.ValidateSecretName(name); err != nil {
+			return exit.Error(exit.Usage, err, "%s", err)
+		}
+
 		debug.Log("Reading from STDIN ...")
 		content := &bytes.Buffer{}
 
@@ -251,6 +255,10 @@ func (s *binaryHandler) binaryCopy(ctx context.Context, cmd *cli.Command, from, 
 }
 
 func (s *binaryHandler) binaryCopyFromFileToStore(ctx context.Context, from, to string, deleteSource bool) error {
+	if err := s.Store.ValidateSecretName(to); err != nil {
+		return err
+	}
+
 	// if the source is a file the destination must not to avoid ambiguities.
 	// if necessary this can be resolved by using a absolute path for the file
 	// and a relative one for the secret.

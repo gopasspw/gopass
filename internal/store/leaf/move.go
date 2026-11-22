@@ -90,6 +90,11 @@ func (s *Store) Move(ctx context.Context, from, to string) error {
 }
 
 func (s *Store) directMove(ctx context.Context, from, to string, del bool) error {
+	checkTo := strings.TrimSuffix(to, "/")
+	if err := store.ValidateSecretName(checkTo); err != nil {
+		return err
+	}
+
 	pFrom := s.passfile(ctx, from)
 	pTo := s.passfile(ctx, to)
 
