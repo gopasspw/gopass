@@ -12,6 +12,10 @@ conventions this file is generated from.
 
 ## [Unreleased]
 
+### Security
+
+- editor: disable swap, backup, undo, and state files in vim and nvim (#3702)
+
 ## [1.17.4] - 2026-10-10
 
 ### Added
