@@ -13,6 +13,7 @@ import (
 	git "github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/filemode"
+	"github.com/go-git/go-git/v5/plumbing/format/index"
 	"github.com/go-git/go-git/v5/plumbing/object"
 	"github.com/go-git/go-git/v5/plumbing/storer"
 	"github.com/gopasspw/gopass/internal/config"
@@ -74,6 +75,49 @@ func TestGoGitStageUncommitted(t *testing.T) {
 	staged, err = g.StageUncommitted(ctx, "pending.gpg")
 	require.NoError(t, err)
 	assert.False(t, staged)
+}
+
+func TestGoGitRecoveryPreservesDivergentIndex(t *testing.T) {
+	ctx := testContext()
+	g, err := Init(ctx, t.TempDir(), "T", "t@e.org")
+	require.NoError(t, err)
+
+	const name = "passkey.gpg"
+	for _, path := range []string{name, ".gitignore"} {
+		require.NoError(t, g.Set(ctx, path, []byte(name+"\n")))
+	}
+	wt, err := g.worktree()
+	require.NoError(t, err)
+	_, err = wt.Add(name)
+	require.NoError(t, err)
+	require.NoError(t, g.Add(ctx, ".gitignore"))
+	require.NoError(t, g.Commit(ctx, "base"))
+
+	require.NoError(t, g.Set(ctx, name, []byte("staged version")))
+	_, err = wt.Add(name)
+	require.NoError(t, err)
+	require.NoError(t, g.Set(ctx, name, []byte(name+"\n")))
+	before, err := g.repo.Storer.Index()
+	require.NoError(t, err)
+
+	pending, err := g.StageUncommitted(ctx, name)
+	require.ErrorContains(t, err, "index and worktree diverge")
+	assert.False(t, pending)
+	after, err := g.repo.Storer.Index()
+	require.NoError(t, err)
+	assert.Equal(t, before.Entries, after.Entries)
+
+	// A staged deletion with an ignored working copy is not an import.
+	_, err = after.Remove(name)
+	require.NoError(t, err)
+	require.NoError(t, g.repo.Storer.SetIndex(after))
+	pending, err = g.StageUncommitted(ctx, name)
+	require.ErrorContains(t, err, "index and worktree diverge")
+	assert.False(t, pending)
+	got, err := g.repo.Storer.Index()
+	require.NoError(t, err)
+	_, err = got.Entry(name)
+	require.ErrorIs(t, err, index.ErrEntryNotFound)
 }
 
 // TestGoGitPushPullsFirst verifies that a push against a remote that is ahead

@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"regexp"
@@ -256,25 +257,75 @@ func (g *Git) TryAdd(ctx context.Context, files ...string) error {
 	return err
 }
 
-// StageUncommitted stages the file only if it has pending changes.
-func (g *Git) StageUncommitted(ctx context.Context, name string) (bool, error) {
+// StageUncommitted stages pending files without replacing divergent index entries.
+func (g *Git) StageUncommitted(ctx context.Context, names ...string) (bool, error) {
 	if !g.IsInitialized() {
 		return false, nil
 	}
 
-	stdout, stderr, err := g.captureCmd(ctx, "gitFileStatus", "--literal-pathspecs", "status",
-		"--porcelain=v1", "--no-renames", "--untracked-files=all", "--ignored", "--", name)
-	if err != nil {
-		return false, fmt.Errorf("git status: %w: %s", err, strings.TrimSpace(string(stderr)))
+	pending := false
+	var add []string
+	for _, name := range names {
+		stdout, stderr, err := g.captureCmd(ctx, "gitFileStatus", "--literal-pathspecs", "status",
+			"--porcelain=v1", "-z", "--no-renames", "--untracked-files=all", "--ignored", "--", name)
+		if err != nil {
+			return false, fmt.Errorf("git status: %w: %s", err, strings.TrimSpace(string(stderr)))
+		}
+		if len(stdout) == 0 {
+			continue
+		}
+		// An exact file path must produce exactly one record. A staged
+		// deletion with a retained worktree file can produce two records.
+		if len(stdout) < 4 || string(stdout[2:]) != " "+name+"\x00" {
+			return false, backend.ConflictingIndexError(name)
+		}
+		info, err := os.Lstat(filepath.Join(g.fs.Path(), name))
+		if err != nil || !info.Mode().IsRegular() {
+			return false, backend.ConflictingIndexError(name)
+		}
+		switch string(stdout[:2]) {
+		case "A ", "M ":
+			// The index already holds exactly what the worktree holds.
+			pending = true
+		case "??", "!!", " M":
+			add = append(add, name)
+		default:
+			return false, backend.ConflictingIndexError(name)
+		}
 	}
-	if len(stdout) == 0 {
-		return false, nil
-	}
-	if err := g.Cmd(ctx, "gitAdd", "--literal-pathspecs", "add", "--force", "--", name); err != nil {
-		return false, err
+	if len(add) > 0 {
+		args := append([]string{"--literal-pathspecs", "add", "--force", "--"}, add...)
+		if err := g.Cmd(ctx, "gitAdd", args...); err != nil {
+			return false, err
+		}
 	}
 
-	return true, nil
+	return pending || len(add) > 0, nil
+}
+
+// CommittedFile returns an exact path from HEAD for recovery checks.
+func (g *Git) CommittedFile(ctx context.Context, name string) ([]byte, error) {
+	if !g.IsInitialized() {
+		return nil, os.ErrNotExist
+	}
+	head, stderr, err := g.captureCmd(ctx, "gitHead", "rev-parse", "--verify", "--quiet", "HEAD")
+	if err != nil {
+		if ee, ok := errors.AsType[*exec.ExitError](err); ok && ee.ExitCode() == 1 {
+			return nil, os.ErrNotExist
+		}
+
+		return nil, fmt.Errorf("git rev-parse HEAD: %w: %s", err, strings.TrimSpace(string(stderr)))
+	}
+	revision := strings.TrimSpace(string(head))
+	stdout, stderr, err := g.captureCmd(ctx, "gitListHead", "--literal-pathspecs", "ls-tree", "--name-only", "-z", revision, "--", name)
+	if err != nil {
+		return nil, fmt.Errorf("git ls-tree: %w: %s", err, strings.TrimSpace(string(stderr)))
+	}
+	if string(stdout) != name+"\x00" {
+		return nil, os.ErrNotExist
+	}
+
+	return g.GetRevision(ctx, name, revision)
 }
 
 // HasStagedChanges returns true if there are any staged changes which can be committed.

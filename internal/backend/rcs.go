@@ -32,9 +32,21 @@ type rcs interface {
 
 // UncommittedFileStager is an optional capability for resuming a write that
 // reached the worktree or index but was not committed. StageUncommitted reports
-// whether the given file needs a commit. It must leave a clean file alone.
+// whether the given files need a commit. It must leave clean files alone and
+// refuse to replace an index entry that has diverged from the worktree.
 type UncommittedFileStager interface {
-	StageUncommitted(ctx context.Context, name string) (bool, error)
+	StageUncommitted(ctx context.Context, names ...string) (bool, error)
+}
+
+// CommittedFileReader reads a file from HEAD, returning os.ErrNotExist if the
+// file or HEAD does not exist.
+type CommittedFileReader interface {
+	CommittedFile(ctx context.Context, name string) ([]byte, error)
+}
+
+// ConflictingIndexError reports a file the user must resolve before recovery.
+func ConflictingIndexError(name string) error {
+	return fmt.Errorf("cannot recover %q: Git index and worktree diverge; resolve the staged changes and retry", name)
 }
 
 // Revision is a SCM revision.

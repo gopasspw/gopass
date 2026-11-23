@@ -19,8 +19,8 @@ func (s *Store) Set(ctx context.Context, name string, sec gopass.Byter) error {
 		return err
 	}
 
-	if cfg, _ := config.FromContext(ctx); cfg.GetM(s.alias, "core.readonly") == "true" {
-		return fmt.Errorf("writing to %s is disabled by `core.readonly`", s.alias)
+	if err := s.checkWritable(ctx); err != nil {
+		return err
 	}
 
 	p := s.passfile(ctx, name)
@@ -78,14 +78,33 @@ func (s *Store) Set(ctx context.Context, name string, sec gopass.Byter) error {
 	return err
 }
 
-// StageUncommitted checks for an earlier write that did not reach a commit.
-func (s *Store) StageUncommitted(ctx context.Context, name string) (bool, error) {
+func (s *Store) checkWritable(ctx context.Context) error {
+	if cfg, _ := config.FromContext(ctx); cfg.GetM(s.alias, "core.readonly") == "true" {
+		return fmt.Errorf("writing to %s is disabled by `core.readonly`", s.alias)
+	}
+
+	return nil
+}
+
+// StageUncommitted checks for earlier writes that did not reach a commit.
+func (s *Store) StageUncommitted(ctx context.Context, names ...string) (bool, error) {
 	stager, ok := s.storage.(backend.UncommittedFileStager)
 	if !ok {
 		return false, nil
 	}
+	if err := s.checkWritable(ctx); err != nil {
+		return false, err
+	}
 
-	return stager.StageUncommitted(ctx, s.passfile(ctx, name))
+	files := make([]string, 0, len(names))
+	for _, name := range names {
+		if err := store.ValidateSecretName(name); err != nil {
+			return false, err
+		}
+		files = append(files, s.passfile(ctx, name))
+	}
+
+	return stager.StageUncommitted(ctx, files...)
 }
 
 func (s *Store) gitCommitAndPush(ctx context.Context, name string) error {

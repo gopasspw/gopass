@@ -53,9 +53,14 @@ func (a *MockAPI) List(ctx context.Context) ([]string, error) {
 	return a.store.List(ctx, "") //nolint:wrapcheck
 }
 
-// MountPoint always returns the root because the mock has no mounts.
-func (a *MockAPI) MountPoint(string) string {
-	return ""
+// SameRecipientScope is always true because the mock has no recipient scopes.
+func (a *MockAPI) SameRecipientScope(context.Context, string, string) bool {
+	return true
+}
+
+// Exists reports whether the named mock secret exists.
+func (a *MockAPI) Exists(ctx context.Context, name string) bool {
+	return a.store.Exists(ctx, name)
 }
 
 // AuditList returns a list of all secrets in the mock store.

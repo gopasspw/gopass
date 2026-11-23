@@ -362,6 +362,56 @@ func TestPasskeyCreateStaysInConfiguredMount(t *testing.T) {
 	assert.Regexp(t, `(?m)^passkeys/example\.com/alice[^\n]*`+regexp.QuoteMeta(private.ID)+`$`, out)
 }
 
+func TestPasskeyWritesStayInRecipientScope(t *testing.T) {
+	ts := newTester(t)
+	defer ts.teardown()
+	ts.initStore()
+
+	dir := ts.storeDir("root")
+	sharedDir := filepath.Join(dir, "Passkeys", "example.com")
+	require.NoError(t, os.MkdirAll(sharedDir, 0o700))
+	privateDir := filepath.Join(dir, "passkeys", "example.com")
+	if _, err := os.Stat(privateDir); err == nil {
+		t.Skip("test requires distinct case variants on the filesystem")
+	} else {
+		require.ErrorIs(t, err, os.ErrNotExist)
+	}
+	key := createGPGKey(t, ts, "Teammate", "passkey-teammate@example.com")
+	require.NoError(t, os.WriteFile(filepath.Join(sharedDir, ".gpg-id"), []byte(key+"\n"), 0o600))
+
+	const create = "--yes passkey create example.com alice --user-handle aGFuZGxl"
+	out, err := ts.run("config passkey.prefix Passkeys")
+	require.NoError(t, err, out)
+	out, err = ts.run(create)
+	require.NoError(t, err, out)
+	var shared webauthnResponse
+	require.NoError(t, json.Unmarshal([]byte(out), &shared))
+	sharedPath := filepath.Join(sharedDir, "alice.gpg")
+	before, err := os.ReadFile(sharedPath)
+	require.NoError(t, err)
+
+	file := filepath.Join(t.TempDir(), "passkeys.json")
+	out, err = ts.runCmd([]string{ts.Binary, "passkey", "export", "--output", file}, nil)
+	require.NoError(t, err, out)
+	out, err = ts.run("config passkey.prefix passkeys")
+	require.NoError(t, err, out)
+	out, err = ts.runCmd([]string{ts.Binary, "passkey", "import", file}, nil)
+	require.NoError(t, err, out)
+	require.FileExists(t, filepath.Join(privateDir, "alice.gpg"))
+
+	out, err = ts.run(create)
+	require.NoError(t, err, out)
+	var private webauthnResponse
+	require.NoError(t, json.Unmarshal([]byte(out), &private))
+	out, err = ts.run("passkey list example.com")
+	require.NoError(t, err, out)
+	assert.Regexp(t, `(?m)^Passkeys/example\.com/alice[^\n]*`+regexp.QuoteMeta(shared.ID)+`$`, out)
+	assert.Regexp(t, `(?m)^passkeys/example\.com/alice[^\n]*`+regexp.QuoteMeta(private.ID)+`$`, out)
+	after, err := os.ReadFile(sharedPath)
+	require.NoError(t, err)
+	assert.Equal(t, before, after, "neither import nor registration rewrites the shared secret")
+}
+
 func TestPasskeyImportIsCommitted(t *testing.T) {
 	if _, err := exec.LookPath("git"); err != nil {
 		t.Skip("git binary not available")
@@ -423,6 +473,28 @@ func TestPasskeyImportIsCommitted(t *testing.T) {
 		assert.Equal(t, "1", git(t, "rev-list", "--count", before+"..HEAD"))
 	})
 
+	t.Run("retry preserves staged changes", func(t *testing.T) {
+		run(t, "config --store team core.autopush false")
+		const name = "passkeys/example.com/alice.gpg"
+		before := git(t, "rev-parse", "HEAD")
+		path := filepath.Join(dir, name)
+		working, err := os.ReadFile(path)
+		require.NoError(t, err)
+		require.NoError(t, os.WriteFile(path, []byte("staged version"), 0o600))
+		git(t, "add", "--", name)
+		require.NoError(t, os.WriteFile(path, working, 0o600))
+
+		index := git(t, "ls-files", "--stage", name)
+		out, err := ts.runCmd([]string{ts.Binary, "passkey", "import", file}, nil)
+		require.ErrorContains(t, err, "exit status 7", out)
+		assert.Contains(t, out, "index and worktree diverge")
+		assert.Equal(t, index, git(t, "ls-files", "--stage", name))
+		assert.Equal(t, before, git(t, "rev-parse", "HEAD"))
+
+		git(t, "add", "--", name)
+		require.Empty(t, git(t, "status", "--porcelain"))
+	})
+
 	t.Run("commit even when a later write fails", func(t *testing.T) {
 		run(t, "config passkey.prefix team/partial")
 		run(t, "config --store team core.autopush false")
@@ -470,6 +542,20 @@ func TestPasskeyImportIsCommitted(t *testing.T) {
 			alice := filepath.Join(dir, prefix, "example.com", "alice.gpg")
 			saved, err := os.ReadFile(alice)
 			require.NoError(t, err)
+
+			if failAt == "commit" {
+				t.Run("readonly", func(t *testing.T) {
+					t.Setenv("GOPASS_CONFIG_COUNT", "1")
+					t.Setenv("GOPASS_CONFIG_KEY_0", "core.readonly")
+					t.Setenv("GOPASS_CONFIG_VALUE_0", "true")
+					index := git(t, "status", "--porcelain")
+					out, err := ts.runCmd([]string{ts.Binary, "passkey", "import", file}, nil)
+					require.ErrorContains(t, err, "exit status 7", out)
+					assert.Contains(t, out, "core.readonly")
+					assert.Equal(t, index, git(t, "status", "--porcelain"))
+					assert.Equal(t, before, git(t, "rev-parse", "HEAD"))
+				})
+			}
 
 			out, err = ts.runCmd([]string{ts.Binary, "passkey", "import", file}, nil)
 			require.NoError(t, err, out)

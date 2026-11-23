@@ -368,15 +368,11 @@ func TestStoreNamesDifferingInCase(t *testing.T) {
 
 type mountedPasskeyStore struct {
 	*apimock.MockAPI
-	mount string
+	shared string
 }
 
-func (m mountedPasskeyStore) MountPoint(name string) string {
-	if strings.HasPrefix(name+"/", m.mount+"/") {
-		return m.mount
-	}
-
-	return ""
+func (m mountedPasskeyStore) SameRecipientScope(_ context.Context, a, b string) bool {
+	return strings.HasPrefix(a+"/", m.shared+"/") == strings.HasPrefix(b+"/", m.shared+"/")
 }
 
 func TestStoreCaseMatchingDoesNotCrossMounts(t *testing.T) {
@@ -387,7 +383,7 @@ func TestStoreCaseMatchingDoesNotCrossMounts(t *testing.T) {
 			t.Parallel()
 
 			ctx := testContext(t)
-			api := mountedPasskeyStore{MockAPI: apimock.New(), mount: mount}
+			api := mountedPasskeyStore{MockAPI: apimock.New(), shared: mount}
 			s := NewStore(ctx, api)
 			sharedName := "Passkeys/example.com/alice"
 			if mount != "Passkeys" {
@@ -417,6 +413,25 @@ func TestStoreCaseMatchingDoesNotCrossMounts(t *testing.T) {
 			require.Equal(t, []*Credential{private}, readCreds(ctx, t, api, privateName))
 		})
 	}
+}
+
+func TestStoreDoesNotSubstitutePasskeyMutationPath(t *testing.T) {
+	t.Parallel()
+
+	ctx := testContext(t)
+	api := apimock.New()
+	s := NewStore(ctx, api)
+	const original = "passkeys/example.com/alice"
+	const variant = "passkeys/Example.COM/alice"
+	cred, err := New(NewOptions{RPID: "example.com", UserHandle: []byte("handle"), UserName: "alice", SignCounter: true})
+	require.NoError(t, err)
+	writeCreds(ctx, t, api, variant, cred)
+
+	_, err = s.Advance(ctx, original, cred)
+	require.ErrorIs(t, err, ErrNoCredentials)
+	_, err = s.Remove(ctx, original, cred.ID)
+	require.ErrorIs(t, err, ErrNoCredentials)
+	assert.Equal(t, []*Credential{cred}, readCreds(ctx, t, api, variant))
 }
 
 func TestStoreAdvanceAndRemove(t *testing.T) {

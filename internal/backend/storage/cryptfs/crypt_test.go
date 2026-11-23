@@ -194,4 +194,42 @@ func TestGit(t *testing.T) {
 	staged, err = crypt.StageUncommitted(ctx, "foo/baz")
 	require.NoError(t, err)
 	assert.False(t, staged)
+
+	// The ciphertext can be committed before the mapping. Don't silently
+	// commit the whole mapping when it also includes a name outside the batch.
+	require.NoError(t, crypt.Set(ctx, "foo/first", []byte("3")))
+	require.NoError(t, crypt.Set(ctx, "foo/second", []byte("4")))
+	require.NoError(t, crypt.sub.Add(ctx, crypt.mappings["foo/first"]))
+	require.NoError(t, crypt.sub.Commit(ctx, "only first ciphertext"))
+	staged, err = crypt.StageUncommitted(ctx, "foo/first")
+	require.ErrorContains(t, err, "unrelated pending changes")
+	assert.False(t, staged)
+	status, err := crypt.sub.Status(ctx)
+	require.NoError(t, err)
+	assert.NotContains(t, string(status), "Changes to be committed")
+
+	staged, err = crypt.StageUncommitted(ctx, "foo/first", "foo/second")
+	require.NoError(t, err)
+	assert.True(t, staged)
+	require.NoError(t, crypt.Commit(ctx, "recover both names"))
+	want, err = crypt.sub.Get(ctx, mappingFile)
+	require.NoError(t, err)
+	got, err = crypt.sub.GetRevision(ctx, mappingFile, "HEAD")
+	require.NoError(t, err)
+	assert.Equal(t, want, got)
+	_, err = crypt.GetRevision(ctx, "foo/second", "HEAD")
+	require.NoError(t, err)
+
+	// If both ciphertexts are already committed, the mapping alone must
+	// still be staged even though neither ciphertext needs an update.
+	require.NoError(t, crypt.Set(ctx, "foo/mapping-only", []byte("5")))
+	require.NoError(t, crypt.sub.Add(ctx, crypt.mappings["foo/mapping-only"]))
+	require.NoError(t, crypt.sub.Commit(ctx, "commit ciphertext before mapping"))
+	staged, err = crypt.StageUncommitted(ctx, "foo/mapping-only")
+	require.NoError(t, err)
+	assert.True(t, staged)
+	require.NoError(t, crypt.Commit(ctx, "recover only the mapping"))
+	staged, err = crypt.StageUncommitted(ctx, "foo/mapping-only")
+	require.NoError(t, err)
+	assert.False(t, staged)
 }

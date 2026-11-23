@@ -232,7 +232,7 @@ func (a *Authenticator) Register(ctx context.Context, origin Origin, opts *Creat
 	}
 
 	if len(opts.ExcludeCredentials) == 0 {
-		names = slices.DeleteFunc(names, func(n string) bool { return !a.store.Owns(n) })
+		names = slices.DeleteFunc(names, func(n string) bool { return !a.store.isAccountPath(cctx, n) })
 	}
 
 	entries, err := a.store.load(cctx, names)
@@ -247,7 +247,7 @@ func (a *Authenticator) Register(ctx context.Context, origin Origin, opts *Creat
 
 	// The user should know if the account has a passkey already. The new
 	// one is added to the same secret.
-	existing, _ := a.store.accountIn(entries, rpID, user.ID)
+	existing, _ := a.store.accountIn(cctx, entries, rpID, user.ID)
 	req.Entry = existing
 
 	req.Operation = OperationRegister

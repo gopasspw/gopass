@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"maps"
 	"os"
 	"slices"
 	"strings"
@@ -45,14 +46,19 @@ func (p passkeySecretStore) Set(ctx context.Context, name string, sec gopass.Byt
 	return p.rs.Set(ctx, name, sec) //nolint:wrapcheck
 }
 
-func (p passkeySecretStore) MountPoint(name string) string {
-	return p.rs.MountPoint(name)
+func (p passkeySecretStore) SameRecipientScope(ctx context.Context, a, b string) bool {
+	return p.rs.SameRecipientScope(ctx, a, b)
 }
 
-// passkeyImportStore records the paths staged during this import.
+func (p passkeySecretStore) Exists(ctx context.Context, name string) bool {
+	return p.rs.Exists(ctx, name)
+}
+
+// passkeyImportStore records the target paths and whether Put staged them.
 type passkeyImportStore struct {
 	passkeySecretStore
 	staged set.Set[string]
+	names  map[string]set.Set[string]
 }
 
 func (p *passkeyImportStore) Set(ctx context.Context, name string, sec gopass.Byter) error {
@@ -64,33 +70,41 @@ func (p *passkeyImportStore) Set(ctx context.Context, name string, sec gopass.By
 	return nil
 }
 
-func (p *passkeyImportStore) resume(ctx context.Context, name string) error {
-	if p.staged[name] {
-		return nil
-	}
-
-	// Put skips Set when the credential is unchanged. The ciphertext may
-	// still need to be committed if a prior import failed or was interrupted.
-	pending, err := p.rs.StageUncommitted(ctx, name)
-	if err != nil {
-		return fmt.Errorf("failed to stage existing passkey secret %q: %w", name, err)
-	}
-	if pending {
-		p.staged.Add(name)
-	}
-
-	return nil
+func (p *passkeyImportStore) record(name string) {
+	mount := p.rs.MountPoint(name)
+	names := p.names[mount]
+	names.Add(name)
+	p.names[mount] = names
 }
 
-func (p *passkeyImportStore) commit(ctx context.Context) error {
+func (p *passkeyImportStore) finish(ctx context.Context) error {
 	var errs []error
 
-	for _, mount := range p.staged.Map(p.rs.MountPoint).Elements() {
-		storage := p.rs.Storage(ctx, mount)
+	for _, mount := range slices.Sorted(maps.Keys(p.names)) {
 		label := mount
 		if label == "" {
 			label = "<root>"
 		}
+
+		names := p.names[mount].Elements()
+		pending := true
+		if slices.ContainsFunc(names, func(name string) bool { return !p.staged[name] }) {
+			// Put skips Set when a credential is unchanged. Recover any
+			// pending writes together, without committing this mount if
+			// a path's index or shared metadata cannot be recovered safely.
+			var err error
+			pending, err = p.rs.StageUncommitted(ctx, mount, names...)
+			if err != nil {
+				errs = append(errs, fmt.Errorf("failed to recover imported passkeys in %q: %w", label, err))
+
+				continue
+			}
+		}
+		if !pending || !ctxutil.IsGitCommit(ctx) {
+			continue
+		}
+
+		storage := p.rs.Storage(ctx, mount)
 		if storage == nil {
 			errs = append(errs, fmt.Errorf("storage not available for %q", label))
 
@@ -634,7 +648,10 @@ func (s *passkeyHandler) PasskeyImport(ctx context.Context, cmd *cli.Command) er
 		out.Warningf(ctx, "Some passkeys could not be imported: %s", err)
 	}
 
-	batch := &passkeyImportStore{passkeySecretStore: passkeySecretStore{rs: s.Store}}
+	batch := &passkeyImportStore{
+		passkeySecretStore: passkeySecretStore{rs: s.Store},
+		names:              make(map[string]set.Set[string]),
+	}
 	st := passkey.NewStore(ctx, batch)
 	// Stage synchronously: a queued commit would race with the next git add.
 	stageCtx := ctxutil.WithGitCommit(ctx, false)
@@ -651,23 +668,16 @@ func (s *passkeyHandler) PasskeyImport(ctx context.Context, cmd *cli.Command) er
 
 			break
 		}
-		if err := batch.resume(stageCtx, name); err != nil {
-			importErr = exit.Error(exit.Git, err, "%s", err)
-
-			break
-		}
-
+		batch.record(name)
 		out.Printf(ctx, "Imported passkey for %q at %s into %s", cred.Label(), cred.RPID, name)
 	}
 
 	// Finish committing the earlier writes even if a later credential failed.
-	if ctxutil.IsGitCommit(ctx) {
-		if err := batch.commit(ctx); err != nil {
-			if importErr == nil {
-				return exit.Error(exit.Git, err, "%s", err)
-			}
-			out.Warningf(ctx, "%s", err)
+	if err := batch.finish(ctx); err != nil {
+		if importErr == nil {
+			return exit.Error(exit.Git, err, "%s", err)
 		}
+		out.Warningf(ctx, "%s", err)
 	}
 	if importErr != nil {
 		return importErr

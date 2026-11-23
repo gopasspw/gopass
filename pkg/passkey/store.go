@@ -33,10 +33,10 @@ const (
 // SecretStore is the part of a password store that is needed to persist
 // credentials. It is satisfied by gopass.Store.
 //
-// A store can also implement MountPoint(name string) string, returning the
-// mount that serves the given name (including names that do not yet exist).
-// This lets passkey storage reuse case variants without crossing a mount.
-// Without mount information, writes do not reuse differently cased paths.
+// To allow writes to reuse a different secret path, a store can additionally
+// implement SameRecipientScope(context.Context, string, string) bool and
+// Exists(context.Context, string) bool. The scope check must verify that both
+// paths would use the same mount and recipient file, even for a new secret.
 type SecretStore interface {
 	// List returns the names of all secrets.
 	List(ctx context.Context) ([]string, error)
@@ -44,6 +44,11 @@ type SecretStore interface {
 	Get(ctx context.Context, name, revision string) (gopass.Secret, error)
 	// Set creates or updates the secret with the given name.
 	Set(ctx context.Context, name string, sec gopass.Byter) error
+}
+
+type scopedSecretStore interface {
+	SameRecipientScope(ctx context.Context, a, b string) bool
+	Exists(ctx context.Context, name string) bool
 }
 
 // Entry is a credential and the name of the secret that holds it.
@@ -75,9 +80,9 @@ type Entry struct {
 // before it changes it, but two processes changing the same secret at the
 // very same time can still overwrite each other.
 type Store struct {
-	store      SecretStore
-	prefix     string
-	mountPoint func(string) string
+	store  SecretStore
+	prefix string
+	scope  scopedSecretStore
 }
 
 // NewStore returns a Store that keeps credentials in s. New credentials are
@@ -89,15 +94,13 @@ type Store struct {
 // store, and whoever can push to the store could otherwise redirect new
 // credentials to another folder or claim user verification.
 func NewStore(ctx context.Context, s SecretStore) *Store {
-	st := &Store{
+	scope, _ := s.(scopedSecretStore)
+
+	return &Store{
 		store:  s,
 		prefix: prefixFromConfig(ctx),
+		scope:  scope,
 	}
-	if m, ok := s.(interface{ MountPoint(string) string }); ok {
-		st.mountPoint = m.MountPoint
-	}
-
-	return st
 }
 
 func prefixFromConfig(ctx context.Context) string {
@@ -168,21 +171,36 @@ func (s *Store) IsPasskeyName(name string) bool {
 	return ok
 }
 
-// Owns reports whether a secret is located directly below the prefix, in the
-// same mount as the name that would be used for a new credential.
+// Owns reports whether a secret is in the exact configured prefix and has a
+// canonical RP ID in its path.
 func (s *Store) Owns(name string) bool {
-	dir, account, _ := cutLast(name)
-	parent, rpID, found := cutLast(dir)
-	if !found || !strings.EqualFold(parent, s.prefix) {
-		return false
-	}
-
-	return s.sameMount(name, s.prefix+"/"+strings.ToLower(rpID)+"/"+account)
+	return name != "" && name == s.canonicalName(name)
 }
 
-// sameMount rejects spelling changes whenever their routing cannot be verified.
-func (s *Store) sameMount(a, b string) bool {
-	return a == b || (s.mountPoint != nil && s.mountPoint(a) == s.mountPoint(b))
+// canonicalName returns the spelling used for new credentials. The account
+// part is left alone because it is not an RP ID.
+func (s *Store) canonicalName(name string) string {
+	dir, account, _ := cutLast(name)
+	parent, rpID, found := cutLast(dir)
+	if !found || rpID == "" || account == "" || !strings.EqualFold(parent, s.prefix) {
+		return ""
+	}
+
+	return s.secretName(strings.ToLower(rpID), account)
+}
+
+func (s *Store) secretName(rpID, account string) string {
+	return s.prefix + "/" + rpID + "/" + account
+}
+
+func (s *Store) sameWriteScope(ctx context.Context, a, b string) bool {
+	return a == b || (s.scope != nil && s.scope.SameRecipientScope(ctx, a, b))
+}
+
+func (s *Store) isAccountPath(ctx context.Context, name string) bool {
+	canonical := s.canonicalName(name)
+
+	return canonical != "" && s.sameWriteScope(ctx, name, canonical)
 }
 
 // cutLast splits a secret name at its last separator.
@@ -417,12 +435,12 @@ func (s *Store) putTo(ctx context.Context, cred *Credential, target string) (str
 		return "", err
 	}
 
-	dest := s.prefix + "/" + cred.RPID + "/" + accountName(cred)
-	if target == "" || (s.mountPoint != nil && !s.sameMount(target, dest)) {
+	dest := s.secretName(cred.RPID, accountName(cred))
+	if target == "" || !s.sameWriteScope(ctx, target, dest) {
 		target = dest
 	}
 
-	return s.modify(ctx, target, func(creds []*Credential) ([]*Credential, bool, error) {
+	return s.modify(ctx, target, true, func(creds []*Credential) ([]*Credential, bool, error) {
 		var stored, changed bool
 		// A credential takes the place of the one it replaces, so that
 		// storing it again leaves the secret as it is.
@@ -464,7 +482,7 @@ func (s *Store) AccountSecret(ctx context.Context, rpID string, userHandle []byt
 		// Only secrets below the prefix are candidates for an update.
 		// Secrets in other folders may be shared with other people, who must
 		// not end up with a credential that was created for this user alone.
-		if !s.Owns(name) {
+		if !s.isAccountPath(ctx, name) {
 			continue
 		}
 
@@ -493,9 +511,9 @@ func (s *Store) AccountSecret(ctx context.Context, rpID string, userHandle []byt
 // accountIn returns the account secret of a user account among entries
 // loaded by [Store.List]. It is what [Store.AccountSecret] returns for the
 // same state of the store.
-func (s *Store) accountIn(entries []Entry, rpID string, userHandle []byte) (string, bool) {
+func (s *Store) accountIn(ctx context.Context, entries []Entry, rpID string, userHandle []byte) (string, bool) {
 	for _, e := range entries {
-		if s.Owns(e.Name) && e.Credential.RPID == rpID && bytes.Equal(e.Credential.UserHandle, userHandle) {
+		if e.Credential.RPID == rpID && bytes.Equal(e.Credential.UserHandle, userHandle) && s.isAccountPath(ctx, e.Name) {
 			return e.Name, true
 		}
 	}
@@ -521,9 +539,14 @@ func (s *Store) FindUser(ctx context.Context, rpID, userName string) (*Credentia
 		return nil, false
 	}
 
-	want := s.prefix + "/" + rpID + "/" + account
+	want := s.secretName(rpID, account)
 
-	i := slices.IndexFunc(names, func(n string) bool { return strings.EqualFold(n, want) && s.sameMount(n, want) })
+	i := slices.Index(names, want)
+	if i < 0 {
+		i = slices.IndexFunc(names, func(n string) bool {
+			return strings.EqualFold(n, want) && s.sameWriteScope(ctx, n, want)
+		})
+	}
 	if i < 0 {
 		return nil, false
 	}
@@ -555,7 +578,7 @@ func (s *Store) FindUser(ctx context.Context, rpID, userName string) (*Credentia
 func (s *Store) Advance(ctx context.Context, name string, cred *Credential) (*Credential, error) {
 	var stored *Credential
 
-	_, err := s.modify(ctx, name, func(creds []*Credential) ([]*Credential, bool, error) {
+	_, err := s.modify(ctx, name, false, func(creds []*Credential) ([]*Credential, bool, error) {
 		i := slices.IndexFunc(creds, func(c *Credential) bool { return bytes.Equal(c.ID, cred.ID) })
 		if i < 0 {
 			return nil, false, fmt.Errorf("%w in %s", ErrNoCredentials, name)
@@ -602,7 +625,7 @@ func sameCredential(a, b *Credential) bool {
 func (s *Store) Remove(ctx context.Context, name string, id []byte) (int, error) {
 	left := 0
 
-	_, err := s.modify(ctx, name, func(creds []*Credential) ([]*Credential, bool, error) {
+	_, err := s.modify(ctx, name, false, func(creds []*Credential) ([]*Credential, bool, error) {
 		n := len(creds)
 		creds = slices.DeleteFunc(creds, func(c *Credential) bool { return bytes.Equal(c.ID, id) })
 
@@ -626,7 +649,7 @@ func (s *Store) Remove(ctx context.Context, name string, id []byte) (int, error)
 // is returned: it can differ in case from the requested name. It is also
 // returned with an error wrapping ErrNotSynced. If fn reports no change, the
 // secret is left byte for byte as it was.
-func (s *Store) modify(ctx context.Context, name string, fn func([]*Credential) ([]*Credential, bool, error)) (string, error) {
+func (s *Store) modify(ctx context.Context, name string, matchCaseVariant bool, fn func([]*Credential) ([]*Credential, bool, error)) (string, error) {
 	all, err := s.store.List(ctx)
 	if err != nil {
 		return "", fmt.Errorf("failed to list secrets: %w", err)
@@ -640,12 +663,21 @@ func (s *Store) modify(ctx context.Context, name string, fn func([]*Credential) 
 	creds := []*Credential{}
 
 	i := slices.Index(all, name)
-	if i < 0 {
-		i = slices.IndexFunc(all, func(n string) bool {
-			return strings.EqualFold(n, name) && (s.mountPoint == nil || s.sameMount(n, name))
-		})
-		if i >= 0 && s.mountPoint == nil {
-			return "", fmt.Errorf("cannot safely match %q to %q without mount information", name, all[i])
+	if i < 0 && matchCaseVariant {
+		for idx, candidate := range all {
+			if !strings.EqualFold(candidate, name) {
+				continue
+			}
+			if s.sameWriteScope(ctx, candidate, name) {
+				i = idx
+
+				break
+			}
+			// Refuse to overwrite an existing alias on a case-insensitive
+			// filesystem if we can't prove it uses the intended recipients.
+			if s.scope == nil || s.scope.Exists(ctx, name) {
+				return "", fmt.Errorf("cannot safely reuse %q for %q: recipient scope differs or is unknown", candidate, name)
+			}
 		}
 	}
 

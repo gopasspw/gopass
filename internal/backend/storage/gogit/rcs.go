@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"os"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -15,7 +16,9 @@ import (
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/filemode"
 	"github.com/go-git/go-git/v5/plumbing/format/index"
+	"github.com/go-git/go-git/v5/plumbing/object"
 	"github.com/go-git/go-git/v5/plumbing/storer"
+	"github.com/gopasspw/gopass/internal/backend"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
@@ -89,8 +92,8 @@ func (g *GoGit) TryAdd(ctx context.Context, files ...string) error {
 	return err
 }
 
-// StageUncommitted stages the file only if it has pending changes.
-func (g *GoGit) StageUncommitted(ctx context.Context, name string) (bool, error) {
+// StageUncommitted stages pending files without replacing divergent index entries.
+func (g *GoGit) StageUncommitted(ctx context.Context, names ...string) (bool, error) {
 	if !g.IsInitialized() {
 		return false, nil
 	}
@@ -102,26 +105,151 @@ func (g *GoGit) StageUncommitted(ctx context.Context, name string) (bool, error)
 	if err != nil {
 		return false, err
 	}
-	status, err := wt.StatusWithOptions(git.StatusOptions{Strategy: git.Preload})
+	tree, err := g.headTree()
+	if err != nil && !errors.Is(err, os.ErrNotExist) {
+		return false, err
+	}
+	idx, err := g.repo.Storer.Index()
 	if err != nil {
 		return false, err
 	}
 
-	rel := g.rel(name)
-	if fs := status[rel]; fs != nil {
-		if fs.Worktree == git.Unmodified {
-			return fs.Staging != git.Unmodified, nil
+	pending := false
+	var add []string
+	for _, name := range names {
+		rel := g.rel(name)
+		head, err := fileAtHead(tree, rel)
+		if err != nil {
+			return false, err
 		}
-	} else if !g.fs.Exists(ctx, rel) {
-		return false, nil
+		staged, err := fileInIndex(idx, rel)
+		if err != nil {
+			return false, err
+		}
+		working, err := g.worktreeFile(ctx, wt, rel)
+		if err != nil {
+			return false, err
+		}
+
+		switch {
+		case staged != head:
+			// A staged deletion or a different staged version isn't ours
+			// to replace, even if the worktree contains a readable secret.
+			if working != staged || working == (fileVersion{}) {
+				return false, backend.ConflictingIndexError(rel)
+			}
+			pending = true
+		case working != head:
+			add = append(add, rel)
+		}
 	}
-	// A file missing from the preloaded status may be untracked and ignored.
-	// Add explicitly so it is treated the same as a newly written secret.
-	if _, err := wt.Add(rel); err != nil {
-		return false, err
+	for _, rel := range add {
+		// Pass an exact filename, including untracked files ignored by Git.
+		if _, err := wt.Add(rel); err != nil {
+			return false, err
+		}
 	}
 
-	return true, nil
+	return pending || len(add) > 0, nil
+}
+
+type fileVersion struct {
+	hash plumbing.Hash
+	mode filemode.FileMode
+}
+
+func fileAtHead(tree *object.Tree, name string) (fileVersion, error) {
+	if tree == nil {
+		return fileVersion{}, nil
+	}
+	e, err := tree.FindEntry(name)
+	if err != nil {
+		if errors.Is(err, object.ErrEntryNotFound) || errors.Is(err, object.ErrFileNotFound) || errors.Is(err, object.ErrDirectoryNotFound) {
+			return fileVersion{}, nil
+		}
+
+		return fileVersion{}, err
+	}
+
+	return fileVersion{hash: e.Hash, mode: e.Mode}, nil
+}
+
+func fileInIndex(idx *index.Index, name string) (fileVersion, error) {
+	e, err := idx.Entry(name)
+	if errors.Is(err, index.ErrEntryNotFound) {
+		return fileVersion{}, nil
+	}
+	if err != nil {
+		return fileVersion{}, err
+	}
+	if e.Stage != 0 || e.IntentToAdd || e.SkipWorktree {
+		return fileVersion{}, backend.ConflictingIndexError(name)
+	}
+
+	return fileVersion{hash: e.Hash, mode: e.Mode}, nil
+}
+
+func (g *GoGit) worktreeFile(ctx context.Context, wt *git.Worktree, name string) (fileVersion, error) {
+	info, err := wt.Filesystem.Lstat(name)
+	if err != nil {
+		return fileVersion{}, err
+	}
+	if !info.Mode().IsRegular() {
+		return fileVersion{}, backend.ConflictingIndexError(name)
+	}
+	mode, err := filemode.NewFromOSFileMode(info.Mode())
+	if err != nil {
+		return fileVersion{}, err
+	}
+	raw, err := g.fs.Get(ctx, name)
+	if err != nil {
+		return fileVersion{}, err
+	}
+
+	return fileVersion{hash: plumbing.ComputeHash(plumbing.BlobObject, raw), mode: mode}, nil
+}
+
+func (g *GoGit) headTree() (*object.Tree, error) {
+	ref, err := g.repo.Head()
+	if errors.Is(err, plumbing.ErrReferenceNotFound) {
+		return nil, os.ErrNotExist
+	}
+	if err != nil {
+		return nil, err
+	}
+	commit, err := g.repo.CommitObject(ref.Hash())
+	if err != nil {
+		return nil, err
+	}
+
+	return commit.Tree()
+}
+
+// CommittedFile returns an exact path from HEAD for recovery checks.
+func (g *GoGit) CommittedFile(ctx context.Context, name string) ([]byte, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
+	tree, err := g.headTree()
+	if err != nil {
+		return nil, err
+	}
+	rel := g.rel(name)
+	ver, err := fileAtHead(tree, rel)
+	if err != nil {
+		return nil, err
+	}
+	if ver == (fileVersion{}) {
+		return nil, os.ErrNotExist
+	}
+
+	file, err := tree.File(rel)
+	if err != nil {
+		return nil, err
+	}
+	content, err := file.Contents()
+
+	return []byte(content), err
 }
 
 // HasStagedChanges returns true if there are any staged changes which can be committed.
