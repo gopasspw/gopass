@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"runtime"
 	"strings"
 	"testing"
@@ -14,7 +15,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-const gpgDecryptHelperEnv = "GOPASS_TEST_GPG_DECRYPT_HELPER"
+const (
+	gpgDecryptHelperEnv     = "GOPASS_TEST_GPG_DECRYPT_HELPER"
+	gpgDecryptHintHelperEnv = "GOPASS_TEST_GPG_DECRYPT_HINT_HELPER"
+)
 
 func TestDecryptionSucceeded(t *testing.T) {
 	t.Parallel()
@@ -140,32 +144,67 @@ func TestDecryptionSucceeded(t *testing.T) {
 func TestGPGStatusFilter(t *testing.T) {
 	t.Parallel()
 
-	var stderr bytes.Buffer
-	f := &gpgStatusFilter{dst: &stderr}
+	t.Run("mid-line chunking", func(t *testing.T) {
+		t.Parallel()
 
-	input := strings.Join([]string{
-		"[GNUPG:] BEGIN_DECRYPTION",
-		"gpg: ecdh failed in gcry_cipher_decrypt: Bad checksum",
-		"[GNUPG:] DECRYPTION_OKAY\r",
-		"[GNUPG:] END_DECRYPTION",
-		"gpg: trailing line without newline",
-	}, "\n")
+		var stderr bytes.Buffer
+		f := &gpgStatusFilter{dst: &stderr}
 
-	// Feed in small chunks to exercise mid-line buffering.
-	for i := 0; i < len(input); i += 7 {
-		end := min(i+7, len(input))
-		n, err := f.Write([]byte(input[i:end]))
-		require.NoError(t, err)
-		require.Equal(t, end-i, n)
-	}
-	require.NoError(t, f.Flush())
+		input := strings.Join([]string{
+			"[GNUPG:] BEGIN_DECRYPTION",
+			"gpg: ecdh failed in gcry_cipher_decrypt: Bad checksum",
+			"[GNUPG:] DECRYPTION_OKAY\r",
+			"[GNUPG:] END_DECRYPTION",
+			"gpg: trailing line without newline",
+		}, "\n")
 
-	assert.Equal(t, []string{
-		"BEGIN_DECRYPTION",
-		"DECRYPTION_OKAY",
-		"END_DECRYPTION",
-	}, f.status)
-	assert.Equal(t, "gpg: ecdh failed in gcry_cipher_decrypt: Bad checksum\ngpg: trailing line without newline", stderr.String())
+		// Feed in small chunks to exercise mid-line buffering.
+		for i := 0; i < len(input); i += 7 {
+			end := min(i+7, len(input))
+			n, err := f.Write([]byte(input[i:end]))
+			require.NoError(t, err)
+			require.Equal(t, end-i, n)
+		}
+		require.NoError(t, f.Flush())
+
+		assert.Equal(t, []string{
+			"BEGIN_DECRYPTION",
+			"DECRYPTION_OKAY",
+			"END_DECRYPTION",
+		}, f.status)
+		assert.Equal(t, "gpg: ecdh failed in gcry_cipher_decrypt: Bad checksum\ngpg: trailing line without newline", stderr.String())
+	})
+
+	t.Run("crlf and error status", func(t *testing.T) {
+		t.Parallel()
+
+		var stderr bytes.Buffer
+		f := &gpgStatusFilter{dst: &stderr}
+
+		chunks := []string{
+			"[GNUPG:] ENC_TO DE252335EC8A1EB2 18 0\n",
+			"gpg: public key decryption failed: ",
+			"Inappropriate ioctl for device\r\n",
+			"[GNUPG:] ERROR pkdecrypt_failed ",
+			"83918950\r\n",
+			"gpg: decryption failed: Inappropriate ioctl for device",
+		}
+		for _, chunk := range chunks {
+			n, err := f.Write([]byte(chunk))
+			require.NoError(t, err)
+			assert.Equal(t, len(chunk), n)
+		}
+		require.NoError(t, f.Flush())
+
+		assert.Equal(t, []string{
+			"ENC_TO DE252335EC8A1EB2 18 0",
+			"ERROR pkdecrypt_failed 83918950",
+		}, f.status)
+		assert.Equal(t,
+			"gpg: public key decryption failed: Inappropriate ioctl for device\r\ngpg: decryption failed: Inappropriate ioctl for device",
+			stderr.String(),
+		)
+	})
 }
 
 func TestDecryptExitCodeHandling(t *testing.T) {
@@ -315,4 +354,337 @@ func TestDecryptMultiECDHThrowKeyids(t *testing.T) {
 	corrupted[len(corrupted)-5] ^= 0xff
 	_, err = g.Decrypt(ctx, corrupted)
 	require.Error(t, err)
+}
+
+func TestDecryptErrorHint(t *testing.T) {
+	t.Parallel()
+
+	for _, tc := range []struct {
+		name           string
+		statusLines    []string
+		wantSubstrings []string
+		wantAbsent     []string
+		wantEmpty      bool
+	}{
+		{
+			name: "pinentry ENOTTY with unset GPG_TTY",
+			statusLines: []string{
+				"ENC_TO DE252335EC8A1EB2 18 0",
+				"PINENTRY_LAUNCHED 290390 curses 1.3.3 - dumb - - 1000/1000 0",
+				"NO_SECKEY DE252335EC8A1EB2",
+				"ERROR pkdecrypt_failed 83918950",
+				"BEGIN_DECRYPTION",
+				"DECRYPTION_FAILED",
+				"END_DECRYPTION",
+				"FAILURE gpg-exit 33554433",
+			},
+			wantSubstrings: []string{"Pinentry", "flavor=curses", "tty=<unset>", "GPG_TTY"},
+			wantAbsent:     []string{"SCD", "smartcard"},
+		},
+		{
+			name: "pinentry ENOENT with broken GPG_TTY",
+			statusLines: []string{
+				"PINENTRY_LAUNCHED 290244 curses 1.3.3 /dev/foobar dumb - ? 1000/1000 0",
+				"ERROR pkdecrypt_failed 83918929",
+				"FAILURE gpg-exit 33554433",
+			},
+			wantSubstrings: []string{"Pinentry", "flavor=curses", "tty=/dev/foobar", "GPG_TTY"},
+			wantAbsent:     []string{"SCD", "smartcard"},
+		},
+		{
+			name: "pinentry error without PINENTRY_LAUNCHED",
+			statusLines: []string{
+				"ERROR pkdecrypt_failed 83918950",
+				"FAILURE gpg-exit 33554433",
+			},
+			wantSubstrings: []string{"gpg error source: Pinentry;", "GPG_TTY"},
+			wantAbsent:     []string{"flavor=", "tty="},
+		},
+		{
+			name: "pinentry canceled by user produces no misleading hint",
+			statusLines: []string{
+				"PINENTRY_LAUNCHED 290390 curses 1.3.3 /dev/pts/1 xterm - - 1000/1000 0",
+				"ERROR pkdecrypt_failed 83886179",
+				"FAILURE gpg-exit 33554433",
+			},
+			wantEmpty: true,
+		},
+		{
+			name: "smartcard daemon ENOTTY",
+			statusLines: []string{
+				"ENC_TO DE252335EC8A1EB2 18 0",
+				"ERROR pkdecrypt_failed 100696166",
+				"BEGIN_DECRYPTION",
+				"DECRYPTION_FAILED",
+				"END_DECRYPTION",
+				"FAILURE gpg-exit 33554433",
+			},
+			wantSubstrings: []string{"SCD (smartcard daemon)", "smartcard/security key", "scdaemon"},
+			wantAbsent:     []string{"Pinentry", "GPG_TTY"},
+		},
+		{
+			name: "smartcard daemon CARD_NOT_PRESENT",
+			statusLines: []string{
+				"ERROR pkdecrypt_failed 100663408",
+				"FAILURE gpg-exit 33554433",
+			},
+			wantSubstrings: []string{"SCD (smartcard daemon)", "smartcard/security key"},
+			wantAbsent:     []string{"Pinentry", "GPG_TTY"},
+		},
+		{
+			name: "smartcard daemon BAD_PIN omits insertion hint",
+			statusLines: []string{
+				"ERROR pkdecrypt_failed 100663383",
+				"FAILURE gpg-exit 33554433",
+			},
+			wantSubstrings: []string{"SCD (smartcard daemon)"},
+			wantAbsent:     []string{"inserted", "GPG_TTY"},
+		},
+		{
+			name: "smartcard daemon canceled produces no hint",
+			statusLines: []string{
+				"ERROR pkdecrypt_failed 100663395",
+				"FAILURE gpg-exit 33554433",
+			},
+			wantEmpty: true,
+		},
+		{
+			name: "GPG agent ENOTTY",
+			statusLines: []string{
+				"ERROR pkdecrypt_failed 67141734",
+				"FAILURE gpg-exit 33554433",
+			},
+			wantSubstrings: []string{"GPG Agent", "GPG_TTY"},
+		},
+		{
+			name: "GPG agent general error",
+			statusLines: []string{
+				"ERROR pkdecrypt_failed 67108865",
+				"FAILURE gpg-exit 33554433",
+			},
+			wantSubstrings: []string{"gpg error source: GPG Agent"},
+			wantAbsent:     []string{"GPG_TTY"},
+		},
+		{
+			name: "symmetric decrypt get_passphrase ENOTTY after PINENTRY_LAUNCHED",
+			statusLines: []string{
+				"NEED_PASSPHRASE_SYM 9 3 10",
+				"PINENTRY_LAUNCHED 291217 curses 1.3.3 - dumb - - 1000/1000 0",
+				"ERROR get_passphrase 32870",
+				"ERROR symkey_decrypt.maybe_error 11_BAD_PASSPHRASE",
+				"DECRYPTION_FAILED",
+				"FAILURE gpg-exit 33554433",
+			},
+			wantSubstrings: []string{"Pinentry", "flavor=curses", "tty=<unset>", "GPG_TTY"},
+		},
+		{
+			name: "garbage input produces no hint",
+			statusLines: []string{
+				"NODATA 1",
+				"NODATA 2",
+				"FAILURE decrypt 4294967295",
+			},
+			wantEmpty: true,
+		},
+		{
+			name: "generic GPG source NO_SECKEY produces no hint",
+			statusLines: []string{
+				"NO_SECKEY DE252335EC8A1EB2",
+				"ERROR pkdecrypt_failed 33554449",
+				"DECRYPTION_FAILED",
+				"FAILURE gpg-exit 33554433",
+			},
+			wantEmpty: true,
+		},
+		{
+			name: "TPM2d source",
+			statusLines: []string{
+				"ERROR pkdecrypt_failed 268435457",
+			},
+			wantSubstrings: []string{"TPM2d"},
+		},
+		{
+			name: "Assuan source",
+			statusLines: []string{
+				"ERROR pkdecrypt_failed 251658241",
+			},
+			wantSubstrings: []string{"Assuan"},
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			got := decryptErrorHint(tc.statusLines)
+			if tc.wantEmpty {
+				assert.Empty(t, got)
+
+				return
+			}
+			for _, sub := range tc.wantSubstrings {
+				assert.Contains(t, got, sub)
+			}
+			for _, sub := range tc.wantAbsent {
+				assert.NotContains(t, got, sub)
+			}
+		})
+	}
+}
+
+func TestDecryptErrorSourcePropagation(t *testing.T) {
+	for _, tc := range []struct {
+		name         string
+		mode         string
+		wantContains []string
+		wantAbsent   []string
+	}{
+		{
+			name:         "pinentry ENOTTY",
+			mode:         "pinentry-enotty",
+			wantContains: []string{"Pinentry", "flavor=curses", "tty=<unset>", "GPG_TTY"},
+			wantAbsent:   []string{"SCD"},
+		},
+		{
+			name:         "smartcard SCD ENOTTY",
+			mode:         "scd-enotty",
+			wantContains: []string{"SCD (smartcard daemon)", "smartcard/security key"},
+			wantAbsent:   []string{"Pinentry", "GPG_TTY"},
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Setenv(gpgDecryptHintHelperEnv, tc.mode)
+
+			ctx := config.NewContextInMemory()
+			g := &GPG{
+				binary: os.Args[0],
+				args:   []string{"-test.run=^TestGPGDecryptHintHelperProcess$", "--"},
+			}
+
+			_, err := g.Decrypt(ctx, []byte("ciphertext"))
+			require.Error(t, err)
+
+			var exitErr *exec.ExitError
+			require.ErrorAs(t, err, &exitErr, "wrapped error should preserve *exec.ExitError")
+			assert.Equal(t, 2, exitErr.ExitCode())
+
+			for _, sub := range tc.wantContains {
+				assert.Contains(t, err.Error(), sub)
+			}
+			for _, sub := range tc.wantAbsent {
+				assert.NotContains(t, err.Error(), sub)
+			}
+		})
+	}
+}
+
+// TestGPGDecryptHintHelperProcess is only executed as a subprocess by
+// TestDecryptErrorSourcePropagation to simulate GPG --status-fd 2 output.
+func TestGPGDecryptHintHelperProcess(t *testing.T) {
+	mode := os.Getenv(gpgDecryptHintHelperEnv)
+	if mode == "" {
+		t.Skip("not the helper process")
+	}
+
+	switch mode {
+	case "pinentry-enotty":
+		_, _ = fmt.Fprintln(os.Stderr, "[GNUPG:] PINENTRY_LAUNCHED 12345 curses 1.3.3 - dumb - - 1000/1000 0")
+		_, _ = fmt.Fprintln(os.Stderr, "gpg: public key decryption failed: Inappropriate ioctl for device")
+		_, _ = fmt.Fprintln(os.Stderr, "[GNUPG:] ERROR pkdecrypt_failed 83918950")
+		_, _ = fmt.Fprintln(os.Stderr, "[GNUPG:] DECRYPTION_FAILED")
+		_, _ = fmt.Fprintln(os.Stderr, "gpg: decryption failed: Inappropriate ioctl for device")
+		_, _ = fmt.Fprintln(os.Stderr, "[GNUPG:] FAILURE gpg-exit 33554433")
+	case "scd-enotty":
+		_, _ = fmt.Fprintln(os.Stderr, "gpg: public key decryption failed: Inappropriate ioctl for device")
+		_, _ = fmt.Fprintln(os.Stderr, "[GNUPG:] ERROR pkdecrypt_failed 100696166")
+		_, _ = fmt.Fprintln(os.Stderr, "[GNUPG:] DECRYPTION_FAILED")
+		_, _ = fmt.Fprintln(os.Stderr, "gpg: decryption failed: Inappropriate ioctl for device")
+		_, _ = fmt.Fprintln(os.Stderr, "[GNUPG:] FAILURE gpg-exit 33554433")
+	}
+
+	os.Exit(2)
+}
+
+func TestDecryptRealGPGPinentryError(t *testing.T) {
+	if testing.Short() || runtime.GOOS != "linux" {
+		t.Skip("skipping real-gpg pinentry test")
+	}
+
+	gpgBin, err := exec.LookPath("gpg")
+	if err != nil {
+		t.Skip("gpg not found in PATH")
+	}
+	gpgconfBin, err := exec.LookPath("gpgconf")
+	if err != nil {
+		t.Skip("gpgconf not found in PATH")
+	}
+	pinentryBin, err := exec.LookPath("pinentry-curses")
+	if err != nil {
+		t.Skip("pinentry-curses not found in PATH")
+	}
+
+	gnupgHome := t.TempDir()
+	require.NoError(t, os.Chmod(gnupgHome, 0o700))
+
+	t.Setenv("GNUPGHOME", gnupgHome)
+	t.Setenv("LC_ALL", "C")
+	t.Setenv("DISPLAY", "")
+	t.Setenv("WAYLAND_DISPLAY", "")
+
+	agentConf := filepath.Join(gnupgHome, "gpg-agent.conf")
+	require.NoError(t, os.WriteFile(agentConf, []byte("pinentry-program "+pinentryBin+"\n"), 0o600))
+
+	t.Cleanup(func() {
+		_ = exec.Command(gpgconfBin, "--kill", "gpg-agent").Run()
+	})
+
+	// Generate a passphrase-protected key so decryption requires pinentry.
+	genCmd := exec.Command(gpgBin, "--batch", "--gen-key")
+	genCmd.Stdin = bytes.NewBufferString(
+		"Key-Type: eddsa\n" +
+			"Key-Curve: ed25519\n" +
+			"Subkey-Type: ecdh\n" +
+			"Subkey-Curve: cv25519\n" +
+			"Name-Real: Pinentry Hint Test\n" +
+			"Name-Email: pinentry-hint@example.com\n" +
+			"Passphrase: test-passphrase\n" +
+			"%commit\n",
+	)
+	out, err := genCmd.CombinedOutput()
+	require.NoError(t, err, "gpg --gen-key failed: %s", string(out))
+
+	// Encrypt a test secret to the generated key.
+	encCmd := exec.Command(gpgBin, "--batch", "--yes", "--trust-model", "always", "-e", "-r", "pinentry-hint@example.com")
+	encCmd.Stdin = bytes.NewBufferString("top secret\n")
+	ciphertext, err := encCmd.Output()
+	require.NoError(t, err)
+
+	ctx := config.NewContextInMemory()
+	g := &GPG{
+		binary: gpgBin,
+		args:   defaultArgs,
+	}
+
+	// 1. Unset GPG_TTY triggers "Inappropriate ioctl for device" from Pinentry.
+	t.Run("unset GPG_TTY", func(t *testing.T) {
+		t.Setenv("GPG_TTY", "")
+		require.NoError(t, exec.Command(gpgconfBin, "--kill", "gpg-agent").Run())
+
+		_, err := g.Decrypt(ctx, ciphertext)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "Pinentry")
+		assert.Contains(t, err.Error(), "tty=<unset>")
+		assert.Contains(t, err.Error(), "GPG_TTY")
+	})
+
+	// 2. Broken GPG_TTY path triggers ENOENT from Pinentry.
+	t.Run("broken GPG_TTY path", func(t *testing.T) {
+		badTTY := "/dev/nonexistent-gopass-test-tty"
+		t.Setenv("GPG_TTY", badTTY)
+		require.NoError(t, exec.Command(gpgconfBin, "--kill", "gpg-agent").Run())
+
+		_, err := g.Decrypt(ctx, ciphertext)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "Pinentry")
+		assert.Contains(t, err.Error(), "tty="+badTTY)
+		assert.Contains(t, err.Error(), "GPG_TTY")
+	})
 }
