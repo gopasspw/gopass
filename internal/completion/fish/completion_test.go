@@ -84,6 +84,45 @@ func TestGetCompletion(t *testing.T) {
 	assert.Contains(t, sv, "")
 }
 
+// The secret carrying commands must offer store entries regardless of whether
+// they were typed by name or by an alias, and `cat` must offer them as well.
+func TestGetCompletionSecretArguments(t *testing.T) {
+	t.Parallel()
+
+	app := &cli.Command{
+		Name: "gopass",
+		Commands: []*cli.Command{
+			{Name: "copy", Aliases: []string{"cp"}},
+			{Name: "move", Aliases: []string{"mv"}},
+			{Name: "delete", Aliases: []string{"remove", "rm"}},
+			{Name: "edit", Aliases: []string{"set"}},
+			{Name: "show"},
+			{Name: "otp", Aliases: []string{"totp", "hotp"}},
+			{Name: "cat"},
+			{Name: "list", Aliases: []string{"ls"}},
+			{Name: "insert"},
+		},
+	}
+
+	sv, err := GetCompletion(app)
+	require.NoError(t, err)
+
+	for _, cond := range []string{
+		"uses_command copy cp'",
+		"uses_command move mv'",
+		"uses_command delete remove rm'",
+		"uses_command edit set'",
+		"uses_command show'",
+		"uses_command otp totp hotp'",
+		"uses_command cat'",
+	} {
+		assert.Contains(t, sv, cond+" -a \"(__fish_gopass_print_entries)\"")
+	}
+
+	assert.Contains(t, sv, "uses_command list ls' -a \"(__fish_gopass_print_dir)\"")
+	assert.Contains(t, sv, "for name in $argv")
+}
+
 func TestFormatflagFunc(t *testing.T) {
 	t.Parallel()
 
