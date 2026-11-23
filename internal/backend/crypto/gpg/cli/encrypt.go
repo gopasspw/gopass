@@ -9,6 +9,7 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"strings"
 
 	"github.com/gopasspw/gopass/internal/backend/crypto/gpg"
 	"github.com/gopasspw/gopass/internal/out"
@@ -33,12 +34,13 @@ func (g *GPG) Encrypt(ctx context.Context, plaintext []byte, recipients []string
 	if len(recipients) == 0 {
 		return buf.Bytes(), errors.New("recipients list is empty")
 	}
+	alwaysTrust := gpg.IsAlwaysTrust(ctx)
 	var badRecipients []string
 	for _, r := range recipients {
 		kl, err := g.listKeys(ctx, "public", r)
 		if err != nil {
-			debug.Log("Failed to check key %s. Adding anyway. %s", err)
-		} else if len(kl.UseableKeys(gpg.IsAlwaysTrust(ctx))) < 1 {
+			debug.Log("Failed to check key %s. Adding anyway. %s", r, err)
+		} else if !hasUseableRecipient(kl, r, alwaysTrust) {
 			badRecipients = append(badRecipients, r)
 			errmsg := fmt.Sprintf("Not using invalid key %q for encryption. Check its expiration date, its encryption capabilities and trust.", r)
 			debug.Log(errmsg)
@@ -68,4 +70,25 @@ func (g *GPG) Encrypt(ctx context.Context, plaintext []byte, recipients []string
 	}
 
 	return buf.Bytes(), err
+}
+
+func hasUseableRecipient(kl gpg.KeyList, r string, alwaysTrust bool) bool {
+	if !strings.HasSuffix(r, "!") {
+		return len(kl.UseableKeys(alwaysTrust)) > 0
+	}
+
+	for _, k := range kl {
+		if sk, ok := k.MatchSubKey(r); ok {
+			if sk.IsUseable(alwaysTrust) {
+				return true
+			}
+
+			continue
+		}
+		if k.IsUseable(alwaysTrust) {
+			return true
+		}
+	}
+
+	return false
 }
