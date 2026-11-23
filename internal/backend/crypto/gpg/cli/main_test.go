@@ -1,13 +1,16 @@
 package cli
 
 import (
+	"context"
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"runtime"
 	"strings"
 	"testing"
 
+	"github.com/gopasspw/gopass/internal/backend/crypto/gpg/gpgconf"
 	"github.com/stretchr/testify/require"
 )
 
@@ -44,7 +47,47 @@ func prepareTestGPGHome(base string) (string, func(), error) {
 		return "", func() {}, fmt.Errorf("create %s: %w", home, err)
 	}
 
-	return home, func() { _ = os.RemoveAll(home) }, nil
+	cleanup := func() { _ = os.RemoveAll(home) }
+
+	// Pre-initialize pubring.kbx and trustdb.gpg sequentially before any
+	// t.Parallel() tests invoke gpg against the shared GNUPGHOME, otherwise
+	// concurrent gpg processes race on initial trustdb creation.
+	if err := initTestGPGHome(home); err != nil {
+		cleanup()
+
+		return "", func() {}, fmt.Errorf("initialize %s: %w", home, err)
+	}
+
+	return home, cleanup, nil
+}
+
+func initTestGPGHome(home string) error {
+	bin, err := gpgconf.Binary(context.Background(), "")
+	if err != nil {
+		return nil
+	}
+
+	cmd := exec.CommandContext(context.Background(), bin, "--batch", "--list-keys")
+	cmd.Env = withEnv(os.Environ(), "GNUPGHOME", gpgHomeEnv(home, runtime.GOOS))
+	if out, err := cmd.CombinedOutput(); err != nil {
+		return fmt.Errorf("%s --batch --list-keys: %w (%s)", bin, err, strings.TrimSpace(string(out)))
+	}
+
+	return nil
+}
+
+func withEnv(environ []string, key, value string) []string {
+	prefix := key + "="
+	env := make([]string, 0, len(environ)+1)
+	for _, entry := range environ {
+		if strings.HasPrefix(entry, prefix) {
+			continue
+		}
+		env = append(env, entry)
+	}
+	env = append(env, prefix+value)
+
+	return env
 }
 
 func gpgHomeEnv(home, goos string) string {
@@ -73,6 +116,11 @@ func TestPrepareTestGPGHome(t *testing.T) {
 	require.True(t, info.IsDir())
 	if runtime.GOOS != "windows" {
 		require.Equal(t, os.FileMode(0o700), info.Mode().Perm())
+	}
+
+	if _, err := gpgconf.Binary(t.Context(), ""); err == nil {
+		_, err := os.Stat(filepath.Join(home, "trustdb.gpg"))
+		require.NoError(t, err)
 	}
 }
 
