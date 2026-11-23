@@ -51,9 +51,11 @@ func TestGoGitBackendSync(t *testing.T) {
 	out, err := ts.run("init --crypto=gpgcli --storage=gogit " + keyID)
 	require.NoError(t, err, "failed to init gogit store:\n%s", out)
 
-	// create a bare remote and add it as origin.
+	// create a bare remote and add it as origin. Pin its HEAD to master, the
+	// branch gogit stores use, so the test does not depend on the user's
+	// init.defaultBranch.
 	remoteDir := filepath.Join(ts.tempDir, "remote.git")
-	require.NoError(t, exec.Command("git", "init", "--bare", remoteDir).Run())
+	require.NoError(t, exec.Command("git", "init", "--bare", "-b", "master", remoteDir).Run())
 	require.NoError(t, exec.Command("git", "-C", ts.storeDir("root"), "remote", "add", "origin", remoteDir).Run())
 
 	// write a secret and sync.
