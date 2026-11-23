@@ -50,6 +50,32 @@ func TestGoGitAddIsolation(t *testing.T) {
 	assert.Contains(t, g.ListUntrackedFiles(ctx), "unrelated.gpg")
 }
 
+func TestGoGitStageUncommitted(t *testing.T) {
+	ctx := testContext()
+	g, err := Init(ctx, t.TempDir(), "T", "t@e.org")
+	require.NoError(t, err)
+
+	require.NoError(t, g.Set(ctx, "tracked.gpg", []byte("tracked")))
+	require.NoError(t, g.Add(ctx, "tracked.gpg"))
+	require.NoError(t, g.Commit(ctx, "add tracked file"))
+	require.NoError(t, g.Set(ctx, "pending.gpg", []byte("pending")))
+	require.NoError(t, g.Set(ctx, "unrelated.gpg", []byte("unrelated")))
+
+	staged, err := g.StageUncommitted(ctx, "tracked.gpg")
+	require.NoError(t, err)
+	assert.False(t, staged, "a clean file does not need a commit")
+	for range 2 {
+		staged, err = g.StageUncommitted(ctx, "pending.gpg")
+		require.NoError(t, err)
+		assert.True(t, staged, "untracked and already-staged files both need a commit")
+	}
+	assert.Equal(t, []string{"unrelated.gpg"}, g.ListUntrackedFiles(ctx))
+	require.NoError(t, g.Commit(ctx, "commit pending file"))
+	staged, err = g.StageUncommitted(ctx, "pending.gpg")
+	require.NoError(t, err)
+	assert.False(t, staged)
+}
+
 // TestGoGitPushPullsFirst verifies that a push against a remote that is ahead
 // pulls first instead of failing with a non-fast-forward error.
 func TestGoGitPushPullsFirst(t *testing.T) {

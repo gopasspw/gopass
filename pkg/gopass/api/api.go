@@ -69,6 +69,12 @@ func (g *Gopass) List(ctx context.Context) ([]string, error) {
 	return g.rs.List(ctx, tree.INF) //nolint:wrapcheck
 }
 
+// MountPoint returns the most specific mount serving the given secret name,
+// or an empty string for the root store. The secret need not exist.
+func (g *Gopass) MountPoint(name string) string {
+	return g.rs.MountPoint(name)
+}
+
 // AuditList returns a list of all secret names, filtered against the optional
 // .gopass-audit-ignore file at the root of each mount point. Secrets matching
 // any of the exclude patterns (RE2 syntax) in the file of their mount point

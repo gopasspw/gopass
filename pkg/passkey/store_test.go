@@ -366,6 +366,59 @@ func TestStoreNamesDifferingInCase(t *testing.T) {
 	assert.Len(t, entries, 6)
 }
 
+type mountedPasskeyStore struct {
+	*apimock.MockAPI
+	mount string
+}
+
+func (m mountedPasskeyStore) MountPoint(name string) string {
+	if strings.HasPrefix(name+"/", m.mount+"/") {
+		return m.mount
+	}
+
+	return ""
+}
+
+func TestStoreCaseMatchingDoesNotCrossMounts(t *testing.T) {
+	t.Parallel()
+
+	for _, mount := range []string{"Passkeys", "passkeys/Example.COM"} {
+		t.Run(mount, func(t *testing.T) {
+			t.Parallel()
+
+			ctx := testContext(t)
+			api := mountedPasskeyStore{MockAPI: apimock.New(), mount: mount}
+			s := NewStore(ctx, api)
+			sharedName := "Passkeys/example.com/alice"
+			if mount != "Passkeys" {
+				sharedName = mount + "/alice"
+			}
+			privateName := "passkeys/example.com/alice"
+			shared := newCred(t, "example.com", "alice", "handle")
+			writeCreds(ctx, t, api, sharedName, shared)
+
+			assert.False(t, s.Owns(sharedName))
+			_, found, err := s.AccountSecret(ctx, shared.RPID, shared.UserHandle)
+			require.NoError(t, err)
+			assert.False(t, found)
+			_, found = s.FindUser(ctx, shared.RPID, shared.UserName)
+			assert.False(t, found)
+
+			// The shared credential is still discoverable, but a new private
+			// credential cannot reuse its path, even for the same account.
+			entries, err := s.List(ctx, shared.RPID)
+			require.NoError(t, err)
+			require.Equal(t, [][]byte{shared.ID}, ids(entries))
+			private := newCred(t, "example.com", "alice", "handle")
+			name, err := s.Put(ctx, private)
+			require.NoError(t, err)
+			assert.Equal(t, privateName, name)
+			require.Equal(t, []*Credential{shared}, readCreds(ctx, t, api, sharedName))
+			require.Equal(t, []*Credential{private}, readCreds(ctx, t, api, privateName))
+		})
+	}
+}
+
 func TestStoreAdvanceAndRemove(t *testing.T) {
 	t.Parallel()
 

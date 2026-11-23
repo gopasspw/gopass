@@ -331,6 +331,37 @@ func TestPasskeyIsCommitted(t *testing.T) {
 	assert.NotEqual(t, commits, git("rev-list", "--count", "HEAD"))
 }
 
+func TestPasskeyCreateStaysInConfiguredMount(t *testing.T) {
+	ts := newTester(t)
+	defer ts.teardown()
+	ts.initStore()
+
+	out, err := ts.runCmd([]string{ts.Binary, "init", "--store", "Passkeys", "--path", ts.storeDir("shared"), "--storage=fs", keyID}, nil)
+	require.NoError(t, err, out)
+
+	create := func(prefix string) webauthnResponse {
+		t.Helper()
+
+		out, err := ts.run("config passkey.prefix " + prefix)
+		require.NoError(t, err, out)
+		// Use the same RP and user handle to exercise account-secret reuse.
+		out, err = ts.run("--yes passkey create example.com alice --user-handle aGFuZGxl")
+		require.NoError(t, err, out)
+		var reg webauthnResponse
+		require.NoError(t, json.Unmarshal([]byte(out), &reg), out)
+
+		return reg
+	}
+	shared := create("Passkeys")
+	private := create("passkeys")
+	require.NotEqual(t, shared.ID, private.ID)
+
+	out, err = ts.run("passkey list example.com")
+	require.NoError(t, err, out)
+	assert.Regexp(t, `(?m)^Passkeys/example\.com/alice[^\n]*`+regexp.QuoteMeta(shared.ID)+`$`, out)
+	assert.Regexp(t, `(?m)^passkeys/example\.com/alice[^\n]*`+regexp.QuoteMeta(private.ID)+`$`, out)
+}
+
 func TestPasskeyImportIsCommitted(t *testing.T) {
 	if _, err := exec.LookPath("git"); err != nil {
 		t.Skip("git binary not available")
@@ -406,4 +437,48 @@ func TestPasskeyImportIsCommitted(t *testing.T) {
 		assert.Empty(t, git(t, "status", "--porcelain"))
 		assert.Equal(t, "partial/example.com/alice.gpg", git(t, "diff", "--name-only", before, "HEAD"))
 	})
+
+	for _, failAt := range []string{"stage", "commit"} {
+		t.Run("retry after "+failAt+" failure", func(t *testing.T) {
+			prefix := "retry-" + failAt
+			run(t, "config --store team core.autopush false")
+			run(t, "config passkey.prefix team/"+prefix)
+			before := git(t, "rev-parse", "HEAD")
+			lock := filepath.Join(dir, ".git", "index.lock")
+			if failAt == "stage" {
+				require.NoError(t, os.WriteFile(lock, nil, 0o600))
+			} else {
+				git(t, "config", "commit.gpgsign", "true")
+				git(t, "config", "gpg.format", "openpgp")
+				git(t, "config", "gpg.program", filepath.Join(t.TempDir(), "missing-signer"))
+			}
+
+			out, err := ts.runCmd([]string{ts.Binary, "passkey", "import", file}, nil)
+			if failAt == "stage" {
+				require.NoError(t, os.Remove(lock))
+				require.ErrorContains(t, err, "exit status 7", out)
+				assert.Contains(t, out, "index.lock")
+				assert.Contains(t, git(t, "status", "--porcelain", "--untracked-files=all"), "?? "+prefix+"/example.com/alice.gpg")
+			} else {
+				git(t, "config", "commit.gpgsign", "false")
+				require.ErrorContains(t, err, "exit status 7", out)
+				assert.Contains(t, out, "failed to commit imported passkeys")
+				assert.Contains(t, git(t, "status", "--porcelain"), "A  "+prefix+"/example.com/alice.gpg")
+				assert.Contains(t, git(t, "status", "--porcelain"), "A  "+prefix+"/example.com/bob.gpg")
+			}
+			assert.Equal(t, before, git(t, "rev-parse", "HEAD"))
+			alice := filepath.Join(dir, prefix, "example.com", "alice.gpg")
+			saved, err := os.ReadFile(alice)
+			require.NoError(t, err)
+
+			out, err = ts.runCmd([]string{ts.Binary, "passkey", "import", file}, nil)
+			require.NoError(t, err, out)
+			assert.Empty(t, git(t, "status", "--porcelain"))
+			assert.Equal(t, "1", git(t, "rev-list", "--count", before+"..HEAD"))
+			assert.Equal(t, prefix+"/example.com/alice.gpg\n"+prefix+"/example.com/bob.gpg", git(t, "diff", "--name-only", before, "HEAD"))
+			after, err := os.ReadFile(alice)
+			require.NoError(t, err)
+			assert.Equal(t, saved, after, "retry stages the existing ciphertext without rewriting it")
+		})
+	}
 }

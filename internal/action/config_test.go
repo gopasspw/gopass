@@ -170,4 +170,33 @@ show.password
 		require.NoError(t, act.Config(ctx, c))
 		assert.Equal(t, "personal/passkeys", act.cfg.GetUser("passkey.prefix"))
 	})
+
+	t.Run("display only effective passkey settings", func(t *testing.T) {
+		defer buf.Reset()
+		require.NoError(t, act.cfg.Set("<root>", "passkey.prefix", "shared/passkeys"))
+		require.NoError(t, act.cfg.Set("<root>", "passkey.signcount", "true"))
+
+		c := gptest.CliCtx(ctx, t, "passkey.prefix", "mine/passkeys")
+		require.NoError(t, act.Config(ctx, c))
+		assert.Equal(t, "mine/passkeys\n", buf.String(), "setting confirmation")
+
+		for _, flags := range []map[string]string{nil, {"store": "<root>"}} {
+			buf.Reset()
+			c = gptest.CliCtxWithFlags(ctx, t, flags, "Passkey.Prefix")
+			require.NoError(t, act.Config(ctx, c))
+			assert.Equal(t, "mine/passkeys\n", buf.String(), "single-key lookup")
+
+			buf.Reset()
+			c = gptest.CliCtxWithFlags(ctx, t, flags, "passkey.signcount")
+			require.NoError(t, act.Config(ctx, c))
+			assert.Empty(t, buf.String(), "ignore local-only keys")
+
+			buf.Reset()
+			c = gptest.CliCtxWithFlags(ctx, t, flags)
+			require.NoError(t, act.Config(ctx, c))
+			assert.Contains(t, buf.String(), "passkey.prefix = mine/passkeys")
+			assert.NotContains(t, buf.String(), "passkey.signcount")
+			assert.NotContains(t, buf.String(), "shared/passkeys")
+		}
+	})
 }

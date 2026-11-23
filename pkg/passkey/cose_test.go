@@ -196,8 +196,11 @@ func TestUnsupportedKeys(t *testing.T) {
 	require.ErrorIs(t, err, ErrUnsupportedKey)
 
 	// In-memory keys have not gone through the parser's exponent checks.
-	for _, e := range []int{-1, 0, 1} {
-		malformed := &rsa.PrivateKey{PublicKey: rsa.PublicKey{N: key.N, E: e}, D: key.D}
+	for _, e := range []int64{-1, 0, 1, 2, 65536, 1<<31 + 1} {
+		if int64(int(e)) != e {
+			continue // not representable on 32-bit platforms
+		}
+		malformed := &rsa.PrivateKey{PublicKey: rsa.PublicKey{N: key.N, E: int(e)}, D: key.D}
 		_, err := coseKey(malformed)
 		require.ErrorIs(t, err, ErrUnsupportedKey, "exponent %d", e)
 	}

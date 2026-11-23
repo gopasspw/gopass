@@ -53,6 +53,11 @@ func (a *MockAPI) List(ctx context.Context) ([]string, error) {
 	return a.store.List(ctx, "") //nolint:wrapcheck
 }
 
+// MountPoint always returns the root because the mock has no mounts.
+func (a *MockAPI) MountPoint(string) string {
+	return ""
+}
+
 // AuditList returns a list of all secrets in the mock store.
 // Filtering is not implemented in the mock store, so this is equivalent to List.
 func (a *MockAPI) AuditList(ctx context.Context) ([]string, error) {

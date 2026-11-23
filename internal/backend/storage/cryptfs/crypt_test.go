@@ -179,4 +179,19 @@ func TestGit(t *testing.T) {
 	revs, err := crypt.Revisions(ctx, "foo/bar")
 	require.NoError(t, err)
 	assert.Len(t, revs, 1)
+
+	// A retry stages both the ciphertext and its encrypted name mapping.
+	require.NoError(t, crypt.Set(ctx, "foo/baz", []byte("2")))
+	staged, err := crypt.StageUncommitted(ctx, "foo/baz")
+	require.NoError(t, err)
+	assert.True(t, staged)
+	require.NoError(t, crypt.Commit(ctx, "commit recovered file"))
+	want, err := crypt.sub.Get(ctx, mappingFile)
+	require.NoError(t, err)
+	got, err := crypt.sub.GetRevision(ctx, mappingFile, "HEAD")
+	require.NoError(t, err)
+	assert.Equal(t, want, got)
+	staged, err = crypt.StageUncommitted(ctx, "foo/baz")
+	require.NoError(t, err)
+	assert.False(t, staged)
 }

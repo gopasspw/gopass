@@ -32,6 +32,11 @@ const (
 
 // SecretStore is the part of a password store that is needed to persist
 // credentials. It is satisfied by gopass.Store.
+//
+// A store can also implement MountPoint(name string) string, returning the
+// mount that serves the given name (including names that do not yet exist).
+// This lets passkey storage reuse case variants without crossing a mount.
+// Without mount information, writes do not reuse differently cased paths.
 type SecretStore interface {
 	// List returns the names of all secrets.
 	List(ctx context.Context) ([]string, error)
@@ -70,8 +75,9 @@ type Entry struct {
 // before it changes it, but two processes changing the same secret at the
 // very same time can still overwrite each other.
 type Store struct {
-	store  SecretStore
-	prefix string
+	store      SecretStore
+	prefix     string
+	mountPoint func(string) string
 }
 
 // NewStore returns a Store that keeps credentials in s. New credentials are
@@ -83,10 +89,15 @@ type Store struct {
 // store, and whoever can push to the store could otherwise redirect new
 // credentials to another folder or claim user verification.
 func NewStore(ctx context.Context, s SecretStore) *Store {
-	return &Store{
+	st := &Store{
 		store:  s,
 		prefix: prefixFromConfig(ctx),
 	}
+	if m, ok := s.(interface{ MountPoint(string) string }); ok {
+		st.mountPoint = m.MountPoint
+	}
+
+	return st
 }
 
 func prefixFromConfig(ctx context.Context) string {
@@ -157,14 +168,21 @@ func (s *Store) IsPasskeyName(name string) bool {
 	return ok
 }
 
-// Owns reports whether a secret is located directly below the prefix, i.e.
-// where new credentials are written to, and not in a folder that was only
-// found because of its name.
+// Owns reports whether a secret is located directly below the prefix, in the
+// same mount as the name that would be used for a new credential.
 func (s *Store) Owns(name string) bool {
-	dir, _, _ := cutLast(name)
-	parent, _, found := cutLast(dir)
+	dir, account, _ := cutLast(name)
+	parent, rpID, found := cutLast(dir)
+	if !found || !strings.EqualFold(parent, s.prefix) {
+		return false
+	}
 
-	return found && strings.EqualFold(parent, s.prefix)
+	return s.sameMount(name, s.prefix+"/"+strings.ToLower(rpID)+"/"+account)
+}
+
+// sameMount rejects spelling changes whenever their routing cannot be verified.
+func (s *Store) sameMount(a, b string) bool {
+	return a == b || (s.mountPoint != nil && s.mountPoint(a) == s.mountPoint(b))
 }
 
 // cutLast splits a secret name at its last separator.
@@ -399,8 +417,9 @@ func (s *Store) putTo(ctx context.Context, cred *Credential, target string) (str
 		return "", err
 	}
 
-	if target == "" {
-		target = s.prefix + "/" + cred.RPID + "/" + accountName(cred)
+	dest := s.prefix + "/" + cred.RPID + "/" + accountName(cred)
+	if target == "" || (s.mountPoint != nil && !s.sameMount(target, dest)) {
+		target = dest
 	}
 
 	return s.modify(ctx, target, func(creds []*Credential) ([]*Credential, bool, error) {
@@ -504,7 +523,7 @@ func (s *Store) FindUser(ctx context.Context, rpID, userName string) (*Credentia
 
 	want := s.prefix + "/" + rpID + "/" + account
 
-	i := slices.IndexFunc(names, func(n string) bool { return s.Owns(n) && strings.EqualFold(n, want) })
+	i := slices.IndexFunc(names, func(n string) bool { return strings.EqualFold(n, want) && s.sameMount(n, want) })
 	if i < 0 {
 		return nil, false
 	}
@@ -622,7 +641,12 @@ func (s *Store) modify(ctx context.Context, name string, fn func([]*Credential) 
 
 	i := slices.Index(all, name)
 	if i < 0 {
-		i = slices.IndexFunc(all, func(n string) bool { return strings.EqualFold(n, name) })
+		i = slices.IndexFunc(all, func(n string) bool {
+			return strings.EqualFold(n, name) && (s.mountPoint == nil || s.sameMount(n, name))
+		})
+		if i >= 0 && s.mountPoint == nil {
+			return "", fmt.Errorf("cannot safely match %q to %q without mount information", name, all[i])
+		}
 	}
 
 	exists := i >= 0

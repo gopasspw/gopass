@@ -89,6 +89,41 @@ func (g *GoGit) TryAdd(ctx context.Context, files ...string) error {
 	return err
 }
 
+// StageUncommitted stages the file only if it has pending changes.
+func (g *GoGit) StageUncommitted(ctx context.Context, name string) (bool, error) {
+	if !g.IsInitialized() {
+		return false, nil
+	}
+	if err := ctx.Err(); err != nil {
+		return false, err
+	}
+
+	wt, err := g.worktree()
+	if err != nil {
+		return false, err
+	}
+	status, err := wt.StatusWithOptions(git.StatusOptions{Strategy: git.Preload})
+	if err != nil {
+		return false, err
+	}
+
+	rel := g.rel(name)
+	if fs := status[rel]; fs != nil {
+		if fs.Worktree == git.Unmodified {
+			return fs.Staging != git.Unmodified, nil
+		}
+	} else if !g.fs.Exists(ctx, rel) {
+		return false, nil
+	}
+	// A file missing from the preloaded status may be untracked and ignored.
+	// Add explicitly so it is treated the same as a newly written secret.
+	if _, err := wt.Add(rel); err != nil {
+		return false, err
+	}
+
+	return true, nil
+}
+
 // HasStagedChanges returns true if there are any staged changes which can be committed.
 func (g *GoGit) HasStagedChanges(_ context.Context) bool {
 	wt, err := g.worktree()

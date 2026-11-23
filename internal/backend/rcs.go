@@ -30,6 +30,13 @@ type rcs interface {
 	Compact(ctx context.Context) error
 }
 
+// UncommittedFileStager is an optional capability for resuming a write that
+// reached the worktree or index but was not committed. StageUncommitted reports
+// whether the given file needs a commit. It must leave a clean file alone.
+type UncommittedFileStager interface {
+	StageUncommitted(ctx context.Context, name string) (bool, error)
+}
+
 // Revision is a SCM revision.
 type Revision struct {
 	Hash        string

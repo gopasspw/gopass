@@ -216,13 +216,20 @@ var userScopes = []string{"env", "global", "system", "preset"}
 // skipped. They live in the store and anyone who can push to its remote can
 // change them. Use this for settings that must not be changed that way.
 func (c *Config) GetUser(key string) string {
+	v, _ := c.LookupUser(key)
+
+	return v
+}
+
+// LookupUser is like GetUser but distinguishes an empty value from an unset key.
+func (c *Config) LookupUser(key string) (string, bool) {
 	for _, scope := range userScopes {
 		if v, found := c.root.GetFrom(key, scope); found {
-			return v
+			return v, true
 		}
 	}
 
-	return ""
+	return "", false
 }
 
 // GetM returns the given key from the mount or the root config if mount is empty.

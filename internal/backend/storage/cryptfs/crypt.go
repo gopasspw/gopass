@@ -302,6 +302,30 @@ func (c *Crypt) TryAdd(ctx context.Context, files ...string) error {
 	return err
 }
 
+// StageUncommitted stages the pending ciphertext and its name mapping.
+func (c *Crypt) StageUncommitted(ctx context.Context, name string) (bool, error) {
+	stager, ok := c.sub.(backend.UncommittedFileStager)
+	if !ok {
+		return false, nil
+	}
+	c.mux.RLock()
+	defer c.mux.RUnlock()
+
+	h, ok := c.mappings[name]
+	if !ok {
+		return false, nil
+	}
+	pending, err := stager.StageUncommitted(ctx, h)
+	if err != nil || !pending {
+		return pending, err
+	}
+	if _, err := stager.StageUncommitted(ctx, mappingFile); err != nil {
+		return false, err
+	}
+
+	return true, nil
+}
+
 func (c *Crypt) TryCommit(ctx context.Context, msg string) error {
 	return c.sub.TryCommit(ctx, msg)
 }

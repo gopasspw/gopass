@@ -256,6 +256,27 @@ func (g *Git) TryAdd(ctx context.Context, files ...string) error {
 	return err
 }
 
+// StageUncommitted stages the file only if it has pending changes.
+func (g *Git) StageUncommitted(ctx context.Context, name string) (bool, error) {
+	if !g.IsInitialized() {
+		return false, nil
+	}
+
+	stdout, stderr, err := g.captureCmd(ctx, "gitFileStatus", "--literal-pathspecs", "status",
+		"--porcelain=v1", "--no-renames", "--untracked-files=all", "--ignored", "--", name)
+	if err != nil {
+		return false, fmt.Errorf("git status: %w: %s", err, strings.TrimSpace(string(stderr)))
+	}
+	if len(stdout) == 0 {
+		return false, nil
+	}
+	if err := g.Cmd(ctx, "gitAdd", "--literal-pathspecs", "add", "--force", "--", name); err != nil {
+		return false, err
+	}
+
+	return true, nil
+}
+
 // HasStagedChanges returns true if there are any staged changes which can be committed.
 func (g *Git) HasStagedChanges(ctx context.Context) bool {
 	if err := g.Cmd(ctx, "gitDiffIndex", "diff-index", "--quiet", "HEAD"); err != nil {

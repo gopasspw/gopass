@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/gopasspw/gopass/internal/backend"
 	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/queue"
 	"github.com/gopasspw/gopass/internal/store"
@@ -75,6 +76,16 @@ func (s *Store) Set(ctx context.Context, name string, sec gopass.Byter) error {
 	_, err = t(ctx)
 
 	return err
+}
+
+// StageUncommitted checks for an earlier write that did not reach a commit.
+func (s *Store) StageUncommitted(ctx context.Context, name string) (bool, error) {
+	stager, ok := s.storage.(backend.UncommittedFileStager)
+	if !ok {
+		return false, nil
+	}
+
+	return stager.StageUncommitted(ctx, s.passfile(ctx, name))
 }
 
 func (s *Store) gitCommitAndPush(ctx context.Context, name string) error {

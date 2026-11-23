@@ -10,6 +10,7 @@ import (
 	"crypto/sha256"
 	"crypto/x509"
 	"fmt"
+	"math"
 	"math/big"
 	"strings"
 )
@@ -150,8 +151,13 @@ func algorithmOf(key crypto.Signer) (Algorithm, error) {
 
 		return EdDSA, nil
 	case *rsa.PrivateKey:
-		if k == nil || k.N == nil || k.D == nil || k.E < 2 {
+		if k == nil || k.N == nil || k.D == nil {
 			return 0, fmt.Errorf("%w: malformed RSA key", ErrUnsupportedKey)
+		}
+		// Match crypto/rsa: the public exponent must be odd and fit in
+		// a signed 32-bit integer on every architecture.
+		if k.E < 3 || k.E%2 == 0 || k.E > math.MaxInt32 {
+			return 0, fmt.Errorf("%w: invalid RSA public exponent", ErrUnsupportedKey)
 		}
 		if k.N.BitLen() < rsaMinKeyBits {
 			return 0, fmt.Errorf("%w: RSA keys must have at least %d bits", ErrUnsupportedKey, rsaMinKeyBits)

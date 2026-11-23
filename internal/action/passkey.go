@@ -45,18 +45,39 @@ func (p passkeySecretStore) Set(ctx context.Context, name string, sec gopass.Byt
 	return p.rs.Set(ctx, name, sec) //nolint:wrapcheck
 }
 
-// passkeyImportStore records the mounts actually written to and staged. An
-// unchanged credential does not call Set and should not trigger a commit.
+func (p passkeySecretStore) MountPoint(name string) string {
+	return p.rs.MountPoint(name)
+}
+
+// passkeyImportStore records the paths staged during this import.
 type passkeyImportStore struct {
 	passkeySecretStore
-	mounts set.Set[string]
+	staged set.Set[string]
 }
 
 func (p *passkeyImportStore) Set(ctx context.Context, name string, sec gopass.Byter) error {
 	if err := p.passkeySecretStore.Set(ctx, name, sec); err != nil {
 		return err
 	}
-	p.mounts.Add(p.rs.MountPoint(name))
+	p.staged.Add(name)
+
+	return nil
+}
+
+func (p *passkeyImportStore) resume(ctx context.Context, name string) error {
+	if p.staged[name] {
+		return nil
+	}
+
+	// Put skips Set when the credential is unchanged. The ciphertext may
+	// still need to be committed if a prior import failed or was interrupted.
+	pending, err := p.rs.StageUncommitted(ctx, name)
+	if err != nil {
+		return fmt.Errorf("failed to stage existing passkey secret %q: %w", name, err)
+	}
+	if pending {
+		p.staged.Add(name)
+	}
 
 	return nil
 }
@@ -64,7 +85,7 @@ func (p *passkeyImportStore) Set(ctx context.Context, name string, sec gopass.By
 func (p *passkeyImportStore) commit(ctx context.Context) error {
 	var errs []error
 
-	for _, mount := range p.mounts.Elements() {
+	for _, mount := range p.staged.Map(p.rs.MountPoint).Elements() {
 		storage := p.rs.Storage(ctx, mount)
 		label := mount
 		if label == "" {
@@ -627,6 +648,11 @@ func (s *passkeyHandler) PasskeyImport(ctx context.Context, cmd *cli.Command) er
 			} else {
 				importErr = exit.Error(exit.Encrypt, err, "failed to store the passkey for %q at %s: %s", cred.Label(), cred.RPID, err)
 			}
+
+			break
+		}
+		if err := batch.resume(stageCtx, name); err != nil {
+			importErr = exit.Error(exit.Git, err, "%s", err)
 
 			break
 		}
