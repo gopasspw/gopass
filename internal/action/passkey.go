@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"maps"
 	"os"
 	"slices"
 	"strings"
@@ -17,7 +16,6 @@ import (
 	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/cui"
 	"github.com/gopasspw/gopass/internal/out"
-	"github.com/gopasspw/gopass/internal/store/leaf"
 	"github.com/gopasspw/gopass/internal/store/root"
 	"github.com/gopasspw/gopass/internal/tree"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
@@ -55,42 +53,54 @@ func (p passkeySecretStore) Exists(ctx context.Context, name string) bool {
 	return p.rs.Exists(ctx, name)
 }
 
-var errPasskeyImportPreflight = errors.New("passkey import write check failed")
+var errPasskeyImportPreflight = errors.New("passkey import preflight failed")
 
-// passkeyImportStore writes ciphertext without staging it and records all
-// target paths for a mount-wide staging check.
+// passkeyImportStore uses the ordinary write and stage path, with commits
+// deferred until the end of the import.
 type passkeyImportStore struct {
 	passkeySecretStore
-	updated set.Set[string]
+	checked set.Set[string]
+	written set.Set[string]
+	mounts  set.Set[string]
 	blocked set.Set[string]
-	names   map[string]set.Set[string]
 }
 
 func (p *passkeyImportStore) Set(ctx context.Context, name string, sec gopass.Byter) error {
-	if err := p.rs.CheckImportWrite(ctx, name); err != nil {
-		p.blocked.Add(p.rs.MountPoint(name))
-
-		return fmt.Errorf("%w for %q: %w", errPasskeyImportPreflight, name, err)
-	}
-	if err := p.passkeySecretStore.Set(leaf.WithNoGitOps(ctx, true), name, sec); err != nil {
+	if err := p.check(ctx, name); err != nil {
 		return err
 	}
-	p.updated.Add(name)
+	if err := p.passkeySecretStore.Set(ctx, name, sec); err != nil {
+		// The backend may have staged part of the write before failing.
+		// Don't commit an index whose state we no longer know.
+		p.blocked.Add(p.rs.MountPoint(name))
+
+		return err
+	}
+	p.written.Add(name)
+	p.mounts.Add(p.rs.MountPoint(name))
 
 	return nil
 }
 
-func (p *passkeyImportStore) record(name string) {
+func (p *passkeyImportStore) check(ctx context.Context, name string) error {
+	if p.written[name] {
+		return nil
+	}
 	mount := p.rs.MountPoint(name)
-	names := p.names[mount]
-	names.Add(name)
-	p.names[mount] = names
+	if err := p.rs.CheckImport(ctx, name, !p.checked[mount]); err != nil {
+		p.blocked.Add(mount)
+
+		return fmt.Errorf("%w for %q: %w; inspect the destination store and resolve pending changes before retrying", errPasskeyImportPreflight, name, err)
+	}
+	p.checked.Add(mount)
+
+	return nil
 }
 
-func (p *passkeyImportStore) finish(ctx context.Context) error {
+func (p *passkeyImportStore) commit(ctx context.Context) error {
 	var errs []error
 
-	for _, mount := range slices.Sorted(maps.Keys(p.names)) {
+	for _, mount := range p.mounts.Elements() {
 		if p.blocked[mount] {
 			continue
 		}
@@ -99,26 +109,19 @@ func (p *passkeyImportStore) finish(ctx context.Context) error {
 			label = "<root>"
 		}
 
-		names := p.names[mount].Elements()
-		updated := set.SortedFiltered(names, func(name string) bool { return p.updated[name] })
-		pending, err := p.rs.StageImport(ctx, mount, names, updated)
-		if err != nil {
-			errs = append(errs, fmt.Errorf("failed to stage imported passkeys in %q: %w", label, err))
-
-			continue
-		}
-		if !pending || !ctxutil.IsGitCommit(ctx) {
-			continue
-		}
-
 		storage := p.rs.Storage(ctx, mount)
 		if storage == nil {
 			errs = append(errs, fmt.Errorf("storage not available for %q", label))
 
 			continue
 		}
+		if err := ctx.Err(); err != nil {
+			errs = append(errs, err)
+
+			break
+		}
 		if err := storage.TryCommit(ctx, "Import passkeys"); err != nil {
-			errs = append(errs, fmt.Errorf("failed to commit imported passkeys in %q: %w", label, err))
+			errs = append(errs, fmt.Errorf("failed to commit imported passkeys in %q: %w; inspect and resolve pending changes before retrying", label, err))
 
 			continue
 		}
@@ -655,33 +658,44 @@ func (s *passkeyHandler) PasskeyImport(ctx context.Context, cmd *cli.Command) er
 		out.Warningf(ctx, "Some passkeys could not be imported: %s", err)
 	}
 
-	batch := &passkeyImportStore{
-		passkeySecretStore: passkeySecretStore{rs: s.Store},
-		names:              make(map[string]set.Set[string]),
-	}
+	batch := &passkeyImportStore{passkeySecretStore: passkeySecretStore{rs: s.Store}}
 	st := passkey.NewStore(ctx, batch)
+	// Each write stages synchronously; no background commit can contend
+	// with the next add in the same repository.
+	stageCtx := ctxutil.WithGitCommit(ctx, false)
 	var importErr error
 	for _, cred := range creds {
-		name, err := st.Put(ctx, cred)
+		name, err := st.Put(stageCtx, cred)
 		if err != nil {
-			if errors.Is(err, errPasskeyImportPreflight) {
+			switch {
+			case errors.Is(err, errPasskeyImportPreflight):
 				importErr = exit.Error(exit.Git, err, "%s", err)
-			} else {
+			case errors.Is(err, passkey.ErrNotSynced):
+				importErr = exit.Error(exit.Git, err, "%s; inspect and resolve pending changes before retrying", err)
+			default:
 				importErr = exit.Error(exit.Encrypt, err, "failed to store the passkey for %q at %s: %s", cred.Label(), cred.RPID, err)
 			}
 
 			break
 		}
-		batch.record(name)
+		// An unchanged credential does not call Set. Don't silently
+		// succeed if a prior import left it staged or untracked.
+		if err := batch.check(stageCtx, name); err != nil {
+			importErr = exit.Error(exit.Git, err, "%s", err)
+
+			break
+		}
 		out.Printf(ctx, "Imported passkey for %q at %s into %s", cred.Label(), cred.RPID, name)
 	}
 
 	// Finish committing the earlier writes even if a later credential failed.
-	if err := batch.finish(ctx); err != nil {
-		if importErr == nil {
-			return exit.Error(exit.Git, err, "%s", err)
+	if ctxutil.IsGitCommit(ctx) {
+		if err := batch.commit(ctx); err != nil {
+			if importErr == nil {
+				return exit.Error(exit.Git, err, "%s", err)
+			}
+			out.Warningf(ctx, "%s", err)
 		}
-		out.Warningf(ctx, "%s", err)
 	}
 	if importErr != nil {
 		return importErr

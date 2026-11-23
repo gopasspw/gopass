@@ -14,6 +14,19 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestAddUsesLiteralPaths(t *testing.T) {
+	ctx := ctxutil.WithGitInit(config.NewContextInMemory(), true)
+	g, err := Init(ctx, t.TempDir(), "Test", "test@example.org")
+	require.NoError(t, err)
+	require.NoError(t, g.Set(ctx, "account[1].gpg", []byte("intended ciphertext")))
+	require.NoError(t, g.Set(ctx, "account1.gpg", []byte("unrelated ciphertext")))
+	require.NoError(t, g.Add(ctx, "account[1].gpg"))
+
+	out, _, err := g.captureCmd(ctx, "testIndex", "diff", "--cached", "--name-only")
+	require.NoError(t, err)
+	assert.Equal(t, "account[1].gpg\n", string(out))
+}
+
 func TestGit(t *testing.T) {
 	td := t.TempDir()
 

@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"os"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -16,9 +15,7 @@ import (
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/filemode"
 	"github.com/go-git/go-git/v5/plumbing/format/index"
-	"github.com/go-git/go-git/v5/plumbing/object"
 	"github.com/go-git/go-git/v5/plumbing/storer"
-	"github.com/gopasspw/gopass/internal/backend"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
@@ -92,257 +89,53 @@ func (g *GoGit) TryAdd(ctx context.Context, files ...string) error {
 	return err
 }
 
-// CheckUnstaged protects pre-existing index entries before an import writes.
-func (g *GoGit) CheckUnstaged(ctx context.Context, names ...string) error {
+// CheckImport refuses pending changes; it does not try to restage them.
+func (g *GoGit) CheckImport(ctx context.Context, paths ...string) error {
 	if !g.IsInitialized() {
 		return nil
 	}
-	if err := ctx.Err(); err != nil {
+	wt, err := g.worktree()
+	if err != nil {
 		return err
 	}
-	tree, err := g.headTree()
-	if err != nil && !errors.Is(err, os.ErrNotExist) {
+	status, err := wt.StatusWithOptions(git.StatusOptions{Strategy: git.Preload})
+	if err != nil {
 		return err
 	}
+	if len(paths) == 0 {
+		if !status.IsClean() {
+			return fmt.Errorf("the Git store has pending changes")
+		}
+
+		return nil
+	}
+
 	idx, err := g.repo.Storer.Index()
 	if err != nil {
 		return err
 	}
-	for _, name := range names {
-		rel := g.rel(name)
-		head, err := fileAtHead(tree, rel)
+	for _, path := range paths {
+		rel := g.rel(path)
+		if state := status[rel]; state != nil && (state.Staging != git.Unmodified || state.Worktree != git.Unmodified) {
+			return fmt.Errorf("import target %q has pending changes", path)
+		}
+		entry, err := idx.Entry(rel)
+		if errors.Is(err, index.ErrEntryNotFound) {
+			if g.fs.Exists(ctx, rel) {
+				return fmt.Errorf("import target %q is not tracked at its exact path", path)
+			}
+
+			continue
+		}
 		if err != nil {
 			return err
 		}
-		staged, err := fileInIndex(idx, rel)
-		if err != nil {
-			return err
-		}
-		if staged != head {
-			return backend.ConflictingIndexError(rel)
+		if entry.Stage != 0 || entry.IntentToAdd || entry.SkipWorktree {
+			return fmt.Errorf("cannot verify the Git index entry for %q", path)
 		}
 	}
 
 	return nil
-}
-
-// StageUncommitted stages only verified pending paths.
-func (g *GoGit) StageUncommitted(ctx context.Context, names ...string) (bool, error) {
-	plan, err := g.PlanStaging(ctx, backend.StagingFiles(names...)...)
-	if err != nil {
-		return false, err
-	}
-
-	return plan.Stage(ctx)
-}
-
-// PlanStaging verifies all paths before taking any action on the index.
-func (g *GoGit) PlanStaging(ctx context.Context, files ...backend.StagingFile) (backend.StagingPlan, error) {
-	plan := backend.StagingPlan{}
-	if !g.IsInitialized() {
-		return plan, nil
-	}
-	if err := ctx.Err(); err != nil {
-		return plan, err
-	}
-
-	wt, err := g.worktree()
-	if err != nil {
-		return plan, err
-	}
-	tree, err := g.headTree()
-	if err != nil && !errors.Is(err, os.ErrNotExist) {
-		return plan, err
-	}
-	idx, err := g.repo.Storer.Index()
-	if err != nil {
-		return plan, err
-	}
-
-	var add []stagingSnapshot
-	for _, file := range files {
-		rel := g.rel(file.Name)
-		head, err := fileAtHead(tree, rel)
-		if err != nil {
-			return plan, err
-		}
-		staged, err := fileInIndex(idx, rel)
-		if err != nil {
-			return plan, err
-		}
-		working, data, err := g.worktreeFile(ctx, wt, rel)
-		if err != nil {
-			return plan, err
-		}
-		if file.Expected != nil && !bytes.Equal(file.Expected, data) {
-			return plan, fmt.Errorf("worktree file %q changed during import recovery", rel)
-		}
-		if staged != head && staged != working {
-			return plan, backend.ConflictingIndexError(rel)
-		}
-		if working != head {
-			plan.Pending = true
-		}
-		if working != staged {
-			add = append(add, stagingSnapshot{name: rel, version: working, index: staged, data: data})
-		}
-	}
-	if len(add) > 0 {
-		plan.Apply = func(ctx context.Context) error { return g.stageSnapshots(ctx, add) }
-	}
-
-	return plan, nil
-}
-
-type stagingSnapshot struct {
-	name    string
-	version fileVersion
-	index   fileVersion
-	data    []byte
-}
-
-func (g *GoGit) stageSnapshots(ctx context.Context, files []stagingSnapshot) error {
-	idx, err := g.repo.Storer.Index()
-	if err != nil {
-		return err
-	}
-	for _, f := range files {
-		if err := ctx.Err(); err != nil {
-			return err
-		}
-		version, err := fileInIndex(idx, f.name)
-		if err != nil {
-			return err
-		}
-		if version != f.index {
-			return backend.ConflictingIndexError(f.name)
-		}
-		obj := &plumbing.MemoryObject{}
-		obj.SetType(plumbing.BlobObject)
-		obj.SetSize(int64(len(f.data)))
-		if _, err := obj.Write(f.data); err != nil {
-			return err
-		}
-		hash, err := g.repo.Storer.SetEncodedObject(obj)
-		if err != nil {
-			return err
-		}
-		if hash != f.version.hash {
-			return fmt.Errorf("git object hash changed for %q", f.name)
-		}
-		if version != (fileVersion{}) {
-			if _, err := idx.Remove(f.name); err != nil {
-				return err
-			}
-		}
-		e := idx.Add(f.name)
-		e.Hash = hash
-		e.Mode = f.version.mode
-	}
-	if err := ctx.Err(); err != nil {
-		return err
-	}
-
-	return g.repo.Storer.SetIndex(idx)
-}
-
-type fileVersion struct {
-	hash plumbing.Hash
-	mode filemode.FileMode
-}
-
-func fileAtHead(tree *object.Tree, name string) (fileVersion, error) {
-	if tree == nil {
-		return fileVersion{}, nil
-	}
-	e, err := tree.FindEntry(name)
-	if err != nil {
-		if errors.Is(err, object.ErrEntryNotFound) || errors.Is(err, object.ErrFileNotFound) || errors.Is(err, object.ErrDirectoryNotFound) {
-			return fileVersion{}, nil
-		}
-
-		return fileVersion{}, err
-	}
-
-	return fileVersion{hash: e.Hash, mode: e.Mode}, nil
-}
-
-func fileInIndex(idx *index.Index, name string) (fileVersion, error) {
-	e, err := idx.Entry(name)
-	if errors.Is(err, index.ErrEntryNotFound) {
-		return fileVersion{}, nil
-	}
-	if err != nil {
-		return fileVersion{}, err
-	}
-	if e.Stage != 0 || e.IntentToAdd || e.SkipWorktree {
-		return fileVersion{}, backend.ConflictingIndexError(name)
-	}
-
-	return fileVersion{hash: e.Hash, mode: e.Mode}, nil
-}
-
-func (g *GoGit) worktreeFile(ctx context.Context, wt *git.Worktree, name string) (fileVersion, []byte, error) {
-	info, err := wt.Filesystem.Lstat(name)
-	if err != nil {
-		return fileVersion{}, nil, err
-	}
-	if !info.Mode().IsRegular() {
-		return fileVersion{}, nil, backend.ConflictingIndexError(name)
-	}
-	mode, err := filemode.NewFromOSFileMode(info.Mode())
-	if err != nil {
-		return fileVersion{}, nil, err
-	}
-	raw, err := g.fs.Get(ctx, name)
-	if err != nil {
-		return fileVersion{}, nil, err
-	}
-
-	return fileVersion{hash: plumbing.ComputeHash(plumbing.BlobObject, raw), mode: mode}, raw, nil
-}
-
-func (g *GoGit) headTree() (*object.Tree, error) {
-	ref, err := g.repo.Head()
-	if errors.Is(err, plumbing.ErrReferenceNotFound) {
-		return nil, os.ErrNotExist
-	}
-	if err != nil {
-		return nil, err
-	}
-	commit, err := g.repo.CommitObject(ref.Hash())
-	if err != nil {
-		return nil, err
-	}
-
-	return commit.Tree()
-}
-
-// CommittedFile returns an exact path from HEAD for recovery checks.
-func (g *GoGit) CommittedFile(ctx context.Context, name string) ([]byte, error) {
-	if err := ctx.Err(); err != nil {
-		return nil, err
-	}
-	tree, err := g.headTree()
-	if err != nil {
-		return nil, err
-	}
-	rel := g.rel(name)
-	ver, err := fileAtHead(tree, rel)
-	if err != nil {
-		return nil, err
-	}
-	if ver == (fileVersion{}) {
-		return nil, os.ErrNotExist
-	}
-
-	file, err := tree.File(rel)
-	if err != nil {
-		return nil, err
-	}
-	content, err := file.Contents()
-
-	return []byte(content), err
 }
 
 // HasStagedChanges returns true if there are any staged changes which can be committed.

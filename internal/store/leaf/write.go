@@ -19,8 +19,8 @@ func (s *Store) Set(ctx context.Context, name string, sec gopass.Byter) error {
 		return err
 	}
 
-	if err := s.checkWritable(ctx); err != nil {
-		return err
+	if cfg, _ := config.FromContext(ctx); cfg.GetM(s.alias, "core.readonly") == "true" {
+		return fmt.Errorf("writing to %s is disabled by `core.readonly`", s.alias)
 	}
 
 	p := s.passfile(ctx, name)
@@ -78,67 +78,22 @@ func (s *Store) Set(ctx context.Context, name string, sec gopass.Byter) error {
 	return err
 }
 
-func (s *Store) checkWritable(ctx context.Context) error {
-	if cfg, _ := config.FromContext(ctx); cfg.GetM(s.alias, "core.readonly") == "true" {
-		return fmt.Errorf("writing to %s is disabled by `core.readonly`", s.alias)
-	}
-
-	return nil
-}
-
-// CheckImportWrite protects existing index entries before a batch replaces a file.
-func (s *Store) CheckImportWrite(ctx context.Context, name string) error {
+// CheckImport checks the storage state of a passkey import target.
+func (s *Store) CheckImport(ctx context.Context, name string, first bool) error {
 	if err := store.ValidateSecretName(name); err != nil {
 		return err
 	}
-	if err := s.checkWritable(ctx); err != nil {
-		return err
+	checker, ok := s.storage.(backend.ImportChecker)
+	if !ok {
+		return nil
 	}
-	if stager, ok := s.storage.(backend.UncommittedFileStager); ok {
-		return stager.CheckUnstaged(ctx, s.passfile(ctx, name))
-	}
-
-	return nil
-}
-
-// StageImport stages the import only after all its writes have finished.
-func (s *Store) StageImport(ctx context.Context, names, updated []string) (bool, error) {
-	if err := s.checkWritable(ctx); err != nil {
-		return false, err
-	}
-
-	if stager, ok := s.storage.(backend.UncommittedFileStager); ok {
-		files, err := s.importFiles(ctx, names)
-		if err != nil {
-			return false, err
+	if first {
+		if err := checker.CheckImport(ctx); err != nil {
+			return err
 		}
-
-		return stager.StageUncommitted(ctx, files...)
-	}
-	if len(updated) == 0 {
-		return false, nil
-	}
-	files, err := s.importFiles(ctx, updated)
-	if err != nil {
-		return false, err
-	}
-	if err := s.storage.TryAdd(ctx, files...); err != nil {
-		return false, err
 	}
 
-	return true, nil
-}
-
-func (s *Store) importFiles(ctx context.Context, names []string) ([]string, error) {
-	files := make([]string, 0, len(names))
-	for _, name := range names {
-		if err := store.ValidateSecretName(name); err != nil {
-			return nil, err
-		}
-		files = append(files, s.passfile(ctx, name))
-	}
-
-	return files, nil
+	return checker.CheckImport(ctx, s.passfile(ctx, name))
 }
 
 func (s *Store) gitCommitAndPush(ctx context.Context, name string) error {

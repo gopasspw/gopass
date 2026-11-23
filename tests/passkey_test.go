@@ -10,6 +10,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"regexp"
+	"runtime"
 	"strings"
 	"testing"
 
@@ -491,7 +492,7 @@ func TestPasskeyImportIsCommitted(t *testing.T) {
 			index := git(t, "ls-files", "-v", "--stage", name)
 			out, err := ts.runCmd([]string{ts.Binary, "passkey", "import", file}, nil)
 			require.ErrorContains(t, err, "exit status 7", out)
-			assert.Contains(t, out, "index and worktree diverge")
+			assert.Contains(t, out, "resolve pending changes before retrying")
 			assert.Equal(t, index, git(t, "ls-files", "-v", "--stage", name))
 			assert.Equal(t, before, git(t, "rev-parse", "HEAD"))
 			if flag != "" {
@@ -501,6 +502,25 @@ func TestPasskeyImportIsCommitted(t *testing.T) {
 
 		git(t, "add", "--", name)
 		require.Empty(t, git(t, "status", "--porcelain"))
+	})
+
+	t.Run("import does not replace a tracked directory symlink", func(t *testing.T) {
+		if runtime.GOOS == "windows" {
+			t.Skip("creating symlinks may require additional privileges on Windows")
+		}
+		run(t, "config passkey.prefix team/linked")
+		link := filepath.Join(dir, "linked", "example.com")
+		require.NoError(t, os.MkdirAll(filepath.Dir(link), 0o700))
+		require.NoError(t, os.Symlink("../passkeys/example.com", link))
+		git(t, "add", "--", "linked/example.com")
+		git(t, "commit", "-m", "track directory link")
+		before := git(t, "rev-parse", "HEAD")
+
+		out, err := ts.runCmd([]string{ts.Binary, "passkey", "import", file}, nil)
+		require.ErrorContains(t, err, "exit status 7", out)
+		assert.Equal(t, before, git(t, "rev-parse", "HEAD"))
+		assert.Empty(t, git(t, "status", "--porcelain"))
+		assert.Contains(t, git(t, "ls-files", "--stage", "--", "linked/example.com"), "120000 ")
 	})
 
 	t.Run("mixed retry cannot replace a staged secret", func(t *testing.T) {
@@ -523,7 +543,7 @@ func TestPasskeyImportIsCommitted(t *testing.T) {
 
 		out, err = ts.runCmd([]string{ts.Binary, "passkey", "import", mixed}, nil)
 		require.ErrorContains(t, err, "exit status 7", out)
-		assert.Contains(t, out, "index and worktree diverge")
+		assert.Contains(t, out, "resolve pending changes before retrying")
 		assert.Equal(t, index, git(t, "ls-files", "--stage", "--", name))
 		assert.Equal(t, before, git(t, "rev-parse", "HEAD"))
 		after, err := os.ReadFile(path)
@@ -577,28 +597,24 @@ func TestPasskeyImportIsCommitted(t *testing.T) {
 				assert.Contains(t, git(t, "status", "--porcelain"), "A  "+prefix+"/example.com/bob.gpg")
 			}
 			assert.Equal(t, before, git(t, "rev-parse", "HEAD"))
+			status := git(t, "status", "--porcelain", "--untracked-files=all")
 			alice := filepath.Join(dir, prefix, "example.com", "alice.gpg")
 			saved, err := os.ReadFile(alice)
 			require.NoError(t, err)
 
-			if failAt == "commit" {
-				t.Run("readonly", func(t *testing.T) {
-					t.Setenv("GOPASS_CONFIG_COUNT", "1")
-					t.Setenv("GOPASS_CONFIG_KEY_0", "core.readonly")
-					t.Setenv("GOPASS_CONFIG_VALUE_0", "true")
-					index := git(t, "status", "--porcelain")
-					out, err := ts.runCmd([]string{ts.Binary, "passkey", "import", file}, nil)
-					require.ErrorContains(t, err, "exit status 7", out)
-					assert.Contains(t, out, "core.readonly")
-					assert.Equal(t, index, git(t, "status", "--porcelain"))
-					assert.Equal(t, before, git(t, "rev-parse", "HEAD"))
-				})
-			}
+			out, err = ts.runCmd([]string{ts.Binary, "passkey", "import", file}, nil)
+			require.ErrorContains(t, err, "exit status 7", out)
+			assert.Contains(t, out, "resolve pending changes before retrying")
+			assert.Equal(t, before, git(t, "rev-parse", "HEAD"))
+			assert.Equal(t, status, git(t, "status", "--porcelain", "--untracked-files=all"))
 
+			// After the user resolves the interrupted write, importing
+			// again can complete without rewriting the recovered file.
+			git(t, "add", "--", prefix)
+			git(t, "commit", "-m", "finish interrupted import")
 			out, err = ts.runCmd([]string{ts.Binary, "passkey", "import", file}, nil)
 			require.NoError(t, err, out)
 			assert.Empty(t, git(t, "status", "--porcelain"))
-			assert.Equal(t, "1", git(t, "rev-list", "--count", before+"..HEAD"))
 			assert.Equal(t, prefix+"/example.com/alice.gpg\n"+prefix+"/example.com/bob.gpg", git(t, "diff", "--name-only", before, "HEAD"))
 			after, err := os.ReadFile(alice)
 			require.NoError(t, err)

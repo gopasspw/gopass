@@ -6,7 +6,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"os"
 	"os/exec"
 	"path/filepath"
 	"regexp"
@@ -141,10 +140,6 @@ func Init(ctx context.Context, path, userName, userEmail string) (*Git, error) {
 }
 
 func (g *Git) captureCmd(ctx context.Context, name string, args ...string) ([]byte, []byte, error) {
-	return g.captureCmdInput(ctx, name, nil, args...)
-}
-
-func (g *Git) captureCmdInput(ctx context.Context, name string, input []byte, args ...string) ([]byte, []byte, error) {
 	bufOut := &bytes.Buffer{}
 	bufErr := &bytes.Buffer{}
 
@@ -152,9 +147,6 @@ func (g *Git) captureCmdInput(ctx context.Context, name string, input []byte, ar
 	cmd.Dir = getPathOverride(ctx, g.fs.Path())
 	cmd.Stdout = bufOut
 	cmd.Stderr = bufErr
-	if input != nil {
-		cmd.Stdin = bytes.NewReader(input)
-	}
 
 	debug.Log("store.%s: %s %+v (%s)", name, cmd.Path, cmd.Args, g.fs.Path())
 	err := cmd.Run()
@@ -242,8 +234,8 @@ func (g *Git) Add(ctx context.Context, files ...string) error {
 		files[i] = strings.TrimPrefix(files[i], g.fs.Path()+"/")
 	}
 
-	args := make([]string, 0, 3+len(files))
-	args = append(args, "add", "--all", "--force")
+	args := make([]string, 0, 5+len(files))
+	args = append(args, "--literal-pathspecs", "add", "--all", "--force", "--")
 	args = append(args, files...)
 
 	return g.Cmd(ctx, "gitAdd", args...)
@@ -264,29 +256,41 @@ func (g *Git) TryAdd(ctx context.Context, files ...string) error {
 	return err
 }
 
-// CommittedFile returns an exact path from HEAD for recovery checks.
-func (g *Git) CommittedFile(ctx context.Context, name string) ([]byte, error) {
+// CheckImport refuses pending changes; it does not try to restage them.
+func (g *Git) CheckImport(ctx context.Context, paths ...string) error {
 	if !g.IsInitialized() {
-		return nil, os.ErrNotExist
+		return nil
 	}
-	revision, err := g.headRef(ctx)
+	args := []string{"--literal-pathspecs", "status", "--porcelain=v1", "--untracked-files=all"}
+	if len(paths) > 0 {
+		args = append(args, "--ignored", "--")
+		args = append(args, paths...)
+	}
+	out, stderr, err := g.captureCmd(ctx, "gitImportStatus", args...)
 	if err != nil {
-		return nil, err
+		return fmt.Errorf("git status: %w: %s", err, strings.TrimSpace(string(stderr)))
 	}
-	file, err := g.fileAtHead(ctx, revision, name)
-	if err != nil {
-		return nil, err
+	if len(out) != 0 {
+		return fmt.Errorf("the Git store has pending changes")
 	}
-	if file.hash == "" {
-		return nil, os.ErrNotExist
+	for _, path := range paths {
+		// Status can hide assume-unchanged and skip-worktree entries.
+		out, stderr, err := g.captureCmd(ctx, "gitImportPath", "--literal-pathspecs", "ls-files", "-v", "-z", "--", path)
+		if err != nil {
+			return fmt.Errorf("git ls-files: %w: %s", err, strings.TrimSpace(string(stderr)))
+		}
+		switch string(out) {
+		case "H " + path + "\x00":
+		case "":
+			if g.fs.Exists(ctx, path) {
+				return fmt.Errorf("import target %q is not tracked at its exact path", path)
+			}
+		default:
+			return fmt.Errorf("cannot verify the Git index entry for %q", path)
+		}
 	}
 
-	stdout, stderr, err := g.captureCmd(ctx, "gitReadBlob", "cat-file", "blob", file.hash)
-	if err != nil {
-		return nil, fmt.Errorf("git cat-file: %w: %s", err, strings.TrimSpace(string(stderr)))
-	}
-
-	return stdout, nil
+	return nil
 }
 
 // HasStagedChanges returns true if there are any staged changes which can be committed.

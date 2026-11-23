@@ -241,6 +241,11 @@ $ gopass passkey export example.com
 `import` reads the passkeys of an unencrypted CXF JSON document, or of
 standard input if the file is `-`. Other kinds of credentials in the document
 are ignored. Importing a passkey that is already stored does not duplicate it.
+`gitfs` and `gogit` stores must be clean before an import. CryptFS imports
+require one of these as their underlying storage. If an interrupted import
+leaves encrypted files or a CryptFS name mapping uncommitted, inspect and
+resolve those changes before retrying. The import does not recover them
+automatically.
 
 `export` writes all passkeys, or those of one relying party, as a CXF JSON
 document to standard output or to the file given with `--output`. An existing
