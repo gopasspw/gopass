@@ -87,6 +87,24 @@ type NewOptions struct {
 
 // New generates a credential with a fresh key pair and a random ID.
 func New(opts NewOptions) (*Credential, error) {
+	id, err := newCredentialID()
+	if err != nil {
+		return nil, err
+	}
+
+	return newCredential(opts, id)
+}
+
+func newCredentialID() ([]byte, error) {
+	id := make([]byte, credentialIDLen)
+	if _, err := rand.Read(id); err != nil {
+		return nil, fmt.Errorf("failed to generate credential ID: %w", err)
+	}
+
+	return id, nil
+}
+
+func newCredential(opts NewOptions, id []byte) (*Credential, error) {
 	alg := opts.Algorithm
 	if alg == 0 {
 		alg = ES256
@@ -95,11 +113,6 @@ func New(opts NewOptions) (*Credential, error) {
 	key, err := generateKey(alg)
 	if err != nil {
 		return nil, err
-	}
-
-	id := make([]byte, credentialIDLen)
-	if _, err := rand.Read(id); err != nil {
-		return nil, fmt.Errorf("failed to generate credential ID: %w", err)
 	}
 
 	cred := &Credential{

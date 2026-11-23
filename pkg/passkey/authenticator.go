@@ -231,11 +231,12 @@ func (a *Authenticator) Register(ctx context.Context, origin Origin, opts *Creat
 		return nil, nil, errorf(UnknownError, "failed to look up existing passkeys: %w", err)
 	}
 
+	entriesToRead := names
 	if len(opts.ExcludeCredentials) == 0 {
-		names = slices.DeleteFunc(names, func(n string) bool { return !a.store.isAccountPath(cctx, n) })
+		entriesToRead = slices.DeleteFunc(slices.Clone(names), func(n string) bool { return !a.store.isAccountPath(cctx, n) })
 	}
 
-	entries, err := a.store.load(cctx, names)
+	entries, err := a.store.load(cctx, entriesToRead)
 	if err != nil {
 		// What can not be read is treated like an unknown credential.
 		debug.Log("failed to read some passkeys of %s: %s", rpID, err)
@@ -245,11 +246,21 @@ func (a *Authenticator) Register(ctx context.Context, origin Origin, opts *Creat
 		return nil, nil, err
 	}
 
-	// The user should know if the account has a passkey already. The new
-	// one is added to the same secret.
+	id, err := newCredentialID()
+	if err != nil {
+		return nil, nil, newError(UnknownError, err)
+	}
 	existing, _ := a.store.accountIn(cctx, entries, rpID, user.ID)
-	req.Entry = existing
-
+	// If the user has no usable name, the credential ID is the filename.
+	dest := &Credential{ID: id, RPID: rpID, UserName: user.Name, UserDisplayName: user.DisplayName}
+	target, err := a.store.writeTarget(cctx, names, dest, existing)
+	if err != nil {
+		return nil, nil, errorf(UnknownError, "failed to choose the passkey destination: %w", err)
+	}
+	if existing == target {
+		req.Entry = existing
+	}
+	req.Destination = target
 	req.Operation = OperationRegister
 
 	consent, err := a.askConsent(cctx, req)
@@ -257,14 +268,14 @@ func (a *Authenticator) Register(ctx context.Context, origin Origin, opts *Creat
 		return nil, nil, err
 	}
 
-	cred, err := New(NewOptions{
+	cred, err := newCredential(NewOptions{
 		RPID:            rpID,
 		UserHandle:      user.ID,
 		UserName:        user.Name,
 		UserDisplayName: user.DisplayName,
 		Algorithm:       alg,
 		SignCounter:     SignCounterEnabled(ctx),
-	})
+	}, id)
 	if err != nil {
 		return nil, nil, newError(UnknownError, err)
 	}
@@ -285,7 +296,7 @@ func (a *Authenticator) Register(ctx context.Context, origin Origin, opts *Creat
 		return nil, nil, err
 	}
 
-	name, warning := a.store.putTo(ctx, cred, existing)
+	name, warning := a.store.putTo(ctx, cred, target)
 	if warning != nil && !errors.Is(warning, ErrNotSynced) {
 		return nil, nil, errorf(UnknownError, "failed to store the passkey: %w", warning)
 	}

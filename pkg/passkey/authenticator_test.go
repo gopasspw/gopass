@@ -98,6 +98,7 @@ func TestRegisterAndAuthenticate(t *testing.T) {
 				Origin:          "https://login.example.com",
 				UserName:        "alice",
 				UserDisplayName: "The alice",
+				Destination:     "passkeys/example.com/alice",
 			}, rec.requests[0])
 
 			// what the Relying Party gets

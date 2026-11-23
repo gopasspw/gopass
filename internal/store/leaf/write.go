@@ -86,25 +86,59 @@ func (s *Store) checkWritable(ctx context.Context) error {
 	return nil
 }
 
-// StageUncommitted checks for earlier writes that did not reach a commit.
-func (s *Store) StageUncommitted(ctx context.Context, names ...string) (bool, error) {
-	stager, ok := s.storage.(backend.UncommittedFileStager)
-	if !ok {
-		return false, nil
+// CheckImportWrite protects existing index entries before a batch replaces a file.
+func (s *Store) CheckImportWrite(ctx context.Context, name string) error {
+	if err := store.ValidateSecretName(name); err != nil {
+		return err
 	}
+	if err := s.checkWritable(ctx); err != nil {
+		return err
+	}
+	if stager, ok := s.storage.(backend.UncommittedFileStager); ok {
+		return stager.CheckUnstaged(ctx, s.passfile(ctx, name))
+	}
+
+	return nil
+}
+
+// StageImport stages the import only after all its writes have finished.
+func (s *Store) StageImport(ctx context.Context, names, updated []string) (bool, error) {
 	if err := s.checkWritable(ctx); err != nil {
 		return false, err
 	}
 
+	if stager, ok := s.storage.(backend.UncommittedFileStager); ok {
+		files, err := s.importFiles(ctx, names)
+		if err != nil {
+			return false, err
+		}
+
+		return stager.StageUncommitted(ctx, files...)
+	}
+	if len(updated) == 0 {
+		return false, nil
+	}
+	files, err := s.importFiles(ctx, updated)
+	if err != nil {
+		return false, err
+	}
+	if err := s.storage.TryAdd(ctx, files...); err != nil {
+		return false, err
+	}
+
+	return true, nil
+}
+
+func (s *Store) importFiles(ctx context.Context, names []string) ([]string, error) {
 	files := make([]string, 0, len(names))
 	for _, name := range names {
 		if err := store.ValidateSecretName(name); err != nil {
-			return false, err
+			return nil, err
 		}
 		files = append(files, s.passfile(ctx, name))
 	}
 
-	return stager.StageUncommitted(ctx, files...)
+	return files, nil
 }
 
 func (s *Store) gitCommitAndPush(ctx context.Context, name string) error {

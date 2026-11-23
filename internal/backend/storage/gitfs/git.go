@@ -141,6 +141,10 @@ func Init(ctx context.Context, path, userName, userEmail string) (*Git, error) {
 }
 
 func (g *Git) captureCmd(ctx context.Context, name string, args ...string) ([]byte, []byte, error) {
+	return g.captureCmdInput(ctx, name, nil, args...)
+}
+
+func (g *Git) captureCmdInput(ctx context.Context, name string, input []byte, args ...string) ([]byte, []byte, error) {
 	bufOut := &bytes.Buffer{}
 	bufErr := &bytes.Buffer{}
 
@@ -148,6 +152,9 @@ func (g *Git) captureCmd(ctx context.Context, name string, args ...string) ([]by
 	cmd.Dir = getPathOverride(ctx, g.fs.Path())
 	cmd.Stdout = bufOut
 	cmd.Stderr = bufErr
+	if input != nil {
+		cmd.Stdin = bytes.NewReader(input)
+	}
 
 	debug.Log("store.%s: %s %+v (%s)", name, cmd.Path, cmd.Args, g.fs.Path())
 	err := cmd.Run()
@@ -257,75 +264,29 @@ func (g *Git) TryAdd(ctx context.Context, files ...string) error {
 	return err
 }
 
-// StageUncommitted stages pending files without replacing divergent index entries.
-func (g *Git) StageUncommitted(ctx context.Context, names ...string) (bool, error) {
-	if !g.IsInitialized() {
-		return false, nil
-	}
-
-	pending := false
-	var add []string
-	for _, name := range names {
-		stdout, stderr, err := g.captureCmd(ctx, "gitFileStatus", "--literal-pathspecs", "status",
-			"--porcelain=v1", "-z", "--no-renames", "--untracked-files=all", "--ignored", "--", name)
-		if err != nil {
-			return false, fmt.Errorf("git status: %w: %s", err, strings.TrimSpace(string(stderr)))
-		}
-		if len(stdout) == 0 {
-			continue
-		}
-		// An exact file path must produce exactly one record. A staged
-		// deletion with a retained worktree file can produce two records.
-		if len(stdout) < 4 || string(stdout[2:]) != " "+name+"\x00" {
-			return false, backend.ConflictingIndexError(name)
-		}
-		info, err := os.Lstat(filepath.Join(g.fs.Path(), name))
-		if err != nil || !info.Mode().IsRegular() {
-			return false, backend.ConflictingIndexError(name)
-		}
-		switch string(stdout[:2]) {
-		case "A ", "M ":
-			// The index already holds exactly what the worktree holds.
-			pending = true
-		case "??", "!!", " M":
-			add = append(add, name)
-		default:
-			return false, backend.ConflictingIndexError(name)
-		}
-	}
-	if len(add) > 0 {
-		args := append([]string{"--literal-pathspecs", "add", "--force", "--"}, add...)
-		if err := g.Cmd(ctx, "gitAdd", args...); err != nil {
-			return false, err
-		}
-	}
-
-	return pending || len(add) > 0, nil
-}
-
 // CommittedFile returns an exact path from HEAD for recovery checks.
 func (g *Git) CommittedFile(ctx context.Context, name string) ([]byte, error) {
 	if !g.IsInitialized() {
 		return nil, os.ErrNotExist
 	}
-	head, stderr, err := g.captureCmd(ctx, "gitHead", "rev-parse", "--verify", "--quiet", "HEAD")
+	revision, err := g.headRef(ctx)
 	if err != nil {
-		if ee, ok := errors.AsType[*exec.ExitError](err); ok && ee.ExitCode() == 1 {
-			return nil, os.ErrNotExist
-		}
-
-		return nil, fmt.Errorf("git rev-parse HEAD: %w: %s", err, strings.TrimSpace(string(stderr)))
+		return nil, err
 	}
-	revision := strings.TrimSpace(string(head))
-	stdout, stderr, err := g.captureCmd(ctx, "gitListHead", "--literal-pathspecs", "ls-tree", "--name-only", "-z", revision, "--", name)
+	file, err := g.fileAtHead(ctx, revision, name)
 	if err != nil {
-		return nil, fmt.Errorf("git ls-tree: %w: %s", err, strings.TrimSpace(string(stderr)))
+		return nil, err
 	}
-	if string(stdout) != name+"\x00" {
+	if file.hash == "" {
 		return nil, os.ErrNotExist
 	}
 
-	return g.GetRevision(ctx, name, revision)
+	stdout, stderr, err := g.captureCmd(ctx, "gitReadBlob", "cat-file", "blob", file.hash)
+	if err != nil {
+		return nil, fmt.Errorf("git cat-file: %w: %s", err, strings.TrimSpace(string(stderr)))
+	}
+
+	return stdout, nil
 }
 
 // HasStagedChanges returns true if there are any staged changes which can be committed.

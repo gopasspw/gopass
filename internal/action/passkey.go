@@ -17,6 +17,7 @@ import (
 	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/cui"
 	"github.com/gopasspw/gopass/internal/out"
+	"github.com/gopasspw/gopass/internal/store/leaf"
 	"github.com/gopasspw/gopass/internal/store/root"
 	"github.com/gopasspw/gopass/internal/tree"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
@@ -54,18 +55,27 @@ func (p passkeySecretStore) Exists(ctx context.Context, name string) bool {
 	return p.rs.Exists(ctx, name)
 }
 
-// passkeyImportStore records the target paths and whether Put staged them.
+var errPasskeyImportPreflight = errors.New("passkey import write check failed")
+
+// passkeyImportStore writes ciphertext without staging it and records all
+// target paths for a mount-wide staging check.
 type passkeyImportStore struct {
 	passkeySecretStore
-	staged set.Set[string]
-	names  map[string]set.Set[string]
+	updated set.Set[string]
+	blocked set.Set[string]
+	names   map[string]set.Set[string]
 }
 
 func (p *passkeyImportStore) Set(ctx context.Context, name string, sec gopass.Byter) error {
-	if err := p.passkeySecretStore.Set(ctx, name, sec); err != nil {
+	if err := p.rs.CheckImportWrite(ctx, name); err != nil {
+		p.blocked.Add(p.rs.MountPoint(name))
+
+		return fmt.Errorf("%w for %q: %w", errPasskeyImportPreflight, name, err)
+	}
+	if err := p.passkeySecretStore.Set(leaf.WithNoGitOps(ctx, true), name, sec); err != nil {
 		return err
 	}
-	p.staged.Add(name)
+	p.updated.Add(name)
 
 	return nil
 }
@@ -81,24 +91,21 @@ func (p *passkeyImportStore) finish(ctx context.Context) error {
 	var errs []error
 
 	for _, mount := range slices.Sorted(maps.Keys(p.names)) {
+		if p.blocked[mount] {
+			continue
+		}
 		label := mount
 		if label == "" {
 			label = "<root>"
 		}
 
 		names := p.names[mount].Elements()
-		pending := true
-		if slices.ContainsFunc(names, func(name string) bool { return !p.staged[name] }) {
-			// Put skips Set when a credential is unchanged. Recover any
-			// pending writes together, without committing this mount if
-			// a path's index or shared metadata cannot be recovered safely.
-			var err error
-			pending, err = p.rs.StageUncommitted(ctx, mount, names...)
-			if err != nil {
-				errs = append(errs, fmt.Errorf("failed to recover imported passkeys in %q: %w", label, err))
+		updated := set.SortedFiltered(names, func(name string) bool { return p.updated[name] })
+		pending, err := p.rs.StageImport(ctx, mount, names, updated)
+		if err != nil {
+			errs = append(errs, fmt.Errorf("failed to stage imported passkeys in %q: %w", label, err))
 
-				continue
-			}
+			continue
 		}
 		if !pending || !ctxutil.IsGitCommit(ctx) {
 			continue
@@ -141,7 +148,7 @@ func (s *passkeyHandler) confirm(ctx context.Context, req passkey.ConsentRequest
 
 	switch req.Operation {
 	case passkey.OperationRegister:
-		question = fmt.Sprintf("Create a passkey for %q at %s?", user, req.RPID)
+		question = fmt.Sprintf("Create a passkey for %q at %s in %s?", user, req.RPID, req.Destination)
 		if req.Entry != "" {
 			question = fmt.Sprintf("Create another passkey for %q at %s? The account already has one in %s.", user, req.RPID, req.Entry)
 		}
@@ -653,14 +660,11 @@ func (s *passkeyHandler) PasskeyImport(ctx context.Context, cmd *cli.Command) er
 		names:              make(map[string]set.Set[string]),
 	}
 	st := passkey.NewStore(ctx, batch)
-	// Stage synchronously: a queued commit would race with the next git add.
-	stageCtx := ctxutil.WithGitCommit(ctx, false)
 	var importErr error
 	for _, cred := range creds {
-		name, err := st.Put(stageCtx, cred)
+		name, err := st.Put(ctx, cred)
 		if err != nil {
-			if errors.Is(err, passkey.ErrNotSynced) {
-				// No commit or push was attempted; the write could not be staged.
+			if errors.Is(err, errPasskeyImportPreflight) {
 				importErr = exit.Error(exit.Git, err, "%s", err)
 			} else {
 				importErr = exit.Error(exit.Encrypt, err, "failed to store the passkey for %q at %s: %s", cred.Label(), cred.RPID, err)

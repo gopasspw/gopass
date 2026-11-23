@@ -68,6 +68,9 @@ type ConsentRequest struct {
 	// it is the secret that already holds a passkey of the user account, or
 	// empty if there is none.
 	Entry string
+	// Destination is the exact secret a registration will write to.
+	// It is empty for other operations.
+	Destination string
 	// VerificationRequired reports that the Relying Party requires the user
 	// to be verified. The ceremony fails if the consent does not say so.
 	VerificationRequired bool

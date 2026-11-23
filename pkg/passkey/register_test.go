@@ -38,6 +38,29 @@ func TestRegisterDefaults(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestRegistrationConsentNamesActualWriteTarget(t *testing.T) {
+	t.Parallel()
+
+	ctx := testContext(t)
+	const oldName = "passkeys/example.com/alice"
+	const newName = "passkeys/example.com/alice-renamed"
+	api := mountedPasskeyStore{MockAPI: apimock.New(), shared: oldName}
+	old := newCred(t, "example.com", "alice", "handle")
+	writeCreds(ctx, t, api, oldName, old)
+	rec := &consentRecorder{consent: Consent{Present: true}}
+	auth := NewAuthenticator(NewStore(ctx, api), rec.ask)
+	opts := creationOptions("alice-renamed")
+	opts.User.ID = old.UserHandle
+
+	_, entry, err := auth.Register(ctx, exampleOrigin, opts)
+	require.NoError(t, err)
+	require.Len(t, rec.requests, 1)
+	assert.Empty(t, rec.requests[0].Entry, "do not tell the user the old secret will receive the new passkey")
+	assert.Equal(t, newName, rec.requests[0].Destination)
+	assert.Equal(t, rec.requests[0].Destination, entry.Name)
+	assert.Equal(t, []*Credential{old}, readCreds(ctx, t, api, oldName))
+}
+
 func TestRegisterRejected(t *testing.T) {
 	t.Parallel()
 

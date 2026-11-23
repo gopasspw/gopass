@@ -237,13 +237,20 @@ func (s *Store) Names(ctx context.Context, rpID string) ([]string, error) {
 		names = append(names, name)
 	}
 
+	priority := make(map[string]int, len(names))
+	for _, name := range names {
+		switch {
+		case s.Owns(name):
+			priority[name] = 0
+		case s.isAccountPath(ctx, name):
+			priority[name] = 1
+		default:
+			priority[name] = 2
+		}
+	}
 	slices.SortFunc(names, func(a, b string) int {
-		if oa, ob := s.Owns(a), s.Owns(b); oa != ob {
-			if oa {
-				return -1
-			}
-
-			return 1
+		if a, b := priority[a], priority[b]; a != b {
+			return a - b
 		}
 
 		return strings.Compare(a, b)
@@ -418,7 +425,12 @@ func (s *Store) Put(ctx context.Context, cred *Credential) (string, error) {
 		return "", err
 	}
 
-	target, _, err := s.AccountSecret(ctx, cred.RPID, cred.UserHandle)
+	names, err := s.Names(ctx, cred.RPID)
+	if err != nil {
+		return "", err
+	}
+	existing := s.accountSecret(ctx, names, cred.RPID, cred.UserHandle)
+	target, err := s.writeTarget(ctx, names, cred, existing)
 	if err != nil {
 		return "", err
 	}
@@ -426,18 +438,47 @@ func (s *Store) Put(ctx context.Context, cred *Credential) (string, error) {
 	return s.putTo(ctx, cred, target)
 }
 
-// putTo stores a credential in the secret with the given name, which must be
-// the account secret of the credential, see [Store.AccountSecret]. If target
-// is empty the account has none yet and a new secret is created.
+// writeTarget chooses the exact name before a registration prompts for consent.
+func (s *Store) writeTarget(ctx context.Context, names []string, cred *Credential, existing string) (string, error) {
+	dest := s.secretName(cred.RPID, accountName(cred))
+	if existing != "" && s.sameWriteScope(ctx, existing, dest) {
+		return existing, nil
+	}
+	if slices.Contains(names, dest) {
+		return dest, nil
+	}
+	for _, name := range names {
+		if strings.EqualFold(name, dest) && s.sameWriteScope(ctx, name, dest) {
+			return name, nil
+		}
+		// A custom store without a scope or existence check might also
+		// normalize spellings that EqualFold does not consider equivalent.
+		if s.scope == nil && mayAlias(name, dest) {
+			return "", fmt.Errorf("cannot safely reuse %q for %q without recipient scope information", name, dest)
+		}
+	}
+	if s.scope != nil && s.scope.Exists(ctx, dest) {
+		return "", fmt.Errorf("cannot safely write %q: it aliases an existing secret", dest)
+	}
+
+	return dest, nil
+}
+
+func mayAlias(a, b string) bool {
+	// Some stores normalize paths with ToLower, which is not the same as
+	// EqualFold (for example U+0130 and i).
+	return strings.EqualFold(a, b) || strings.ToLower(a) == strings.ToLower(b) //nolint:staticcheck
+}
+
+// putTo writes only the path chosen by writeTarget, never a substitute.
 func (s *Store) putTo(ctx context.Context, cred *Credential, target string) (string, error) {
 	encoded, err := cred.Encode()
 	if err != nil {
 		return "", err
 	}
 
-	dest := s.secretName(cred.RPID, accountName(cred))
-	if target == "" || !s.sameWriteScope(ctx, target, dest) {
-		target = dest
+	if !s.sameWriteScope(ctx, target, s.secretName(cred.RPID, accountName(cred))) {
+		return "", fmt.Errorf("recipient scope for %q changed before writing the passkey", target)
 	}
 
 	return s.modify(ctx, target, true, func(creds []*Credential) ([]*Credential, bool, error) {
@@ -478,6 +519,12 @@ func (s *Store) AccountSecret(ctx context.Context, rpID string, userHandle []byt
 		return "", false, err
 	}
 
+	name := s.accountSecret(ctx, names, rpID, userHandle)
+
+	return name, name != "", nil
+}
+
+func (s *Store) accountSecret(ctx context.Context, names []string, rpID string, userHandle []byte) string {
 	for _, name := range names {
 		// Only secrets below the prefix are candidates for an update.
 		// Secrets in other folders may be shared with other people, who must
@@ -501,11 +548,11 @@ func (s *Store) AccountSecret(ctx context.Context, rpID string, userHandle []byt
 		if slices.ContainsFunc(creds, func(c *Credential) bool {
 			return c.RPID == rpID && bytes.Equal(c.UserHandle, userHandle)
 		}) {
-			return name, true, nil
+			return name
 		}
 	}
 
-	return "", false, nil
+	return ""
 }
 
 // accountIn returns the account secret of a user account among entries
@@ -645,11 +692,11 @@ func (s *Store) Remove(ctx context.Context, name string, id []byte) (int, error)
 
 // modify applies fn to the credentials of the secret with the given name and
 // writes the result back. Anything else the secret contains is kept. The
-// secret is created if it does not exist. The name the secret was written to
-// is returned: it can differ in case from the requested name. It is also
+// secret is created if requested and it does not exist. The exact name is
+// returned on success. It is also
 // returned with an error wrapping ErrNotSynced. If fn reports no change, the
 // secret is left byte for byte as it was.
-func (s *Store) modify(ctx context.Context, name string, matchCaseVariant bool, fn func([]*Credential) ([]*Credential, bool, error)) (string, error) {
+func (s *Store) modify(ctx context.Context, name string, create bool, fn func([]*Credential) ([]*Credential, bool, error)) (string, error) {
 	all, err := s.store.List(ctx)
 	if err != nil {
 		return "", fmt.Errorf("failed to list secrets: %w", err)
@@ -657,34 +704,22 @@ func (s *Store) modify(ctx context.Context, name string, matchCaseVariant bool, 
 
 	// Whether the secret exists is decided by the list of secrets, not by
 	// trying to read it: a secret that exists but can not be decrypted must
-	// never be mistaken for a new one and overwritten. A secret whose name
-	// only differs in case is the same file on some file systems.
+	// never be mistaken for a new one and overwritten. Also reject any
+	// physical alias not represented by this exact name in List.
 	sec := secrets.New()
 	creds := []*Credential{}
 
-	i := slices.Index(all, name)
-	if i < 0 && matchCaseVariant {
-		for idx, candidate := range all {
-			if !strings.EqualFold(candidate, name) {
-				continue
-			}
-			if s.sameWriteScope(ctx, candidate, name) {
-				i = idx
-
-				break
-			}
-			// Refuse to overwrite an existing alias on a case-insensitive
-			// filesystem if we can't prove it uses the intended recipients.
-			if s.scope == nil || s.scope.Exists(ctx, name) {
-				return "", fmt.Errorf("cannot safely reuse %q for %q: recipient scope differs or is unknown", candidate, name)
-			}
+	exists := slices.Contains(all, name)
+	if !exists {
+		if !create {
+			return "", fmt.Errorf("%w in %s", ErrNoCredentials, name)
+		}
+		if s.scope != nil && s.scope.Exists(ctx, name) {
+			return "", fmt.Errorf("cannot safely write %q: it aliases an existing secret", name)
 		}
 	}
 
-	exists := i >= 0
 	if exists {
-		name = all[i]
-
 		sec, err = s.get(ctx, name)
 		if err != nil {
 			return "", fmt.Errorf("failed to read %s: %w", name, err)

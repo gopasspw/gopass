@@ -484,13 +484,51 @@ func TestPasskeyImportIsCommitted(t *testing.T) {
 		git(t, "add", "--", name)
 		require.NoError(t, os.WriteFile(path, working, 0o600))
 
-		index := git(t, "ls-files", "--stage", name)
-		out, err := ts.runCmd([]string{ts.Binary, "passkey", "import", file}, nil)
+		for _, flag := range []string{"", "skip-worktree", "assume-unchanged"} {
+			if flag != "" {
+				git(t, "update-index", "--"+flag, "--", name)
+			}
+			index := git(t, "ls-files", "-v", "--stage", name)
+			out, err := ts.runCmd([]string{ts.Binary, "passkey", "import", file}, nil)
+			require.ErrorContains(t, err, "exit status 7", out)
+			assert.Contains(t, out, "index and worktree diverge")
+			assert.Equal(t, index, git(t, "ls-files", "-v", "--stage", name))
+			assert.Equal(t, before, git(t, "rev-parse", "HEAD"))
+			if flag != "" {
+				git(t, "update-index", "--no-"+flag, "--", name)
+			}
+		}
+
+		git(t, "add", "--", name)
+		require.Empty(t, git(t, "status", "--porcelain"))
+	})
+
+	t.Run("mixed retry cannot replace a staged secret", func(t *testing.T) {
+		run(t, "config passkey.prefix passkeys")
+		run(t, "--yes passkey create example.com alice")
+		mixed := filepath.Join(t.TempDir(), "mixed.json")
+		out, err := ts.runCmd([]string{ts.Binary, "passkey", "export", "--output", mixed}, nil)
+		require.NoError(t, err, out)
+		run(t, "config passkey.prefix team/passkeys")
+
+		const name = "passkeys/example.com/alice.gpg"
+		path := filepath.Join(dir, name)
+		working, err := os.ReadFile(path)
+		require.NoError(t, err)
+		require.NoError(t, os.WriteFile(path, []byte("staged version"), 0o600))
+		git(t, "add", "--", name)
+		require.NoError(t, os.WriteFile(path, working, 0o600))
+		index := git(t, "ls-files", "--stage", "--", name)
+		before := git(t, "rev-parse", "HEAD")
+
+		out, err = ts.runCmd([]string{ts.Binary, "passkey", "import", mixed}, nil)
 		require.ErrorContains(t, err, "exit status 7", out)
 		assert.Contains(t, out, "index and worktree diverge")
-		assert.Equal(t, index, git(t, "ls-files", "--stage", name))
+		assert.Equal(t, index, git(t, "ls-files", "--stage", "--", name))
 		assert.Equal(t, before, git(t, "rev-parse", "HEAD"))
-
+		after, err := os.ReadFile(path)
+		require.NoError(t, err)
+		assert.Equal(t, working, after, "no fresh write over the divergent path")
 		git(t, "add", "--", name)
 		require.Empty(t, git(t, "status", "--porcelain"))
 	})

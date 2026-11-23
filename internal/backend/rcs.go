@@ -35,7 +35,50 @@ type rcs interface {
 // whether the given files need a commit. It must leave clean files alone and
 // refuse to replace an index entry that has diverged from the worktree.
 type UncommittedFileStager interface {
+	// CheckUnstaged requires that a file to be replaced has no staged version
+	// different from HEAD. The worktree file need not exist yet.
+	CheckUnstaged(ctx context.Context, names ...string) error
 	StageUncommitted(ctx context.Context, names ...string) (bool, error)
+}
+
+// StagingFile names an exact path. If Expected is non-nil, it must match the
+// current worktree bytes (used for shared metadata checked by a caller).
+type StagingFile struct {
+	Name     string
+	Expected []byte
+}
+
+// StagingPlanner lets a wrapper check all files before changing the index.
+type StagingPlanner interface {
+	PlanStaging(ctx context.Context, files ...StagingFile) (StagingPlan, error)
+}
+
+// StagingPlan has no side effects until Apply is called. Pending includes
+// files already staged with the same contents as the worktree.
+type StagingPlan struct {
+	Pending bool
+	Apply   func(context.Context) error
+}
+
+// StagingFiles converts a list of exact paths to staging requests.
+func StagingFiles(names ...string) []StagingFile {
+	files := make([]StagingFile, len(names))
+	for i, name := range names {
+		files[i].Name = name
+	}
+
+	return files
+}
+
+// Stage applies a plan if any files need to be added.
+func (p StagingPlan) Stage(ctx context.Context) (bool, error) {
+	if p.Apply != nil {
+		if err := p.Apply(ctx); err != nil {
+			return false, err
+		}
+	}
+
+	return p.Pending, nil
 }
 
 // CommittedFileReader reads a file from HEAD, returning os.ErrNotExist if the

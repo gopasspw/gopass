@@ -233,3 +233,69 @@ func TestGit(t *testing.T) {
 	require.NoError(t, err)
 	assert.False(t, staged)
 }
+
+func TestStageImportValidatesCryptfsMappingBeforeChangingIndex(t *testing.T) {
+	ctx := ctxutil.WithGitInit(t.Context(), true)
+	ctx = ctxutil.WithAlwaysYes(ctx, true)
+	ctx = ctxutil.WithUsername(ctx, "test")
+	ctx = ctxutil.WithEmail(ctx, "test@example.com")
+	ctx = ctxutil.WithAgePassphrase(ctx, password)
+	td := t.TempDir()
+	t.Setenv("GOPASS_HOMEDIR", td)
+	crypt, _ := newTestCryptFS(ctx, t, td)
+
+	const existing = "foo/existing"
+	const fresh = "foo/fresh"
+	require.NoError(t, crypt.Set(ctx, existing, []byte("original")))
+	require.NoError(t, crypt.Add(ctx, crypt.Path()))
+	require.NoError(t, crypt.Commit(ctx, "base"))
+
+	// A fresh import must not stage unrelated names even if the target
+	// could be staged independently or all credentials needed fresh writes.
+	require.NoError(t, crypt.Set(ctx, existing, []byte("updated")))
+	require.NoError(t, crypt.Set(ctx, "foo/unrelated", []byte("other")))
+	require.NoError(t, crypt.CheckUnstaged(ctx, fresh))
+	require.NoError(t, crypt.Set(ctx, fresh, []byte("new")))
+	before, err := crypt.sub.Status(ctx)
+	require.NoError(t, err)
+	staged, err := crypt.StageUncommitted(ctx, existing, fresh)
+	require.ErrorContains(t, err, "unrelated pending changes")
+	assert.False(t, staged)
+	after, err := crypt.sub.Status(ctx)
+	require.NoError(t, err)
+	assert.Equal(t, before, after, "ciphertext must not be staged first")
+
+	// An external mapping edit invalidates the cached map. This must be
+	// detected before either the mapping or ciphertext is staged.
+	other, err := newCrypt(ctx, crypt.sub)
+	require.NoError(t, err)
+	require.NoError(t, other.Set(ctx, "foo/external", []byte("external")))
+	before, err = crypt.sub.Status(ctx)
+	require.NoError(t, err)
+	staged, err = crypt.StageUncommitted(ctx, existing, fresh)
+	require.ErrorContains(t, err, "changed on disk")
+	assert.False(t, staged)
+	after, err = crypt.sub.Status(ctx)
+	require.NoError(t, err)
+	assert.Equal(t, before, after)
+
+	// Validate a divergent staged mapping before staging any ciphertext.
+	require.NoError(t, other.sub.Add(ctx, mappingFile))
+	require.ErrorContains(t, other.CheckUnstaged(ctx, "foo/newer"), "index and worktree diverge")
+	require.NoError(t, other.Set(ctx, "foo/newer", []byte("newer")))
+	before, err = other.sub.Status(ctx)
+	require.NoError(t, err)
+	staged, err = other.StageUncommitted(ctx, existing, fresh, "foo/unrelated", "foo/external", "foo/newer")
+	require.ErrorContains(t, err, "index and worktree diverge")
+	assert.False(t, staged)
+	after, err = other.sub.Status(ctx)
+	require.NoError(t, err)
+	assert.Equal(t, before, after)
+
+	// Refuse to commit a dangling mapping, even for a target that was
+	// written successfully earlier in this process.
+	require.NoError(t, other.sub.Delete(ctx, other.mappings[fresh]))
+	staged, err = other.StageUncommitted(ctx, fresh, "foo/unrelated", "foo/external", "foo/newer")
+	require.ErrorIs(t, err, os.ErrNotExist)
+	assert.False(t, staged)
+}

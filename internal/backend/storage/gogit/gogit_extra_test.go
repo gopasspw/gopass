@@ -100,6 +100,7 @@ func TestGoGitRecoveryPreservesDivergentIndex(t *testing.T) {
 	before, err := g.repo.Storer.Index()
 	require.NoError(t, err)
 
+	require.ErrorContains(t, g.CheckUnstaged(ctx, name), "index and worktree diverge")
 	pending, err := g.StageUncommitted(ctx, name)
 	require.ErrorContains(t, err, "index and worktree diverge")
 	assert.False(t, pending)

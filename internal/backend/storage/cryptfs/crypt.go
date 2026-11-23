@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"maps"
 	"os"
 	"path/filepath"
 	"sort"
@@ -302,9 +303,41 @@ func (c *Crypt) TryAdd(ctx context.Context, files ...string) error {
 	return err
 }
 
+// CheckUnstaged protects target ciphertext and any mapping that will be rewritten.
+func (c *Crypt) CheckUnstaged(ctx context.Context, names ...string) error {
+	stager, ok := c.sub.(backend.UncommittedFileStager)
+	if !ok {
+		return nil
+	}
+	c.mux.RLock()
+	defer c.mux.RUnlock()
+
+	if _, err := c.mappingSnapshot(ctx); err != nil {
+		return err
+	}
+	hashes := make([]string, 0, len(names)+1)
+	var newMapping bool
+	for _, name := range names {
+		h, found := c.mappings[name]
+		if !found {
+			h = c.hash(name)
+			newMapping = true
+		}
+		if err := c.checkUniqueMapping(name, h); err != nil {
+			return err
+		}
+		hashes = append(hashes, h)
+	}
+	if newMapping {
+		hashes = append(hashes, mappingFile)
+	}
+
+	return stager.CheckUnstaged(ctx, hashes...)
+}
+
 // StageUncommitted recovers the ciphertext and any missing name mappings.
 func (c *Crypt) StageUncommitted(ctx context.Context, names ...string) (bool, error) {
-	stager, ok := c.sub.(backend.UncommittedFileStager)
+	planner, ok := c.sub.(backend.StagingPlanner)
 	if !ok {
 		return false, nil
 	}
@@ -316,24 +349,62 @@ func (c *Crypt) StageUncommitted(ctx context.Context, names ...string) (bool, er
 	defer c.mux.RUnlock()
 
 	targets := make(map[string]bool, len(names))
-	hashes := make([]string, 0, len(names))
+	files := make([]backend.StagingFile, 0, len(names)+1)
 	for _, name := range names {
-		if h, ok := c.mappings[name]; ok {
-			targets[name] = true
-			hashes = append(hashes, h)
+		h, ok := c.mappings[name]
+		if !ok {
+			return false, fmt.Errorf("missing cryptfs mapping for %q", name)
 		}
+		if err := c.checkUniqueMapping(name, h); err != nil {
+			return false, err
+		}
+		targets[name] = true
+		files = append(files, backend.StagingFile{Name: h})
 	}
-	if len(hashes) == 0 {
+	if len(files) == 0 {
 		return false, nil
 	}
 
+	snapshot, err := c.mappingSnapshot(ctx)
+	if err != nil {
+		return false, err
+	}
 	committed, err := c.committedMappings(ctx, reader)
 	if err != nil {
 		return false, err
 	}
+	needsMapping, unrelated, err := c.mappingChanges(committed, targets)
+	if err != nil {
+		return false, err
+	}
+	plan, err := planner.PlanStaging(ctx, files...)
+	if err != nil || (!plan.Pending && !needsMapping) {
+		return false, err
+	}
+	// The mapping is a single encrypted file. A commit for a recovered
+	// passkey must not sweep in pending names outside this import.
+	if unrelated {
+		return false, fmt.Errorf("cannot recover cryptfs name mappings with unrelated pending changes; resolve the mapping changes and retry")
+	}
+	files = append(files, backend.StagingFile{Name: mappingFile, Expected: snapshot})
+	plan, err = planner.PlanStaging(ctx, files...)
+	if err != nil {
+		return false, err
+	}
+	if needsMapping && !plan.Pending {
+		return false, fmt.Errorf("cryptfs name mappings differ from HEAD but could not be staged")
+	}
+
+	return plan.Stage(ctx)
+}
+
+func (c *Crypt) mappingChanges(committed map[string]string, targets map[string]bool) (bool, bool, error) {
 	var needsMapping, unrelated bool
 	for name, h := range c.mappings {
 		if committed[name] != h {
+			if targets[name] && committed[name] != "" {
+				return false, false, fmt.Errorf("cannot recover a changed cryptfs mapping for %q; resolve the mapping and retry", name)
+			}
 			needsMapping = needsMapping || targets[name]
 			unrelated = unrelated || !targets[name]
 		}
@@ -345,28 +416,42 @@ func (c *Crypt) StageUncommitted(ctx context.Context, names ...string) (bool, er
 			break
 		}
 	}
-	if needsMapping && unrelated {
-		return false, fmt.Errorf("cannot recover cryptfs name mappings with unrelated pending changes; resolve the mapping changes and retry")
+
+	return needsMapping, unrelated, nil
+}
+
+func (c *Crypt) checkUniqueMapping(name, hash string) error {
+	decoded, err := hex.DecodeString(hash)
+	if err != nil || len(decoded) != sha256.Size || strings.ToLower(hash) != hash {
+		return fmt.Errorf("invalid cryptfs ciphertext name for %q", name)
+	}
+	for other, h := range c.mappings {
+		if strings.EqualFold(h, hash) && other != name {
+			return fmt.Errorf("cryptfs names %q and %q share ciphertext; resolve the mapping and retry", name, other)
+		}
 	}
 
-	pending, err := stager.StageUncommitted(ctx, hashes...)
-	if err != nil || (!pending && !needsMapping) {
-		return false, err
+	return nil
+}
+
+// mappingSnapshot verifies what is on disk, not just the in-memory mapping.
+func (c *Crypt) mappingSnapshot(ctx context.Context) ([]byte, error) {
+	ciphertext, err := c.sub.Get(ctx, mappingFile)
+	if errors.Is(err, os.ErrNotExist) && len(c.mappings) == 0 {
+		return []byte{}, nil
 	}
-	// The mapping is a single encrypted file. A commit for a recovered
-	// passkey must not sweep in pending names outside this import.
-	if unrelated {
-		return false, fmt.Errorf("cannot recover cryptfs name mappings with unrelated pending changes; resolve the mapping changes and retry")
-	}
-	mappingPending, err := stager.StageUncommitted(ctx, mappingFile)
 	if err != nil {
-		return false, err
+		return nil, fmt.Errorf("failed to read cryptfs name mappings: %w", err)
 	}
-	if needsMapping && !mappingPending {
-		return false, fmt.Errorf("cryptfs name mappings differ from HEAD but could not be staged")
+	mappings, err := c.decodeMappings(ctx, ciphertext)
+	if err != nil {
+		return nil, err
+	}
+	if !maps.Equal(mappings, c.mappings) {
+		return nil, fmt.Errorf("cryptfs name mappings changed on disk; reopen the store and retry")
 	}
 
-	return pending || mappingPending, nil
+	return ciphertext, nil
 }
 
 func (c *Crypt) committedMappings(ctx context.Context, reader backend.CommittedFileReader) (map[string]string, error) {
@@ -377,13 +462,18 @@ func (c *Crypt) committedMappings(ctx context.Context, reader backend.CommittedF
 	if err != nil {
 		return nil, fmt.Errorf("failed to read committed cryptfs name mappings: %w", err)
 	}
+
+	return c.decodeMappings(ctx, ciphertext)
+}
+
+func (c *Crypt) decodeMappings(ctx context.Context, ciphertext []byte) (map[string]string, error) {
 	plaintext, err := c.crypto.Decrypt(ctx, ciphertext)
 	if err != nil {
-		return nil, fmt.Errorf("failed to decrypt committed cryptfs name mappings: %w", err)
+		return nil, fmt.Errorf("failed to decrypt cryptfs name mappings: %w", err)
 	}
 	var mappings map[string]string
 	if err := json.Unmarshal(plaintext, &mappings); err != nil {
-		return nil, fmt.Errorf("failed to parse committed cryptfs name mappings: %w", err)
+		return nil, fmt.Errorf("failed to parse cryptfs name mappings: %w", err)
 	}
 
 	return mappings, nil
@@ -512,17 +602,24 @@ func (c *Crypt) Set(ctx context.Context, name string, value []byte) error {
 	h, ok := c.mappings[name]
 	if !ok {
 		h = c.hash(name)
-		c.mappings[name] = h
-
-		debug.Log("New mapping: %s -> %s", name, h)
 	}
 
 	debug.Log("Writing content for %s to %s", name, h)
 	if err := c.sub.Set(ctx, h, value); err != nil {
 		return err
 	}
+	if ok {
+		return nil
+	}
+	c.mappings[name] = h
+	debug.Log("New mapping: %s -> %s", name, h)
+	if err := c.saveMappings(ctx); err != nil {
+		delete(c.mappings, name)
 
-	return c.saveMappings(ctx)
+		return err
+	}
+
+	return nil
 }
 
 // Delete removes a secret.

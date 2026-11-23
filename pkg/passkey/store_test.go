@@ -3,6 +3,7 @@ package passkey
 import (
 	"context"
 	"errors"
+	"slices"
 	"strings"
 	"testing"
 
@@ -432,6 +433,55 @@ func TestStoreDoesNotSubstitutePasskeyMutationPath(t *testing.T) {
 	_, err = s.Remove(ctx, original, cred.ID)
 	require.ErrorIs(t, err, ErrNoCredentials)
 	assert.Equal(t, []*Credential{cred}, readCreds(ctx, t, api, variant))
+}
+
+type lowercasingPasskeyStore struct {
+	*apimock.MockAPI
+}
+
+func (s lowercasingPasskeyStore) Exists(ctx context.Context, name string) bool {
+	names, err := s.List(ctx)
+
+	return err == nil && slices.ContainsFunc(names, func(n string) bool {
+		// ToLower is deliberate: unlike EqualFold, it maps dotted I to i.
+		return strings.ToLower(n) == strings.ToLower(name) //nolint:staticcheck
+	})
+}
+
+func TestStoreRejectsAnExistingNormalizedAlias(t *testing.T) {
+	t.Parallel()
+
+	ctx := testContext(t)
+	api := lowercasingPasskeyStore{MockAPI: apimock.New()}
+	const name = "passkeys/example.com/İ"
+	old := newCred(t, "example.com", "İ", "old-handle")
+	writeCreds(ctx, t, api, name, old)
+	dest := newCred(t, "example.com", "i", "new-handle")
+	_, err := NewStore(ctx, api).Put(ctx, dest)
+	require.ErrorContains(t, err, "aliases an existing secret")
+	names, err := api.List(ctx)
+	require.NoError(t, err)
+	assert.Equal(t, []string{name}, names)
+	assert.Equal(t, []*Credential{old}, readCreds(ctx, t, api, name))
+}
+
+func TestAuthenticationPrefersPersonalCaseVariantOverSharedCopy(t *testing.T) {
+	t.Parallel()
+
+	ctx := testContext(t)
+	api := apimock.New()
+	const personal = "passkeys/Example.COM/alice"
+	const shared = "archive/passkeys/example.com/alice"
+	cred := newCred(t, "example.com", "alice", "handle")
+	writeCreds(ctx, t, api, shared, cred)
+	writeCreds(ctx, t, api, personal, cred)
+
+	rec := &consentRecorder{consent: Consent{Present: true}}
+	auth := NewAuthenticator(NewStore(ctx, api), rec.ask)
+	entries, err := auth.Candidates(ctx, exampleOrigin, requestOptions())
+	require.NoError(t, err)
+	require.Len(t, entries, 1)
+	assert.Equal(t, personal, entries[0].Name)
 }
 
 func TestStoreAdvanceAndRemove(t *testing.T) {
