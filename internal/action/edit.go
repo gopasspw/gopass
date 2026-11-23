@@ -104,6 +104,10 @@ func (s *secretHandler) editGetContent(ctx context.Context, name string, create 
 		}
 	}
 
+	if err := s.Store.ValidateSecretName(name); err != nil {
+		return name, nil, false, exit.Error(exit.Usage, err, "%s", err)
+	}
+
 	if err := s.Store.CheckRecipients(ctx, name); err != nil {
 		return name, nil, false, exit.Error(exit.Recipients, err, "invalid recipients detected for %q: %s", name, err)
 	}

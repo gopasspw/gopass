@@ -3,6 +3,7 @@ package root
 import (
 	"context"
 	"path"
+	"runtime"
 	"sort"
 	"testing"
 
@@ -11,6 +12,7 @@ import (
 	_ "github.com/gopasspw/gopass/internal/backend/crypto"
 	_ "github.com/gopasspw/gopass/internal/backend/storage"
 	"github.com/gopasspw/gopass/internal/config"
+	"github.com/gopasspw/gopass/internal/store/leaf"
 	"github.com/gopasspw/gopass/internal/tree"
 	"github.com/gopasspw/gopass/tests/gptest"
 	"github.com/stretchr/testify/assert"
@@ -145,6 +147,43 @@ func TestListNested(t *testing.T) {
 	assert.True(t, rs.IsDir(ctx, "sub1"))
 	assert.Empty(t, rs.Alias())
 	assert.NotNil(t, rs.Storage(ctx, "sub1"))
+}
+
+func TestConcurrency(t *testing.T) {
+	ctx := config.NewContextInMemory()
+	u := gptest.NewUnitTester(t)
+
+	// Uninitialized store without root leaf or mounts.
+	empty := New(config.NewInMemory())
+	assert.Equal(t, runtime.NumCPU(), empty.Concurrency())
+
+	// Single plain root store supports NumCPU concurrency.
+	plainRS, err := createRootStore(ctx, u)
+	require.NoError(t, err)
+	assert.Equal(t, runtime.NumCPU(), plainRS.Concurrency())
+
+	// Single age root store (no mounts) must report concurrency 1, not NumCPU.
+	ageCtx := backend.WithCryptoBackend(ctx, backend.Age)
+	ageCtx = backend.WithStorageBackend(ageCtx, backend.FS)
+	ageLeaf, err := leaf.Init(ageCtx, "", t.TempDir())
+	require.NoError(t, err)
+	require.Equal(t, 1, ageLeaf.Concurrency())
+
+	ageRoot := New(config.NewInMemory())
+	ageRoot.store = ageLeaf
+	assert.Equal(t, 1, ageRoot.Concurrency())
+
+	// Plain root store with an age mount must report concurrency 1.
+	plainWithAgeMount := New(config.NewInMemory())
+	plainWithAgeMount.store = plainRS.store
+	plainWithAgeMount.mounts["sub"] = ageLeaf
+	assert.Equal(t, 1, plainWithAgeMount.Concurrency())
+
+	// Age root store with a plain mount must also report concurrency 1.
+	ageWithPlainMount := New(config.NewInMemory())
+	ageWithPlainMount.store = ageLeaf
+	ageWithPlainMount.mounts["sub"] = plainRS.store
+	assert.Equal(t, 1, ageWithPlainMount.Concurrency())
 }
 
 func createRootStore(ctx context.Context, u *gptest.Unit) (*Store, error) {

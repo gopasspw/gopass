@@ -250,7 +250,7 @@ func (s *otpHandler) otpHandleError(ctx context.Context, name, qrf string, clip,
 		return exit.Error(exit.Unknown, err, "failed to retrieve secret %q: %s", name, err)
 	}
 
-	out.Printf(ctx, "Entry %q not found. Starting search...", name)
+	out.Warningf(ctx, "Entry %q not found. Starting search...", name)
 	cb := func(ctx context.Context, cmd *cli.Command, name string, recurse bool) error {
 		return s.otp(ctx, name, qrf, clip, pw, false, chained, alsoClip)
 	}

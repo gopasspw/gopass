@@ -51,6 +51,10 @@ func (s *generateHandler) Generate(ctx context.Context, cmd *cli.Command) error 
 		}
 	}
 
+	if err := s.Store.ValidateSecretName(name); err != nil {
+		return exit.Error(exit.Usage, err, "%s", err)
+	}
+
 	// Check for custom commit message
 	commitMsg := "Generate Password"
 	if cmd.IsSet("commit-message") {

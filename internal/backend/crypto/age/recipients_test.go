@@ -2,8 +2,12 @@ package age
 
 import (
 	"context"
+	"crypto/ecdh"
+	"crypto/rand"
 	"testing"
 
+	"filippo.io/age"
+	"filippo.io/age/tag"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -56,6 +60,16 @@ func TestParseRecipients(t *testing.T) {
 		ghCache: &mockGHCache{},
 	}
 
+	hybridID, err := age.GenerateHybridIdentity()
+	require.NoError(t, err)
+
+	p256Key, err := ecdh.P256().GenerateKey(rand.Reader)
+	require.NoError(t, err)
+	uncompressed := p256Key.PublicKey().Bytes()
+	compressed := append([]byte{0x02 | (uncompressed[64] & 1)}, uncompressed[1:33]...)
+	tagRec, err := tag.NewClassicRecipient(compressed)
+	require.NoError(t, err)
+
 	// both age and ssh keys are valid, throw away keys generated for this test case.
 	tests := []struct {
 		name     string
@@ -65,6 +79,31 @@ func TestParseRecipients(t *testing.T) {
 		{
 			name:     "valid age key",
 			input:    []string{"age1zf3t7aw2rv39fmcddc469nhtj6lm22kn5kh0gy4fv3a7ds3r29rsr69l89"},
+			expected: 1,
+		},
+		{
+			name:     "valid x25519 key with age1pq prefix",
+			input:    []string{"age1pqv6rcekrltr2pn59fc2z2lxdjqaaxd3wj676kc24zrr3ezp29mqte5yp2"},
+			expected: 1,
+		},
+		{
+			name:     "valid x25519 key with age1tag prefix",
+			input:    []string{"age1tagy0nwqamzmsldj9w3swaryquxcwwu3hwc0evuhckv403v77axqcv6rce"},
+			expected: 1,
+		},
+		{
+			name:     "valid hybrid pq key",
+			input:    []string{hybridID.Recipient().String()},
+			expected: 1,
+		},
+		{
+			name:     "valid tag key",
+			input:    []string{tagRec.String()},
+			expected: 1,
+		},
+		{
+			name:     "valid plugin key",
+			input:    []string{"age1yubikey1qt2r3tfk7wvlykudm7ew28dqqm3h8ln9zfsxsq4lcd2w8rh4n4hhz46ur24"},
 			expected: 1,
 		},
 		{

@@ -3,6 +3,10 @@ package age
 import (
 	"bytes"
 	"errors"
+	"os"
+	"path/filepath"
+	"runtime"
+	"strings"
 	"sync"
 	"testing"
 
@@ -11,6 +15,7 @@ import (
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/twpayne/go-pinentry/v4"
 	"github.com/zalando/go-keyring"
 )
 
@@ -168,4 +173,143 @@ func TestNew_ContextPasswordCallbackOverridesAgePassphrase(t *testing.T) {
 	pw, err := a.effectivePwCallback(ctx, "ignored")("prompt", false)
 	require.NoError(t, err)
 	assert.Equal(t, []byte("from-callback"), pw)
+}
+
+type recordingPinentryProcess struct {
+	written []string
+}
+
+func (r *recordingPinentryProcess) Start(string, []string) error {
+	return nil
+}
+
+func (r *recordingPinentryProcess) Write(data []byte) (int, error) {
+	r.written = append(r.written, strings.TrimRight(string(data), "\r\n"))
+
+	return len(data), nil
+}
+
+func (r *recordingPinentryProcess) ReadLine() ([]byte, bool, error) {
+	return []byte("OK"), false, nil
+}
+
+func (r *recordingPinentryProcess) Close() error {
+	return nil
+}
+
+func TestPinentryTTYOptionsFor(t *testing.T) {
+	tests := []struct {
+		name      string
+		env       map[string]string
+		validTTYs map[string]bool
+		hasDevTTY bool
+		wantCmds  []string
+	}{
+		{
+			name:      "GPG_TTY unset falls back to /dev/tty",
+			env:       map[string]string{"TERM": "xterm-256color", "LANG": "en_US.UTF-8"},
+			hasDevTTY: true,
+			wantCmds: []string{
+				"OPTION ttyname=/dev/tty",
+				"OPTION ttytype=xterm-256color",
+				"OPTION lc-ctype=en_US.UTF-8",
+			},
+		},
+		{
+			name:      "valid GPG_TTY takes precedence over /dev/tty",
+			env:       map[string]string{"GPG_TTY": "/dev/pts/4", "TERM": "xterm"},
+			validTTYs: map[string]bool{"/dev/pts/4": true},
+			hasDevTTY: true,
+			wantCmds: []string{
+				"OPTION ttyname=/dev/pts/4",
+				"OPTION ttytype=xterm",
+			},
+		},
+		{
+			name:      "invalid GPG_TTY falls back to /dev/tty",
+			env:       map[string]string{"GPG_TTY": "not a tty"},
+			hasDevTTY: true,
+			wantCmds: []string{
+				"OPTION ttyname=/dev/tty",
+			},
+		},
+		{
+			name:      "headless without GPG_TTY or /dev/tty sends no ttyname",
+			env:       map[string]string{"TERM": "dumb"},
+			hasDevTTY: false,
+			wantCmds: []string{
+				"OPTION ttytype=dumb",
+			},
+		},
+		{
+			name:      "invalid GPG_TTY without /dev/tty sends no ttyname",
+			env:       map[string]string{"GPG_TTY": "not a tty"},
+			hasDevTTY: false,
+			wantCmds:  nil,
+		},
+		{
+			name: "LC_ALL takes precedence over LC_CTYPE and LANG",
+			env: map[string]string{
+				"LC_ALL":   "C.UTF-8",
+				"LC_CTYPE": "de_DE.UTF-8",
+				"LANG":     "en_US.UTF-8",
+			},
+			hasDevTTY: false,
+			wantCmds: []string{
+				"OPTION lc-ctype=C.UTF-8",
+			},
+		},
+		{
+			name: "LC_CTYPE takes precedence over LANG",
+			env: map[string]string{
+				"LC_CTYPE": "de_DE.UTF-8",
+				"LANG":     "en_US.UTF-8",
+			},
+			hasDevTTY: false,
+			wantCmds: []string{
+				"OPTION lc-ctype=de_DE.UTF-8",
+			},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			proc := &recordingPinentryProcess{}
+			opts := append(
+				[]pinentry.ClientOption{pinentry.WithProcess(proc)},
+				pinentryTTYOptionsFor(
+					func(k string) string { return tc.env[k] },
+					func(p string) bool { return tc.validTTYs[p] },
+					func() bool { return tc.hasDevTTY },
+				)...,
+			)
+
+			client, err := pinentry.NewClient(opts...)
+			require.NoError(t, err)
+			require.NoError(t, client.Close())
+
+			// Strip the trailing BYE sent by Close().
+			require.NotEmpty(t, proc.written)
+			require.Equal(t, "BYE", proc.written[len(proc.written)-1])
+			got := proc.written[:len(proc.written)-1]
+			if len(tc.wantCmds) == 0 {
+				assert.Empty(t, got)
+			} else {
+				assert.Equal(t, tc.wantCmds, got)
+			}
+		})
+	}
+}
+
+func TestIsCharDevice(t *testing.T) {
+	tmpFile := filepath.Join(t.TempDir(), "regular")
+	require.NoError(t, os.WriteFile(tmpFile, []byte("x"), 0o600))
+
+	assert.False(t, isCharDevice(tmpFile))
+	assert.False(t, isCharDevice(filepath.Join(t.TempDir(), "does-not-exist")))
+	assert.False(t, isCharDevice("not a tty"))
+
+	if runtime.GOOS != "windows" {
+		assert.True(t, isCharDevice("/dev/null"))
+	}
 }

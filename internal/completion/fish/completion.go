@@ -83,6 +83,17 @@ func formatFlagFunc(typ string) func(cli.Flag) (string, error) {
 	}
 }
 
+// commandNames renders the name a command is invoked by, followed by its
+// aliases, as the space separated argument list a fish condition compares the
+// typed command against.
+func commandNames(c *cli.Command) string {
+	names := make([]string, 0, len(c.Aliases)+1)
+	names = append(names, c.Name)
+	names = append(names, c.Aliases...)
+
+	return strings.Join(names, " ")
+}
+
 // GetCompletion returns a fish completion script.
 func GetCompletion(a *cli.Command) (string, error) {
 	tplFuncs := template.FuncMap{
@@ -90,6 +101,7 @@ func GetCompletion(a *cli.Command) (string, error) {
 		"formatLongFlag":     formatFlagFunc("long"),
 		"formatFlagUsage":    formatFlagFunc("usage"),
 		"escapePasswordName": escapePasswordName,
+		"commandNames":       commandNames,
 	}
 
 	tpl, err := template.New("fish").Funcs(tplFuncs).Parse(fishTemplate)

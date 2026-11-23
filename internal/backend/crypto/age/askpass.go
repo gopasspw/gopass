@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"runtime"
 	"strings"
 	"sync"
 	"time"
@@ -149,10 +150,10 @@ func (a *askPass) getPassphrase(reason string, repeat bool) (string, error) {
 	opts := []pinentry.ClientOption{
 		pinentry.WithBinaryNameFromGnuPGAgentConf(),
 		pinentry.WithDesc(strings.TrimSuffix(reason, ":") + "."),
-		pinentry.WithGPGTTY(),
 		pinentry.WithPrompt("Passphrase:"),
 		pinentry.WithTitle("gopass"),
 	}
+	opts = append(opts, pinentryTTYOptions()...)
 	if repeat {
 		opts = append(opts, pinentry.WithRepeat("Confirm"))
 	} else {
@@ -192,4 +193,69 @@ func (a *askPass) Remove(key string) {
 
 func (a *askPass) Lock() {
 	a.cache.Purge()
+}
+
+// pinentryTTYOptions returns pinentry client options for configuring the TTY
+// (ttyname, ttytype, and lc-ctype) on Unix systems. On Windows it returns nil.
+//
+// Unlike pinentry.WithGPGTTY() (which only checks the GPG_TTY environment
+// variable and sends nothing when it is unset, causing pinentry-curses and
+// pinentry-tty to fail with ERR 83918950 Inappropriate ioctl for device on the
+// Assuan stdin pipe), this falls back to /dev/tty whenever the process has a
+// controlling terminal.
+func pinentryTTYOptions() []pinentry.ClientOption {
+	if runtime.GOOS == "windows" {
+		return nil
+	}
+
+	return pinentryTTYOptionsFor(os.Getenv, isCharDevice, hasControllingTTY)
+}
+
+func pinentryTTYOptionsFor(getenv func(string) string, isTTY func(string) bool, hasDevTTY func() bool) []pinentry.ClientOption {
+	var opts []pinentry.ClientOption
+
+	ttyName := strings.TrimSpace(getenv("GPG_TTY"))
+	if ttyName == "" || !isTTY(ttyName) {
+		if hasDevTTY() {
+			ttyName = "/dev/tty"
+		} else {
+			ttyName = ""
+		}
+	}
+	if ttyName != "" {
+		opts = append(opts, pinentry.WithOption(pinentry.OptionTTYName+"="+ttyName))
+	}
+
+	if term := strings.TrimSpace(getenv("TERM")); term != "" {
+		opts = append(opts, pinentry.WithOption(pinentry.OptionTTYType+"="+term))
+	}
+
+	for _, envKey := range []string{"LC_ALL", "LC_CTYPE", "LANG"} {
+		if v := strings.TrimSpace(getenv(envKey)); v != "" {
+			opts = append(opts, pinentry.WithOption(pinentry.OptionLCCType+"="+v))
+
+			break
+		}
+	}
+
+	return opts
+}
+
+func isCharDevice(path string) bool {
+	fi, err := os.Stat(path)
+	if err != nil {
+		return false
+	}
+
+	return fi.Mode()&os.ModeCharDevice != 0
+}
+
+func hasControllingTTY() bool {
+	f, err := os.OpenFile("/dev/tty", os.O_RDWR, 0)
+	if err != nil {
+		return false
+	}
+	_ = f.Close()
+
+	return true
 }

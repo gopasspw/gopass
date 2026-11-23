@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"os"
 	"os/exec"
 	"strings"
 	"text/template"
@@ -14,15 +15,32 @@ import (
 	"github.com/gopasspw/gopass/pkg/debug"
 )
 
+func cLocaleEnv() []string {
+	orig := os.Environ()
+	env := make([]string, 0, len(orig)+2)
+	for _, e := range orig {
+		if strings.HasPrefix(e, "LANGUAGE=") || strings.HasPrefix(e, "LC_ALL=") || strings.HasPrefix(e, "LC_MESSAGES=") {
+			continue
+		}
+		env = append(env, e)
+	}
+	env = append(env, "LANGUAGE=C", "LC_ALL=C")
+
+	return env
+}
+
 // listKey lists all keys of the given type and matching the search strings.
 func (g *GPG) listKeys(ctx context.Context, typ string, search ...string) (gpg.KeyList, error) {
 	debug.Log("listing %s keys for %v", typ, search)
 	ctx, cancel := withTimeout(ctx, timeoutFromContext(ctx))
 	defer cancel()
 
-	args := make([]string, 0, 4+len(search))
+	args := make([]string, 0, 5+len(search))
 	args = append(args, "--with-colons", "--with-fingerprint", "--fixed-list-mode", "--list-"+typ+"-keys")
-	args = append(args, search...)
+	if len(search) > 0 {
+		args = append(args, "--")
+		args = append(args, search...)
+	}
 	if e, found := g.listCache.Get(strings.Join(args, ",")); found && gpg.UseCache(ctx) {
 		debug.Log("listed cached keys: %q", strings.Join(e.Recipients(), ","))
 
@@ -30,6 +48,7 @@ func (g *GPG) listKeys(ctx context.Context, typ string, search ...string) (gpg.K
 	}
 
 	cmd := exec.CommandContext(ctx, g.binary, args...)
+	cmd.Env = cLocaleEnv()
 	errBuf := bytes.Buffer{}
 	cmd.Stderr = &errBuf
 
@@ -55,11 +74,19 @@ func (g *GPG) listKeys(ctx context.Context, typ string, search ...string) (gpg.K
 	return kl, nil
 }
 
-// Fingerprint returns the fingerprint.
+// Fingerprint returns the fingerprint. If id ends with "!" and matches a
+// subkey, the subkey's fingerprint with the trailing "!" is returned so
+// callers can distinguish forced subkeys from the primary key.
 func (g *GPG) Fingerprint(ctx context.Context, id string) string {
 	k, found := g.findKey(ctx, id)
 	if !found {
 		return ""
+	}
+
+	if strings.HasSuffix(id, "!") {
+		if sk, ok := k.MatchSubKey(id); ok && sk.Fingerprint != "" {
+			return sk.Fingerprint + "!"
+		}
 	}
 
 	return k.Fingerprint

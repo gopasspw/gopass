@@ -67,6 +67,7 @@ func Parse(reader io.Reader) gpg.KeyList {
 	scanner := bufio.NewScanner(reader)
 
 	var cur gpg.Key
+	var inSubkey bool
 
 	for scanner.Scan() {
 		line := strings.TrimSpace(scanner.Text())
@@ -96,13 +97,32 @@ func Parse(reader io.Reader) gpg.KeyList {
 				SubKeys:        make(map[string]struct{}, 1),
 				Caps:           parseKeyCaps(fields[11]),
 			}
+			inSubkey = false
 		case "sub":
 			fallthrough
 		case "ssb":
 			cur.SubKeys[fields[4]] = struct{}{}
+			validity := fields[1]
+			if validity == "" && fields[0] == "ssb" {
+				validity = "u"
+			}
+			cur.SubKeyList = append(cur.SubKeyList, gpg.SubKey{
+				KeyID:          fields[4],
+				Validity:       validity,
+				CreationDate:   parseTS(fields[5]),
+				ExpirationDate: parseTS(fields[6]),
+				Caps:           parseSubKeyCaps(fields[11]),
+			})
+			inSubkey = true
 		case "fpr":
-			if cur.Fingerprint == "" {
+			if !inSubkey && cur.Fingerprint == "" {
 				cur.Fingerprint = fields[9]
+			} else if inSubkey && len(cur.SubKeyList) > 0 {
+				last := &cur.SubKeyList[len(cur.SubKeyList)-1]
+				if last.Fingerprint == "" {
+					last.Fingerprint = fields[9]
+					cur.SubKeys[fields[9]] = struct{}{}
+				}
 			}
 		case "uid":
 			sn := fields[7]
@@ -133,6 +153,36 @@ func parseKeyCaps(field string) gpg.Capabilities {
 	}
 
 	if strings.Contains(field, "A") {
+		keycaps.Authentication = true
+	}
+
+	if strings.Contains(field, "D") {
+		keycaps.Deactivated = true
+	}
+
+	return keycaps
+}
+
+// parseSubKeyCaps parses the capability field (field 11) of a sub/ssb record.
+// Per GnuPG doc/DETAILS, individual key/subkey capabilities use lowercase
+// letters (e, s, c, a), while uppercase letters are used on primary keys to
+// summarize the key and all its subkeys.
+func parseSubKeyCaps(field string) gpg.Capabilities {
+	keycaps := gpg.Capabilities{}
+
+	if strings.ContainsAny(field, "sS") {
+		keycaps.Sign = true
+	}
+
+	if strings.ContainsAny(field, "eE") {
+		keycaps.Encrypt = true
+	}
+
+	if strings.ContainsAny(field, "cC") {
+		keycaps.Certify = true
+	}
+
+	if strings.ContainsAny(field, "aA") {
 		keycaps.Authentication = true
 	}
 

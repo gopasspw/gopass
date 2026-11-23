@@ -15,6 +15,42 @@ conventions this file is generated from.
 ### Changed
 
 - [PKG-BREAK] pkg/passkey: The package was reworked into a complete WebAuthn authenticator. `CreateCredential`, `Credential.GetAssertion`, `CredentialFlags`, `ClientData.CredType` and `Response` are gone. Use `Authenticator.Register` and `Authenticator.Authenticate` to perform ceremonies, or `New`, `Credential.Attest` and `Credential.Assert` to create and use a credential directly. `Credential` no longer exposes an `*ecdsa.PrivateKey` but a `crypto.Signer`.
+## [1.17.5] - 2026-11-22
+
+### Added
+
+- age: allow custom recipients cache expiration in seconds (default 30h) (#3721)
+- backend: add pure-Go go-git storage backend (#3657)
+- gpg: make the GPG invocation deadline configurable via gpg.timeout (#3675) (#3673)
+
+### Fixed
+
+- age: match full bech32 HRP prefixes when parsing recipients (#3711) (#3708)
+- age: refresh identity recipient cache on keyring unlock (#3696)
+- age: select public recipients for plugin identities (#3660) (#3446)
+- audit: skip symlinked secrets (#3680) (#2552)
+- ci: Clean up GHA workflows (#3710)
+- clipboard: bump clipboard dependency for macOS base64 fix (#3714) (#3700)
+- completion: split token and description in bash completion (#3663)
+- doctor: drop age binary check (#3679) (#3676)
+- fsck: restrict --store and path filters to matching stores (#3707) (#3703)
+- fscopy: reject store filesystem paths and handle directory targets (#3720) (#2767)
+- fscopy: respect store directory boundaries (#3706)
+- gogit: validate remote tree paths before diffing (#3672)
+- gpg: harden decryption key matching during clone (#3717) (#3028, #3460)
+- keep broken symlinks from aborting store listing (#3683) (#2798)
+- recipients: rollback recipients file when git commit fails (#3719) (#2180)
+- secretservice: export every object before acquiring the bus name (#3662) (#3661)
+- setup: only print key unlock notice when age prompts for passphrase (#3715) (#2862)
+- setup: reject non-empty remotes on init and handle empty remote clones (#3722) (#2779, #2815)
+- show: send status, search, and header messages to stderr (#3716) (#2667)
+- store/root: include root store in concurrency calculation (#3713) (#1017)
+- store: reject secret names matching a mount point (#3718) (#2979)
+
+### Security
+
+- editor: disable swap, backup, and undo files in vim and nvim  (#3712) (#3702)
+- editor: disable swap, backup, undo, and state files in vim and nvim (#3702)
 
 ## [1.17.4] - 2026-10-10
 
@@ -1339,7 +1375,8 @@ the runtime behaviour, but we could not test this on all platforms, yet.
 * [ENHANCEMENT] Simplified recipient management
 * [ENHANCEMENT] Interactive questions for missing parameters
 
-[Unreleased]: https://github.com/gopasspw/gopass/compare/v1.17.4...HEAD
+[Unreleased]: https://github.com/gopasspw/gopass/compare/v1.17.5...HEAD
+[1.17.5]: https://github.com/gopasspw/gopass/compare/v1.17.4...v1.17.5
 [1.17.4]: https://github.com/gopasspw/gopass/compare/v1.17.3...v1.17.4
 [1.17.3]: https://github.com/gopasspw/gopass/compare/v1.17.2...v1.17.3
 [1.17.2]: https://github.com/gopasspw/gopass/compare/v1.17.1...v1.17.2

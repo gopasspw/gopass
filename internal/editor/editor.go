@@ -6,7 +6,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"io/fs"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -61,14 +60,18 @@ func Invoke(ctx context.Context, editor string, content []byte) ([]byte, error) 
 			return []byte{}, fmt.Errorf("failed to parse EDITOR command `%s`", editor)
 		}
 
+		if len(cmdArgs) == 0 {
+			return []byte{}, fmt.Errorf("empty EDITOR command")
+		}
+
 		editor = cmdArgs[0]
 		// Validate the editor binary actually exists before attempting to run it.
 		if _, err := exec.LookPath(editor); err != nil {
 			return []byte{}, fmt.Errorf("editor binary %q not found in PATH: %w", editor, err)
 		}
 
+		args = append(args, vimOptions(editor)...)
 		args = append(args, cmdArgs[1:]...)
-		args = append(args, vimOptions(resolveEditor(editor))...)
 	}
 
 	args = append(args, tmpfile.Name())
@@ -96,60 +99,76 @@ func Invoke(ctx context.Context, editor string, content []byte) ([]byte, error) 
 	return nContent, nil
 }
 
+type editorKind int
+
+const (
+	editorUnknown editorKind = iota
+	editorVim
+	editorNeovim
+)
+
 func vimOptions(editor string) []string {
-	if editor != "vi" && editor != "vim" && editor != "neovim" {
-		debug.Log("Editor %s is not known to be vim compatible", editor)
-
+	kind := detectEditorKind(editor)
+	if kind == editorUnknown {
 		return []string{}
 	}
 
-	if !isVim(editor) {
-		debug.Log("Editor %s is not known to be vim compatible", editor)
-
-		return []string{}
+	stateOpt := "viminfo="
+	if kind == editorNeovim {
+		stateOpt = "shada="
 	}
 
-	path := "/dev/shm/gopass*"
-	if runtime.GOOS == "darwin" {
-		path = "/private/**/gopass**"
+	return []string{
+		"-n",         // disable swap file
+		"-i", "NONE", // disable viminfo / shada
+		"-c", fmt.Sprintf("silent! set noswapfile nobackup nowritebackup | silent! set noundofile | silent! set %s", stateOpt),
 	}
-	viminfo := `viminfo=""`
-	if editor == "neovim" {
-		viminfo = `shada=""`
-	}
-
-	args := make([]string, 0, 5)
-	args = append(args, "-c", fmt.Sprintf("autocmd BufNewFile,BufRead %s setlocal noswapfile nobackup noundofile %s", path, viminfo))
-	args = append(args, "-i", "NONE") // disable viminfo
-	args = append(args, "-n")         // disable swap
-
-	return args
 }
 
-// isVim tries to identify the vi variant as vim compatible or not.
-func isVim(editor string) bool {
-	if editor == "neovim" {
-		return true
-	}
+// detectEditorKind tries to identify whether the given editor is Vim or Neovim.
+func detectEditorKind(editor string) editorKind {
+	resolved := resolveEditorPath(editor)
+	base := filepath.Base(resolved)
 
-	cmd := exec.Command(editor, "--version")
+	switch {
+	case base == "nvim" || base == "neovim":
+		return editorNeovim
+	case base == "vi" || base == "vim" || base == "gvim" || base == "mvim" || strings.HasPrefix(base, "vim."):
+		return probeVimVersion(resolved)
+	default:
+		debug.Log("Editor %s (%s) is not known to be vim compatible", editor, base)
+
+		return editorUnknown
+	}
+}
+
+func probeVimVersion(editorPath string) editorKind {
+	cmd := exec.Command(editorPath, "--version")
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		debug.Log("failed to check %s --version: %s", cmd.Path, err)
 
-		return false
+		return editorUnknown
 	}
 
-	debug.Log("%s --version: %s", cmd.Path, string(out))
+	version := string(out)
+	debug.Log("%s --version: %s", cmd.Path, version)
 
-	return strings.Contains(string(out), "VIM - Vi IMproved")
+	if strings.Contains(version, "NVIM ") {
+		return editorNeovim
+	}
+	if strings.Contains(version, "VIM - Vi IMproved") {
+		return editorVim
+	}
+
+	return editorUnknown
 }
 
-// resolveEditor tries to resolve the final link destination of the editor name given
-// and then extract the binary file name from the path. In practice the actual editor
-// is often hidden behing several layers of indirection and we want to get an idea
-// which options might work.
-func resolveEditor(editor string) string {
+// resolveEditorPath tries to resolve the final symlink destination of the editor binary.
+// In practice the actual editor is often hidden behind several layers of indirection
+// (e.g. /usr/bin/editor -> /etc/alternatives/editor -> /usr/bin/vim.basic or nvim)
+// and we want to know which options are safe and effective to pass.
+func resolveEditorPath(editor string) string {
 	path, err := exec.LookPath(editor)
 	if err != nil {
 		debug.Log("failed to look up editor binary: %s", err)
@@ -157,25 +176,12 @@ func resolveEditor(editor string) string {
 		return editor
 	}
 
-	for {
-		fi, err := os.Stat(path)
-		if err != nil {
-			debug.Log("failed to resolve %s: %s", path, err)
+	resolved, err := filepath.EvalSymlinks(path)
+	if err != nil {
+		debug.Log("failed to resolve symlinks for %s: %s", path, err)
 
-			return editor
-		}
-
-		if fi.Mode()&fs.ModeSymlink != fs.ModeSymlink {
-			// not a symlink
-			break
-		}
-
-		path, err = os.Readlink(path)
-		if err != nil {
-			debug.Log("failed to read link %s: %s", path, err)
-		}
+		return path
 	}
 
-	// return the binary name only
-	return filepath.Base(path)
+	return resolved
 }

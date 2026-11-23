@@ -36,6 +36,7 @@ var ignoredEnvs = set.Map([]string{
 	"HOME",
 	"LOCALAPPDATA",
 	"PASSWORD_STORE_UMASK", // indirect usage
+	"TERMUX_VERSION",
 	"USER",
 	"XDG_CACHE_HOME",
 	"XDG_CONFIG_HOME",

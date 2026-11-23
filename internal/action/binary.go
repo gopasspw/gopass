@@ -9,11 +9,14 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	"github.com/gopasspw/gopass/internal/action/exit"
 	"github.com/gopasspw/gopass/internal/out"
+	"github.com/gopasspw/gopass/internal/store"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/gopasspw/gopass/pkg/fsutil"
@@ -42,6 +45,10 @@ func (s *binaryHandler) Cat(ctx context.Context, cmd *cli.Command) error {
 
 	// if content is piped to stdin, read and save it.
 	if info.Mode()&os.ModeCharDevice == 0 {
+		if err := s.Store.ValidateSecretName(name); err != nil {
+			return exit.Error(exit.Usage, err, "%s", err)
+		}
+
 		debug.Log("Reading from STDIN ...")
 		content := &bytes.Buffer{}
 
@@ -149,7 +156,8 @@ func (s *binaryHandler) BinaryMove(ctx context.Context, cmd *cli.Command) error 
 func isFilePath(s string) bool {
 	// this heuristic tries to detect filepaths that are not valid secret names.
 	// this should trigger in case a file and secret names are mixed up.
-	if strings.HasPrefix(s, "/") || strings.HasPrefix(s, "./") || strings.HasPrefix(s, "../") {
+	if filepath.IsAbs(s) || strings.HasPrefix(s, "/") || strings.HasPrefix(s, "./") || strings.HasPrefix(s, "../") ||
+		strings.HasPrefix(s, `.\`) || strings.HasPrefix(s, `..\`) {
 		return true
 	}
 
@@ -158,24 +166,144 @@ func isFilePath(s string) bool {
 
 // isInStore returns true if the given file is in the store or a mounted substore.
 func (s *binaryHandler) isInStore(fn string) bool {
+	_, _, ok := s.matchStorePath(fn)
+
+	return ok
+}
+
+// matchStorePath checks whether fn resolves to a path inside the root store or
+// any mounted substore. Mounted substores are checked longest-path-first so
+// mounts nested under the root store match their mount alias.
+func (s *binaryHandler) matchStorePath(fn string) (string, string, bool) {
 	fp, err := filepath.Abs(fn)
 	if err != nil {
-		return false
+		return "", "", false
 	}
-	if strings.HasPrefix(fp, s.Store.Path()) {
-		return true
+
+	type mountEntry struct {
+		alias string
+		path  string
 	}
-	for _, mp := range s.Store.Mounts() {
-		mp, err := filepath.Abs(mp)
+	mounts := s.Store.Mounts()
+	entries := make([]mountEntry, 0, len(mounts))
+	for alias, mp := range mounts {
+		absMP, err := filepath.Abs(mp)
 		if err != nil {
 			continue
 		}
-		if strings.HasPrefix(fp, mp) {
-			return true
+		entries = append(entries, mountEntry{alias: alias, path: absMP})
+	}
+	sort.Slice(entries, func(i, j int) bool {
+		if len(entries[i].path) != len(entries[j].path) {
+			return len(entries[i].path) > len(entries[j].path)
+		}
+
+		return entries[i].alias < entries[j].alias
+	})
+
+	for _, e := range entries {
+		if isSubpath(e.path, fp) {
+			rel, err := filepath.Rel(e.path, fp)
+			if err != nil {
+				return e.alias, "", true
+			}
+			if rel == "." {
+				rel = ""
+			}
+
+			return e.alias, filepath.ToSlash(rel), true
 		}
 	}
 
-	return false
+	if rootPath := s.Store.Path(); isSubpath(rootPath, fp) {
+		absRoot, err := filepath.Abs(rootPath)
+		if err != nil {
+			return "", "", true
+		}
+		rel, err := filepath.Rel(absRoot, fp)
+		if err != nil {
+			return "", "", true
+		}
+		if rel == "." {
+			rel = ""
+		}
+
+		return "", filepath.ToSlash(rel), true
+	}
+
+	return "", "", false
+}
+
+// storeFSPathSuggestion checks whether to is a filesystem path pointing inside
+// the root store or a mounted substore. If so, it returns a suggested
+// store-relative secret name and true.
+//
+// When the current working directory is already inside a store, bare relative
+// names (e.g. "foo" or "sub/foo") are treated as normal store-relative secret
+// names rather than filesystem paths.
+func (s *binaryHandler) storeFSPathSuggestion(from, to string) (string, bool) {
+	if !filepath.IsAbs(to) && s.isInStore(".") {
+		return "", false
+	}
+
+	alias, rel, ok := s.matchStorePath(to)
+	if !ok {
+		return "", false
+	}
+
+	if rel == "" {
+		rel = filepath.Base(from)
+	}
+	if alias != "" {
+		return path.Join(alias, rel), true
+	}
+
+	return rel, true
+}
+
+// resolveStoreDestination expands a directory destination in the store to
+// "<to>/<basename(from)>" when to ends with "/" or refers to an existing store
+// directory (including a mount point) that is not itself a secret.
+func (s *binaryHandler) resolveStoreDestination(ctx context.Context, from, to string) string {
+	base := filepath.Base(from)
+	if base == "" || base == "." || base == string(filepath.Separator) {
+		return to
+	}
+
+	if strings.HasSuffix(to, "/") {
+		trimmed := strings.TrimSuffix(to, "/")
+		if store.ValidateSecretName(trimmed) == nil {
+			return path.Join(trimmed, base)
+		}
+
+		return to
+	}
+
+	if store.ValidateSecretName(to) == nil && s.Store.IsDir(ctx, to) && !s.Store.Exists(ctx, to) {
+		return path.Join(to, base)
+	}
+
+	return to
+}
+
+// isSubpath returns true if target is base itself or located below it.
+// Only whole path elements are compared, so "/a/b-backup" is not below "/a/b".
+func isSubpath(base, target string) bool {
+	if base == "" {
+		return false
+	}
+	absBase, err := filepath.Abs(base)
+	if err != nil {
+		return false
+	}
+	if target == absBase {
+		return true
+	}
+	if !strings.HasSuffix(absBase, string(filepath.Separator)) {
+		absBase += string(filepath.Separator)
+	}
+
+	return strings.HasPrefix(target, absBase)
 }
 
 // binaryCopy implements the control flow for copy and move. We support two
@@ -235,6 +363,16 @@ func (s *binaryHandler) binaryCopy(ctx context.Context, cmd *cli.Command, from, 
 }
 
 func (s *binaryHandler) binaryCopyFromFileToStore(ctx context.Context, from, to string, deleteSource bool) error {
+	if suggestion, ok := s.storeFSPathSuggestion(from, to); ok {
+		return fmt.Errorf("destination %q is a filesystem path inside the password store; use a store-relative secret name instead (e.g. %q)", to, suggestion)
+	}
+
+	to = s.resolveStoreDestination(ctx, from, to)
+
+	if err := s.Store.ValidateSecretName(to); err != nil {
+		return err
+	}
+
 	// if the source is a file the destination must not to avoid ambiguities.
 	// if necessary this can be resolved by using a absolute path for the file
 	// and a relative one for the secret.
@@ -279,6 +417,9 @@ func (s *binaryHandler) binaryCopyFromStoreToFile(ctx context.Context, from, to 
 	buf, err := s.binaryGet(ctx, from)
 	if err != nil {
 		return fmt.Errorf("failed to read data from %q: %w", from, err)
+	}
+	if fsutil.IsDir(to) {
+		to = filepath.Join(to, path.Base(from))
 	}
 	if err := os.WriteFile(to, buf, 0o600); err != nil {
 		return fmt.Errorf("failed to write data to %q: %w", to, err)

@@ -14,11 +14,15 @@ function __fish_{{ $prog }}_needs_command
   return 1
 end
 
+# Returns 0 when the command being typed is any of the names given as
+# arguments, so one rule can cover a command together with its aliases.
 function __fish_{{ $prog }}_uses_command
   set cmd (commandline -opc)
   if [ (count $cmd) -gt 1 ]
-    if [ $argv[1] = $cmd[2] ]
-      return 0
+    for name in $argv
+      if [ $name = $cmd[2] ]
+        return 0
+      end
     end
   end
   return 1
@@ -46,18 +50,19 @@ complete -c $PROG -f -s c -l clip -r -a "(__fish_{{ $prog }}_print_entries)"
 {{ range .Commands }}
 complete -c $PROG -f -n '__fish_{{ $prog }}_needs_command' -a {{ .Name }} -d 'Command: {{ .Usage }}'
 {{- $cmd := .Name -}}
-{{- if or (eq $cmd "copy") (eq $cmd "cp") (eq $cmd "move") (eq $cmd "mv") (eq $cmd "delete") (eq $cmd "remove") (eq $cmd "rm") (eq $cmd "show") (eq $cmd "set") (eq $cmd "edit") (eq $cmd "otp") }}
-complete -c $PROG -f -n '__fish_{{ $prog }}_uses_command {{ $cmd }}' -a "(__fish_{{ $prog }}_print_entries)"{{ end -}}
-{{- if or (eq $cmd "insert") (eq $cmd "generate") (eq $cmd "list") (eq $cmd "ls") }}
-complete -c $PROG -f -n '__fish_{{ $prog }}_uses_command {{ $cmd }}' -a "(__fish_{{ $prog }}_print_dir)"{{ end -}}
+{{- $cmdNames := . | commandNames -}}
+{{- if or (eq $cmd "copy") (eq $cmd "move") (eq $cmd "delete") (eq $cmd "show") (eq $cmd "edit") (eq $cmd "otp") (eq $cmd "cat") }}
+complete -c $PROG -f -n '__fish_{{ $prog }}_uses_command {{ $cmdNames }}' -a "(__fish_{{ $prog }}_print_entries)"{{ end -}}
+{{- if or (eq $cmd "insert") (eq $cmd "generate") (eq $cmd "list") }}
+complete -c $PROG -f -n '__fish_{{ $prog }}_uses_command {{ $cmdNames }}' -a "(__fish_{{ $prog }}_print_dir)"{{ end -}}
 {{- range .Commands }}
 {{- $subcmd := .Name }}
-complete -c $PROG -f -n '__fish_{{ $prog }}_uses_command {{ $cmd }}' -a {{ $subcmd }} -d 'Subcommand: {{ .Usage }}'
+complete -c $PROG -f -n '__fish_{{ $prog }}_uses_command {{ $cmdNames }}' -a {{ $subcmd }} -d 'Subcommand: {{ .Usage }}'
 {{- range .Flags }}
-complete -c $PROG -f -n '__fish_{{ $prog }}_uses_command {{ $cmd }} {{ $subcmd }} {{ if ne (. | formatShortFlag) "" }}-s {{ . | formatShortFlag }} {{ end }}-l {{ . | formatLongFlag }} -d "{{ . | formatFlagUsage }}"'
+complete -c $PROG -f -n '__fish_{{ $prog }}_uses_command {{ $cmdNames }} {{ $subcmd }} {{ if ne (. | formatShortFlag) "" }}-s {{ . | formatShortFlag }} {{ end }}-l {{ . | formatLongFlag }} -d "{{ . | formatFlagUsage }}"'
 {{- end }}
 {{- range $gflags }}
-complete -c $PROG -f -n '__fish_{{ $prog }}_uses_command {{ $cmd }} {{ $subcmd }} {{ if ne (. | formatShortFlag) "" }}-s {{ . | formatShortFlag }} {{ end }}-l {{ . | formatLongFlag }} -d "{{ . | formatFlagUsage }}"'
+complete -c $PROG -f -n '__fish_{{ $prog }}_uses_command {{ $cmdNames }} {{ $subcmd }} {{ if ne (. | formatShortFlag) "" }}-s {{ . | formatShortFlag }} {{ end }}-l {{ . | formatLongFlag }} -d "{{ . | formatFlagUsage }}"'
 {{- end }}
 {{- end }}
 {{- end }}`

@@ -189,6 +189,23 @@ func TestAddIdentityToNewFile(t *testing.T) {
 	assert.Equal(t, id.Recipient().String(), fmt.Sprintf("%s", rec))
 }
 
+// TestGetNativeIdentitiesRefreshesRecipientCache verifies that loading the
+// native identities, as unlocking the agent does, caches their recipients.
+func TestGetNativeIdentitiesRefreshesRecipientCache(t *testing.T) {
+	ctx := t.Context()
+	a := newTestAge(t)
+
+	id, err := age.GenerateX25519Identity()
+	require.NoError(t, err)
+	require.NoError(t, a.addIdentity(ctx, id))
+	require.Empty(t, a.cachedIDRecipients())
+
+	_, err = a.getNativeIdentities(ctx)
+	require.NoError(t, err)
+
+	assert.Equal(t, []string{id.Recipient().String()}, recipientsToString(a.cachedIDRecipients()))
+}
+
 // TestAddIdentityDoesNotParseExistingPluginLines verifies Option A: when a
 // plugin-format line is already present in the identity file, adding a new
 // native identity does NOT re-invoke the plugin binary (because we only do a

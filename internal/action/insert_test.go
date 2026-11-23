@@ -177,3 +177,55 @@ func TestInsertStdin(t *testing.T) {
 	ibuf.Reset()
 	buf.Reset()
 }
+
+func TestMountNameRejected(t *testing.T) {
+	u := gptest.NewUnitTester(t)
+
+	ctx := config.NewContextInMemory()
+	ctx = ctxutil.WithAlwaysYes(ctx, true)
+	ctx = ctxutil.WithTerminal(ctx, false)
+
+	act, err := newMock(ctx, u.StoreDir(""))
+	require.NoError(t, err)
+	require.NotNil(t, act)
+	ctx = act.cfg.WithConfig(ctx)
+
+	require.NoError(t, u.InitStore("sub"))
+	require.NoError(t, act.Store.AddMount(ctx, "sub", u.StoreDir("sub")))
+
+	buf := &bytes.Buffer{}
+	out.Stdout = buf
+	color.NoColor = true
+	defer func() {
+		out.Stdout = os.Stdout
+	}()
+
+	t.Run("insert mount name", func(t *testing.T) {
+		err := act.Insert(ctx, gptest.CliCtx(ctx, t, "sub"))
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "mount point")
+	})
+
+	t.Run("insert mount name with trailing slash", func(t *testing.T) {
+		err := act.Insert(ctx, gptest.CliCtx(ctx, t, "sub/"))
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "mount point")
+	})
+
+	t.Run("edit --create mount name", func(t *testing.T) {
+		err := act.Edit(ctx, gptest.CliCtxWithFlags(ctx, t, map[string]string{"create": "true"}, "sub"))
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "mount point")
+	})
+
+	t.Run("generate mount name", func(t *testing.T) {
+		err := act.Generate(ctx, gptest.CliCtx(ctx, t, "sub", "16"))
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "mount point")
+	})
+
+	t.Run("insert inside mount still works", func(t *testing.T) {
+		require.NoError(t, act.Insert(ctx, gptest.CliCtx(ctx, t, "sub/secret")))
+		assert.True(t, act.Store.Exists(ctx, "sub/secret"))
+	})
+}

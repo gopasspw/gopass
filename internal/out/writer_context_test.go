@@ -68,3 +68,19 @@ func TestWriterFallbackToPackageGlobals(t *testing.T) {
 	assert.Equal(t, captured, so)
 	assert.Equal(t, captured, se)
 }
+
+func TestToStderr(t *testing.T) {
+	t.Parallel()
+
+	stdout := &bytes.Buffer{}
+	stderr := &bytes.Buffer{}
+
+	ctx := WithWriter(config.NewContextInMemory(), stdout, stderr)
+
+	OKf(ToStderr(ctx), "status %s", "msg")
+	Print(ctx, "payload")
+
+	assert.Equal(t, "payload\n", stdout.String())
+	assert.Contains(t, stderr.String(), "status msg")
+	assert.NotContains(t, stdout.String(), "status msg")
+}

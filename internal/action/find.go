@@ -85,7 +85,7 @@ func (s *searchHandler) find(ctx context.Context, cmd *cli.Command, needle strin
 
 			return nil
 		}
-		out.OKf(ctx, "Found exact match in %q", choices[0])
+		out.OKf(out.ToStderr(ctx), "Found exact match in %q", choices[0])
 
 		return cb(ctx, cmd, choices[0], false)
 	}
@@ -124,17 +124,17 @@ func (s *searchHandler) findSelection(ctx context.Context, cmd *cli.Command, cho
 	switch act {
 	case "default":
 		// display or copy selected entry.
-		fmt.Fprintln(stdout, choices[sel])
+		out.Printf(out.ToStderr(ctx), "%s", choices[sel])
 
 		return cb(ctx, cmd, choices[sel], false)
 	case "copy":
 		// display selected entry.
-		fmt.Fprintln(stdout, choices[sel])
+		out.Printf(out.ToStderr(ctx), "%s", choices[sel])
 
 		return cb(WithClip(ctx, true), cmd, choices[sel], false)
 	case "show":
 		// display selected entry.
-		fmt.Fprintln(stdout, choices[sel])
+		out.Printf(out.ToStderr(ctx), "%s", choices[sel])
 
 		return cb(WithClip(ctx, false), cmd, choices[sel], false)
 	case "sync":
@@ -146,7 +146,7 @@ func (s *searchHandler) findSelection(ctx context.Context, cmd *cli.Command, cho
 		return cb(ctx, cmd, needle, true)
 	case "edit":
 		// edit selected entry.
-		fmt.Fprintln(stdout, choices[sel])
+		out.Printf(out.ToStderr(ctx), "%s", choices[sel])
 
 		return s.editFn(ctx, cmd, choices[sel])
 	default:

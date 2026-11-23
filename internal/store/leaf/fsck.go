@@ -194,6 +194,12 @@ func (s *Store) fsckLoop(ctx context.Context, path string, progress ctxutil.Prog
 
 		debug.Log("[%s] Checking %s", path, name)
 
+		if err := store.ValidateSecretName(name); err != nil {
+			fmt.Fprintf(&warnings, "invalid secret name %q (file %q): %s\n", name, s.passfile(ctx, name), err)
+
+			continue
+		}
+
 		msg, fromMime, err := s.fsckCheckEntry(ctx, name)
 		if err != nil {
 			fmt.Fprintf(&warnings, "failed to check %q:\n    %s\n", name, err)
@@ -351,17 +357,30 @@ func (s *Store) fsckCheckRecipients(ctx context.Context, name string) *fsckMulti
 		return e.Append(errsFatal, fmt.Errorf("failed to read recipient IDs from raw secret: %w", err))
 	}
 
-	itemRecps = fingerprints(ctx, s.crypto, itemRecps)
-
 	rs, err := s.GetRecipients(ctx, name)
 	if err != nil {
 		return e.Append(errsFatal, fmt.Errorf("failed to get recipients from store: %w", err))
 	}
 
 	perItemStoreRecps := fingerprints(ctx, s.crypto, rs.IDs())
+	forcedSubkeys := make(map[string]struct{})
+	for _, fp := range perItemStoreRecps {
+		if subFP, ok := strings.CutSuffix(fp, "!"); ok {
+			forcedSubkeys[subFP] = struct{}{}
+		}
+	}
 
-	// check itemRecps matches storeRecps
-	extra, missing := diff.List(perItemStoreRecps, itemRecps)
+	normalizedItemRecps := make([]string, 0, len(itemRecps))
+	for _, r := range itemRecps {
+		if _, forced := forcedSubkeys[r]; forced {
+			normalizedItemRecps = append(normalizedItemRecps, r+"!")
+		} else {
+			normalizedItemRecps = append(normalizedItemRecps, s.crypto.Fingerprint(ctx, r))
+		}
+	}
+
+	// check normalizedItemRecps matches perItemStoreRecps
+	extra, missing := diff.List(perItemStoreRecps, normalizedItemRecps)
 	if len(missing) > 0 {
 		_ = e.Append(errsNonFatal, fmt.Errorf("missing recipients on %s: %+v", name, missing))
 	}

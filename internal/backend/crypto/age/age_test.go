@@ -3,10 +3,12 @@ package age
 import (
 	"context"
 	"errors"
+	"fmt"
 	"path/filepath"
 	"testing"
 	"time"
 
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -120,6 +122,32 @@ func TestNewExpandsSshKeyPathTilde(t *testing.T) {
 	a4, err := New(t.Context(), false, "")
 	require.NoError(t, err)
 	assert.Empty(t, a4.sshKeyPath)
+}
+
+func TestNewRecipientsTimeout(t *testing.T) {
+	t.Setenv("GOPASS_HOMEDIR", t.TempDir())
+
+	t.Run("success_default", func(t *testing.T) {
+		// Act
+		a, err := New(config.NewInMemory().WithConfig(t.Context()), false, "")
+
+		// Assert
+		require.NoError(t, err)
+		assert.Contains(t, a.recpCache.String(), fmt.Sprintf("ttl: %d", 30*time.Hour))
+	})
+
+	t.Run("success_configured", func(t *testing.T) {
+		// Arrange
+		cfg := config.NewInMemory()
+		require.NoError(t, cfg.SetEnv("age.recipients-timeout", "60"))
+
+		// Act
+		a, err := New(cfg.WithConfig(t.Context()), false, "")
+
+		// Assert
+		require.NoError(t, err)
+		assert.Contains(t, a.recpCache.String(), fmt.Sprintf("ttl: %d", time.Minute))
+	})
 }
 
 func TestInitialized(t *testing.T) {

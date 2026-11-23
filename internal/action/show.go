@@ -330,7 +330,7 @@ func (s *secretHandler) showHandleOutput(ctx context.Context, name string, sec g
 		if HasKey(ctx) {
 			header += fmt.Sprintf("Key: %s\n", GetKey(ctx))
 		}
-		out.Print(ctx, header)
+		out.Print(out.ToStderr(ctx), header)
 	}
 
 	// output the actual secret, newlines are handled by ctx and Print.

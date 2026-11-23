@@ -66,15 +66,25 @@ func (kl KeyList) UnusableKeys(alwaysTrust bool) KeyList {
 
 // FindKey will try to find the requested key.
 func (kl KeyList) FindKey(id string) (Key, error) {
-	id = strings.TrimPrefix(id, "0x")
+	id = strings.TrimSpace(id)
+	if id == "" {
+		return Key{}, ErrKeyNotFound
+	}
+
+	hexID := strings.TrimSuffix(id, "!")
+	if strings.HasPrefix(hexID, "0x") || strings.HasPrefix(hexID, "0X") {
+		hexID = hexID[2:]
+	}
+	hexID = strings.ToUpper(hexID)
+
+	emailID := strings.TrimPrefix(strings.TrimSuffix(id, ">"), "<")
 
 	for _, k := range kl {
-		if k.Fingerprint == id {
-			return k, nil
-		}
-
-		if strings.HasSuffix(k.Fingerprint, id) || strings.HasPrefix(k.Fingerprint, id) {
-			return k, nil
+		if hexID != "" {
+			fp := strings.ToUpper(k.Fingerprint)
+			if fp == hexID || strings.HasSuffix(fp, hexID) || strings.HasPrefix(fp, hexID) {
+				return k, nil
+			}
 		}
 
 		for _, ident := range k.Identities {
@@ -82,14 +92,17 @@ func (kl KeyList) FindKey(id string) (Key, error) {
 				return k, nil
 			}
 
-			if ident.Email == id {
+			if emailID != "" && strings.EqualFold(ident.Email, emailID) {
 				return k, nil
 			}
 		}
 
-		for sk := range k.SubKeys {
-			if strings.HasSuffix(sk, id) || strings.HasPrefix(sk, id) {
-				return k, nil
+		if hexID != "" {
+			for sk := range k.SubKeys {
+				sub := strings.ToUpper(strings.TrimPrefix(strings.TrimPrefix(sk, "0x"), "0X"))
+				if strings.HasSuffix(sub, hexID) || strings.HasPrefix(sub, hexID) {
+					return k, nil
+				}
 			}
 		}
 	}

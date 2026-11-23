@@ -13,6 +13,7 @@ import (
 	"github.com/gopasspw/gopass/internal/backend/crypto/age"
 	"github.com/gopasspw/gopass/internal/backend/crypto/gpg"
 	gpgcli "github.com/gopasspw/gopass/internal/backend/crypto/gpg/cli"
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store/root"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
@@ -103,12 +104,8 @@ func (s *setupHandler) Setup(ctx context.Context, cmd *cli.Command) error {
 		// a git remote and a team name are given, attempt unattended team join.
 		return s.initJoinTeam(ctx, team, remote)
 	case remote != "" && team == "":
-		// only a git remote is given, clone it and exit.
-		if err := s.clone(ctx, remote, "", ""); err != nil {
-			return fmt.Errorf("failed to clone remote %q: %w", remote, err)
-		}
-
-		return nil
+		// only a git remote is given, clone it and initialize in-place if the remote is empty.
+		return s.initRemote(ctx, remote)
 	default:
 		// assume local setup by default, remotes can be added easily later.
 		if err := s.initLocal(ctx, remote); err != nil {
@@ -211,7 +208,13 @@ func (s *setupHandler) initGenerateIdentity(ctx context.Context, crypto backend.
 
 	out.OKf(ctx, "Key pair for %s generated", crypto.Name())
 
-	out.Notice(ctx, "🔐 We need to unlock your newly created private key now! Please enter the passphrase you just generated.")
+	if shouldPrintUnlockNotice(ctx, crypto) {
+		if pwGenerated {
+			out.Notice(ctx, "🔐 We need to unlock your newly created private key now! Please enter the passphrase you just generated.")
+		} else {
+			out.Notice(ctx, "🔐 We need to unlock your newly created private key now! Please enter your passphrase.")
+		}
+	}
 
 	// avoid the gpg cache or we won't find the newly created key
 	kl, err := crypto.ListIdentities(gpg.WithUseCache(ctx, false))
@@ -234,6 +237,22 @@ func (s *setupHandler) initGenerateIdentity(ctx context.Context, crypto backend.
 	out.OKf(ctx, "Key pair %s validated", kl[0])
 
 	return nil
+}
+
+// shouldPrintUnlockNotice reports whether the subsequent ListIdentities call
+// will prompt the user to enter a passphrase to unlock the newly created key.
+// Only the age backend with a passphrase-protected keyring and no pre-supplied
+// passphrase/callback decrypts its keyring during ListIdentities; gpgcli only
+// lists secret keys and never prompts to unlock them.
+func shouldPrintUnlockNotice(ctx context.Context, crypto backend.Crypto) bool {
+	if crypto.Name() != "age" {
+		return false
+	}
+	if ctxutil.GetAgePassphrase(ctx) != "" || ctxutil.HasPasswordCallback(ctx) {
+		return false
+	}
+
+	return strings.TrimSpace(config.String(ctx, "age.keyring-recipients")) == ""
 }
 
 type keyExporter interface {
@@ -285,11 +304,75 @@ func (s *setupHandler) initHasUseablePrivateKeys(ctx context.Context, crypto bac
 	return len(kl) > 0
 }
 
+type remoteBranchLister interface {
+	ListRemoteBranches(ctx context.Context, remote string) ([]string, error)
+}
+
+func nonEmptyRemoteError(binName, team, remote string, branches []string) error {
+	if binName == "" {
+		binName = "gopass"
+	}
+	if team != "" {
+		return fmt.Errorf(
+			"git remote %q is not empty (found branch(es): %s); refusing to push unrelated history. "+
+				"To join an existing team store, run `%s clone %s %s` or `%s setup --remote %s --team %s` (without --create-team) instead",
+			remote, strings.Join(branches, ", "), binName, remote, team, binName, remote, team,
+		)
+	}
+
+	return fmt.Errorf(
+		"git remote %q is not empty (found branch(es): %s); refusing to push unrelated history. "+
+			"To use an existing password store, remove the newly initialized local store and run `%s clone %s` instead",
+		remote, strings.Join(branches, ", "), binName, remote,
+	)
+}
+
+func (s *setupHandler) initRemote(ctx context.Context, remote string) error {
+	path := ""
+	if s.Store != nil {
+		path = s.Store.Path()
+	}
+	if path == "" {
+		path = config.PwStoreDir("")
+	}
+
+	if err := s.clone(ctx, remote, "", path); err != nil {
+		return fmt.Errorf("failed to clone remote %q: %w", remote, err)
+	}
+
+	// Re-instantiate the root store to detect whether the cloned repository
+	// already contains an initialized password store.
+	s.Store = root.New(s.cfg)
+	inited, err := s.Store.IsInitialized(ctx)
+	if err != nil {
+		return exit.Error(exit.Unknown, err, "Failed to check store status: %s", err)
+	}
+	if inited {
+		return nil
+	}
+
+	// The cloned remote does not contain an initialized password store yet
+	// (e.g. a brand-new empty repository). Initialize the store in-place on
+	// the cloned repository's branch and push it.
+	if err := s.init(ctxutil.WithHidden(ctx, true), "", path); err != nil {
+		return fmt.Errorf("failed to init store for remote %q: %w", remote, err)
+	}
+	if err := s.Store.RCSPush(ctxutil.WithHidden(ctx, true), "", "origin", ""); err != nil {
+		return fmt.Errorf("failed to push to git remote: %w", err)
+	}
+
+	return nil
+}
+
 func (s *setupHandler) initSetupGitRemote(ctx context.Context, team, remote string) error {
 	var err error
 	remote, err = termio.AskForString(ctx, "Please enter the git remote for your shared store", remote)
 	if err != nil {
 		return fmt.Errorf("failed to read user input: %w", err)
+	}
+	remote = strings.TrimSpace(remote)
+	if remote == "" {
+		return fmt.Errorf("git remote URL must not be empty")
 	}
 
 	// omit RCS output.
@@ -297,9 +380,33 @@ func (s *setupHandler) initSetupGitRemote(ctx context.Context, team, remote stri
 	if err := s.Store.RCSAddRemote(ctx, team, "origin", remote); err != nil {
 		return fmt.Errorf("failed to add git remote: %w", err)
 	}
+
+	if lister, ok := s.Store.Storage(ctx, team).(remoteBranchLister); ok {
+		return s.pushToEmptyGitRemote(ctx, lister, team, remote)
+	}
+
 	// initial pull, in case the remote is non-empty.
 	if err := s.Store.RCSPull(ctx, team, "origin", ""); err != nil {
 		debug.Log("Initial git pull failed: %s", err)
+	}
+	if err := s.Store.RCSPush(ctx, team, "origin", ""); err != nil {
+		return fmt.Errorf("failed to push to git remote: %w", err)
+	}
+
+	return nil
+}
+
+func (s *setupHandler) pushToEmptyGitRemote(ctx context.Context, lister remoteBranchLister, team, remote string) error {
+	branches, err := lister.ListRemoteBranches(ctx, "origin")
+	if err != nil {
+		_ = s.Store.RCSRemoveRemote(ctx, team, "origin")
+
+		return fmt.Errorf("failed to inspect git remote %q: %w", remote, err)
+	}
+	if len(branches) > 0 {
+		_ = s.Store.RCSRemoveRemote(ctx, team, "origin")
+
+		return nonEmptyRemoteError(s.Name, team, remote, branches)
 	}
 	if err := s.Store.RCSPush(ctx, team, "origin", ""); err != nil {
 		return fmt.Errorf("failed to push to git remote: %w", err)

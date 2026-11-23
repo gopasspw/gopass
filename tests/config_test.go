@@ -18,6 +18,7 @@ func TestBaseConfig(t *testing.T) {
 
 	wanted := `age.agent-enabled = false
 age.agent-timeout = 0
+age.recipients-timeout = 108000
 core.autopush = true
 core.autosync = true
 core.casefold = false
@@ -77,6 +78,7 @@ func TestMountConfig(t *testing.T) {
 
 	wanted := `age.agent-enabled = false
 age.agent-timeout = 0
+age.recipients-timeout = 108000
 core.autopush = true
 core.autosync = true
 core.casefold = false

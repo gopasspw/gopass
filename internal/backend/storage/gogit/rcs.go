@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"path/filepath"
+	"slices"
 	"sort"
 	"strings"
 
@@ -16,6 +17,8 @@ import (
 	"github.com/go-git/go-git/v5/plumbing/filemode"
 	"github.com/go-git/go-git/v5/plumbing/format/index"
 	"github.com/go-git/go-git/v5/plumbing/storer"
+	"github.com/go-git/go-git/v5/plumbing/transport"
+	"github.com/go-git/go-git/v5/storage/memory"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
@@ -573,6 +576,53 @@ func (g *GoGit) AddRemote(_ context.Context, remote, url string) error {
 // RemoveRemote removes a remote.
 func (g *GoGit) RemoveRemote(_ context.Context, remote string) error {
 	return g.repo.DeleteRemote(remote)
+}
+
+// ListRemoteBranches returns the sorted branch names present on the given
+// remote. Returns an empty slice when the remote has no branches or when
+// network operations are disabled.
+func (g *GoGit) ListRemoteBranches(ctx context.Context, remote string) ([]string, error) {
+	if ctxutil.IsNoNetwork(ctx) {
+		debug.Log("Skipping network ops. NoNetwork=true")
+
+		return nil, nil
+	}
+	if !g.IsInitialized() {
+		return nil, store.ErrGitNotInit
+	}
+	if remote == "" {
+		remote = "origin"
+	}
+
+	rawURL := g.remoteURL(remote)
+	if rawURL == "" {
+		return nil, store.ErrGitNoRemote
+	}
+
+	rem := git.NewRemote(memory.NewStorage(), &config.RemoteConfig{
+		Name: remote,
+		URLs: []string{stripUserInfo(rawURL)},
+	})
+
+	refs, err := rem.ListContext(ctx, &git.ListOptions{
+		Auth: g.auth(ctx, remote),
+	})
+	if errors.Is(err, transport.ErrEmptyRemoteRepository) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	var branches []string
+	for _, ref := range refs {
+		if ref.Name().IsBranch() {
+			branches = append(branches, ref.Name().Short())
+		}
+	}
+	slices.Sort(branches)
+
+	return branches, nil
 }
 
 // Status returns a deterministic, git-status-like summary.
