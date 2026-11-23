@@ -120,7 +120,7 @@ func (cred *Credential) GetAssertion(challenge string, origin string) (*Response
 	authData = append(authData[:], signCount[:]...)
 	message := sha256.Sum256(append(authData[:], clientDataHash[:]...))
 	signature, serr := ecdsa.SignASN1(rand.Reader, cred.SecretKey, message[:])
-	if err != nil {
+	if serr != nil {
 		return nil, serr
 	}
 
