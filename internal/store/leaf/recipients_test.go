@@ -861,14 +861,7 @@ func TestJoinTeamGPGRecipientFormats(t *testing.T) {
 		}
 	}
 
-	gpgHome := gnupgHome
-	if runtime.GOOS == "windows" {
-		// MSYS2 gpg expects POSIX-style paths (/c/...) rather than Windows drive paths.
-		gpgHome = strings.ReplaceAll(gnupgHome, `\`, "/")
-		if len(gpgHome) >= 2 && gpgHome[1] == ':' {
-			gpgHome = "/" + strings.ToLower(gpgHome[:1]) + gpgHome[2:]
-		}
-	}
+	gpgHome := msysGPGHome(gnupgHome)
 
 	genCmd := exec.CommandContext(t.Context(), "gpg", "--homedir", gpgHome, "--batch", "--passphrase", "", "--quick-gen-key", "Clone User <clone@example.org>", "default", "default", "never")
 	genOut, err := genCmd.CombinedOutput()
@@ -1164,6 +1157,19 @@ type twoSubkeyEnv struct {
 	sub2Fpr    string
 }
 
+func msysGPGHome(dir string) string {
+	if runtime.GOOS != "windows" {
+		return dir
+	}
+	// MSYS2 gpg expects POSIX-style paths (/c/...) rather than Windows drive paths.
+	dir = strings.ReplaceAll(dir, `\`, "/")
+	if len(dir) >= 2 && dir[1] == ':' {
+		return "/" + strings.ToLower(dir[:1]) + dir[2:]
+	}
+
+	return dir
+}
+
 func setupTwoSubkeyGPGHome(t *testing.T) twoSubkeyEnv {
 	t.Helper()
 
@@ -1177,8 +1183,9 @@ func setupTwoSubkeyGPGHome(t *testing.T) twoSubkeyEnv {
 		t.Cleanup(func() { _ = os.RemoveAll(root) })
 	}
 
-	gpgHome := filepath.Join(root, "gnupg")
-	require.NoError(t, os.MkdirAll(gpgHome, 0o700))
+	gpgDir := filepath.Join(root, "gnupg")
+	require.NoError(t, os.MkdirAll(gpgDir, 0o700))
+	gpgHome := msysGPGHome(gpgDir)
 	t.Cleanup(func() {
 		_ = exec.Command("gpgconf", "--homedir", gpgHome, "--kill", "gpg-agent").Run()
 	})

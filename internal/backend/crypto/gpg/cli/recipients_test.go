@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"bytes"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -32,6 +33,7 @@ func TestSplitPacket(t *testing.T) {
 
 type subkeyTestKeyring struct {
 	root       string
+	home       string
 	gpgHome    string
 	primaryFpr string
 	sub1Fpr    string
@@ -93,6 +95,7 @@ func setupSubkeyTestKeyring(t *testing.T) subkeyTestKeyring {
 
 	return subkeyTestKeyring{
 		root:       root,
+		home:       home,
 		gpgHome:    gpgHome,
 		primaryFpr: primaryFpr,
 		sub1Fpr:    sub1Fpr,
@@ -166,6 +169,8 @@ func TestSubkeysFindEncryptAndRecipientIDs(t *testing.T) {
 	require.Error(t, err)
 
 	// 9. Offline primary key (sec#) with only sub1 secret subkey can still find identity & decrypt.
+	// Import public key + ownertrust and copy only sub1's private keygrip file so
+	// we avoid --export-secret-subkeys/--import agent keywrap issues on some GnuPG 2.4 builds.
 	offlineHome := filepath.Join(root, "offline")
 	require.NoError(t, os.MkdirAll(offlineHome, 0o700))
 	offlineGPGHome := gpgHomeEnv(offlineHome, runtime.GOOS)
@@ -173,23 +178,51 @@ func TestSubkeysFindEncryptAndRecipientIDs(t *testing.T) {
 		_ = exec.Command("gpgconf", "--homedir", offlineGPGHome, "--kill", "gpg-agent").Run()
 	})
 
-	expSecCmd := exec.CommandContext(t.Context(), "gpg", "--homedir", gpgHome, "--export-secret-subkeys", sub1Fpr+"!")
-	sub1Sec, err := expSecCmd.Output()
+	expPubCmd := exec.CommandContext(t.Context(), "gpg", "--homedir", gpgHome, "--batch", "--export", primaryFpr)
+	pubBytes, err := expPubCmd.Output()
 	require.NoError(t, err)
 
 	expTrustCmd := exec.CommandContext(t.Context(), "gpg", "--homedir", gpgHome, "--export-ownertrust")
 	otrust, err := expTrustCmd.Output()
 	require.NoError(t, err)
 
-	impSecCmd := exec.CommandContext(t.Context(), "gpg", "--homedir", offlineGPGHome, "--import")
-	impSecCmd.Stdin = strings.NewReader(string(sub1Sec))
-	impOut, err := impSecCmd.CombinedOutput()
-	require.NoError(t, err, "import secret subkey failed: %s", string(impOut))
+	impPubCmd := exec.CommandContext(t.Context(), "gpg", "--homedir", offlineGPGHome, "--batch", "--import")
+	impPubCmd.Stdin = bytes.NewReader(pubBytes)
+	impOut, err := impPubCmd.CombinedOutput()
+	require.NoError(t, err, "import public key failed: %s", string(impOut))
 
 	impTrustCmd := exec.CommandContext(t.Context(), "gpg", "--homedir", offlineGPGHome, "--import-ownertrust")
-	impTrustCmd.Stdin = strings.NewReader(string(otrust))
+	impTrustCmd.Stdin = bytes.NewReader(otrust)
 	impOut, err = impTrustCmd.CombinedOutput()
 	require.NoError(t, err, "import ownertrust failed: %s", string(impOut))
+
+	grpCmd := exec.CommandContext(t.Context(), "gpg", "--homedir", gpgHome, "--with-colons", "--with-keygrip", "--list-secret-keys", primaryFpr)
+	grpOut, err := grpCmd.Output()
+	require.NoError(t, err)
+	sub1Keygrip := ""
+	curFpr := ""
+	for line := range strings.SplitSeq(string(grpOut), "\n") {
+		fields := strings.Split(line, ":")
+		if len(fields) < 10 {
+			continue
+		}
+		switch fields[0] {
+		case "fpr":
+			curFpr = fields[9]
+		case "grp":
+			if curFpr == sub1Fpr {
+				sub1Keygrip = fields[9]
+			}
+		}
+	}
+	require.Len(t, sub1Keygrip, 40, "expected 40-char keygrip for sub1")
+
+	srcKeyFile := filepath.Join(kr.home, "private-keys-v1.d", sub1Keygrip+".key")
+	keyData, err := os.ReadFile(srcKeyFile)
+	require.NoError(t, err)
+	dstKeyDir := filepath.Join(offlineHome, "private-keys-v1.d")
+	require.NoError(t, os.MkdirAll(dstKeyDir, 0o700))
+	require.NoError(t, os.WriteFile(filepath.Join(dstKeyDir, sub1Keygrip+".key"), keyData, 0o600))
 
 	t.Setenv("GNUPGHOME", offlineGPGHome)
 	gOffline, err := New(ctx, Config{})
