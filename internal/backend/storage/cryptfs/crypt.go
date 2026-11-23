@@ -302,6 +302,38 @@ func (c *Crypt) TryAdd(ctx context.Context, files ...string) error {
 	return err
 }
 
+// CheckImport requires the shared mapping to be clean before the first
+// write. It does not reconstruct a mapping left by a failed import.
+func (c *Crypt) CheckImport(ctx context.Context, paths ...string) error {
+	checker, ok := c.sub.(backend.ImportChecker)
+	if !ok {
+		return fmt.Errorf("cryptfs substorage %q cannot check for pending import changes: %w", c.sub.Name(), backend.ErrNotSupported)
+	}
+	if len(paths) == 0 {
+		if err := checker.CheckImport(ctx); err != nil {
+			return err
+		}
+
+		return checker.CheckImport(ctx, mappingFile)
+	}
+
+	c.mux.RLock()
+	defer c.mux.RUnlock()
+	var hashes []string
+	for _, path := range paths {
+		h, ok := c.mappings[path]
+		if !ok {
+			h = c.hash(path)
+			if c.sub.Exists(ctx, h) {
+				return fmt.Errorf("unmapped cryptfs ciphertext exists for %q", path)
+			}
+		}
+		hashes = append(hashes, h)
+	}
+
+	return checker.CheckImport(ctx, hashes...)
+}
+
 func (c *Crypt) TryCommit(ctx context.Context, msg string) error {
 	return c.sub.TryCommit(ctx, msg)
 }

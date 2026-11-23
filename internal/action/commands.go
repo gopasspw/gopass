@@ -932,6 +932,164 @@ func (s *Action) GetCommands() []*cli.Command {
 			}, otp.SnipFlags()...),
 		},
 		{
+			Name:      "passkey",
+			Usage:     "Manage and use passkeys (WebAuthn credentials)",
+			ArgsUsage: "[rp-id]",
+			Aliases:   []string{"passkeys", "webauthn"},
+			Description: "" +
+				"This command manages passkeys, the credentials used to sign in to web sites " +
+				"with WebAuthn. gopass acts as a software authenticator: the private key of a " +
+				"passkey is kept in a secret below passkeys/<rp-id>/ and is synced with the " +
+				"store. Without a subcommand the stored passkeys are listed.",
+			Before: s.IsInitialized,
+			Action: s.PasskeyList,
+			Commands: []*cli.Command{
+				{
+					Name:      "list",
+					Usage:     "List passkeys",
+					ArgsUsage: "[rp-id]",
+					Aliases:   []string{"ls"},
+					Description: "" +
+						"This command lists the stored passkeys, optionally limited to those " +
+						"of one relying party. The secrets holding the passkeys are decrypted " +
+						"to do so.",
+					Before: s.IsInitialized,
+					Action: s.PasskeyList,
+				},
+				{
+					Name:      "create",
+					Usage:     "Create a new passkey",
+					ArgsUsage: "<rp-id> <user>",
+					Aliases:   []string{"new", "register"},
+					Description: "" +
+						"This command creates a passkey for a user account at a relying party " +
+						"and stores it in passkeys/<rp-id>/<user>. A passkey that is already " +
+						"stored for the account is kept. The registration response, which " +
+						"contains the public key, is printed as JSON.",
+					Before: s.IsInitialized,
+					Action: s.PasskeyCreate,
+					Flags: []cli.Flag{
+						&cli.StringFlag{
+							Name:    "algorithm",
+							Aliases: []string{"a"},
+							Usage:   "Signature algorithm of the passkey. One of ES256, EdDSA or RS256",
+							Value:   "ES256",
+						},
+						&cli.StringFlag{
+							Name:    "display-name",
+							Aliases: []string{"n"},
+							Usage:   "Friendly name of the user account. Defaults to the user name",
+						},
+						&cli.StringFlag{
+							Name:  "user-handle",
+							Usage: "Identifier of the user account at the relying party, base64url encoded. Defaults to a random one",
+						},
+						&cli.StringFlag{
+							Name:    "challenge",
+							Aliases: []string{"c"},
+							Usage:   "Challenge of the relying party, base64url encoded. Defaults to a random one",
+						},
+						&cli.StringFlag{
+							Name:    "origin",
+							Aliases: []string{"o"},
+							Usage:   "Origin of the web page that requests the passkey. Defaults to https://<rp-id>",
+						},
+					},
+				},
+				{
+					Name:      "assert",
+					Usage:     "Sign in with a passkey",
+					ArgsUsage: "<rp-id|secret>",
+					Aliases:   []string{"get", "sign"},
+					Description: "" +
+						"This command signs the challenge of a relying party with a passkey " +
+						"and prints the authentication response as JSON. The passkey is " +
+						"selected by the ID of the relying party or by the name of the secret " +
+						"holding it.",
+					Before:        s.IsInitialized,
+					Action:        s.PasskeyAssert,
+					ShellComplete: s.Complete,
+					Flags: []cli.Flag{
+						&cli.StringFlag{
+							Name:    "challenge",
+							Aliases: []string{"c"},
+							Usage:   "Challenge of the relying party, base64url encoded",
+						},
+						&cli.StringFlag{
+							Name:    "origin",
+							Aliases: []string{"o"},
+							Usage:   "Origin of the web page that requests the assertion. Defaults to https://<rp-id>",
+						},
+						&cli.StringFlag{
+							Name:  "credential",
+							Usage: "ID of the passkey to use, base64url encoded. Needed if more than one matches",
+						},
+						&cli.StringFlag{
+							Name:  "user-verification",
+							Usage: "User verification requirement of the relying party. One of required, preferred or discouraged",
+							Value: "preferred",
+						},
+					},
+				},
+				{
+					Name:      "remove",
+					Usage:     "Remove a passkey",
+					ArgsUsage: "<rp-id|secret>",
+					Aliases:   []string{"rm", "delete"},
+					Description: "" +
+						"This command removes a passkey from the secret holding it. The passkey is " +
+						"selected by the ID of the relying party or by the name of the secret. " +
+						"The secret and the other passkeys in it are kept. The relying party still " +
+						"lists the passkey: remove it there as well.",
+					Before:        s.IsInitialized,
+					Action:        s.PasskeyRemove,
+					ShellComplete: s.Complete,
+					Flags: []cli.Flag{
+						&cli.StringFlag{
+							Name:  "credential",
+							Usage: "ID of the passkey to remove, base64url encoded. Needed if more than one matches",
+						},
+						&cli.BoolFlag{
+							Name:    "force",
+							Aliases: []string{"f"},
+							Usage:   "Remove the passkey without asking for confirmation",
+						},
+					},
+				},
+				{
+					Name:      "import",
+					Usage:     "Import passkeys from a Credential Exchange Format file",
+					ArgsUsage: "<file>",
+					Description: "" +
+						"This command imports the passkeys of an unencrypted FIDO Credential " +
+						"Exchange Format (CXF) JSON document, as exported by other credential " +
+						"managers. Use - to read from standard input. Credentials of other " +
+						"types in the document are ignored.",
+					Before: s.IsInitialized,
+					Action: s.PasskeyImport,
+				},
+				{
+					Name:      "export",
+					Usage:     "Export passkeys as a Credential Exchange Format file",
+					ArgsUsage: "[rp-id]",
+					Description: "" +
+						"This command exports passkeys, optionally limited to those of one " +
+						"relying party, as an unencrypted FIDO Credential Exchange Format (CXF) " +
+						"JSON document. The document contains the private keys. Passkeys that " +
+						"maintain a signature counter can not be exported.",
+					Before: s.IsInitialized,
+					Action: s.PasskeyExport,
+					Flags: []cli.Flag{
+						&cli.StringFlag{
+							Name:    "output",
+							Aliases: []string{"o"},
+							Usage:   "Write the export to this file instead of standard output. The file must not exist",
+						},
+					},
+				},
+			},
+		},
+		{
 			Name:  "process",
 			Usage: "Process a template file",
 			Description: "" +

@@ -86,6 +86,11 @@ var commandsWithError = set.Map([]string{
 	".mounts.remove",
 	".move",
 	".otp",
+	".passkey.assert",
+	".passkey.create",
+	".passkey.export",
+	".passkey.import",
+	".passkey.remove",
 	".pull",
 	".process",
 	".push",
@@ -154,7 +159,7 @@ func TestGetCommands(t *testing.T) {
 	}
 
 	commands := getCommands(act, app)
-	assert.Len(t, commands, 46)
+	assert.Len(t, commands, 47)
 
 	prefix := ""
 	testCommands(t, ctx, app, commands, prefix)

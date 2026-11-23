@@ -430,7 +430,7 @@ func showSafeContent(ctx context.Context, sec gopass.Secret) string {
 }
 
 func isUnsafeKey(ctx context.Context, key string, sec gopass.Secret) bool {
-	duks := []string{"hotp", "otpauth", "password", "totp"}
+	duks := []string{"hotp", "otpauth", "passkey", "password", "totp"}
 	if slices.Contains(duks, key) {
 		return true
 	}

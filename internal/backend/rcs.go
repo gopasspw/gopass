@@ -30,6 +30,13 @@ type rcs interface {
 	Compact(ctx context.Context) error
 }
 
+// ImportChecker checks that a bulk import can start without taking over
+// pending changes. With no paths it checks the whole repository; otherwise
+// it checks the given exact storage paths.
+type ImportChecker interface {
+	CheckImport(ctx context.Context, paths ...string) error
+}
+
 // Revision is a SCM revision.
 type Revision struct {
 	Hash        string

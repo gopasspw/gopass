@@ -712,6 +712,11 @@ func (s *Store) GetRecipients(ctx context.Context, name string) (*recipients.Rec
 	return s.getRecipients(ctx, s.idFile(ctx, name))
 }
 
+// SameRecipientScope reports whether writes to two names use the same recipient file.
+func (s *Store) SameRecipientScope(ctx context.Context, a, b string) bool {
+	return s.crypto != nil && s.idFile(ctx, a) == s.idFile(ctx, b)
+}
+
 func (s *Store) getRecipients(ctx context.Context, idf string) (*recipients.Recipients, error) {
 	buf, err := s.storage.Get(ctx, idf)
 	if err != nil {

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/gopasspw/gopass/internal/backend"
 	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/queue"
 	"github.com/gopasspw/gopass/internal/store"
@@ -75,6 +76,24 @@ func (s *Store) Set(ctx context.Context, name string, sec gopass.Byter) error {
 	_, err = t(ctx)
 
 	return err
+}
+
+// CheckImport checks the storage state of a passkey import target.
+func (s *Store) CheckImport(ctx context.Context, name string, first bool) error {
+	if err := store.ValidateSecretName(name); err != nil {
+		return err
+	}
+	checker, ok := s.storage.(backend.ImportChecker)
+	if !ok {
+		return nil
+	}
+	if first {
+		if err := checker.CheckImport(ctx); err != nil {
+			return err
+		}
+	}
+
+	return checker.CheckImport(ctx, s.passfile(ctx, name))
 }
 
 func (s *Store) gitCommitAndPush(ctx context.Context, name string) error {

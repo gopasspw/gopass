@@ -292,6 +292,32 @@ func (s *Action) otp(ctx context.Context, name, qrf string, clip, pw, recurse, c
 	return s.otpH.otp(ctx, name, qrf, clip, pw, recurse, chained, alsoClip)
 }
 
+// ── passkeyHandler shims ───────────────────────────────────────────────────
+
+func (s *Action) PasskeyList(ctx context.Context, cmd *cli.Command) error {
+	return s.passkeyH.PasskeyList(ctx, cmd)
+}
+
+func (s *Action) PasskeyCreate(ctx context.Context, cmd *cli.Command) error {
+	return s.passkeyH.PasskeyCreate(ctx, cmd)
+}
+
+func (s *Action) PasskeyAssert(ctx context.Context, cmd *cli.Command) error {
+	return s.passkeyH.PasskeyAssert(ctx, cmd)
+}
+
+func (s *Action) PasskeyRemove(ctx context.Context, cmd *cli.Command) error {
+	return s.passkeyH.PasskeyRemove(ctx, cmd)
+}
+
+func (s *Action) PasskeyImport(ctx context.Context, cmd *cli.Command) error {
+	return s.passkeyH.PasskeyImport(ctx, cmd)
+}
+
+func (s *Action) PasskeyExport(ctx context.Context, cmd *cli.Command) error {
+	return s.passkeyH.PasskeyExport(ctx, cmd)
+}
+
 // ── miscHandler shims ──────────────────────────────────────────────────────
 
 func (s *Action) AliasesPrint(ctx context.Context, cmd *cli.Command) error {

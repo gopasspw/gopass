@@ -35,6 +35,7 @@ type Action struct {
 	binary     *binaryHandler
 	envH       *envHandler
 	otpH       *otpHandler
+	passkeyH   *passkeyHandler
 	misc       *miscHandler
 }
 
@@ -74,6 +75,7 @@ func newAction(cfg *config.Config, sv semver.Version, remind bool) (*Action, err
 	bin := &binaryHandler{base: b}
 	env := &envHandler{base: b}
 	otp := &otpHandler{base: b}
+	pk := &passkeyHandler{base: b}
 	misc := &miscHandler{base: b}
 
 	// Wire cross-handler dependencies through explicit function references so
@@ -117,6 +119,7 @@ func newAction(cfg *config.Config, sv semver.Version, remind bool) (*Action, err
 		binary:     bin,
 		envH:       env,
 		otpH:       otp,
+		passkeyH:   pk,
 		misc:       misc,
 	}, nil
 }

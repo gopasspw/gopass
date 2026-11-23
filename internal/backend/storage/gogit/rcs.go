@@ -92,6 +92,55 @@ func (g *GoGit) TryAdd(ctx context.Context, files ...string) error {
 	return err
 }
 
+// CheckImport refuses pending changes; it does not try to restage them.
+func (g *GoGit) CheckImport(ctx context.Context, paths ...string) error {
+	if !g.IsInitialized() {
+		return nil
+	}
+	wt, err := g.worktree()
+	if err != nil {
+		return err
+	}
+	status, err := wt.StatusWithOptions(git.StatusOptions{Strategy: git.Preload})
+	if err != nil {
+		return err
+	}
+	if len(paths) == 0 {
+		if !status.IsClean() {
+			return fmt.Errorf("the Git store has pending changes")
+		}
+
+		return nil
+	}
+
+	idx, err := g.repo.Storer.Index()
+	if err != nil {
+		return err
+	}
+	for _, path := range paths {
+		rel := g.rel(path)
+		if state := status[rel]; state != nil && (state.Staging != git.Unmodified || state.Worktree != git.Unmodified) {
+			return fmt.Errorf("import target %q has pending changes", path)
+		}
+		entry, err := idx.Entry(rel)
+		if errors.Is(err, index.ErrEntryNotFound) {
+			if g.fs.Exists(ctx, rel) {
+				return fmt.Errorf("import target %q is not tracked at its exact path", path)
+			}
+
+			continue
+		}
+		if err != nil {
+			return err
+		}
+		if entry.Stage != 0 || entry.IntentToAdd || entry.SkipWorktree {
+			return fmt.Errorf("cannot verify the Git index entry for %q", path)
+		}
+	}
+
+	return nil
+}
+
 // HasStagedChanges returns true if there are any staged changes which can be committed.
 func (g *GoGit) HasStagedChanges(_ context.Context) bool {
 	wt, err := g.worktree()

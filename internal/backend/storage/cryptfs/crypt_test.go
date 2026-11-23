@@ -8,7 +8,7 @@ import (
 
 	"github.com/gopasspw/gopass/internal/backend"
 	"github.com/gopasspw/gopass/internal/backend/crypto/age"
-	_ "github.com/gopasspw/gopass/internal/backend/storage/fs"
+	"github.com/gopasspw/gopass/internal/backend/storage/fs"
 	_ "github.com/gopasspw/gopass/internal/backend/storage/gitfs"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
 	"github.com/stretchr/testify/assert"
@@ -16,6 +16,11 @@ import (
 )
 
 var password = "hunter2"
+
+func TestCryptfsImportRequiresCleanCheckSupport(t *testing.T) {
+	crypt := &Crypt{sub: fs.New(t.TempDir())}
+	require.ErrorIs(t, crypt.CheckImport(t.Context()), backend.ErrNotSupported)
+}
 
 func newTestCryptFS(ctx context.Context, t *testing.T, td string) (*Crypt, string) {
 	t.Helper()
@@ -179,4 +184,19 @@ func TestGit(t *testing.T) {
 	revs, err := crypt.Revisions(ctx, "foo/bar")
 	require.NoError(t, err)
 	assert.Len(t, revs, 1)
+
+	require.NoError(t, crypt.CheckImport(ctx))
+	require.NoError(t, crypt.CheckImport(ctx, "foo/bar", "foo/fresh"))
+
+	// A commit can contain the ciphertext without the shared name map.
+	// Import requires manual recovery in this state and stages nothing.
+	require.NoError(t, crypt.Set(ctx, "foo/fresh", []byte("2")))
+	require.NoError(t, crypt.sub.Add(ctx, crypt.hash("foo/fresh")))
+	require.NoError(t, crypt.sub.Commit(ctx, "ciphertext only"))
+	before, err := crypt.sub.Status(ctx)
+	require.NoError(t, err)
+	require.ErrorContains(t, crypt.CheckImport(ctx), "pending changes")
+	after, err := crypt.sub.Status(ctx)
+	require.NoError(t, err)
+	assert.Equal(t, before, after)
 }

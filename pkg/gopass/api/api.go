@@ -69,6 +69,17 @@ func (g *Gopass) List(ctx context.Context) ([]string, error) {
 	return g.rs.List(ctx, tree.INF) //nolint:wrapcheck
 }
 
+// SameRecipientScope reports whether writes to two names use the same mount
+// and recipient file. The secrets do not need to exist.
+func (g *Gopass) SameRecipientScope(ctx context.Context, a, b string) bool {
+	return g.rs.SameRecipientScope(ctx, a, b)
+}
+
+// Exists reports whether the named secret exists without decrypting it.
+func (g *Gopass) Exists(ctx context.Context, name string) bool {
+	return g.rs.Exists(ctx, name)
+}
+
 // AuditList returns a list of all secret names, filtered against the optional
 // .gopass-audit-ignore file at the root of each mount point. Secrets matching
 // any of the exclude patterns (RE2 syntax) in the file of their mount point

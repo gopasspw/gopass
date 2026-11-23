@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"slices"
+	"strings"
 
 	"github.com/gopasspw/gopass/internal/action/exit"
 	"github.com/gopasspw/gopass/internal/config"
@@ -50,30 +51,46 @@ func (s *miscHandler) Config(ctx context.Context, cmd *cli.Command) error {
 }
 
 func (s *miscHandler) printConfigValues(ctx context.Context, store string, needles ...string) {
-	for _, k := range set.SortedFiltered(s.cfg.Keys(store), func(e string) bool {
-		return contains(needles, e)
-	}) {
-		v := s.cfg.GetM(store, k)
-		// if only a single key is requested, print only the value
-		// useful for scriping, e.g. `$ cd $(gopass config path)`.
-		if len(needles) == 1 {
-			out.Printf(ctx, "%s", v)
+	if len(needles) == 1 {
+		// For a single key, print only the value for scripts.
+		key := needles[0]
+		if isPasskeyConfigKey(key) {
+			if v, found := s.cfg.LookupUser(key); found {
+				out.Printf(ctx, "%s", v)
+			}
+		} else if slices.Contains(s.cfg.Keys(store), key) {
+			out.Printf(ctx, "%s", s.cfg.GetM(store, key))
+		}
+
+		return
+	}
+
+	keys := set.New(s.cfg.Keys(store)...)
+	if store != "" {
+		for _, k := range s.cfg.Keys("") {
+			if isPasskeyConfigKey(k) {
+				keys.Add(k)
+			}
+		}
+	}
+	for _, k := range keys.Elements() {
+		if isPasskeyConfigKey(k) {
+			if v, found := s.cfg.LookupUser(k); found {
+				out.Printf(ctx, "%s = %s", k, v)
+			}
 
 			continue
 		}
-		out.Printf(ctx, "%s = %s", k, v)
-	}
-}
 
-func contains(haystack []string, needle string) bool {
-	if len(haystack) < 1 {
-		return true
+		out.Printf(ctx, "%s = %s", k, s.cfg.GetM(store, k))
 	}
-
-	return slices.Contains(haystack, needle)
 }
 
 func (s *miscHandler) setConfigValue(ctx context.Context, store, key, value string) error {
+	if store != "" && isPasskeyConfigKey(key) {
+		return fmt.Errorf("%q must be set in the per-user config (without --store)", key)
+	}
+
 	debug.Log("setting %s to %s for %q", key, value, store)
 
 	level, err := s.cfg.SetWithLevel(store, key, value)
@@ -117,6 +134,10 @@ func (s *miscHandler) setConfigValue(ctx context.Context, store, key, value stri
 	s.printConfigValues(ctx, store, key)
 
 	return nil
+}
+
+func isPasskeyConfigKey(key string) bool {
+	return strings.HasPrefix(strings.ToLower(key), "passkey.")
 }
 
 func (s *miscHandler) configKeys() []string {
