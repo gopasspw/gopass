@@ -22,6 +22,7 @@ import (
 	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/recipients"
 	"github.com/gopasspw/gopass/pkg/ctxutil"
+	"github.com/gopasspw/gopass/pkg/gopass/secrets"
 	"github.com/gopasspw/gopass/tests/gptest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -1153,4 +1154,207 @@ func TestRemoveRecipientGitFSRollbackOnCommitFailure(t *testing.T) {
 	assert.Equal(t, []string{"0xFEEDBEEF"}, rs.IDs())
 	assert.False(t, gitSt.Exists(ctx, filepath.Join(".public-keys", "0xDEADBEEF")))
 	assert.Empty(t, gitStatusPorcelain(t), "git working tree must be clean after successful removal")
+}
+
+type twoSubkeyEnv struct {
+	root       string
+	gpgHome    string
+	primaryFpr string
+	sub1Fpr    string
+	sub2Fpr    string
+}
+
+func setupTwoSubkeyGPGHome(t *testing.T) twoSubkeyEnv {
+	t.Helper()
+
+	var root string
+	if runtime.GOOS == "windows" {
+		root = t.TempDir()
+	} else {
+		var err error
+		root, err = os.MkdirTemp("/tmp", "gp-sub-*") //nolint:usetesting // short path for macOS gpg-agent socket
+		require.NoError(t, err)
+		t.Cleanup(func() { _ = os.RemoveAll(root) })
+	}
+
+	gpgHome := filepath.Join(root, "gnupg")
+	require.NoError(t, os.MkdirAll(gpgHome, 0o700))
+	t.Cleanup(func() {
+		_ = exec.Command("gpgconf", "--homedir", gpgHome, "--kill", "gpg-agent").Run()
+	})
+
+	genCmd := exec.CommandContext(t.Context(), "gpg", "--homedir", gpgHome, "--batch", "--passphrase", "", "--quick-gen-key", "Subkey Tester <subkey@example.org>", "default", "default", "never")
+	out, err := genCmd.CombinedOutput()
+	require.NoError(t, err, "quick-gen-key failed: %s", string(out))
+
+	listCmd := exec.CommandContext(t.Context(), "gpg", "--homedir", gpgHome, "--with-colons", "--with-fingerprint", "--list-public-keys")
+	listOut, err := listCmd.Output()
+	require.NoError(t, err)
+
+	var primaryFpr, sub1Fpr string
+	for line := range strings.SplitSeq(string(listOut), "\n") {
+		if !strings.HasPrefix(line, "fpr:") {
+			continue
+		}
+		fields := strings.Split(line, ":")
+		if len(fields) < 10 {
+			continue
+		}
+		if primaryFpr == "" {
+			primaryFpr = fields[9]
+		} else if sub1Fpr == "" {
+			sub1Fpr = fields[9]
+		}
+	}
+	require.Len(t, primaryFpr, 40)
+	require.Len(t, sub1Fpr, 40)
+
+	addSubCmd := exec.CommandContext(t.Context(), "gpg", "--homedir", gpgHome, "--batch", "--passphrase", "", "--quick-add-key", primaryFpr, "cv25519", "encr", "never")
+	out, err = addSubCmd.CombinedOutput()
+	require.NoError(t, err, "quick-add-key failed: %s", string(out))
+
+	listCmd = exec.CommandContext(t.Context(), "gpg", "--homedir", gpgHome, "--with-colons", "--with-fingerprint", "--list-public-keys", primaryFpr)
+	listOut, err = listCmd.Output()
+	require.NoError(t, err)
+
+	var sub2Fpr string
+	for line := range strings.SplitSeq(string(listOut), "\n") {
+		if !strings.HasPrefix(line, "fpr:") {
+			continue
+		}
+		fields := strings.Split(line, ":")
+		if len(fields) < 10 {
+			continue
+		}
+		fp := fields[9]
+		if fp != primaryFpr && fp != sub1Fpr {
+			sub2Fpr = fp
+
+			break
+		}
+	}
+	require.Len(t, sub2Fpr, 40)
+
+	return twoSubkeyEnv{
+		root:       root,
+		gpgHome:    gpgHome,
+		primaryFpr: primaryFpr,
+		sub1Fpr:    sub1Fpr,
+		sub2Fpr:    sub2Fpr,
+	}
+}
+
+// TestSubkeyStoreLifecycle exercises end-to-end GPG subkey support across
+// Init, Set (ensureOurKeyID), AddRecipient, RemoveRecipient, fsckCheckRecipients,
+// and UpdateRecipientKeys (issues #909 and #1107).
+func TestSubkeyStoreLifecycle(t *testing.T) {
+	if _, err := exec.LookPath("gpg"); err != nil {
+		t.Skip("gpg not found in PATH")
+	}
+
+	env := setupTwoSubkeyGPGHome(t)
+	root, gpgHome, primaryFpr, sub1Fpr, sub2Fpr := env.root, env.gpgHome, env.primaryFpr, env.sub1Fpr, env.sub2Fpr
+
+	t.Setenv("GNUPGHOME", gpgHome)
+
+	ctx := config.NewContextInMemory()
+	ctx = ctxutil.WithHidden(ctx, true)
+	ctx = gpg.WithAlwaysTrust(ctx, false)
+	ctx = gpg.WithUseCache(ctx, false)
+	cfg := config.NewInMemory()
+	require.NoError(t, cfg.Set("", "core.exportkeys", "true"))
+	ctx = cfg.WithConfig(ctx)
+	ctx, _, _ = captureOutput(t, ctx)
+
+	g, err := gpgcli.New(ctx, gpgcli.Config{})
+	require.NoError(t, err)
+
+	storeDir := filepath.Join(root, "store")
+	require.NoError(t, os.MkdirAll(storeDir, 0o700))
+
+	s := &Store{
+		alias:   "",
+		path:    storeDir,
+		crypto:  g,
+		storage: fs.New(storeDir),
+	}
+
+	// 1. Init with a 40-char forced subkey preserves the subkey and '!'.
+	require.NoError(t, s.Init(ctx, storeDir, sub1Fpr+"!"))
+	assert.Equal(t, []string{sub1Fpr + "!"}, s.Recipients(ctx))
+	assert.Equal(t, sub1Fpr+"!", s.OurKeyID(ctx))
+
+	// 2. Writing a secret encrypts ONLY to sub1 (ensureOurKeyID must not inject primary key).
+	sec := secrets.NewAKV()
+	sec.SetPassword("super-secret")
+	require.NoError(t, s.Set(ctx, "foo", sec))
+
+	ct, err := s.storage.Get(ctx, s.passfile(ctx, "foo"))
+	require.NoError(t, err)
+	recpIDs, err := g.RecipientIDs(ctx, ct)
+	require.NoError(t, err)
+	assert.Equal(t, []string{sub1Fpr}, recpIDs)
+
+	// 3. fsckCheckRecipients passes when encrypted to the exact forced subkey.
+	require.NoError(t, s.fsckCheckRecipients(ctx, "foo").ErrorOrNil())
+
+	// 4. Adding a second forced subkey on the same primary key adds it and re-encrypts to both.
+	require.NoError(t, s.AddRecipient(ctx, sub2Fpr+"!"))
+	assert.ElementsMatch(t, []string{sub1Fpr + "!", sub2Fpr + "!"}, s.Recipients(ctx))
+
+	ct, err = s.storage.Get(ctx, s.passfile(ctx, "foo"))
+	require.NoError(t, err)
+	recpIDs, err = g.RecipientIDs(ctx, ct)
+	require.NoError(t, err)
+	assert.ElementsMatch(t, []string{sub1Fpr, sub2Fpr}, recpIDs)
+	require.NoError(t, s.fsckCheckRecipients(ctx, "foo").ErrorOrNil())
+
+	// 5. Removing sub1 leaves ONLY sub2 and re-encrypts to ONLY sub2.
+	require.NoError(t, s.RemoveRecipient(ctx, sub1Fpr+"!"))
+	assert.Equal(t, []string{sub2Fpr + "!"}, s.Recipients(ctx))
+
+	ct, err = s.storage.Get(ctx, s.passfile(ctx, "foo"))
+	require.NoError(t, err)
+	recpIDs, err = g.RecipientIDs(ctx, ct)
+	require.NoError(t, err)
+	assert.Equal(t, []string{sub2Fpr}, recpIDs)
+	require.NoError(t, s.fsckCheckRecipients(ctx, "foo").ErrorOrNil())
+
+	// 6. fsckCheckRecipients detects when a secret is still encrypted to the old subkey (sub1)
+	// while .gpg-id requires sub2!.
+	staleCT, err := g.Encrypt(ctx, sec.Bytes(), []string{sub1Fpr + "!"})
+	require.NoError(t, err)
+	require.NoError(t, s.storage.Set(ctx, s.passfile(ctx, "foo"), staleCT))
+	require.Error(t, s.fsckCheckRecipients(ctx, "foo").ErrorOrNil(), "fsck must detect wrong subkey encryption")
+
+	// 7. UpdateRecipientKeys with no args updates the forced subkey's .public-keys/ entry.
+	require.NoError(t, s.UpdateRecipientKeys(ctx, nil))
+	assert.True(t, s.storage.Exists(ctx, filepath.Join(keyDir, sub2Fpr+"!")))
+
+	// 8. Re-adding an already-present primary key after adding a new subkey refreshes
+	// .public-keys/ and re-encrypts secrets to the newer subkey (#1107).
+	storeDir2 := filepath.Join(root, "store2")
+	require.NoError(t, os.MkdirAll(storeDir2, 0o700))
+	s2 := &Store{
+		alias:   "",
+		path:    storeDir2,
+		crypto:  g,
+		storage: fs.New(storeDir2),
+	}
+	require.NoError(t, s2.Init(ctx, storeDir2, primaryFpr))
+	primaryID := s2.Recipients(ctx)[0]
+	require.NoError(t, s2.Set(ctx, "bar", sec))
+
+	// Write a sentinel stale public key to confirm AddRecipient refreshes it.
+	pubPath := filepath.Join(keyDir, primaryID)
+	require.NoError(t, s2.storage.Set(ctx, pubPath, []byte("stale-public-key-data-padding-to-exceed-32-bytes")))
+
+	// Re-add using the new subkey ID without '!': confirms re-encryption and refreshes .public-keys/.
+	require.NoError(t, s2.AddRecipient(ctxutil.WithAlwaysYes(ctx, true), sub2Fpr))
+	assert.Equal(t, []string{primaryID}, s2.Recipients(ctx))
+
+	refreshedPub, err := s2.storage.Get(ctx, pubPath)
+	require.NoError(t, err)
+	assert.Contains(t, string(refreshedPub), "BEGIN PGP PUBLIC KEY BLOCK")
+	assert.NoError(t, s2.fsckCheckRecipients(ctx, "bar").ErrorOrNil())
 }

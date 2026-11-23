@@ -477,6 +477,8 @@ func (s *Store) AddRecipient(ctx context.Context, id string) error {
 		if !termio.AskForConfirmation(ctx, fmt.Sprintf("key %q already in store. Do you want to re-encrypt with public key? This is useful if you changed your public key (e.g. added subkeys).", canonID)) {
 			return nil
 		}
+
+		s.refreshExportedPublicKey(ctx, canonID)
 	} else {
 		rs.Add(canonID)
 
@@ -495,6 +497,32 @@ func (s *Store) AddRecipient(ctx context.Context, id string) error {
 	}
 
 	return s.reencrypt(ctxutil.WithCommitMessage(ctx, commitMsg))
+}
+
+func (s *Store) refreshExportedPublicKey(ctx context.Context, canonID string) {
+	cfg, _ := config.FromContext(ctx)
+	if !config.AsBool(cfg.GetM(s.alias, "core.exportkeys")) {
+		return
+	}
+
+	exp, ok := s.crypto.(keyExporter)
+	if !ok {
+		return
+	}
+
+	path, err := s.exportPublicKey(WithPubkeyUpdate(ctx, true), exp, canonID)
+	if err != nil {
+		out.Warningf(ctx, "Failed to update exported public key for %q: %s", canonID, err)
+
+		return
+	}
+	if path == "" {
+		return
+	}
+
+	if err := s.storage.TryAdd(ctx, path); err != nil {
+		debug.Log("AddRecipient: failed to stage %s: %s", path, err)
+	}
 }
 
 // SaveRecipients persists the current recipients on disk. Setting ack to true
@@ -576,6 +604,16 @@ RECIPIENTS:
 				continue RECIPIENTS
 			}
 		}
+
+		if fp := s.crypto.Fingerprint(ctx, k); fp != "" && fp == key {
+			debug.Log("removing recipient based on fingerprint match %s", fp)
+			if rs.Remove(k) {
+				removed++
+				removedIDs = append(removedIDs, k)
+			}
+
+			continue RECIPIENTS
+		}
 	}
 
 	if removed < 1 {
@@ -653,6 +691,16 @@ func (s *Store) OurKeyID(ctx context.Context) string {
 		out.Warning(ctx, "No owner key found. Make sure your key is fully trusted.")
 
 		return ""
+	}
+
+	// Preserve forced subkey syntax ("!") when the store explicitly pins one of our subkeys.
+	for _, r := range recp {
+		if !strings.HasSuffix(r, "!") {
+			continue
+		}
+		if sk, err := s.crypto.FindIdentities(ctx, r); err == nil && len(sk) > 0 {
+			return r
+		}
 	}
 
 	return kl[0]
@@ -739,16 +787,13 @@ func (s *Store) UpdateRecipientKeys(ctx context.Context, ids []string) error {
 		return fmt.Errorf("crypto backend %T cannot export public keys", s.crypto)
 	}
 
-	// Default to our own identity.
+	// Default to our own identity (preferring matching store recipients, e.g. forced subkeys).
 	if len(ids) == 0 {
-		ourIDs, err := s.crypto.FindIdentities(ctx)
+		var err error
+		ids, err = s.defaultUpdateRecipientIDs(ctx)
 		if err != nil {
-			return fmt.Errorf("cannot find own identities: %w", err)
+			return err
 		}
-		if len(ourIDs) == 0 {
-			return fmt.Errorf("no local identities found; provide explicit recipient IDs to update")
-		}
-		ids = ourIDs
 	}
 
 	// Resolve each ID to canonical form.
@@ -800,6 +845,28 @@ func (s *Store) UpdateRecipientKeys(ctx context.Context, ids []string) error {
 	}
 
 	return nil
+}
+
+func (s *Store) defaultUpdateRecipientIDs(ctx context.Context) ([]string, error) {
+	var ids []string
+	for _, r := range s.Recipients(ctx) {
+		if kl, err := s.crypto.FindIdentities(ctx, r); err == nil && len(kl) > 0 {
+			ids = append(ids, r)
+		}
+	}
+	if len(ids) > 0 {
+		return ids, nil
+	}
+
+	ourIDs, err := s.crypto.FindIdentities(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("cannot find own identities: %w", err)
+	}
+	if len(ourIDs) == 0 {
+		return nil, fmt.Errorf("no local identities found; provide explicit recipient IDs to update")
+	}
+
+	return ourIDs, nil
 }
 
 func (s *Store) addMissingKeys(ctx context.Context, exp keyExporter, recipients map[string]bool) (bool, bool) {

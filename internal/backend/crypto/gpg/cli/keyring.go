@@ -74,11 +74,19 @@ func (g *GPG) listKeys(ctx context.Context, typ string, search ...string) (gpg.K
 	return kl, nil
 }
 
-// Fingerprint returns the fingerprint.
+// Fingerprint returns the fingerprint. If id ends with "!" and matches a
+// subkey, the subkey's fingerprint with the trailing "!" is returned so
+// callers can distinguish forced subkeys from the primary key.
 func (g *GPG) Fingerprint(ctx context.Context, id string) string {
 	k, found := g.findKey(ctx, id)
 	if !found {
 		return ""
+	}
+
+	if strings.HasSuffix(id, "!") {
+		if sk, ok := k.MatchSubKey(id); ok && sk.Fingerprint != "" {
+			return sk.Fingerprint + "!"
+		}
 	}
 
 	return k.Fingerprint
