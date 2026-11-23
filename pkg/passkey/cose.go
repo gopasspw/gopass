@@ -150,7 +150,10 @@ func algorithmOf(key crypto.Signer) (Algorithm, error) {
 
 		return EdDSA, nil
 	case *rsa.PrivateKey:
-		if k == nil || k.N == nil || k.D == nil || k.N.BitLen() < rsaMinKeyBits {
+		if k == nil || k.N == nil || k.D == nil || k.E < 2 {
+			return 0, fmt.Errorf("%w: malformed RSA key", ErrUnsupportedKey)
+		}
+		if k.N.BitLen() < rsaMinKeyBits {
 			return 0, fmt.Errorf("%w: RSA keys must have at least %d bits", ErrUnsupportedKey, rsaMinKeyBits)
 		}
 

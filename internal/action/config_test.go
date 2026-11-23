@@ -156,4 +156,18 @@ show.password
 		c := gptest.CliCtx(ctx, t, "autoimport", "false", "42")
 		require.Error(t, act.Config(ctx, c))
 	})
+
+	t.Run("passkey settings must be per-user", func(t *testing.T) {
+		defer buf.Reset()
+
+		// Git config keys are case-insensitive, including the section name.
+		c := gptest.CliCtxWithFlags(ctx, t, map[string]string{"store": "<root>"}, "Passkey.Prefix", "shared/passkeys")
+		require.ErrorContains(t, act.Config(ctx, c), "must be set in the per-user config (without --store)")
+		assert.Empty(t, buf.String())
+		assert.Empty(t, act.cfg.GetM("<root>", "passkey.prefix"))
+
+		c = gptest.CliCtx(ctx, t, "passkey.prefix", "personal/passkeys")
+		require.NoError(t, act.Config(ctx, c))
+		assert.Equal(t, "personal/passkeys", act.cfg.GetUser("passkey.prefix"))
+	})
 }

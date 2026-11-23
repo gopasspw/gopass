@@ -191,8 +191,16 @@ func TestUnsupportedKeys(t *testing.T) {
 	require.ErrorIs(t, err, ErrUnsupportedKey)
 
 	// keys of an unsupported size are not accepted either
-	_, err = algorithmOf(&rsa.PrivateKey{PublicKey: rsa.PublicKey{N: specRSAKey(t).Primes[0], E: 65537}})
+	key := specRSAKey(t)
+	_, err = algorithmOf(&rsa.PrivateKey{PublicKey: rsa.PublicKey{N: key.Primes[0], E: key.E}, D: key.D})
 	require.ErrorIs(t, err, ErrUnsupportedKey)
+
+	// In-memory keys have not gone through the parser's exponent checks.
+	for _, e := range []int{-1, 0, 1} {
+		malformed := &rsa.PrivateKey{PublicKey: rsa.PublicKey{N: key.N, E: e}, D: key.D}
+		_, err := coseKey(malformed)
+		require.ErrorIs(t, err, ErrUnsupportedKey, "exponent %d", e)
+	}
 
 	_, err = parsePrivateKey([]byte("not a key"))
 	require.Error(t, err)

@@ -326,13 +326,22 @@ func TestStoreNamesDifferingInCase(t *testing.T) {
 	old := newCred(t, "example.com", "Alice", "handle")
 	writeCreds(ctx, t, api, "Passkeys/Example.COM/Alice", old)
 
-	entries, err := s.List(ctx, "example.com")
+	entries, err := s.List(ctx, "Example.com")
 	require.NoError(t, err)
 	require.Equal(t, [][]byte{old.ID}, ids(entries))
 
+	name, found, err := s.AccountSecret(ctx, "Example.com", old.UserHandle)
+	require.NoError(t, err)
+	require.True(t, found)
+	assert.Equal(t, "Passkeys/Example.COM/Alice", name)
+
+	cred, found := s.FindUser(ctx, "Example.com", "Alice")
+	require.True(t, found)
+	assert.Equal(t, old.ID, cred.ID)
+
 	// The secret of the account is used as it is spelled.
 	second := newCred(t, "example.com", "alice", "handle")
-	name, err := s.Put(ctx, second)
+	name, err = s.Put(ctx, second)
 	require.NoError(t, err)
 	assert.Equal(t, "Passkeys/Example.COM/Alice", name)
 

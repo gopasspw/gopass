@@ -181,6 +181,7 @@ func cutLast(name string) (string, string, bool) {
 // Relying Party. All such secrets are returned if rpID is empty. Nothing is
 // decrypted. Secrets below the prefix come first.
 func (s *Store) Names(ctx context.Context, rpID string) ([]string, error) {
+	rpID = strings.ToLower(rpID)
 	all, err := s.store.List(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list secrets: %w", err)
@@ -434,6 +435,7 @@ func (s *Store) putTo(ctx context.Context, cred *Credential, target string) (str
 // the credentials of a user account, if there is one. It is the secret a new
 // credential for the account is written to, see [Store.Put].
 func (s *Store) AccountSecret(ctx context.Context, rpID string, userHandle []byte) (string, bool, error) {
+	rpID = strings.ToLower(rpID)
 	names, err := s.Names(ctx, rpID)
 	if err != nil {
 		return "", false, err
@@ -487,6 +489,7 @@ func (s *Store) accountIn(entries []Entry, rpID string, userHandle []byte) (stri
 // named after the user. That is the secret the credentials of a new account
 // are written to, see [Store.Put]. Only this secret is decrypted.
 func (s *Store) FindUser(ctx context.Context, rpID, userName string) (*Credential, bool) {
+	rpID = strings.ToLower(rpID)
 	account := sanitizeName(userName)
 	if account == "" {
 		return nil, false

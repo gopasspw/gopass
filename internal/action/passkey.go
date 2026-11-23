@@ -13,6 +13,7 @@ import (
 	"text/tabwriter"
 
 	"github.com/gopasspw/gopass/internal/action/exit"
+	"github.com/gopasspw/gopass/internal/config"
 	"github.com/gopasspw/gopass/internal/cui"
 	"github.com/gopasspw/gopass/internal/out"
 	"github.com/gopasspw/gopass/internal/store/root"
@@ -21,6 +22,7 @@ import (
 	"github.com/gopasspw/gopass/pkg/debug"
 	"github.com/gopasspw/gopass/pkg/gopass"
 	"github.com/gopasspw/gopass/pkg/passkey"
+	"github.com/gopasspw/gopass/pkg/set"
 	"github.com/gopasspw/gopass/pkg/termio"
 	"github.com/urfave/cli/v3"
 )
@@ -41,6 +43,52 @@ func (p passkeySecretStore) Get(ctx context.Context, name, _ string) (gopass.Sec
 
 func (p passkeySecretStore) Set(ctx context.Context, name string, sec gopass.Byter) error {
 	return p.rs.Set(ctx, name, sec) //nolint:wrapcheck
+}
+
+// passkeyImportStore records the mounts actually written to and staged. An
+// unchanged credential does not call Set and should not trigger a commit.
+type passkeyImportStore struct {
+	passkeySecretStore
+	mounts set.Set[string]
+}
+
+func (p *passkeyImportStore) Set(ctx context.Context, name string, sec gopass.Byter) error {
+	if err := p.passkeySecretStore.Set(ctx, name, sec); err != nil {
+		return err
+	}
+	p.mounts.Add(p.rs.MountPoint(name))
+
+	return nil
+}
+
+func (p *passkeyImportStore) commit(ctx context.Context) error {
+	var errs []error
+
+	for _, mount := range p.mounts.Elements() {
+		storage := p.rs.Storage(ctx, mount)
+		label := mount
+		if label == "" {
+			label = "<root>"
+		}
+		if storage == nil {
+			errs = append(errs, fmt.Errorf("storage not available for %q", label))
+
+			continue
+		}
+		if err := storage.TryCommit(ctx, "Import passkeys"); err != nil {
+			errs = append(errs, fmt.Errorf("failed to commit imported passkeys in %q: %w", label, err))
+
+			continue
+		}
+
+		if config.Bool(config.WithMount(ctx, mount), "core.autopush") {
+			if err := storage.TryPush(ctx, "", ""); err != nil {
+				out.Warningf(ctx, "Imported passkeys were committed in %q but could not be pushed: %s", label, err)
+			}
+		}
+	}
+
+	return errors.Join(errs...)
 }
 
 func (s *passkeyHandler) store(ctx context.Context) *passkey.Store {
@@ -565,18 +613,38 @@ func (s *passkeyHandler) PasskeyImport(ctx context.Context, cmd *cli.Command) er
 		out.Warningf(ctx, "Some passkeys could not be imported: %s", err)
 	}
 
-	st := s.store(ctx)
-
+	batch := &passkeyImportStore{passkeySecretStore: passkeySecretStore{rs: s.Store}}
+	st := passkey.NewStore(ctx, batch)
+	// Stage synchronously: a queued commit would race with the next git add.
+	stageCtx := ctxutil.WithGitCommit(ctx, false)
+	var importErr error
 	for _, cred := range creds {
-		name, err := st.Put(ctx, cred)
+		name, err := st.Put(stageCtx, cred)
 		if err != nil {
-			if !errors.Is(err, passkey.ErrNotSynced) {
-				return exit.Error(exit.Encrypt, err, "failed to store the passkey for %q at %s: %s", cred.Label(), cred.RPID, err)
+			if errors.Is(err, passkey.ErrNotSynced) {
+				// No commit or push was attempted; the write could not be staged.
+				importErr = exit.Error(exit.Git, err, "%s", err)
+			} else {
+				importErr = exit.Error(exit.Encrypt, err, "failed to store the passkey for %q at %s: %s", cred.Label(), cred.RPID, err)
 			}
-			out.Warningf(ctx, "%s", err)
+
+			break
 		}
 
 		out.Printf(ctx, "Imported passkey for %q at %s into %s", cred.Label(), cred.RPID, name)
+	}
+
+	// Finish committing the earlier writes even if a later credential failed.
+	if ctxutil.IsGitCommit(ctx) {
+		if err := batch.commit(ctx); err != nil {
+			if importErr == nil {
+				return exit.Error(exit.Git, err, "%s", err)
+			}
+			out.Warningf(ctx, "%s", err)
+		}
+	}
+	if importErr != nil {
+		return importErr
 	}
 
 	out.OKf(ctx, "Imported %d passkeys", len(creds))

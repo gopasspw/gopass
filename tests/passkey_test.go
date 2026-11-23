@@ -330,3 +330,80 @@ func TestPasskeyIsCommitted(t *testing.T) {
 	assert.Empty(t, git("status", "--porcelain"), "the counter is committed")
 	assert.NotEqual(t, commits, git("rev-list", "--count", "HEAD"))
 }
+
+func TestPasskeyImportIsCommitted(t *testing.T) {
+	if _, err := exec.LookPath("git"); err != nil {
+		t.Skip("git binary not available")
+	}
+
+	ts := newTester(t)
+	defer ts.teardown()
+	out, err := ts.run("init --crypto=gpgcli --storage=gitfs " + keyID)
+	require.NoError(t, err, out)
+
+	// Export two credentials in different secrets, then import into a Git mount.
+	for _, user := range []string{"alice", "bob"} {
+		out, err := ts.run("--yes passkey create example.com " + user)
+		require.NoError(t, err, out)
+	}
+	file := filepath.Join(t.TempDir(), "passkeys.json")
+	out, err = ts.runCmd([]string{ts.Binary, "passkey", "export", "--output", file}, nil)
+	require.NoError(t, err, out)
+
+	dir := ts.storeDir("team")
+	out, err = ts.runCmd([]string{ts.Binary, "init", "--store", "team", "--path", dir, "--crypto=gpgcli", "--storage=gitfs", keyID}, nil)
+	require.NoError(t, err, out)
+	git := func(t *testing.T, args ...string) string {
+		t.Helper()
+
+		out, err := ts.runCmd(append([]string{"git", "-C", dir}, args...), nil)
+		require.NoError(t, err, out)
+
+		return out
+	}
+	run := func(t *testing.T, cmd string) {
+		t.Helper()
+
+		out, err := ts.run(cmd)
+		require.NoError(t, err, out)
+	}
+
+	run(t, "config core.autosync false")
+	run(t, "config core.autopush false")
+
+	t.Run("one commit and push attempt", func(t *testing.T) {
+		run(t, "config passkey.prefix team/passkeys")
+		run(t, "config --store team core.autopush true")
+		git(t, "remote", "add", "origin", filepath.Join(t.TempDir(), "missing.git"))
+		before := git(t, "rev-parse", "HEAD")
+
+		out, err := ts.runCmd([]string{ts.Binary, "passkey", "import", file}, nil)
+		require.NoError(t, err, out)
+		assert.Contains(t, out, "Imported 2 passkeys")
+		assert.Equal(t, 1, strings.Count(out, `committed in "team" but could not be pushed`), out)
+		assert.Empty(t, git(t, "status", "--porcelain"))
+		assert.Equal(t, "1", git(t, "rev-list", "--count", before+"..HEAD"))
+		assert.Equal(t, "passkeys/example.com/alice.gpg\npasskeys/example.com/bob.gpg", git(t, "diff", "--name-only", before, "HEAD"))
+
+		// An import that changes nothing should not commit or push.
+		out, err = ts.runCmd([]string{ts.Binary, "passkey", "import", file}, nil)
+		require.NoError(t, err, out)
+		assert.NotContains(t, out, "could not be pushed")
+		assert.Equal(t, "1", git(t, "rev-list", "--count", before+"..HEAD"))
+	})
+
+	t.Run("commit even when a later write fails", func(t *testing.T) {
+		run(t, "config passkey.prefix team/partial")
+		run(t, "config --store team core.autopush false")
+		out, err := ts.runWithInput("insert -m team/partial/example.com/bob", "password\npasskey: malformed\n")
+		require.NoError(t, err, string(out))
+		before := git(t, "rev-parse", "HEAD")
+
+		got, err := ts.runCmd([]string{ts.Binary, "passkey", "import", file}, nil)
+		require.Error(t, err)
+		assert.Contains(t, got, `failed to store the passkey for "bob"`)
+		assert.NotContains(t, got, "could not be pushed")
+		assert.Empty(t, git(t, "status", "--porcelain"))
+		assert.Equal(t, "partial/example.com/alice.gpg", git(t, "diff", "--name-only", before, "HEAD"))
+	})
+}

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"slices"
+	"strings"
 
 	"github.com/gopasspw/gopass/internal/action/exit"
 	"github.com/gopasspw/gopass/internal/config"
@@ -74,6 +75,10 @@ func contains(haystack []string, needle string) bool {
 }
 
 func (s *miscHandler) setConfigValue(ctx context.Context, store, key, value string) error {
+	if store != "" && strings.HasPrefix(strings.ToLower(key), "passkey.") {
+		return fmt.Errorf("%q must be set in the per-user config (without --store)", key)
+	}
+
 	debug.Log("setting %s to %s for %q", key, value, store)
 
 	level, err := s.cfg.SetWithLevel(store, key, value)
