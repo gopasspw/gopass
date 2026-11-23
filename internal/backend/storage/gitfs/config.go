@@ -43,7 +43,7 @@ func (g *Git) fixConfig(ctx context.Context) error {
 	if sc := gitSSHCommand(); sc != "" {
 		ov, err := g.ConfigGet(ctx, "core.sshCommand")
 		// only set sshCommand if it's not already set. Avoid overwriting user settings.
-		if err != nil && ov == "" {
+		if err == nil && ov == "" {
 			if err := g.ConfigSet(ctx, "core.sshCommand", sc); err != nil {
 				out.Errorf(ctx, "Error while configuring persistent SSH connections: %s", err)
 			}
@@ -93,7 +93,13 @@ func (g *Git) InitConfig(ctx context.Context, userName, userEmail string) error 
 // ConfigSet sets a local config value.
 func (g *Git) ConfigSet(ctx context.Context, key, value string) error {
 	// return g.Cmd(ctx, "gitConfigSet", "config", "--local", key, value)
-	return g.cfg.SetLocal(key, value)
+	if err := g.cfg.SetLocal(key, value); err != nil {
+		return err
+	}
+
+	g.cfg.Reload()
+
+	return nil
 }
 
 // ConfigGet returns a given config value.
