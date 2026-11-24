@@ -6,9 +6,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"regexp"
+	"runtime"
 	"slices"
 	"strconv"
 	"strings"
@@ -148,11 +150,39 @@ func (g *Git) captureCmd(ctx context.Context, name string, args ...string) ([]by
 	cmd.Dir = getPathOverride(ctx, g.fs.Path())
 	cmd.Stdout = bufOut
 	cmd.Stderr = bufErr
+	if runtime.GOOS == "windows" {
+		// Prevent MSYS2's C runtime from glob-expanding literal pathspecs
+		// (e.g. "account[1].gpg") before git sees argv.
+		cmd.Env = withMSYSNoGlob(os.Environ())
+	}
 
 	debug.Log("store.%s: %s %+v (%s)", name, cmd.Path, cmd.Args, g.fs.Path())
 	err := cmd.Run()
 
 	return bufOut.Bytes(), bufErr.Bytes(), err
+}
+
+func withMSYSNoGlob(env []string) []string {
+	out := make([]string, 0, len(env)+1)
+	out = append(out, env...)
+	for i, e := range out {
+		k, v, ok := strings.Cut(e, "=")
+		if !ok || !strings.EqualFold(k, "MSYS") {
+			continue
+		}
+		if slices.Contains(strings.Fields(v), "noglob") {
+			return out
+		}
+		if v == "" {
+			out[i] = k + "=noglob"
+		} else {
+			out[i] = k + "=" + v + " noglob"
+		}
+
+		return out
+	}
+
+	return append(out, "MSYS=noglob")
 }
 
 // Cmd runs an git command.
