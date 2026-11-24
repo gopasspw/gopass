@@ -28,6 +28,13 @@ func TestAddUsesLiteralPaths(t *testing.T) {
 	assert.Equal(t, "account[1].gpg\n", string(out))
 }
 
+func TestWithMSYSNoGlob(t *testing.T) {
+	assert.Equal(t, []string{"FOO=bar", "MSYS=noglob"}, withMSYSNoGlob([]string{"FOO=bar"}))
+	assert.Equal(t, []string{"MSYS=noglob"}, withMSYSNoGlob([]string{"MSYS="}))
+	assert.Equal(t, []string{"msys=winsymlinks:nativestrict noglob"}, withMSYSNoGlob([]string{"msys=winsymlinks:nativestrict"}))
+	assert.Equal(t, []string{"MSYS=winsymlinks:nativestrict noglob"}, withMSYSNoGlob([]string{"MSYS=winsymlinks:nativestrict noglob"}))
+}
+
 func TestGit(t *testing.T) {
 	td := t.TempDir()
 
