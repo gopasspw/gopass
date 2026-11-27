@@ -1,6 +1,9 @@
 package tests
 
 import (
+	"os"
+	"os/exec"
+	"path/filepath"
 	"runtime"
 	"testing"
 
@@ -26,9 +29,9 @@ func TestCompletion(t *testing.T) {
 	t.Run("bash completion", func(t *testing.T) {
 		bash := `__gopass_init_completion() {
   COMPREPLY=()
-  if declare -F _comp_initialize >/dev/null 2>&1; then
+  if declare -f _comp_initialize >/dev/null 2>&1; then
     _comp_initialize "$@"
-  elif declare -F _get_comp_words_by_ref >/dev/null 2>&1; then
+  elif declare -f _get_comp_words_by_ref >/dev/null 2>&1; then
     _get_comp_words_by_ref "$@" cur prev words cword
   else
     cur="${COMP_WORDS[COMP_CWORD]}"
@@ -131,6 +134,23 @@ complete -F _gopass_bash_autocomplete gopass`
 		out, err := ts.run("completion bash")
 		require.NoError(t, err)
 		assert.Equal(t, bash, out)
+	})
+
+	t.Run("bash completion in zsh", func(t *testing.T) {
+		zsh, err := exec.LookPath("zsh")
+		if err != nil {
+			t.Skip("zsh not found")
+		}
+
+		out, err := ts.run("completion bash")
+		require.NoError(t, err)
+
+		script := filepath.Join(t.TempDir(), "gopass.bash")
+		require.NoError(t, os.WriteFile(script, []byte(out), 0o600))
+
+		// In zsh "declare -F name" succeeds even if no such function exists.
+		got, err := exec.Command(zsh, "-f", "-c", `complete() { :; }; . "$1"; __gopass_init_completion`, "zsh", script).CombinedOutput()
+		require.NoError(t, err, string(got))
 	})
 
 	t.Run("zsh completion", func(t *testing.T) {

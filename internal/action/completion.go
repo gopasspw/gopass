@@ -108,9 +108,9 @@ func (s *miscHandler) CompletionBash(ctx context.Context, cmd *cli.Command) erro
 	//    raw COMP_WORDS values.
 	out := `__GPASS_INIT() {
   COMPREPLY=()
-  if declare -F _comp_initialize >/dev/null 2>&1; then
+  if declare -f _comp_initialize >/dev/null 2>&1; then
     _comp_initialize "$@"
-  elif declare -F _get_comp_words_by_ref >/dev/null 2>&1; then
+  elif declare -f _get_comp_words_by_ref >/dev/null 2>&1; then
     _get_comp_words_by_ref "$@" cur prev words cword
   else
     cur="${COMP_WORDS[COMP_CWORD]}"
