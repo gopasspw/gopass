@@ -10,7 +10,7 @@ gopass audit
 
 ## Excludes
 
-You can exclude certain secrets from the audit by adding a `.gopass-audit-exclude` file to the secret. The file should contain a list of RE2 patters to exclude, one per line. For example:
+You can exclude certain secrets from the audit by adding a `.gopass-audit-ignore` file to the root of the store. Each mounted store is checked against its own file. The file should contain a list of RE2 patterns to exclude, one per line. For example:
 
 ```bash
 # Lines starting with # are ignored. Trailing comments are not supported.
